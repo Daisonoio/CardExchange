@@ -1,5 +1,4 @@
 using CardExchange.Infrastructure.Configuration;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,14 +6,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Ignora i cicli di riferimento
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-
-        // Opzionale: Ignora le proprietà null nelle risposte
-        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        // Opzionale: Ignora le proprietà null nelle risposte per ridurre dimensioni payload
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
 
         // Opzionale: Formattazione più leggibile (solo per development)
-        options.JsonSerializerOptions.WriteIndented = true;
+        if (builder.Environment.IsDevelopment())
+        {
+            options.JsonSerializerOptions.WriteIndented = true;
+        }
     });
 
 builder.Services.AddEndpointsApiExplorer();

@@ -1,21 +1,23 @@
-﻿namespace CardExchange.API.DTOs.Responses
-{
-    public class CardSetDto
-    {
-        public int Id { get; set; }
-        public int GameId { get; set; }
-        public string GameName { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string Code { get; set; } = string.Empty;
-        public DateTime? ReleaseDate { get; set; }
-        public string? Description { get; set; }
-        public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
-    }
+﻿using System.ComponentModel.DataAnnotations;
 
-    public class CardSetDetailDto : CardSetDto
+namespace CardExchange.API.DTOs.Requests
+{
+    public class CreateCardSetRequest
     {
-        public int CardInfosCount { get; set; }
-        public IEnumerable<CardInfoDto> CardInfos { get; set; } = new List<CardInfoDto>();
+        [Required(ErrorMessage = "L'ID del gioco è obbligatorio")]
+        public int GameId { get; set; }
+
+        [Required(ErrorMessage = "Il nome è obbligatorio")]
+        [MaxLength(100, ErrorMessage = "Il nome non può superare 100 caratteri")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Il codice è obbligatorio")]
+        [MaxLength(10, ErrorMessage = "Il codice non può superare 10 caratteri")]
+        public string Code { get; set; } = string.Empty;
+
+        public DateTime? ReleaseDate { get; set; }
+
+        [MaxLength(500, ErrorMessage = "La descrizione non può superare 500 caratteri")]
+        public string? Description { get; set; }
     }
 }

@@ -11,6 +11,9 @@ namespace CardExchange.API.DTOs.Requests
         [Range(1, 8, ErrorMessage = "Condizione non valida")]
         public int Condition { get; set; }
 
+        [Range(1, int.MaxValue, ErrorMessage = "La quantità deve essere almeno 1")]
+        public int Quantity { get; set; } = 1;
+
         [MaxLength(500)]
         public string? Notes { get; set; }
 
@@ -24,6 +27,9 @@ namespace CardExchange.API.DTOs.Requests
     {
         [Range(1, 8, ErrorMessage = "Condizione non valida")]
         public int? Condition { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "La quantità deve essere almeno 1")]
+        public int? Quantity { get; set; }
 
         [MaxLength(500)]
         public string? Notes { get; set; }

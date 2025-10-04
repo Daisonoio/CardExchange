@@ -1,4 +1,5 @@
 ﻿using CardExchange.API.DTOs.Requests;
+using CardExchange.API.DTOs.Responses;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -11,15 +12,18 @@ namespace CardExchange.API.Controllers
     {
         private readonly IBaseRepository<CardSet> _cardSetRepository;
         private readonly IBaseRepository<Game> _gameRepository;
+        private readonly ICardInfoRepository _cardInfoRepository;
         private readonly ILogger<CardSetsController> _logger;
 
         public CardSetsController(
             IBaseRepository<CardSet> cardSetRepository,
             IBaseRepository<Game> gameRepository,
+            ICardInfoRepository cardInfoRepository,
             ILogger<CardSetsController> logger)
         {
             _cardSetRepository = cardSetRepository;
             _gameRepository = gameRepository;
+            _cardInfoRepository = cardInfoRepository;
             _logger = logger;
         }
 
@@ -27,12 +31,32 @@ namespace CardExchange.API.Controllers
         /// Ottiene tutti i set di carte
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CardSet>>> GetAllCardSets()
+        public async Task<ActionResult<IEnumerable<CardSetDto>>> GetAllCardSets()
         {
             try
             {
                 var cardSets = await _cardSetRepository.GetAllAsync();
-                return Ok(cardSets);
+
+                // Carica i giochi per avere i nomi
+                var gameIds = cardSets.Select(cs => cs.GameId).Distinct();
+                var games = new Dictionary<int, string>();
+
+                foreach (var gameId in gameIds)
+                {
+                    var game = await _gameRepository.GetByIdAsync(gameId);
+                    if (game != null)
+                    {
+                        games[gameId] = game.Name;
+                    }
+                }
+
+                var cardSetDtos = cardSets.Select(cs => MapToDto(cs, games.GetValueOrDefault(cs.GameId, "Unknown")));
+
+                return Ok(new
+                {
+                    count = cardSetDtos.Count(),
+                    cardSets = cardSetDtos
+                });
             }
             catch (Exception ex)
             {
@@ -45,7 +69,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene un set di carte per ID
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<CardSet>> GetCardSetById(int id)
+        public async Task<ActionResult<CardSetDto>> GetCardSetById(int id)
         {
             try
             {
@@ -56,7 +80,9 @@ namespace CardExchange.API.Controllers
                     return NotFound(new { message = $"CardSet con ID {id} non trovato" });
                 }
 
-                return Ok(cardSet);
+                var game = await _gameRepository.GetByIdAsync(cardSet.GameId);
+
+                return Ok(MapToDto(cardSet, game?.Name ?? "Unknown"));
             }
             catch (Exception ex)
             {
@@ -66,21 +92,56 @@ namespace CardExchange.API.Controllers
         }
 
         /// <summary>
-        /// Ottiene tutti i set di un gioco specifico
+        /// Ottiene un set di carte con tutte le sue carte
         /// </summary>
-        [HttpGet("by-game/{gameId}")]
-        public async Task<ActionResult<IEnumerable<CardSet>>> GetCardSetsByGame(int gameId)
+        [HttpGet("{id}/details")]
+        public async Task<ActionResult<CardSetDetailDto>> GetCardSetDetails(int id)
         {
             try
             {
-                var gameExists = await _gameRepository.GetByIdAsync(gameId);
-                if (gameExists == null)
+                var cardSet = await _cardSetRepository.GetByIdAsync(id);
+
+                if (cardSet == null)
+                {
+                    return NotFound(new { message = $"CardSet con ID {id} non trovato" });
+                }
+
+                var game = await _gameRepository.GetByIdAsync(cardSet.GameId);
+                var cardInfos = await _cardInfoRepository.GetByCardSetAsync(id);
+
+                return Ok(MapToDetailDto(cardSet, game?.Name ?? "Unknown", cardInfos));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante il recupero dei dettagli del CardSet {CardSetId}", id);
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
+        /// <summary>
+        /// Ottiene tutti i set di un gioco specifico
+        /// </summary>
+        [HttpGet("by-game/{gameId}")]
+        public async Task<ActionResult<IEnumerable<CardSetDto>>> GetCardSetsByGame(int gameId)
+        {
+            try
+            {
+                var game = await _gameRepository.GetByIdAsync(gameId);
+                if (game == null)
                 {
                     return NotFound(new { message = $"Gioco con ID {gameId} non trovato" });
                 }
 
                 var cardSets = await _cardSetRepository.FindAsync(cs => cs.GameId == gameId);
-                return Ok(cardSets);
+                var cardSetDtos = cardSets.Select(cs => MapToDto(cs, game.Name));
+
+                return Ok(new
+                {
+                    gameId,
+                    gameName = game.Name,
+                    count = cardSetDtos.Count(),
+                    cardSets = cardSetDtos
+                });
             }
             catch (Exception ex)
             {
@@ -93,12 +154,12 @@ namespace CardExchange.API.Controllers
         /// Crea un nuovo set di carte
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<CardSet>> CreateCardSet([FromBody] CreateCardSetRequest request)
+        public async Task<ActionResult<CardSetDto>> CreateCardSet([FromBody] CreateCardSetRequest request)
         {
             try
             {
-                var gameExists = await _gameRepository.GetByIdAsync(request.GameId);
-                if (gameExists == null)
+                var game = await _gameRepository.GetByIdAsync(request.GameId);
+                if (game == null)
                 {
                     return NotFound(new { message = $"Gioco con ID {request.GameId} non trovato" });
                 }
@@ -118,11 +179,11 @@ namespace CardExchange.API.Controllers
 
                 _logger.LogInformation("CardSet creato: {CardSetId} - {CardSetName}", cardSet.Id, cardSet.Name);
 
-                return CreatedAtAction(nameof(GetCardSetById), new { id = cardSet.Id }, cardSet);
+                return CreatedAtAction(nameof(GetCardSetById), new { id = cardSet.Id }, MapToDto(cardSet, game.Name));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante la creazione del CardSet: "+ex.Message);
+                _logger.LogError(ex, "Errore durante la creazione del CardSet");
                 return StatusCode(500, new { message = "Errore interno del server" });
             }
         }
@@ -131,7 +192,7 @@ namespace CardExchange.API.Controllers
         /// Aggiorna un set di carte esistente
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<ActionResult<CardSet>> UpdateCardSet(int id, [FromBody] UpdateCardSetRequest request)
+        public async Task<ActionResult<CardSetDto>> UpdateCardSet(int id, [FromBody] UpdateCardSetRequest request)
         {
             try
             {
@@ -162,7 +223,8 @@ namespace CardExchange.API.Controllers
 
                 _logger.LogInformation("CardSet aggiornato: {CardSetId}", id);
 
-                return Ok(cardSet);
+                var game = await _gameRepository.GetByIdAsync(cardSet.GameId);
+                return Ok(MapToDto(cardSet, game?.Name ?? "Unknown"));
             }
             catch (Exception ex)
             {
@@ -199,10 +261,54 @@ namespace CardExchange.API.Controllers
                 return StatusCode(500, new { message = "Errore interno del server" });
             }
         }
+
+        // Helper methods
+        private static CardSetDto MapToDto(CardSet cardSet, string gameName)
+        {
+            return new CardSetDto
+            {
+                Id = cardSet.Id,
+                GameId = cardSet.GameId,
+                GameName = gameName,
+                Name = cardSet.Name,
+                Code = cardSet.Code,
+                ReleaseDate = cardSet.ReleaseDate,
+                Description = cardSet.Description,
+                IsActive = cardSet.IsActive,
+                CreatedAt = cardSet.CreatedAt
+            };
+        }
+
+        private static CardSetDetailDto MapToDetailDto(CardSet cardSet, string gameName, IEnumerable<CardInfo> cardInfos)
+        {
+            return new CardSetDetailDto
+            {
+                Id = cardSet.Id,
+                GameId = cardSet.GameId,
+                GameName = gameName,
+                Name = cardSet.Name,
+                Code = cardSet.Code,
+                ReleaseDate = cardSet.ReleaseDate,
+                Description = cardSet.Description,
+                IsActive = cardSet.IsActive,
+                CreatedAt = cardSet.CreatedAt,
+                CardInfosCount = cardInfos.Count(),
+                CardInfos = cardInfos.Select(ci => new CardInfoDto
+                {
+                    Id = ci.Id,
+                    CardSetId = ci.CardSetId,
+                    CardSetName = cardSet.Name,
+                    CardSetCode = cardSet.Code,
+                    GameName = gameName,
+                    Name = ci.Name,
+                    CardNumber = ci.CardNumber,
+                    Rarity = ci.Rarity,
+                    Type = ci.Type,
+                    Description = ci.Description,
+                    ImageUrl = ci.ImageUrl,
+                    CreatedAt = ci.CreatedAt
+                })
+            };
+        }
     }
-
-    // Request DTOs
-
-
-
 }

@@ -1,4 +1,5 @@
 ﻿using CardExchange.API.DTOs.Requests;
+using CardExchange.API.DTOs.Responses;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +11,16 @@ namespace CardExchange.API.Controllers
     public class GamesController : ControllerBase
     {
         private readonly IBaseRepository<Game> _gameRepository;
+        private readonly IBaseRepository<CardSet> _cardSetRepository;
         private readonly ILogger<GamesController> _logger;
 
-        public GamesController(IBaseRepository<Game> gameRepository, ILogger<GamesController> logger)
+        public GamesController(
+            IBaseRepository<Game> gameRepository,
+            IBaseRepository<CardSet> cardSetRepository,
+            ILogger<GamesController> logger)
         {
             _gameRepository = gameRepository;
+            _cardSetRepository = cardSetRepository;
             _logger = logger;
         }
 
@@ -22,12 +28,18 @@ namespace CardExchange.API.Controllers
         /// Ottiene tutti i giochi
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Game>>> GetAllGames()
+        public async Task<ActionResult<IEnumerable<GameDto>>> GetAllGames()
         {
             try
             {
                 var games = await _gameRepository.GetAllAsync();
-                return Ok(games);
+                var gameDtos = games.Select(MapToDto);
+
+                return Ok(new
+                {
+                    count = gameDtos.Count(),
+                    games = gameDtos
+                });
             }
             catch (Exception ex)
             {
@@ -40,7 +52,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene un gioco per ID
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<Game>> GetGameById(int id)
+        public async Task<ActionResult<GameDto>> GetGameById(int id)
         {
             try
             {
@@ -51,7 +63,7 @@ namespace CardExchange.API.Controllers
                     return NotFound(new { message = $"Gioco con ID {id} non trovato" });
                 }
 
-                return Ok(game);
+                return Ok(MapToDto(game));
             }
             catch (Exception ex)
             {
@@ -61,10 +73,36 @@ namespace CardExchange.API.Controllers
         }
 
         /// <summary>
+        /// Ottiene un gioco con tutti i suoi set
+        /// </summary>
+        [HttpGet("{id}/details")]
+        public async Task<ActionResult<GameDetailDto>> GetGameDetails(int id)
+        {
+            try
+            {
+                var game = await _gameRepository.GetByIdAsync(id);
+
+                if (game == null)
+                {
+                    return NotFound(new { message = $"Gioco con ID {id} non trovato" });
+                }
+
+                var cardSets = await _cardSetRepository.FindAsync(cs => cs.GameId == id);
+
+                return Ok(MapToDetailDto(game, cardSets));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante il recupero dei dettagli del gioco {GameId}", id);
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
+        /// <summary>
         /// Crea un nuovo gioco
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<Game>> CreateGame([FromBody] CreateGameRequest request)
+        public async Task<ActionResult<GameDto>> CreateGame([FromBody] CreateGameRequest request)
         {
             try
             {
@@ -81,7 +119,7 @@ namespace CardExchange.API.Controllers
 
                 _logger.LogInformation("Gioco creato: {GameId} - {GameName}", game.Id, game.Name);
 
-                return CreatedAtAction(nameof(GetGameById), new { id = game.Id }, game);
+                return CreatedAtAction(nameof(GetGameById), new { id = game.Id }, MapToDto(game));
             }
             catch (Exception ex)
             {
@@ -94,7 +132,7 @@ namespace CardExchange.API.Controllers
         /// Aggiorna un gioco esistente
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<ActionResult<Game>> UpdateGame(int id, [FromBody] UpdateGameRequest request)
+        public async Task<ActionResult<GameDto>> UpdateGame(int id, [FromBody] UpdateGameRequest request)
         {
             try
             {
@@ -122,7 +160,7 @@ namespace CardExchange.API.Controllers
 
                 _logger.LogInformation("Gioco aggiornato: {GameId}", id);
 
-                return Ok(game);
+                return Ok(MapToDto(game));
             }
             catch (Exception ex)
             {
@@ -159,10 +197,45 @@ namespace CardExchange.API.Controllers
                 return StatusCode(500, new { message = "Errore interno del server" });
             }
         }
+
+        // Helper methods
+        private static GameDto MapToDto(Game game)
+        {
+            return new GameDto
+            {
+                Id = game.Id,
+                Name = game.Name,
+                Description = game.Description,
+                Publisher = game.Publisher,
+                IsActive = game.IsActive,
+                CreatedAt = game.CreatedAt
+            };
+        }
+
+        private static GameDetailDto MapToDetailDto(Game game, IEnumerable<CardSet> cardSets)
+        {
+            return new GameDetailDto
+            {
+                Id = game.Id,
+                Name = game.Name,
+                Description = game.Description,
+                Publisher = game.Publisher,
+                IsActive = game.IsActive,
+                CreatedAt = game.CreatedAt,
+                CardSetsCount = cardSets.Count(),
+                CardSets = cardSets.Select(cs => new CardSetDto
+                {
+                    Id = cs.Id,
+                    GameId = cs.GameId,
+                    GameName = game.Name,
+                    Name = cs.Name,
+                    Code = cs.Code,
+                    ReleaseDate = cs.ReleaseDate,
+                    Description = cs.Description,
+                    IsActive = cs.IsActive,
+                    CreatedAt = cs.CreatedAt
+                })
+            };
+        }
     }
-
-    // Request DTOs
-
-
-
 }

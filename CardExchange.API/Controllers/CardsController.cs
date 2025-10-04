@@ -268,6 +268,7 @@ namespace CardExchange.API.Controllers
                     UserId = userId,
                     CardInfoId = request.CardInfoId,
                     Condition = (CardCondition)request.Condition,
+                    Quantity = request.Quantity,  // ← AGGIUNTO
                     Notes = request.Notes,
                     IsAvailableForTrade = request.IsAvailableForTrade,
                     EstimatedValue = request.EstimatedValue
@@ -312,6 +313,15 @@ namespace CardExchange.API.Controllers
                         return BadRequest(new { message = "Condizione non valida" });
                     }
                     card.Condition = (CardCondition)request.Condition.Value;
+                }
+
+                if (request.Quantity.HasValue)  // ← AGGIUNTO
+                {
+                    if (request.Quantity.Value < 1)
+                    {
+                        return BadRequest(new { message = "La quantità deve essere almeno 1" });
+                    }
+                    card.Quantity = request.Quantity.Value;
                 }
 
                 if (request.Notes != null)

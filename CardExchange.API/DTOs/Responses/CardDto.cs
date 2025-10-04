@@ -12,6 +12,7 @@
         public string? CardNumber { get; set; }
         public string? Rarity { get; set; }
         public string Condition { get; set; } = string.Empty;
+        public int Quantity { get; set; }
         public string? Notes { get; set; }
         public bool IsAvailableForTrade { get; set; }
         public decimal? EstimatedValue { get; set; }

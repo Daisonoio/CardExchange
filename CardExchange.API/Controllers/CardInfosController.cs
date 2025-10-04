@@ -1,4 +1,5 @@
 ﻿using CardExchange.API.DTOs.Requests;
+using CardExchange.API.DTOs.Responses;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -11,15 +12,24 @@ namespace CardExchange.API.Controllers
     {
         private readonly ICardInfoRepository _cardInfoRepository;
         private readonly IBaseRepository<CardSet> _cardSetRepository;
+        private readonly IBaseRepository<Game> _gameRepository;
+        private readonly ICardRepository _cardRepository;
+        private readonly IWishlistRepository _wishlistRepository;
         private readonly ILogger<CardInfosController> _logger;
 
         public CardInfosController(
             ICardInfoRepository cardInfoRepository,
             IBaseRepository<CardSet> cardSetRepository,
+            IBaseRepository<Game> gameRepository,
+            ICardRepository cardRepository,
+            IWishlistRepository wishlistRepository,
             ILogger<CardInfosController> logger)
         {
             _cardInfoRepository = cardInfoRepository;
             _cardSetRepository = cardSetRepository;
+            _gameRepository = gameRepository;
+            _cardRepository = cardRepository;
+            _wishlistRepository = wishlistRepository;
             _logger = logger;
         }
 
@@ -27,12 +37,42 @@ namespace CardExchange.API.Controllers
         /// Ottiene tutte le informazioni delle carte
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CardInfo>>> GetAllCardInfos()
+        public async Task<ActionResult<IEnumerable<CardInfoDto>>> GetAllCardInfos()
         {
             try
             {
                 var cardInfos = await _cardInfoRepository.GetAllAsync();
-                return Ok(cardInfos);
+
+                // Ottieni tutti i CardSet necessari
+                var cardSetIds = cardInfos.Select(ci => ci.CardSetId).Distinct();
+                var cardSets = new Dictionary<int, (string Name, string Code, int GameId)>();
+                var games = new Dictionary<int, string>();
+
+                foreach (var cardSetId in cardSetIds)
+                {
+                    var cardSet = await _cardSetRepository.GetByIdAsync(cardSetId);
+                    if (cardSet != null)
+                    {
+                        cardSets[cardSetId] = (cardSet.Name, cardSet.Code, cardSet.GameId);
+
+                        if (!games.ContainsKey(cardSet.GameId))
+                        {
+                            var game = await _gameRepository.GetByIdAsync(cardSet.GameId);
+                            if (game != null)
+                            {
+                                games[cardSet.GameId] = game.Name;
+                            }
+                        }
+                    }
+                }
+
+                var cardInfoDtos = cardInfos.Select(ci => MapToDto(ci, cardSets, games));
+
+                return Ok(new
+                {
+                    count = cardInfoDtos.Count(),
+                    cardInfos = cardInfoDtos
+                });
             }
             catch (Exception ex)
             {
@@ -45,7 +85,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene una CardInfo per ID
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<CardInfo>> GetCardInfoById(int id)
+        public async Task<ActionResult<CardInfoDto>> GetCardInfoById(int id)
         {
             try
             {
@@ -56,7 +96,21 @@ namespace CardExchange.API.Controllers
                     return NotFound(new { message = $"CardInfo con ID {id} non trovata" });
                 }
 
-                return Ok(cardInfo);
+                var cardSet = await _cardSetRepository.GetByIdAsync(cardInfo.CardSetId);
+                var game = cardSet != null ? await _gameRepository.GetByIdAsync(cardSet.GameId) : null;
+
+                var cardSets = new Dictionary<int, (string Name, string Code, int GameId)>
+                {
+                    [cardInfo.CardSetId] = (cardSet?.Name ?? "Unknown", cardSet?.Code ?? "", cardSet?.GameId ?? 0)
+                };
+
+                var games = new Dictionary<int, string>();
+                if (game != null && cardSet != null)
+                {
+                    games[cardSet.GameId] = game.Name;
+                }
+
+                return Ok(MapToDto(cardInfo, cardSets, games));
             }
             catch (Exception ex)
             {
@@ -66,21 +120,85 @@ namespace CardExchange.API.Controllers
         }
 
         /// <summary>
-        /// Ottiene tutte le carte di un set specifico
+        /// Ottiene una CardInfo con statistiche dettagliate
         /// </summary>
-        [HttpGet("by-cardset/{cardSetId}")]
-        public async Task<ActionResult<IEnumerable<CardInfo>>> GetCardInfosByCardSet(int cardSetId)
+        [HttpGet("{id}/details")]
+        public async Task<ActionResult<CardInfoDetailDto>> GetCardInfoDetails(int id)
         {
             try
             {
-                var cardSetExists = await _cardSetRepository.GetByIdAsync(cardSetId);
-                if (cardSetExists == null)
+                var cardInfo = await _cardInfoRepository.GetByIdAsync(id);
+
+                if (cardInfo == null)
+                {
+                    return NotFound(new { message = $"CardInfo con ID {id} non trovata" });
+                }
+
+                var cardSet = await _cardSetRepository.GetByIdAsync(cardInfo.CardSetId);
+                var game = cardSet != null ? await _gameRepository.GetByIdAsync(cardSet.GameId) : null;
+
+                // Conta le carte nelle collezioni
+                var cardsInCollections = await _cardRepository.FindAsync(c => c.CardInfoId == id);
+                var availableForTrade = cardsInCollections.Count(c => c.IsAvailableForTrade);
+
+                // Conta le carte nelle wishlist
+                var wishlistItems = await _wishlistRepository.FindAsync(wi => wi.CardInfoId == id);
+
+                return Ok(MapToDetailDto(
+                    cardInfo,
+                    cardSet?.Name ?? "Unknown",
+                    cardSet?.Code ?? "",
+                    game?.Name ?? "Unknown",
+                    cardsInCollections.Count(),
+                    availableForTrade,
+                    wishlistItems.Count()
+                ));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante il recupero dei dettagli della CardInfo {CardInfoId}", id);
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
+        /// <summary>
+        /// Ottiene tutte le carte di un set specifico
+        /// </summary>
+        [HttpGet("by-cardset/{cardSetId}")]
+        public async Task<ActionResult<IEnumerable<CardInfoDto>>> GetCardInfosByCardSet(int cardSetId)
+        {
+            try
+            {
+                var cardSet = await _cardSetRepository.GetByIdAsync(cardSetId);
+                if (cardSet == null)
                 {
                     return NotFound(new { message = $"CardSet con ID {cardSetId} non trovato" });
                 }
 
+                var game = await _gameRepository.GetByIdAsync(cardSet.GameId);
                 var cardInfos = await _cardInfoRepository.GetByCardSetAsync(cardSetId);
-                return Ok(cardInfos);
+
+                var cardSets = new Dictionary<int, (string Name, string Code, int GameId)>
+                {
+                    [cardSetId] = (cardSet.Name, cardSet.Code, cardSet.GameId)
+                };
+
+                var games = new Dictionary<int, string>
+                {
+                    [cardSet.GameId] = game?.Name ?? "Unknown"
+                };
+
+                var cardInfoDtos = cardInfos.Select(ci => MapToDto(ci, cardSets, games));
+
+                return Ok(new
+                {
+                    cardSetId,
+                    cardSetName = cardSet.Name,
+                    cardSetCode = cardSet.Code,
+                    gameName = game?.Name ?? "Unknown",
+                    count = cardInfoDtos.Count(),
+                    cardInfos = cardInfoDtos
+                });
             }
             catch (Exception ex)
             {
@@ -93,7 +211,7 @@ namespace CardExchange.API.Controllers
         /// Cerca carte per nome
         /// </summary>
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<CardInfo>>> SearchCardInfos([FromQuery] string name)
+        public async Task<ActionResult<IEnumerable<CardInfoDto>>> SearchCardInfos([FromQuery] string name)
         {
             try
             {
@@ -108,7 +226,38 @@ namespace CardExchange.API.Controllers
                 }
 
                 var cardInfos = await _cardInfoRepository.SearchByNameAsync(name);
-                return Ok(cardInfos);
+
+                // Ottieni tutti i CardSet necessari
+                var cardSetIds = cardInfos.Select(ci => ci.CardSetId).Distinct();
+                var cardSets = new Dictionary<int, (string Name, string Code, int GameId)>();
+                var games = new Dictionary<int, string>();
+
+                foreach (var cardSetId in cardSetIds)
+                {
+                    var cardSet = await _cardSetRepository.GetByIdAsync(cardSetId);
+                    if (cardSet != null)
+                    {
+                        cardSets[cardSetId] = (cardSet.Name, cardSet.Code, cardSet.GameId);
+
+                        if (!games.ContainsKey(cardSet.GameId))
+                        {
+                            var game = await _gameRepository.GetByIdAsync(cardSet.GameId);
+                            if (game != null)
+                            {
+                                games[cardSet.GameId] = game.Name;
+                            }
+                        }
+                    }
+                }
+
+                var cardInfoDtos = cardInfos.Select(ci => MapToDto(ci, cardSets, games));
+
+                return Ok(new
+                {
+                    searchTerm = name,
+                    count = cardInfoDtos.Count(),
+                    cardInfos = cardInfoDtos
+                });
             }
             catch (Exception ex)
             {
@@ -121,7 +270,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene le carte più popolari
         /// </summary>
         [HttpGet("popular")]
-        public async Task<ActionResult<IEnumerable<CardInfo>>> GetPopularCards([FromQuery] int count = 10)
+        public async Task<ActionResult<IEnumerable<CardInfoDto>>> GetPopularCards([FromQuery] int count = 10)
         {
             try
             {
@@ -131,7 +280,37 @@ namespace CardExchange.API.Controllers
                 }
 
                 var cardInfos = await _cardInfoRepository.GetPopularCardsAsync(count);
-                return Ok(cardInfos);
+
+                // Ottieni tutti i CardSet necessari
+                var cardSetIds = cardInfos.Select(ci => ci.CardSetId).Distinct();
+                var cardSets = new Dictionary<int, (string Name, string Code, int GameId)>();
+                var games = new Dictionary<int, string>();
+
+                foreach (var cardSetId in cardSetIds)
+                {
+                    var cardSet = await _cardSetRepository.GetByIdAsync(cardSetId);
+                    if (cardSet != null)
+                    {
+                        cardSets[cardSetId] = (cardSet.Name, cardSet.Code, cardSet.GameId);
+
+                        if (!games.ContainsKey(cardSet.GameId))
+                        {
+                            var game = await _gameRepository.GetByIdAsync(cardSet.GameId);
+                            if (game != null)
+                            {
+                                games[cardSet.GameId] = game.Name;
+                            }
+                        }
+                    }
+                }
+
+                var cardInfoDtos = cardInfos.Select(ci => MapToDto(ci, cardSets, games));
+
+                return Ok(new
+                {
+                    count = cardInfoDtos.Count(),
+                    cardInfos = cardInfoDtos
+                });
             }
             catch (Exception ex)
             {
@@ -144,12 +323,12 @@ namespace CardExchange.API.Controllers
         /// Crea una nuova CardInfo
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<CardInfo>> CreateCardInfo([FromBody] CreateCardInfoRequest request)
+        public async Task<ActionResult<CardInfoDto>> CreateCardInfo([FromBody] CreateCardInfoRequest request)
         {
             try
             {
-                var cardSetExists = await _cardSetRepository.GetByIdAsync(request.CardSetId);
-                if (cardSetExists == null)
+                var cardSet = await _cardSetRepository.GetByIdAsync(request.CardSetId);
+                if (cardSet == null)
                 {
                     return NotFound(new { message = $"CardSet con ID {request.CardSetId} non trovato" });
                 }
@@ -170,7 +349,19 @@ namespace CardExchange.API.Controllers
 
                 _logger.LogInformation("CardInfo creata: {CardInfoId} - {CardInfoName}", cardInfo.Id, cardInfo.Name);
 
-                return CreatedAtAction(nameof(GetCardInfoById), new { id = cardInfo.Id }, cardInfo);
+                var game = await _gameRepository.GetByIdAsync(cardSet.GameId);
+
+                var cardSets = new Dictionary<int, (string Name, string Code, int GameId)>
+                {
+                    [request.CardSetId] = (cardSet.Name, cardSet.Code, cardSet.GameId)
+                };
+
+                var games = new Dictionary<int, string>
+                {
+                    [cardSet.GameId] = game?.Name ?? "Unknown"
+                };
+
+                return CreatedAtAction(nameof(GetCardInfoById), new { id = cardInfo.Id }, MapToDto(cardInfo, cardSets, games));
             }
             catch (Exception ex)
             {
@@ -183,7 +374,7 @@ namespace CardExchange.API.Controllers
         /// Aggiorna una CardInfo esistente
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<ActionResult<CardInfo>> UpdateCardInfo(int id, [FromBody] UpdateCardInfoRequest request)
+        public async Task<ActionResult<CardInfoDto>> UpdateCardInfo(int id, [FromBody] UpdateCardInfoRequest request)
         {
             try
             {
@@ -217,7 +408,21 @@ namespace CardExchange.API.Controllers
 
                 _logger.LogInformation("CardInfo aggiornata: {CardInfoId}", id);
 
-                return Ok(cardInfo);
+                var cardSet = await _cardSetRepository.GetByIdAsync(cardInfo.CardSetId);
+                var game = cardSet != null ? await _gameRepository.GetByIdAsync(cardSet.GameId) : null;
+
+                var cardSets = new Dictionary<int, (string Name, string Code, int GameId)>
+                {
+                    [cardInfo.CardSetId] = (cardSet?.Name ?? "Unknown", cardSet?.Code ?? "", cardSet?.GameId ?? 0)
+                };
+
+                var games = new Dictionary<int, string>();
+                if (game != null && cardSet != null)
+                {
+                    games[cardSet.GameId] = game.Name;
+                }
+
+                return Ok(MapToDto(cardInfo, cardSets, games));
             }
             catch (Exception ex)
             {
@@ -254,10 +459,74 @@ namespace CardExchange.API.Controllers
                 return StatusCode(500, new { message = "Errore interno del server" });
             }
         }
+
+        // Helper methods
+        // Helper methods
+        private static CardDto MapToDto(Card card)
+        {
+            return new CardDto
+            {
+                Id = card.Id,
+                UserId = card.UserId,
+                UserUsername = card.User?.Username ?? string.Empty,
+                CardInfoId = card.CardInfoId,
+                CardName = card.CardInfo?.Name ?? string.Empty,
+                CardSetName = card.CardInfo?.CardSet?.Name ?? string.Empty,
+                GameName = card.CardInfo?.CardSet?.Game?.Name ?? string.Empty,
+                CardNumber = card.CardInfo?.CardNumber,
+                Rarity = card.CardInfo?.Rarity,
+                Condition = card.Condition.ToString(),
+                Quantity = card.Quantity,  // ← AGGIUNTO
+                Notes = card.Notes,
+                IsAvailableForTrade = card.IsAvailableForTrade,
+                EstimatedValue = card.EstimatedValue,
+                CreatedAt = card.CreatedAt,
+                UserLocation = card.User?.Location != null ? new UserLocationDto
+                {
+                    City = card.User.Location.City,
+                    Province = card.User.Location.Province,
+                    Country = card.User.Location.Country,
+                    PostalCode = card.User.Location.PostalCode,
+                    Latitude = card.User.Location.Latitude,
+                    Longitude = card.User.Location.Longitude,
+                    MaxDistanceKm = card.User.Location.MaxDistanceKm
+                } : null
+            };
+        }
+
+        private static CardDetailDto MapToDetailDto(Card card)
+        {
+            return new CardDetailDto
+            {
+                Id = card.Id,
+                UserId = card.UserId,
+                UserUsername = card.User?.Username ?? string.Empty,
+                CardInfoId = card.CardInfoId,
+                CardName = card.CardInfo?.Name ?? string.Empty,
+                CardSetName = card.CardInfo?.CardSet?.Name ?? string.Empty,
+                GameName = card.CardInfo?.CardSet?.Game?.Name ?? string.Empty,
+                CardNumber = card.CardInfo?.CardNumber,
+                Rarity = card.CardInfo?.Rarity,
+                CardType = card.CardInfo?.Type,
+                CardDescription = card.CardInfo?.Description,
+                ImageUrl = card.CardInfo?.ImageUrl,
+                Condition = card.Condition.ToString(),
+                Quantity = card.Quantity,  // ← AGGIUNTO
+                Notes = card.Notes,
+                IsAvailableForTrade = card.IsAvailableForTrade,
+                EstimatedValue = card.EstimatedValue,
+                CreatedAt = card.CreatedAt,
+                UserLocation = card.User?.Location != null ? new UserLocationDto
+                {
+                    City = card.User.Location.City,
+                    Province = card.User.Location.Province,
+                    Country = card.User.Location.Country,
+                    PostalCode = card.User.Location.PostalCode,
+                    Latitude = card.User.Location.Latitude,
+                    Longitude = card.User.Location.Longitude,
+                    MaxDistanceKm = card.User.Location.MaxDistanceKm
+                } : null
+            };
+        }
     }
-
-    // Request DTOs
-
-
-
 }

@@ -26,6 +26,10 @@ namespace CardExchange.Core.Entities
         [Required]
         public CardCondition Condition { get; set; }
 
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "La quantità deve essere almeno 1")]
+        public int Quantity { get; set; } = 1;
+
         [MaxLength(500)]
         public string? Notes { get; set; }
 
