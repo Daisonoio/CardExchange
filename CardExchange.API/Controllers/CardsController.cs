@@ -1,13 +1,16 @@
-﻿using CardExchange.API.DTOs.Requests;
+﻿using CardExchange.API.Authorization;
+using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CardExchange.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class CardsController : ControllerBase
     {
         private readonly ICardRepository _cardRepository;
@@ -31,6 +34,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene tutte le carte disponibili per lo scambio
         /// </summary>
         [HttpGet]
+        [RequirePermission("CARDS.READ.ALL")]
         public async Task<ActionResult<IEnumerable<CardDto>>> GetAllAvailableCards()
         {
             try
@@ -55,6 +59,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene una carta specifica per ID
         /// </summary>
         [HttpGet("{id}")]
+        [RequirePermission("CARDS.READ.ALL")]
         public async Task<ActionResult<CardDetailDto>> GetCardById(int id)
         {
             try
@@ -82,6 +87,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene tutte le carte di un utente specifico
         /// </summary>
         [HttpGet("user/{userId}")]
+        [RequirePermission("CARDS.READ.ALL")]
         public async Task<ActionResult<IEnumerable<CardDto>>> GetUserCards(int userId)
         {
             try
@@ -114,6 +120,7 @@ namespace CardExchange.API.Controllers
         /// Cerca carte per nome o set
         /// </summary>
         [HttpGet("search")]
+        [RequirePermission("SEARCH.BASIC")]
         public async Task<ActionResult<IEnumerable<CardDto>>> SearchCards([FromQuery] string searchTerm)
         {
             try
@@ -149,6 +156,7 @@ namespace CardExchange.API.Controllers
         /// Cerca carte per località
         /// </summary>
         [HttpGet("by-location")]
+        [RequirePermission("SEARCH.GEOGRAPHIC")]
         public async Task<ActionResult<IEnumerable<CardDto>>> GetCardsByLocation(
             [FromQuery] string city,
             [FromQuery] string province,
@@ -182,6 +190,7 @@ namespace CardExchange.API.Controllers
         /// Cerca carte per condizione
         /// </summary>
         [HttpGet("by-condition/{condition}")]
+        [RequirePermission("CARDS.READ.ALL")]
         public async Task<ActionResult<IEnumerable<CardDto>>> GetCardsByCondition(int condition)
         {
             try
@@ -213,6 +222,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene tutte le carte disponibili per una specifica CardInfo
         /// </summary>
         [HttpGet("by-cardinfo/{cardInfoId}")]
+        [RequirePermission("CARDS.READ.ALL")]
         public async Task<ActionResult<IEnumerable<CardDto>>> GetCardsByCardInfo(int cardInfoId)
         {
             try
@@ -245,6 +255,7 @@ namespace CardExchange.API.Controllers
         /// Aggiunge una carta alla collezione di un utente
         /// </summary>
         [HttpPost("user/{userId}")]
+        [RequirePermission("CARDS.CREATE.OWN")]
         public async Task<ActionResult<CardDto>> CreateCard(int userId, [FromBody] CreateCardRequest request)
         {
             try
@@ -294,6 +305,7 @@ namespace CardExchange.API.Controllers
         /// Aggiorna una carta esistente
         /// </summary>
         [HttpPut("{id}")]
+        [RequirePermission("CARDS.UPDATE.OWN", "CARDS.DELETE.ANY")]
         public async Task<ActionResult<CardDto>> UpdateCard(int id, [FromBody] UpdateCardRequest request)
         {
             try
@@ -353,6 +365,7 @@ namespace CardExchange.API.Controllers
         /// Elimina una carta dalla collezione (soft delete)
         /// </summary>
         [HttpDelete("{id}")]
+        [RequirePermission("CARDS.DELETE.OWN", "CARDS.DELETE.ANY")]
         public async Task<IActionResult> DeleteCard(int id)
         {
             try
@@ -378,7 +391,144 @@ namespace CardExchange.API.Controllers
             }
         }
 
-        // Helper methods
+        /// <summary>
+        /// Cerca carte disponibili in un raggio specifico dalla posizione dell'utente
+        /// </summary>
+        [HttpGet("nearby/{userId}")]
+        [RequirePermission("SEARCH.GEOGRAPHIC")]
+        public async Task<ActionResult<IEnumerable<CardDto>>> GetCardsNearUser(
+            int userId,
+            [FromQuery] int radiusKm = 50,
+            [FromQuery] string? searchTerm = null,
+            [FromQuery] int? gameId = null,
+            [FromQuery] int? cardSetId = null)
+        {
+            try
+            {
+                var user = await _userRepository.GetWithLocationAsync(userId);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = $"Utente con ID {userId} non trovato" });
+                }
+
+                if (user.Location == null || !user.Location.Latitude.HasValue || !user.Location.Longitude.HasValue)
+                {
+                    return BadRequest(new { message = "L'utente non ha una location configurata" });
+                }
+
+                if (radiusKm < 1 || radiusKm > 1000)
+                {
+                    return BadRequest(new { message = "Il raggio deve essere tra 1 e 1000 km" });
+                }
+
+                // Ottieni tutte le carte disponibili
+                var allCards = await _cardRepository.GetAvailableCardsAsync();
+
+                // Escludi le proprie carte
+                allCards = allCards.Where(c => c.UserId != userId);
+
+                // Filtra per termine di ricerca se fornito
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    var lowerSearchTerm = searchTerm.ToLower();
+                    allCards = allCards.Where(c =>
+                        c.CardInfo.Name.ToLower().Contains(lowerSearchTerm) ||
+                        c.CardInfo.CardSet.Name.ToLower().Contains(lowerSearchTerm) ||
+                        c.CardInfo.CardSet.Game.Name.ToLower().Contains(lowerSearchTerm));
+                }
+
+                // Filtra per gioco se fornito
+                if (gameId.HasValue)
+                {
+                    allCards = allCards.Where(c => c.CardInfo.CardSet.GameId == gameId.Value);
+                }
+
+                // Filtra per set se fornito
+                if (cardSetId.HasValue)
+                {
+                    allCards = allCards.Where(c => c.CardInfo.CardSetId == cardSetId.Value);
+                }
+
+                // Filtra per distanza
+                var cardsInRadius = new List<(Card card, double distance)>();
+
+                foreach (var card in allCards)
+                {
+                    if (card.User?.Location != null &&
+                        card.User.Location.Latitude.HasValue &&
+                        card.User.Location.Longitude.HasValue)
+                    {
+                        var distance = CalculateDistance(
+                            (double)user.Location.Latitude.Value,
+                            (double)user.Location.Longitude.Value,
+                            (double)card.User.Location.Latitude.Value,
+                            (double)card.User.Location.Longitude.Value
+                        );
+
+                        if (distance <= radiusKm)
+                        {
+                            cardsInRadius.Add((card, distance));
+                        }
+                    }
+                }
+
+                // Ordina per distanza
+                var sortedCards = cardsInRadius
+                    .OrderBy(x => x.distance)
+                    .Select(x => x.card);
+
+                var cardDtos = sortedCards.Select(MapToDto);
+
+                return Ok(new
+                {
+                    userId,
+                    username = user.Username,
+                    userLocation = new
+                    {
+                        city = user.Location.City,
+                        province = user.Location.Province,
+                        country = user.Location.Country,
+                        latitude = user.Location.Latitude,
+                        longitude = user.Location.Longitude
+                    },
+                    radiusKm,
+                    searchTerm,
+                    gameId,
+                    cardSetId,
+                    count = cardDtos.Count(),
+                    cards = cardDtos
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante la ricerca carte nelle vicinanze dell'utente {UserId}", userId);
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
+        private static double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double earthRadiusKm = 6371;
+
+            var dLat = DegreesToRadians(lat2 - lat1);
+            var dLon = DegreesToRadians(lon2 - lon1);
+
+            lat1 = DegreesToRadians(lat1);
+            lat2 = DegreesToRadians(lat2);
+
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2) * Math.Cos(lat1) * Math.Cos(lat2);
+            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+            return earthRadiusKm * c;
+        }
+
+        private static double DegreesToRadians(double degrees)
+        {
+            return degrees * Math.PI / 180;
+        }
+
         private static CardDto MapToDto(Card card)
         {
             return new CardDto

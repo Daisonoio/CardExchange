@@ -1,7 +1,9 @@
-﻿using CardExchange.API.DTOs.Requests;
+﻿using CardExchange.API.Authorization;
+using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CardExchange.API.Controllers
@@ -20,9 +22,10 @@ namespace CardExchange.API.Controllers
         }
 
         /// <summary>
-        /// Ottiene tutti gli utenti
-        /// </summary>
+        /// Ottiene tutti gli utenti, Endpoint solo per ADMIN
+        /// </summary> 
         [HttpGet]
+        [RequirePermission("USERS.READ.ALL")]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
         {
             try
@@ -67,6 +70,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene un utente per username
         /// </summary>
         [HttpGet("by-username/{username}")]
+        [RequirePermission("USERS.READ.PUBLIC")]
         public async Task<ActionResult<UserDto>> GetUserByUsername(string username)
         {
             try
@@ -92,6 +96,7 @@ namespace CardExchange.API.Controllers
         /// Cerca utenti per località
         /// </summary>
         [HttpGet("by-location")]
+        [RequirePermission("USERS.READ.PUBLIC")]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersByLocation(
             [FromQuery] string city,
             [FromQuery] string province,
@@ -120,6 +125,7 @@ namespace CardExchange.API.Controllers
         /// Cerca utenti in un raggio specificato
         /// </summary>
         [HttpGet("nearby")]
+        [RequirePermission("SEARCH.GEOGRAPHIC")]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetNearbyUsers(
             [FromQuery] decimal latitude,
             [FromQuery] decimal longitude,
@@ -153,6 +159,7 @@ namespace CardExchange.API.Controllers
         /// Crea un nuovo utente
         /// </summary>
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserRequest request)
         {
             try
@@ -201,6 +208,7 @@ namespace CardExchange.API.Controllers
         /// Aggiorna un utente esistente
         /// </summary>
         [HttpPut("{id}")]
+        [RequirePermission("USERS.UPDATE.OWN", "USERS.UPDATE.ANY")]
         public async Task<ActionResult<UserDto>> UpdateUser(int id, [FromBody] UpdateUserRequest request)
         {
             try
@@ -241,6 +249,7 @@ namespace CardExchange.API.Controllers
         /// Aggiunge o aggiorna la posizione di un utente
         /// </summary>
         [HttpPut("{id}/location")]
+        [RequirePermission("USERS.UPDATE.OWN", "USERS.UPDATE.ANY")]
         public async Task<ActionResult<UserDto>> UpdateUserLocation(int id, [FromBody] CreateUserLocationRequest request)
         {
             try
@@ -298,6 +307,7 @@ namespace CardExchange.API.Controllers
         /// Disattiva un utente (soft delete)
         /// </summary>
         [HttpDelete("{id}")]
+        [RequirePermission("USERS.DELETE.ANY")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             try

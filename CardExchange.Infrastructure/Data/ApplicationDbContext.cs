@@ -18,6 +18,10 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<Card> Cards { get; set; }
         public DbSet<WishlistItem> WishlistItems { get; set; }
         public DbSet<TradeOffer> TradeOffers { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,11 +41,10 @@ namespace CardExchange.Infrastructure.Data
             {
                 entity.HasIndex(ul => ul.UserId).IsUnique();
 
-                // Configurazione precision per coordinate GPS
                 entity.Property(ul => ul.Latitude)
-                      .HasPrecision(10, 8); // Precisione sufficiente per coordinate GPS
+                      .HasPrecision(10, 8);
                 entity.Property(ul => ul.Longitude)
-                      .HasPrecision(11, 8); // Longitude può avere valori fino a 180
+                      .HasPrecision(11, 8);
 
                 entity.HasOne(ul => ul.User)
                       .WithOne(u => u.Location)
@@ -80,7 +83,6 @@ namespace CardExchange.Infrastructure.Data
             {
                 entity.HasIndex(c => new { c.UserId, c.CardInfoId });
 
-                // Configurazione precision per valore stimato (es: 999999.99)
                 entity.Property(c => c.EstimatedValue)
                       .HasPrecision(10, 2);
 
@@ -99,7 +101,6 @@ namespace CardExchange.Infrastructure.Data
             {
                 entity.HasIndex(wi => new { wi.UserId, wi.CardInfoId }).IsUnique();
 
-                // Configurazione precision per prezzo massimo
                 entity.Property(wi => wi.MaxPrice)
                       .HasPrecision(10, 2);
 
@@ -113,23 +114,77 @@ namespace CardExchange.Infrastructure.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Configurazioni TradeOffer
+            // Configurazioni TradeOffer - CORRETTE
             modelBuilder.Entity<TradeOffer>(entity =>
             {
                 entity.HasOne(to => to.Sender)
                       .WithMany(u => u.SentOffers)
                       .HasForeignKey(to => to.SenderId)
                       .OnDelete(DeleteBehavior.Restrict);
+
                 entity.HasOne(to => to.Receiver)
                       .WithMany(u => u.ReceivedOffers)
                       .HasForeignKey(to => to.ReceiverId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                // Impedire che un utente mandi un'offerta a se stesso
                 entity.HasCheckConstraint("CK_TradeOffer_DifferentUsers", "[SenderId] != [ReceiverId]");
             });
 
-            // Configurazioni per il soft delete (solo per entità che ereditano da BaseEntity)
+            // Configurazione Role
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.HasIndex(r => r.Name).IsUnique();
+                entity.Property(r => r.Name).IsRequired().HasMaxLength(50);
+            });
+
+            // Configurazione Permission
+            modelBuilder.Entity<Permission>(entity =>
+            {
+                entity.HasIndex(p => p.Name).IsUnique();
+                entity.Property(p => p.Name).IsRequired().HasMaxLength(100);
+                entity.HasIndex(p => p.Category);
+            });
+
+            // Configurazione UserRole
+            modelBuilder.Entity<UserRole>(entity =>
+            {
+                entity.HasIndex(ur => new { ur.UserId, ur.RoleId }).IsUnique();
+
+                entity.HasOne(ur => ur.User)
+                      .WithMany(u => u.UserRoles)
+                      .HasForeignKey(ur => ur.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(ur => ur.Role)
+                      .WithMany(r => r.UserRoles)
+                      .HasForeignKey(ur => ur.RoleId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(ur => ur.AssignedByUser)
+                      .WithMany()
+                      .HasForeignKey(ur => ur.AssignedBy)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Configurazione RolePermission
+            modelBuilder.Entity<RolePermission>(entity =>
+            {
+                entity.HasKey(rp => new { rp.RoleId, rp.PermissionId });
+
+                entity.HasOne(rp => rp.Role)
+                      .WithMany(r => r.RolePermissions)
+                      .HasForeignKey(rp => rp.RoleId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(rp => rp.Permission)
+                      .WithMany(p => p.RolePermissions)
+                      .HasForeignKey(rp => rp.PermissionId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasQueryFilter(rp => !rp.Role.IsDeleted && !rp.Permission.IsDeleted);
+            });
+
+            // Query filters per soft delete
             modelBuilder.Entity<UserLocation>().HasQueryFilter(ul => !ul.IsDeleted);
             modelBuilder.Entity<Game>().HasQueryFilter(g => !g.IsDeleted);
             modelBuilder.Entity<CardSet>().HasQueryFilter(cs => !cs.IsDeleted);
@@ -137,7 +192,18 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<Card>().HasQueryFilter(c => !c.IsDeleted);
             modelBuilder.Entity<WishlistItem>().HasQueryFilter(wi => !wi.IsDeleted);
             modelBuilder.Entity<TradeOffer>().HasQueryFilter(to => !to.IsDeleted);
+            modelBuilder.Entity<Role>(entity =>
+            {
+                entity.HasQueryFilter(r => !r.IsDeleted);
+                entity.Navigation(r => r.RolePermissions).AutoInclude(false);
+            });
 
+            modelBuilder.Entity<Permission>(entity =>
+            {
+                entity.HasQueryFilter(p => !p.IsDeleted);
+                entity.Navigation(p => p.RolePermissions).AutoInclude(false);
+            });
+            modelBuilder.Entity<UserRole>().HasQueryFilter(ur => !ur.IsDeleted);
             // Per User usiamo IsActive invece di IsDeleted
             modelBuilder.Entity<User>().HasQueryFilter(u => u.IsActive);
         }
@@ -156,7 +222,6 @@ namespace CardExchange.Infrastructure.Data
 
         private void UpdateTimestamps()
         {
-            // Aggiorna i timestamp per le entità BaseEntity
             var baseEntries = ChangeTracker.Entries<BaseEntity>();
             foreach (var entry in baseEntries)
             {
@@ -166,7 +231,6 @@ namespace CardExchange.Infrastructure.Data
                 }
             }
 
-            // Aggiorna i timestamp per User separatamente
             var userEntries = ChangeTracker.Entries<User>();
             foreach (var entry in userEntries)
             {

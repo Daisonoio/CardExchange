@@ -1,7 +1,9 @@
-﻿using CardExchange.API.DTOs.Requests;
+﻿using CardExchange.API.Authorization;
+using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CardExchange.API.Controllers
@@ -28,6 +30,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene tutti i giochi
         /// </summary>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<GameDto>>> GetAllGames()
         {
             try
@@ -52,6 +55,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene un gioco per ID
         /// </summary>
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<GameDto>> GetGameById(int id)
         {
             try
@@ -76,6 +80,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene un gioco con tutti i suoi set
         /// </summary>
         [HttpGet("{id}/details")]
+        [AllowAnonymous]
         public async Task<ActionResult<GameDetailDto>> GetGameDetails(int id)
         {
             try
@@ -102,6 +107,7 @@ namespace CardExchange.API.Controllers
         /// Crea un nuovo gioco
         /// </summary>
         [HttpPost]
+        [RequirePermission("CATALOG.CREATE")]
         public async Task<ActionResult<GameDto>> CreateGame([FromBody] CreateGameRequest request)
         {
             try
@@ -132,6 +138,7 @@ namespace CardExchange.API.Controllers
         /// Aggiorna un gioco esistente
         /// </summary>
         [HttpPut("{id}")]
+        [RequirePermission("CATALOG.UPDATE")]
         public async Task<ActionResult<GameDto>> UpdateGame(int id, [FromBody] UpdateGameRequest request)
         {
             try
@@ -173,6 +180,7 @@ namespace CardExchange.API.Controllers
         /// Elimina un gioco (soft delete)
         /// </summary>
         [HttpDelete("{id}")]
+        [RequirePermission("CATALOG.DELETE")]
         public async Task<IActionResult> DeleteGame(int id)
         {
             try

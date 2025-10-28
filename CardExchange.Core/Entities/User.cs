@@ -30,11 +30,16 @@ namespace CardExchange.Core.Entities
         public bool EmailConfirmed { get; set; } = false;
         public DateTime? LastLoginAt { get; set; }
 
+        // JWT Refresh Token
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
+
         // Relazioni
         public virtual UserLocation? Location { get; set; }
         public virtual ICollection<Card> Cards { get; set; } = new List<Card>();
         public virtual ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();
         public virtual ICollection<TradeOffer> SentOffers { get; set; } = new List<TradeOffer>();
         public virtual ICollection<TradeOffer> ReceivedOffers { get; set; } = new List<TradeOffer>();
+        public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>(); // ← AGGIUNTO
     }
 }

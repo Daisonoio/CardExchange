@@ -462,70 +462,65 @@ namespace CardExchange.API.Controllers
 
         // Helper methods
         // Helper methods
-        private static CardDto MapToDto(Card card)
+        private static CardInfoDto MapToDto(
+     CardInfo cardInfo,
+     Dictionary<int, (string Name, string Code, int GameId)> cardSets,
+     Dictionary<int, string> games)
         {
-            return new CardDto
+            // Usa TryGetValue invece di GetValueOrDefault per mantenere i nomi della tupla
+            if (!cardSets.TryGetValue(cardInfo.CardSetId, out var cardSetInfo))
             {
-                Id = card.Id,
-                UserId = card.UserId,
-                UserUsername = card.User?.Username ?? string.Empty,
-                CardInfoId = card.CardInfoId,
-                CardName = card.CardInfo?.Name ?? string.Empty,
-                CardSetName = card.CardInfo?.CardSet?.Name ?? string.Empty,
-                GameName = card.CardInfo?.CardSet?.Game?.Name ?? string.Empty,
-                CardNumber = card.CardInfo?.CardNumber,
-                Rarity = card.CardInfo?.Rarity,
-                Condition = card.Condition.ToString(),
-                Quantity = card.Quantity,  // ← AGGIUNTO
-                Notes = card.Notes,
-                IsAvailableForTrade = card.IsAvailableForTrade,
-                EstimatedValue = card.EstimatedValue,
-                CreatedAt = card.CreatedAt,
-                UserLocation = card.User?.Location != null ? new UserLocationDto
-                {
-                    City = card.User.Location.City,
-                    Province = card.User.Location.Province,
-                    Country = card.User.Location.Country,
-                    PostalCode = card.User.Location.PostalCode,
-                    Latitude = card.User.Location.Latitude,
-                    Longitude = card.User.Location.Longitude,
-                    MaxDistanceKm = card.User.Location.MaxDistanceKm
-                } : null
+                cardSetInfo = (Name: "Unknown", Code: "", GameId: 0);
+            }
+
+            if (!games.TryGetValue(cardSetInfo.GameId, out var gameName))
+            {
+                gameName = "Unknown";
+            }
+
+            return new CardInfoDto
+            {
+                Id = cardInfo.Id,
+                CardSetId = cardInfo.CardSetId,
+                CardSetName = cardSetInfo.Name,
+                CardSetCode = cardSetInfo.Code,
+                GameName = gameName,
+                Name = cardInfo.Name,
+                CardNumber = cardInfo.CardNumber,
+                Rarity = cardInfo.Rarity,
+                Type = cardInfo.Type,
+                Description = cardInfo.Description,
+                ImageUrl = cardInfo.ImageUrl,
+                CreatedAt = cardInfo.CreatedAt
             };
         }
 
-        private static CardDetailDto MapToDetailDto(Card card)
+        private static CardInfoDetailDto MapToDetailDto(
+            CardInfo cardInfo,
+            string cardSetName,
+            string cardSetCode,
+            string gameName,
+            int totalInCollections,
+            int availableForTrade,
+            int inWishlists)
         {
-            return new CardDetailDto
+            return new CardInfoDetailDto
             {
-                Id = card.Id,
-                UserId = card.UserId,
-                UserUsername = card.User?.Username ?? string.Empty,
-                CardInfoId = card.CardInfoId,
-                CardName = card.CardInfo?.Name ?? string.Empty,
-                CardSetName = card.CardInfo?.CardSet?.Name ?? string.Empty,
-                GameName = card.CardInfo?.CardSet?.Game?.Name ?? string.Empty,
-                CardNumber = card.CardInfo?.CardNumber,
-                Rarity = card.CardInfo?.Rarity,
-                CardType = card.CardInfo?.Type,
-                CardDescription = card.CardInfo?.Description,
-                ImageUrl = card.CardInfo?.ImageUrl,
-                Condition = card.Condition.ToString(),
-                Quantity = card.Quantity,  // ← AGGIUNTO
-                Notes = card.Notes,
-                IsAvailableForTrade = card.IsAvailableForTrade,
-                EstimatedValue = card.EstimatedValue,
-                CreatedAt = card.CreatedAt,
-                UserLocation = card.User?.Location != null ? new UserLocationDto
-                {
-                    City = card.User.Location.City,
-                    Province = card.User.Location.Province,
-                    Country = card.User.Location.Country,
-                    PostalCode = card.User.Location.PostalCode,
-                    Latitude = card.User.Location.Latitude,
-                    Longitude = card.User.Location.Longitude,
-                    MaxDistanceKm = card.User.Location.MaxDistanceKm
-                } : null
+                Id = cardInfo.Id,
+                CardSetId = cardInfo.CardSetId,
+                CardSetName = cardSetName,
+                CardSetCode = cardSetCode,
+                GameName = gameName,
+                Name = cardInfo.Name,
+                CardNumber = cardInfo.CardNumber,
+                Rarity = cardInfo.Rarity,
+                Type = cardInfo.Type,
+                Description = cardInfo.Description,
+                ImageUrl = cardInfo.ImageUrl,
+                CreatedAt = cardInfo.CreatedAt,
+                TotalCardsInCollections = totalInCollections,
+                AvailableForTradeCount = availableForTrade,
+                InWishlistsCount = inWishlists
             };
         }
     }
