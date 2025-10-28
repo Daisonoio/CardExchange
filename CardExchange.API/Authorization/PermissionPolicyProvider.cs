@@ -27,7 +27,9 @@ namespace CardExchange.API.Authorization
             // Se il policy name contiene virgole, sono permessi multipli
             if (policyName.Contains(','))
             {
-                var permissions = policyName.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                var permissions = policyName.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(p => p.Trim())
+                    .ToArray();
 
                 var policy = new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
@@ -37,7 +39,18 @@ namespace CardExchange.API.Authorization
                 return Task.FromResult<AuthorizationPolicy?>(policy);
             }
 
-            // Altrimenti usa il fallback provider
+            // ✅ AGGIUNGI: Se sembra un permesso (contiene punti), crea una policy dinamica
+            if (policyName.Contains('.'))
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .AddRequirements(new PermissionRequirement(policyName))
+                    .Build();
+
+                return Task.FromResult<AuthorizationPolicy?>(policy);
+            }
+
+            // Altrimenti usa il fallback provider per policy standard
             return _fallbackPolicyProvider.GetPolicyAsync(policyName);
         }
     }
