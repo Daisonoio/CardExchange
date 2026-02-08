@@ -1,4 +1,4 @@
-﻿using CardExchange.Core.Entities;
+using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
 using CardExchange.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +14,7 @@ namespace CardExchange.Infrastructure.Repositories
         public async Task<IEnumerable<Card>> GetUserCardsAsync(int userId)
         {
             return await _dbSet
+                .AsNoTracking()
                 .Include(c => c.CardInfo)
                     .ThenInclude(ci => ci.CardSet)
                         .ThenInclude(cs => cs.Game)
@@ -24,6 +25,7 @@ namespace CardExchange.Infrastructure.Repositories
         public async Task<IEnumerable<Card>> GetCardsByCardInfoAsync(int cardInfoId)
         {
             return await _dbSet
+                .AsNoTracking()
                 .Include(c => c.User)
                     .ThenInclude(u => u.Location)
                 .Where(c => c.CardInfoId == cardInfoId && c.IsAvailableForTrade)
@@ -33,6 +35,7 @@ namespace CardExchange.Infrastructure.Repositories
         public async Task<IEnumerable<Card>> GetAvailableCardsAsync()
         {
             return await _dbSet
+                .AsNoTracking()
                 .Include(c => c.CardInfo)
                     .ThenInclude(ci => ci.CardSet)
                         .ThenInclude(cs => cs.Game)
@@ -47,6 +50,7 @@ namespace CardExchange.Infrastructure.Repositories
             var lowerSearchTerm = searchTerm.ToLower();
 
             return await _dbSet
+                .AsNoTracking()
                 .Include(c => c.CardInfo)
                     .ThenInclude(ci => ci.CardSet)
                         .ThenInclude(cs => cs.Game)
@@ -62,6 +66,7 @@ namespace CardExchange.Infrastructure.Repositories
         public async Task<IEnumerable<Card>> GetCardsByLocationAsync(string city, string province, string country)
         {
             return await _dbSet
+                .AsNoTracking()
                 .Include(c => c.CardInfo)
                     .ThenInclude(ci => ci.CardSet)
                         .ThenInclude(cs => cs.Game)
@@ -78,6 +83,7 @@ namespace CardExchange.Infrastructure.Repositories
         public async Task<IEnumerable<Card>> GetCardsByConditionAsync(CardCondition condition)
         {
             return await _dbSet
+                .AsNoTracking()
                 .Include(c => c.CardInfo)
                     .ThenInclude(ci => ci.CardSet)
                         .ThenInclude(cs => cs.Game)
@@ -93,7 +99,21 @@ namespace CardExchange.Infrastructure.Repositories
                 .Include(c => c.CardInfo)
                     .ThenInclude(ci => ci.CardSet)
                         .ThenInclude(cs => cs.Game)
+                .Include(c => c.User)
+                    .ThenInclude(u => u.Location)
                 .FirstOrDefaultAsync(c => c.Id == cardId && c.UserId == userId);
+        }
+
+        public async Task<Card?> GetCardWithDetailsAsync(int cardId)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .Include(c => c.CardInfo)
+                    .ThenInclude(ci => ci.CardSet)
+                        .ThenInclude(cs => cs.Game)
+                .Include(c => c.User)
+                    .ThenInclude(u => u.Location)
+                .FirstOrDefaultAsync(c => c.Id == cardId);
         }
     }
 }

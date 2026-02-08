@@ -26,7 +26,9 @@ namespace CardExchange.API.DTOs.Requests
         public string? Bio { get; set; }
 
         [Required(ErrorMessage = "La password è obbligatoria")]
-        [MinLength(6, ErrorMessage = "La password deve essere di almeno 6 caratteri")]
+        [MinLength(8, ErrorMessage = "La password deve essere di almeno 8 caratteri")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
+            ErrorMessage = "La password deve contenere almeno una maiuscola, una minuscola, un numero e un carattere speciale")]
         public string Password { get; set; } = string.Empty;
     }
 
@@ -59,7 +61,10 @@ namespace CardExchange.API.DTOs.Requests
         [MaxLength(20)]
         public string? PostalCode { get; set; }
 
+        [Range(-90, 90, ErrorMessage = "La latitudine deve essere tra -90 e 90")]
         public decimal? Latitude { get; set; }
+
+        [Range(-180, 180, ErrorMessage = "La longitudine deve essere tra -180 e 180")]
         public decimal? Longitude { get; set; }
 
         [Range(1, 1000, ErrorMessage = "La distanza massima deve essere tra 1 e 1000 km")]

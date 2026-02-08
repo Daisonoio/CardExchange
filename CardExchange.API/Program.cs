@@ -1,24 +1,41 @@
-﻿using CardExchange.API.Authorization;
+using CardExchange.API.Authorization;
 using CardExchange.API.Configuration;
+using CardExchange.API.Middleware;
 using CardExchange.API.Services;
 using CardExchange.Infrastructure.Configuration;
 using CardExchange.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurazione JWT Settings
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+// ============================================================
+// Validazione configurazione critica all'avvio
+// ============================================================
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+if (jwtSettings == null || string.IsNullOrWhiteSpace(jwtSettings.SecretKey))
+{
+    throw new InvalidOperationException("JwtSettings:SecretKey non configurato. Impostare la chiave JWT.");
+}
+if (Encoding.UTF8.GetByteCount(jwtSettings.SecretKey) < 32)
+{
+    throw new InvalidOperationException("JwtSettings:SecretKey deve essere almeno 256 bit (32 bytes).");
+}
 
-// Add services to the container.
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+
+// ============================================================
+// Controllers + JSON
+// ============================================================
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.DefaultIgnoreCondition =
+            System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
 
         if (builder.Environment.IsDevelopment())
         {
@@ -28,7 +45,9 @@ builder.Services.AddControllers()
 
 builder.Services.AddEndpointsApiExplorer();
 
-// Configurazione Swagger con supporto JWT
+// ============================================================
+// Swagger con supporto JWT
+// ============================================================
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new()
@@ -40,7 +59,7 @@ builder.Services.AddSwaggerGen(c =>
 
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header usando lo schema Bearer. Inserisci 'Bearer' seguito da uno spazio e poi il token. Esempio: 'Bearer 12345abcdef'",
+        Description = "JWT Authorization header. Inserisci 'Bearer' seguito dal token.",
         Name = "Authorization",
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
@@ -63,7 +82,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Configurazione JWT Authentication
+// ============================================================
+// JWT Authentication
+// ============================================================
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -77,36 +98,66 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings?.Issuer,
-        ValidAudience = jwtSettings?.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings?.SecretKey ?? "")),
-        ClockSkew = TimeSpan.Zero
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+        ClockSkew = TimeSpan.FromSeconds(30)
     };
 });
 
-// ✅ CONFIGURAZIONE AUTHORIZATION CORRETTA
-// 1. PRIMA il policy provider
+// ============================================================
+// Authorization (RBAC dinamico)
+// ============================================================
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
-
-// 2. POI l'handler
 builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+builder.Services.AddAuthorization();
 
-// 3. INFINE Authorization (opzionale)
-builder.Services.AddAuthorization(options =>
-{
-    // Le policy vengono create dinamicamente dal PermissionPolicyProvider
-});
-
-// Registra il TokenService
+// ============================================================
+// Services & Repositories
+// ============================================================
 builder.Services.AddScoped<ITokenService, TokenService>();
-
-// Add Database
 builder.Services.AddDatabase(builder.Configuration);
-
-// Add Repositories
 builder.Services.AddRepositories();
 
-// Configurazione CORS per sviluppo
+// ============================================================
+// Rate Limiting
+// ============================================================
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Policy globale: 100 richieste/minuto per IP
+    options.AddFixedWindowLimiter("GlobalPolicy", opt =>
+    {
+        opt.PermitLimit = 100;
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 5;
+    });
+
+    // Policy stringente per autenticazione: 10 richieste/15 minuti per IP
+    options.AddFixedWindowLimiter("AuthPolicy", opt =>
+    {
+        opt.PermitLimit = 10;
+        opt.Window = TimeSpan.FromMinutes(15);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 0;
+    });
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.ContentType = "application/json";
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            status = 429,
+            message = "Troppe richieste. Riprova più tardi."
+        }, cancellationToken);
+    };
+});
+
+// ============================================================
+// CORS
+// ============================================================
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevelopmentPolicy", policy =>
@@ -115,11 +166,33 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
+
+    options.AddPolicy("ProductionPolicy", policy =>
+    {
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                             ?? Array.Empty<string>();
+
+        if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .WithMethods("GET", "POST", "PUT", "DELETE")
+                  .WithHeaders("Authorization", "Content-Type")
+                  .AllowCredentials();
+        }
+    });
 });
+
+// ============================================================
+// Health Checks
+// ============================================================
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>(name: "database");
 
 var app = builder.Build();
 
-// Seed dei ruoli e permessi (PRIMA di app.Run)
+// ============================================================
+// Seed RBAC
+// ============================================================
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -135,7 +208,23 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure the HTTP request pipeline.
+// ============================================================
+// Middleware Pipeline
+// ============================================================
+
+// 1. Global exception handler (primo nel pipeline)
+app.UseMiddleware<GlobalExceptionHandler>();
+
+// 2. Security headers
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
+// 3. HTTPS redirect
+app.UseHttpsRedirection();
+
+// 4. Rate limiting
+app.UseRateLimiter();
+
+// 5. CORS + Dev-only endpoints
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -147,12 +236,18 @@ if (app.Environment.IsDevelopment())
     });
     app.UseCors("DevelopmentPolicy");
 }
+else
+{
+    app.UseHsts();
+    app.UseCors("ProductionPolicy");
+}
 
-app.UseHttpsRedirection();
-
+// 6. Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
+// 7. Endpoints
 app.MapControllers();
+app.MapHealthChecks("/health").AllowAnonymous();
 
 app.Run();

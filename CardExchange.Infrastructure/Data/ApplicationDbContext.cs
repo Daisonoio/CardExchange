@@ -222,21 +222,36 @@ namespace CardExchange.Infrastructure.Data
 
         private void UpdateTimestamps()
         {
+            var now = DateTime.UtcNow;
+
             var baseEntries = ChangeTracker.Entries<BaseEntity>();
             foreach (var entry in baseEntries)
             {
-                if (entry.State == EntityState.Modified)
+                switch (entry.State)
                 {
-                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    case EntityState.Added:
+                        entry.Entity.CreatedAt = now;
+                        entry.Entity.UpdatedAt = now;
+                        break;
+                    case EntityState.Modified:
+                        entry.Entity.UpdatedAt = now;
+                        break;
                 }
             }
 
+            // User non eredita da BaseEntity, gestione separata
             var userEntries = ChangeTracker.Entries<User>();
             foreach (var entry in userEntries)
             {
-                if (entry.State == EntityState.Modified)
+                switch (entry.State)
                 {
-                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    case EntityState.Added:
+                        entry.Entity.CreatedAt = now;
+                        entry.Entity.UpdatedAt = now;
+                        break;
+                    case EntityState.Modified:
+                        entry.Entity.UpdatedAt = now;
+                        break;
                 }
             }
         }

@@ -1,27 +1,43 @@
-﻿using CardExchange.Core.Entities;
+using CardExchange.Core.Entities;
 using CardExchange.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CardExchange.API.Controllers
 {
+    /// <summary>
+    /// Controller per test e sviluppo - disponibile SOLO in ambiente Development
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "SuperAdmin")]
     public class TestController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
+        private readonly ILogger<TestController> _logger;
 
-        public TestController(ApplicationDbContext context)
+        public TestController(
+            ApplicationDbContext context,
+            IWebHostEnvironment environment,
+            ILogger<TestController> logger)
         {
             _context = context;
+            _environment = environment;
+            _logger = logger;
         }
 
         [HttpGet("database-connection")]
         public async Task<IActionResult> TestDatabaseConnection()
         {
+            if (!_environment.IsDevelopment())
+            {
+                return NotFound();
+            }
+
             try
             {
-                // Test connessione database
                 var canConnect = await _context.Database.CanConnectAsync();
 
                 if (!canConnect)
@@ -29,36 +45,37 @@ namespace CardExchange.API.Controllers
                     return Ok(new { success = false, message = "Impossibile connettersi al database" });
                 }
 
-                // Conta le tabelle
-                var tablesCount = await _context.Database.ExecuteSqlRawAsync("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'");
-
                 return Ok(new
                 {
                     success = true,
                     message = "Connessione al database riuscita",
                     database = _context.Database.GetDbConnection().Database,
-                    canConnect = canConnect
+                    canConnect
                 });
             }
             catch (Exception ex)
             {
-                return Ok(new { success = false, message = $"Errore: {ex.Message}" });
+                _logger.LogError(ex, "Errore durante il test di connessione al database");
+                return StatusCode(500, new { success = false, message = "Errore di connessione al database" });
             }
         }
 
         [HttpPost("seed-data")]
         public async Task<IActionResult> SeedTestData()
         {
+            if (!_environment.IsDevelopment())
+            {
+                return NotFound();
+            }
+
             try
             {
-                // Verifica se esistono già dati
                 var existingUsers = await _context.Users.CountAsync();
                 if (existingUsers > 0)
                 {
                     return Ok(new { success = false, message = "Dati di test già esistenti" });
                 }
 
-                // Crea un gioco di test
                 var game = new Game
                 {
                     Name = "Magic: The Gathering",
@@ -67,7 +84,6 @@ namespace CardExchange.API.Controllers
                 };
                 _context.Games.Add(game);
 
-                // Crea un utente di test
                 var user = new User
                 {
                     Email = "test@example.com",
@@ -75,14 +91,13 @@ namespace CardExchange.API.Controllers
                     FirstName = "Mario",
                     LastName = "Rossi",
                     Bio = "Collezionista di carte Magic da 10 anni",
-                    PasswordHash = "hashedpassword123", // In produzione sarà hasdata correttamente
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPassword1!"),
                     EmailConfirmed = true
                 };
                 _context.Users.Add(user);
 
                 await _context.SaveChangesAsync();
 
-                // Aggiungi la location per l'utente
                 var userLocation = new UserLocation
                 {
                     UserId = user.Id,
@@ -96,7 +111,6 @@ namespace CardExchange.API.Controllers
                 };
                 _context.UserLocations.Add(userLocation);
 
-                // Aggiungi un set di carte
                 var cardSet = new CardSet
                 {
                     GameId = game.Id,
@@ -109,7 +123,6 @@ namespace CardExchange.API.Controllers
 
                 await _context.SaveChangesAsync();
 
-                // Aggiungi informazioni carta
                 var cardInfo = new CardInfo
                 {
                     CardSetId = cardSet.Id,
@@ -123,7 +136,6 @@ namespace CardExchange.API.Controllers
 
                 await _context.SaveChangesAsync();
 
-                // Aggiungi carta alla collezione dell'utente
                 var card = new Card
                 {
                     UserId = user.Id,
@@ -134,7 +146,6 @@ namespace CardExchange.API.Controllers
                 };
                 _context.Cards.Add(card);
 
-                // Aggiungi carta alla wishlist
                 var wishlistItem = new WishlistItem
                 {
                     UserId = user.Id,
@@ -147,6 +158,8 @@ namespace CardExchange.API.Controllers
                 _context.WishlistItems.Add(wishlistItem);
 
                 await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Dati di test creati con successo");
 
                 return Ok(new
                 {
@@ -164,13 +177,19 @@ namespace CardExchange.API.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new { success = false, message = $"Errore durante la creazione dei dati: {ex.Message}" });
+                _logger.LogError(ex, "Errore durante la creazione dei dati di test");
+                return StatusCode(500, new { success = false, message = "Errore durante la creazione dei dati di test" });
             }
         }
 
         [HttpGet("data-summary")]
         public async Task<IActionResult> GetDataSummary()
         {
+            if (!_environment.IsDevelopment())
+            {
+                return NotFound();
+            }
+
             try
             {
                 var summary = new
@@ -188,7 +207,8 @@ namespace CardExchange.API.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new { success = false, message = $"Errore: {ex.Message}" });
+                _logger.LogError(ex, "Errore durante il recupero del riepilogo dati");
+                return StatusCode(500, new { success = false, message = "Errore durante il recupero dei dati" });
             }
         }
     }

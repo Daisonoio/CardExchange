@@ -1,4 +1,4 @@
-﻿using CardExchange.Core.Entities;
+using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
 using CardExchange.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -41,6 +41,7 @@ namespace CardExchange.Infrastructure.Repositories
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             return await _context.Users
+                .AsNoTracking()
                 .Include(u => u.Location)
                 .ToListAsync();
         }
@@ -48,6 +49,7 @@ namespace CardExchange.Infrastructure.Repositories
         public async Task<IEnumerable<User>> GetUsersByLocationAsync(string city, string province, string country)
         {
             return await _context.Users
+                .AsNoTracking()
                 .Include(u => u.Location)
                 .Where(u => u.Location != null &&
                            u.Location.City.ToLower() == city.ToLower() &&
@@ -58,12 +60,11 @@ namespace CardExchange.Infrastructure.Repositories
 
         public async Task<IEnumerable<User>> GetUsersInRadiusAsync(decimal latitude, decimal longitude, int radiusKm)
         {
-            // Implementazione semplificata del calcolo della distanza
-            // In produzione si potrebbe usare una funzione SQL più precisa
-            var latRange = radiusKm / 111.0m; // Approssimativamente 1 grado = 111 km
+            var latRange = radiusKm / 111.0m;
             var lngRange = radiusKm / (111.0m * (decimal)Math.Cos((double)latitude * Math.PI / 180));
 
             return await _context.Users
+                .AsNoTracking()
                 .Include(u => u.Location)
                 .Where(u => u.Location != null &&
                            u.Location.Latitude != null && u.Location.Longitude != null &&

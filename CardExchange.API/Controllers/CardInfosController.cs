@@ -1,13 +1,16 @@
-﻿using CardExchange.API.DTOs.Requests;
+﻿using CardExchange.API.Authorization;
+using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CardExchange.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class CardInfosController : ControllerBase
     {
         private readonly ICardInfoRepository _cardInfoRepository;
@@ -323,6 +326,7 @@ namespace CardExchange.API.Controllers
         /// Crea una nuova CardInfo
         /// </summary>
         [HttpPost]
+        [RequirePermission("CATALOG.CREATE")]
         public async Task<ActionResult<CardInfoDto>> CreateCardInfo([FromBody] CreateCardInfoRequest request)
         {
             try
@@ -374,6 +378,7 @@ namespace CardExchange.API.Controllers
         /// Aggiorna una CardInfo esistente
         /// </summary>
         [HttpPut("{id}")]
+        [RequirePermission("CATALOG.UPDATE")]
         public async Task<ActionResult<CardInfoDto>> UpdateCardInfo(int id, [FromBody] UpdateCardInfoRequest request)
         {
             try
@@ -435,6 +440,7 @@ namespace CardExchange.API.Controllers
         /// Elimina una CardInfo (soft delete)
         /// </summary>
         [HttpDelete("{id}")]
+        [RequirePermission("CATALOG.DELETE")]
         public async Task<IActionResult> DeleteCardInfo(int id)
         {
             try

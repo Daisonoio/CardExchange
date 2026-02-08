@@ -64,17 +64,14 @@ namespace CardExchange.API.Controllers
         {
             try
             {
-                var card = await _cardRepository.GetByIdAsync(id);
+                var card = await _cardRepository.GetCardWithDetailsAsync(id);
 
                 if (card == null)
                 {
                     return NotFound(new { message = $"Carta con ID {id} non trovata" });
                 }
 
-                // Ricarica con tutte le relazioni
-                var fullCard = (await _cardRepository.FindAsync(c => c.Id == id)).FirstOrDefault();
-
-                return Ok(MapToDetailDto(fullCard!));
+                return Ok(MapToDetailDto(card));
             }
             catch (Exception ex)
             {

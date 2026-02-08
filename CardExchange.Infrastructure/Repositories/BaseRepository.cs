@@ -1,4 +1,4 @@
-﻿using CardExchange.Core.Entities;
+using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
 using CardExchange.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -24,17 +24,17 @@ namespace CardExchange.Infrastructure.Repositories
 
         public virtual async Task<IEnumerable<T>> GetAllAsync()
         {
-            return await _dbSet.ToListAsync();
+            return await _dbSet.AsNoTracking().ToListAsync();
         }
 
         public virtual async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
-            return await _dbSet.Where(predicate).ToListAsync();
+            return await _dbSet.AsNoTracking().Where(predicate).ToListAsync();
         }
 
         public virtual async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
         {
-            return await _dbSet.FirstOrDefaultAsync(predicate);
+            return await _dbSet.AsNoTracking().FirstOrDefaultAsync(predicate);
         }
 
         public virtual async Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate)
@@ -50,6 +50,28 @@ namespace CardExchange.Infrastructure.Repositories
         public virtual async Task<int> CountAsync(Expression<Func<T, bool>> predicate)
         {
             return await _dbSet.CountAsync(predicate);
+        }
+
+        public virtual async Task<(IEnumerable<T> Items, int TotalCount)> GetPagedAsync(int page, int pageSize)
+        {
+            var totalCount = await _dbSet.CountAsync();
+            var items = await _dbSet.AsNoTracking()
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            return (items, totalCount);
+        }
+
+        public virtual async Task<(IEnumerable<T> Items, int TotalCount)> FindPagedAsync(
+            Expression<Func<T, bool>> predicate, int page, int pageSize)
+        {
+            var query = _dbSet.Where(predicate);
+            var totalCount = await query.CountAsync();
+            var items = await query.AsNoTracking()
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            return (items, totalCount);
         }
 
         public virtual async Task<T> AddAsync(T entity)

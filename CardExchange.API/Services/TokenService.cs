@@ -85,11 +85,14 @@ namespace CardExchange.API.Services
         {
             var tokenValidationParameters = new TokenValidationParameters
             {
-                ValidateAudience = false,
-                ValidateIssuer = false,
+                ValidateAudience = true,
+                ValidAudience = _jwtSettings.Audience,
+                ValidateIssuer = true,
+                ValidIssuer = _jwtSettings.Issuer,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey)),
-                ValidateLifetime = false
+                ValidateLifetime = false,
+                ClockSkew = TimeSpan.FromMinutes(5)
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();

@@ -11,5 +11,6 @@ namespace CardExchange.Core.Interfaces
         Task<IEnumerable<Card>> GetCardsByLocationAsync(string city, string province, string country);
         Task<IEnumerable<Card>> GetCardsByConditionAsync(CardCondition condition);
         Task<Card?> GetUserCardAsync(int userId, int cardId);
+        Task<Card?> GetCardWithDetailsAsync(int cardId);
     }
 }

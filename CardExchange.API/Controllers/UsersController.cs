@@ -1,4 +1,5 @@
-﻿using CardExchange.API.Authorization;
+﻿using BCrypt.Net;
+using CardExchange.API.Authorization;
 using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
 using CardExchange.Core.Entities;
@@ -10,6 +11,7 @@ namespace CardExchange.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
@@ -46,6 +48,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene un utente per ID
         /// </summary>
         [HttpGet("{id}")]
+        [RequirePermission("USERS.READ.PUBLIC")]
         public async Task<ActionResult<UserDto>> GetUserById(int id)
         {
             try
@@ -361,9 +364,7 @@ namespace CardExchange.API.Controllers
 
         private static string HashPassword(string password)
         {
-            // TODO: Implementare hashing sicuro con BCrypt o Identity
-            // Questo è solo un placeholder temporaneo
-            return $"HASHED_{password}";
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
     }
 }
