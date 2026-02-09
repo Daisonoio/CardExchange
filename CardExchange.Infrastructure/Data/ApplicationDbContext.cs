@@ -81,6 +81,7 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<CardSet>(entity =>
             {
                 entity.HasIndex(cs => new { cs.GameId, cs.Code }).IsUnique();
+                entity.HasIndex(cs => cs.ScryfallId).IsUnique().HasFilter("[ScryfallId] IS NOT NULL");
                 entity.HasOne(cs => cs.Game)
                       .WithMany(g => g.CardSets)
                       .HasForeignKey(cs => cs.GameId)
@@ -93,6 +94,13 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<CardInfo>(entity =>
             {
                 entity.HasIndex(ci => new { ci.CardSetId, ci.Name });
+                entity.HasIndex(ci => ci.ScryfallId).IsUnique().HasFilter("[ScryfallId] IS NOT NULL");
+                entity.HasIndex(ci => ci.OracleId);
+                entity.Property(ci => ci.Cmc).HasPrecision(5, 2);
+                entity.Property(ci => ci.PriceUsd).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceUsdFoil).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceEur).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceEurFoil).HasPrecision(10, 2);
                 entity.HasOne(ci => ci.CardSet)
                       .WithMany(cs => cs.CardInfos)
                       .HasForeignKey(ci => ci.CardSetId)

@@ -123,6 +123,14 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<IScryfallService, ScryfallService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.scryfall.com");
+    client.DefaultRequestHeaders.Add("User-Agent", "CardExchange/1.0");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddRepositories();
 

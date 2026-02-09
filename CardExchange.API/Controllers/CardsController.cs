@@ -1,6 +1,7 @@
 ﻿using CardExchange.API.Authorization;
 using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
+using CardExchange.API.Services;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,7 @@ namespace CardExchange.API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly ICardInfoRepository _cardInfoRepository;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly IScryfallService _scryfallService;
         private readonly ILogger<CardsController> _logger;
 
         public CardsController(
@@ -24,12 +26,14 @@ namespace CardExchange.API.Controllers
             IUserRepository userRepository,
             ICardInfoRepository cardInfoRepository,
             ISubscriptionService subscriptionService,
+            IScryfallService scryfallService,
             ILogger<CardsController> logger)
         {
             _cardRepository = cardRepository;
             _userRepository = userRepository;
             _cardInfoRepository = cardInfoRepository;
             _subscriptionService = subscriptionService;
+            _scryfallService = scryfallService;
             _logger = logger;
         }
 
@@ -285,6 +289,17 @@ namespace CardExchange.API.Controllers
                 if (cardInfo == null)
                 {
                     return NotFound(new { message = $"CardInfo con ID {request.CardInfoId} non trovata" });
+                }
+
+                // Validazione e arricchimento da Scryfall (se la carta ha un ScryfallId)
+                if (cardInfo.ScryfallId != null && cardInfo.ScryfallUpdatedAt == null)
+                {
+                    var scryfallCard = await _scryfallService.GetCardByScryfallIdAsync(cardInfo.ScryfallId);
+                    if (scryfallCard != null)
+                    {
+                        _scryfallService.MapScryfallToCardInfo(scryfallCard, cardInfo);
+                        await _cardInfoRepository.SaveChangesAsync();
+                    }
                 }
 
                 var card = new Card
@@ -575,25 +590,55 @@ namespace CardExchange.API.Controllers
 
         private static CardDetailDto MapToDetailDto(Card card)
         {
+            var ci = card.CardInfo;
             return new CardDetailDto
             {
                 Id = card.Id,
                 UserId = card.UserId,
                 UserUsername = card.User?.Username ?? string.Empty,
                 CardInfoId = card.CardInfoId,
-                CardName = card.CardInfo?.Name ?? string.Empty,
-                CardSetName = card.CardInfo?.CardSet?.Name ?? string.Empty,
-                GameName = card.CardInfo?.CardSet?.Game?.Name ?? string.Empty,
-                CardNumber = card.CardInfo?.CardNumber,
-                Rarity = card.CardInfo?.Rarity,
-                CardType = card.CardInfo?.Type,
-                CardDescription = card.CardInfo?.Description,
-                ImageUrl = card.CardInfo?.ImageUrl,
+                CardName = ci?.Name ?? string.Empty,
+                CardSetName = ci?.CardSet?.Name ?? string.Empty,
+                GameName = ci?.CardSet?.Game?.Name ?? string.Empty,
+                CardNumber = ci?.CardNumber,
+                Rarity = ci?.Rarity,
+                CardType = ci?.Type,
+                CardDescription = ci?.Description,
+                ImageUrl = ci?.ImageUrl,
                 Condition = card.Condition.ToString(),
                 Notes = card.Notes,
                 IsAvailableForTrade = card.IsAvailableForTrade,
                 EstimatedValue = card.EstimatedValue,
                 CreatedAt = card.CreatedAt,
+                // Campi Scryfall
+                ScryfallId = ci?.ScryfallId,
+                ManaCost = ci?.ManaCost,
+                Cmc = ci?.Cmc,
+                TypeLine = ci?.TypeLine,
+                OracleText = ci?.OracleText,
+                Colors = ci?.Colors,
+                Power = ci?.Power,
+                Toughness = ci?.Toughness,
+                Loyalty = ci?.Loyalty,
+                Artist = ci?.Artist,
+                Keywords = ci?.Keywords,
+                ScryfallUri = ci?.ScryfallUri,
+                Images = ci?.ImageSmall != null ? new CardImagesDto
+                {
+                    Small = ci.ImageSmall,
+                    Normal = ci.ImageNormal,
+                    Large = ci.ImageLarge,
+                    Png = ci.ImagePng,
+                    ArtCrop = ci.ImageArtCrop,
+                    BorderCrop = ci.ImageBorderCrop
+                } : null,
+                Prices = ci?.PriceUsd != null || ci?.PriceEur != null ? new CardPricesDto
+                {
+                    Usd = ci.PriceUsd,
+                    UsdFoil = ci.PriceUsdFoil,
+                    Eur = ci.PriceEur,
+                    EurFoil = ci.PriceEurFoil
+                } : null,
                 UserLocation = card.User?.Location != null ? new UserLocationDto
                 {
                     City = card.User.Location.City,

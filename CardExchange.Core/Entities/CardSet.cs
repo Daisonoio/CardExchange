@@ -24,6 +24,22 @@ namespace CardExchange.Core.Entities
 
         public bool IsActive { get; set; } = true;
 
+        // === Campi Scryfall ===
+
+        [MaxLength(36)]
+        public string? ScryfallId { get; set; }
+
+        [MaxLength(50)]
+        public string? SetType { get; set; }
+
+        public int? CardCount { get; set; }
+
+        public string? IconSvgUri { get; set; }
+
+        public bool IsDigital { get; set; } = false;
+
+        public DateTime? ScryfallUpdatedAt { get; set; }
+
         // Relazioni
         [ForeignKey("GameId")]
         public virtual Game Game { get; set; } = null!;

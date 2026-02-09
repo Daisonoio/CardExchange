@@ -25,5 +25,39 @@
         public string? CardType { get; set; }
         public string? CardDescription { get; set; }
         public string? ImageUrl { get; set; }
+
+        // Campi Scryfall
+        public string? ScryfallId { get; set; }
+        public string? ManaCost { get; set; }
+        public decimal? Cmc { get; set; }
+        public string? TypeLine { get; set; }
+        public string? OracleText { get; set; }
+        public string? Colors { get; set; }
+        public string? Power { get; set; }
+        public string? Toughness { get; set; }
+        public string? Loyalty { get; set; }
+        public string? Artist { get; set; }
+        public string? Keywords { get; set; }
+        public CardImagesDto? Images { get; set; }
+        public CardPricesDto? Prices { get; set; }
+        public string? ScryfallUri { get; set; }
+    }
+
+    public class CardImagesDto
+    {
+        public string? Small { get; set; }
+        public string? Normal { get; set; }
+        public string? Large { get; set; }
+        public string? Png { get; set; }
+        public string? ArtCrop { get; set; }
+        public string? BorderCrop { get; set; }
+    }
+
+    public class CardPricesDto
+    {
+        public decimal? Usd { get; set; }
+        public decimal? UsdFoil { get; set; }
+        public decimal? Eur { get; set; }
+        public decimal? EurFoil { get; set; }
     }
 }
