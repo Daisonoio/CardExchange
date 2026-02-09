@@ -16,17 +16,20 @@ namespace CardExchange.API.Controllers
         private readonly ICardRepository _cardRepository;
         private readonly IUserRepository _userRepository;
         private readonly ICardInfoRepository _cardInfoRepository;
+        private readonly ISubscriptionService _subscriptionService;
         private readonly ILogger<CardsController> _logger;
 
         public CardsController(
             ICardRepository cardRepository,
             IUserRepository userRepository,
             ICardInfoRepository cardInfoRepository,
+            ISubscriptionService subscriptionService,
             ILogger<CardsController> logger)
         {
             _cardRepository = cardRepository;
             _userRepository = userRepository;
             _cardInfoRepository = cardInfoRepository;
+            _subscriptionService = subscriptionService;
             _logger = logger;
         }
 
@@ -262,6 +265,19 @@ namespace CardExchange.API.Controllers
                 if (user == null)
                 {
                     return NotFound(new { message = $"Utente con ID {userId} non trovato" });
+                }
+
+                // Verifica limiti piano (free tier)
+                var userCards = await _cardRepository.GetUserCardsAsync(userId);
+                var currentCardCount = userCards.Count();
+                if (!await _subscriptionService.CheckLimitAsync(userId, "cards", currentCardCount))
+                {
+                    var plan = await _subscriptionService.GetUserActivePlanAsync(userId);
+                    return StatusCode(403, new
+                    {
+                        message = $"Hai raggiunto il limite di {plan?.MaxCards ?? 50} carte nel tuo piano",
+                        upgradeUrl = "/api/subscriptions/plans"
+                    });
                 }
 
                 // Verifica che la CardInfo esista

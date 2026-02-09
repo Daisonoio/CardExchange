@@ -116,6 +116,7 @@ builder.Services.AddAuthorization();
 // Services & Repositories
 // ============================================================
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddRepositories();
 

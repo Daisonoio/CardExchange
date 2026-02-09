@@ -20,6 +20,7 @@ namespace CardExchange.API.Controllers
         private readonly ICardRepository _cardRepository;
         private readonly IBaseRepository<CardSet> _cardSetRepository;
         private readonly IBaseRepository<Game> _gameRepository;
+        private readonly ISubscriptionService _subscriptionService;
         private readonly ILogger<WishlistController> _logger;
 
         public WishlistController(
@@ -29,6 +30,7 @@ namespace CardExchange.API.Controllers
             ICardRepository cardRepository,
             IBaseRepository<CardSet> cardSetRepository,
             IBaseRepository<Game> gameRepository,
+            ISubscriptionService subscriptionService,
             ILogger<WishlistController> logger)
         {
             _wishlistRepository = wishlistRepository;
@@ -37,6 +39,7 @@ namespace CardExchange.API.Controllers
             _cardRepository = cardRepository;
             _cardSetRepository = cardSetRepository;
             _gameRepository = gameRepository;
+            _subscriptionService = subscriptionService;
             _logger = logger;
         }
 
@@ -259,6 +262,19 @@ namespace CardExchange.API.Controllers
                 if (user == null)
                 {
                     return NotFound(new { message = $"Utente con ID {userId} non trovato" });
+                }
+
+                // Verifica limiti piano (free tier)
+                var userWishlist = await _wishlistRepository.GetUserWishlistAsync(userId);
+                var currentWishlistCount = userWishlist.Count();
+                if (!await _subscriptionService.CheckLimitAsync(userId, "wishlist", currentWishlistCount))
+                {
+                    var plan = await _subscriptionService.GetUserActivePlanAsync(userId);
+                    return StatusCode(403, new
+                    {
+                        message = $"Hai raggiunto il limite di {plan?.MaxWishlistItems ?? 20} elementi nella wishlist del tuo piano",
+                        upgradeUrl = "/api/subscriptions/plans"
+                    });
                 }
 
                 // Verifica che la CardInfo esista
