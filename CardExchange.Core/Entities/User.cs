@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace CardExchange.Core.Entities
 {
@@ -23,12 +23,20 @@ namespace CardExchange.Core.Entities
         [MaxLength(500)]
         public string? Bio { get; set; }
 
+        [MaxLength(500)]
+        public string? AvatarUrl { get; set; }
+
         [Required]
         public string PasswordHash { get; set; } = string.Empty;
 
         public bool IsActive { get; set; } = true;
         public bool EmailConfirmed { get; set; } = false;
         public DateTime? LastLoginAt { get; set; }
+
+        // Reputazione
+        public decimal ReputationScore { get; set; } = 0;
+        public int TotalTradesCompleted { get; set; } = 0;
+        public int TotalReviewsReceived { get; set; } = 0;
 
         // JWT Refresh Token
         public string? RefreshToken { get; set; }
@@ -40,6 +48,9 @@ namespace CardExchange.Core.Entities
         public virtual ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();
         public virtual ICollection<TradeOffer> SentOffers { get; set; } = new List<TradeOffer>();
         public virtual ICollection<TradeOffer> ReceivedOffers { get; set; } = new List<TradeOffer>();
-        public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>(); // ← AGGIUNTO
+        public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+        public virtual ICollection<UserSubscription> Subscriptions { get; set; } = new List<UserSubscription>();
+        public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+        public virtual ICollection<SavedSearch> SavedSearches { get; set; } = new List<SavedSearch>();
     }
 }

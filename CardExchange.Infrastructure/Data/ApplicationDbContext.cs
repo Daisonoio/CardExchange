@@ -1,4 +1,4 @@
-﻿using CardExchange.Core.Entities;
+using CardExchange.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CardExchange.Infrastructure.Data
@@ -9,7 +9,7 @@ namespace CardExchange.Infrastructure.Data
         {
         }
 
-        // DbSets
+        // DbSets esistenti
         public DbSet<User> Users { get; set; }
         public DbSet<UserLocation> UserLocations { get; set; }
         public DbSet<Game> Games { get; set; }
@@ -23,20 +23,35 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
 
+        // Nuovi DbSets - Freemium & Features
+        public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
+        public DbSet<UserSubscription> UserSubscriptions { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<TradeOfferItem> TradeOfferItems { get; set; }
+        public DbSet<TradeReview> TradeReviews { get; set; }
+        public DbSet<SavedSearch> SavedSearches { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configurazioni User
+            // ============================================================
+            // User
+            // ============================================================
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasIndex(u => u.Email).IsUnique();
                 entity.HasIndex(u => u.Username).IsUnique();
                 entity.Property(u => u.Email).IsRequired().HasMaxLength(256);
                 entity.Property(u => u.Username).IsRequired().HasMaxLength(50);
+                entity.Property(u => u.ReputationScore).HasPrecision(3, 2);
             });
 
-            // Configurazioni UserLocation
+            // ============================================================
+            // UserLocation
+            // ============================================================
             modelBuilder.Entity<UserLocation>(entity =>
             {
                 entity.HasIndex(ul => ul.UserId).IsUnique();
@@ -52,13 +67,17 @@ namespace CardExchange.Infrastructure.Data
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Configurazioni Game
+            // ============================================================
+            // Game
+            // ============================================================
             modelBuilder.Entity<Game>(entity =>
             {
                 entity.HasIndex(g => g.Name).IsUnique();
             });
 
-            // Configurazioni CardSet
+            // ============================================================
+            // CardSet
+            // ============================================================
             modelBuilder.Entity<CardSet>(entity =>
             {
                 entity.HasIndex(cs => new { cs.GameId, cs.Code }).IsUnique();
@@ -68,7 +87,9 @@ namespace CardExchange.Infrastructure.Data
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Configurazioni CardInfo
+            // ============================================================
+            // CardInfo
+            // ============================================================
             modelBuilder.Entity<CardInfo>(entity =>
             {
                 entity.HasIndex(ci => new { ci.CardSetId, ci.Name });
@@ -78,7 +99,9 @@ namespace CardExchange.Infrastructure.Data
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Configurazioni Card
+            // ============================================================
+            // Card
+            // ============================================================
             modelBuilder.Entity<Card>(entity =>
             {
                 entity.HasIndex(c => new { c.UserId, c.CardInfoId });
@@ -96,7 +119,9 @@ namespace CardExchange.Infrastructure.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Configurazioni WishlistItem
+            // ============================================================
+            // WishlistItem
+            // ============================================================
             modelBuilder.Entity<WishlistItem>(entity =>
             {
                 entity.HasIndex(wi => new { wi.UserId, wi.CardInfoId }).IsUnique();
@@ -114,7 +139,9 @@ namespace CardExchange.Infrastructure.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Configurazioni TradeOffer - CORRETTE
+            // ============================================================
+            // TradeOffer
+            // ============================================================
             modelBuilder.Entity<TradeOffer>(entity =>
             {
                 entity.HasOne(to => to.Sender)
@@ -127,25 +154,173 @@ namespace CardExchange.Infrastructure.Data
                       .HasForeignKey(to => to.ReceiverId)
                       .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(to => to.ParentOffer)
+                      .WithMany()
+                      .HasForeignKey(to => to.ParentOfferId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
                 entity.HasCheckConstraint("CK_TradeOffer_DifferentUsers", "[SenderId] != [ReceiverId]");
             });
 
-            // Configurazione Role
+            // ============================================================
+            // TradeOfferItem (NUOVO - link carte a offerte)
+            // ============================================================
+            modelBuilder.Entity<TradeOfferItem>(entity =>
+            {
+                entity.HasIndex(toi => new { toi.TradeOfferId, toi.CardId, toi.Side }).IsUnique();
+
+                entity.HasOne(toi => toi.TradeOffer)
+                      .WithMany(to => to.Items)
+                      .HasForeignKey(toi => toi.TradeOfferId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(toi => toi.Card)
+                      .WithMany()
+                      .HasForeignKey(toi => toi.CardId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ============================================================
+            // TradeReview (NUOVO - feedback post-trade)
+            // ============================================================
+            modelBuilder.Entity<TradeReview>(entity =>
+            {
+                entity.HasIndex(tr => new { tr.TradeOfferId, tr.ReviewerId }).IsUnique();
+
+                entity.HasOne(tr => tr.TradeOffer)
+                      .WithMany(to => to.Reviews)
+                      .HasForeignKey(tr => tr.TradeOfferId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(tr => tr.Reviewer)
+                      .WithMany()
+                      .HasForeignKey(tr => tr.ReviewerId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(tr => tr.ReviewedUser)
+                      .WithMany()
+                      .HasForeignKey(tr => tr.ReviewedUserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasCheckConstraint("CK_TradeReview_DifferentUsers", "[ReviewerId] != [ReviewedUserId]");
+            });
+
+            // ============================================================
+            // SubscriptionPlan (NUOVO)
+            // ============================================================
+            modelBuilder.Entity<SubscriptionPlan>(entity =>
+            {
+                entity.HasIndex(sp => sp.Name).IsUnique();
+                entity.Property(sp => sp.Price).HasPrecision(10, 2);
+            });
+
+            // ============================================================
+            // UserSubscription (NUOVO)
+            // ============================================================
+            modelBuilder.Entity<UserSubscription>(entity =>
+            {
+                entity.HasIndex(us => new { us.UserId, us.Status });
+                entity.Property(us => us.AmountPaid).HasPrecision(10, 2);
+
+                entity.HasOne(us => us.User)
+                      .WithMany(u => u.Subscriptions)
+                      .HasForeignKey(us => us.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(us => us.Plan)
+                      .WithMany(sp => sp.Subscriptions)
+                      .HasForeignKey(us => us.PlanId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ============================================================
+            // Conversation (NUOVO - messaggistica)
+            // ============================================================
+            modelBuilder.Entity<Conversation>(entity =>
+            {
+                entity.HasIndex(c => new { c.User1Id, c.User2Id }).IsUnique();
+
+                entity.HasOne(c => c.User1)
+                      .WithMany()
+                      .HasForeignKey(c => c.User1Id)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.User2)
+                      .WithMany()
+                      .HasForeignKey(c => c.User2Id)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.TradeOffer)
+                      .WithMany(to => to.Conversations)
+                      .HasForeignKey(c => c.TradeOfferId)
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasCheckConstraint("CK_Conversation_DifferentUsers", "[User1Id] != [User2Id]");
+            });
+
+            // ============================================================
+            // Message (NUOVO)
+            // ============================================================
+            modelBuilder.Entity<Message>(entity =>
+            {
+                entity.HasIndex(m => new { m.ConversationId, m.CreatedAt });
+
+                entity.HasOne(m => m.Conversation)
+                      .WithMany(c => c.Messages)
+                      .HasForeignKey(m => m.ConversationId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(m => m.Sender)
+                      .WithMany()
+                      .HasForeignKey(m => m.SenderId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ============================================================
+            // Notification (NUOVO)
+            // ============================================================
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.HasIndex(n => new { n.UserId, n.IsRead });
+                entity.HasIndex(n => new { n.UserId, n.Type });
+
+                entity.HasOne(n => n.User)
+                      .WithMany(u => u.Notifications)
+                      .HasForeignKey(n => n.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ============================================================
+            // SavedSearch (NUOVO - premium)
+            // ============================================================
+            modelBuilder.Entity<SavedSearch>(entity =>
+            {
+                entity.HasOne(ss => ss.User)
+                      .WithMany(u => u.SavedSearches)
+                      .HasForeignKey(ss => ss.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ============================================================
+            // RBAC
+            // ============================================================
             modelBuilder.Entity<Role>(entity =>
             {
                 entity.HasIndex(r => r.Name).IsUnique();
                 entity.Property(r => r.Name).IsRequired().HasMaxLength(50);
+                entity.HasQueryFilter(r => !r.IsDeleted);
+                entity.Navigation(r => r.RolePermissions).AutoInclude(false);
             });
 
-            // Configurazione Permission
             modelBuilder.Entity<Permission>(entity =>
             {
                 entity.HasIndex(p => p.Name).IsUnique();
                 entity.Property(p => p.Name).IsRequired().HasMaxLength(100);
                 entity.HasIndex(p => p.Category);
+                entity.HasQueryFilter(p => !p.IsDeleted);
+                entity.Navigation(p => p.RolePermissions).AutoInclude(false);
             });
 
-            // Configurazione UserRole
             modelBuilder.Entity<UserRole>(entity =>
             {
                 entity.HasIndex(ur => new { ur.UserId, ur.RoleId }).IsUnique();
@@ -166,7 +341,6 @@ namespace CardExchange.Infrastructure.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Configurazione RolePermission
             modelBuilder.Entity<RolePermission>(entity =>
             {
                 entity.HasKey(rp => new { rp.RoleId, rp.PermissionId });
@@ -184,7 +358,10 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasQueryFilter(rp => !rp.Role.IsDeleted && !rp.Permission.IsDeleted);
             });
 
+            // ============================================================
             // Query filters per soft delete
+            // ============================================================
+            modelBuilder.Entity<User>().HasQueryFilter(u => u.IsActive);
             modelBuilder.Entity<UserLocation>().HasQueryFilter(ul => !ul.IsDeleted);
             modelBuilder.Entity<Game>().HasQueryFilter(g => !g.IsDeleted);
             modelBuilder.Entity<CardSet>().HasQueryFilter(cs => !cs.IsDeleted);
@@ -192,20 +369,15 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<Card>().HasQueryFilter(c => !c.IsDeleted);
             modelBuilder.Entity<WishlistItem>().HasQueryFilter(wi => !wi.IsDeleted);
             modelBuilder.Entity<TradeOffer>().HasQueryFilter(to => !to.IsDeleted);
-            modelBuilder.Entity<Role>(entity =>
-            {
-                entity.HasQueryFilter(r => !r.IsDeleted);
-                entity.Navigation(r => r.RolePermissions).AutoInclude(false);
-            });
-
-            modelBuilder.Entity<Permission>(entity =>
-            {
-                entity.HasQueryFilter(p => !p.IsDeleted);
-                entity.Navigation(p => p.RolePermissions).AutoInclude(false);
-            });
             modelBuilder.Entity<UserRole>().HasQueryFilter(ur => !ur.IsDeleted);
-            // Per User usiamo IsActive invece di IsDeleted
-            modelBuilder.Entity<User>().HasQueryFilter(u => u.IsActive);
+            modelBuilder.Entity<TradeOfferItem>().HasQueryFilter(toi => !toi.IsDeleted);
+            modelBuilder.Entity<TradeReview>().HasQueryFilter(tr => !tr.IsDeleted);
+            modelBuilder.Entity<SubscriptionPlan>().HasQueryFilter(sp => !sp.IsDeleted);
+            modelBuilder.Entity<UserSubscription>().HasQueryFilter(us => !us.IsDeleted);
+            modelBuilder.Entity<Conversation>().HasQueryFilter(c => !c.IsDeleted);
+            modelBuilder.Entity<Message>().HasQueryFilter(m => !m.IsDeleted);
+            modelBuilder.Entity<Notification>().HasQueryFilter(n => !n.IsDeleted);
+            modelBuilder.Entity<SavedSearch>().HasQueryFilter(ss => !ss.IsDeleted);
         }
 
         public override int SaveChanges()
@@ -239,7 +411,6 @@ namespace CardExchange.Infrastructure.Data
                 }
             }
 
-            // User non eredita da BaseEntity, gestione separata
             var userEntries = ChangeTracker.Entries<User>();
             foreach (var entry in userEntries)
             {

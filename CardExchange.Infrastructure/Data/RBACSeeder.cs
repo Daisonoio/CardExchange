@@ -215,6 +215,66 @@ namespace CardExchange.Infrastructure.Data
             }
 
             await context.SaveChangesAsync();
+
+            // === SEED PIANI DI ABBONAMENTO ===
+            await SeedSubscriptionPlans(context);
+        }
+
+        private static async Task SeedSubscriptionPlans(ApplicationDbContext context)
+        {
+            if (await context.SubscriptionPlans.AnyAsync())
+                return;
+
+            var plans = new List<SubscriptionPlan>
+            {
+                new SubscriptionPlan
+                {
+                    Name = "Premium Mensile",
+                    Description = "Abbonamento mensile con tutte le funzionalità premium: ricerca avanzata, messaggi illimitati, statistiche, export e molto altro",
+                    Tier = SubscriptionTier.Premium,
+                    Cycle = BillingCycle.Monthly,
+                    Price = 4.99m,
+                    Currency = "EUR",
+                    IsActive = true,
+                    MaxCards = int.MaxValue,
+                    MaxWishlistItems = int.MaxValue,
+                    MaxActiveTradeOffers = int.MaxValue,
+                    MaxDailyMessages = int.MaxValue,
+                    CanSearchAdvanced = true,
+                    CanSearchGeographic = true,
+                    CanExportCollection = true,
+                    CanViewStatistics = true,
+                    CanSaveSearches = true,
+                    HasPriorityListing = true,
+                    HasVerifiedBadge = true,
+                    HasWishlistAlerts = true
+                },
+                new SubscriptionPlan
+                {
+                    Name = "Premium Annuale",
+                    Description = "Abbonamento annuale con tutte le funzionalità premium. Risparmi il 20% rispetto al mensile!",
+                    Tier = SubscriptionTier.Premium,
+                    Cycle = BillingCycle.Annual,
+                    Price = 47.99m,
+                    Currency = "EUR",
+                    IsActive = true,
+                    MaxCards = int.MaxValue,
+                    MaxWishlistItems = int.MaxValue,
+                    MaxActiveTradeOffers = int.MaxValue,
+                    MaxDailyMessages = int.MaxValue,
+                    CanSearchAdvanced = true,
+                    CanSearchGeographic = true,
+                    CanExportCollection = true,
+                    CanViewStatistics = true,
+                    CanSaveSearches = true,
+                    HasPriorityListing = true,
+                    HasVerifiedBadge = true,
+                    HasWishlistAlerts = true
+                }
+            };
+
+            await context.SubscriptionPlans.AddRangeAsync(plans);
+            await context.SaveChangesAsync();
         }
     }
 }

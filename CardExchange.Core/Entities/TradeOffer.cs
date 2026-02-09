@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CardExchange.Core.Entities
@@ -9,7 +9,8 @@ namespace CardExchange.Core.Entities
         Accepted = 2,
         Rejected = 3,
         Cancelled = 4,
-        Completed = 5
+        Completed = 5,
+        CounterOffer = 6
     }
 
     public class TradeOffer : BaseEntity
@@ -28,6 +29,10 @@ namespace CardExchange.Core.Entities
 
         public DateTime? ResponseDate { get; set; }
         public DateTime? CompletedDate { get; set; }
+        public DateTime? ExpiresAt { get; set; }
+
+        // Counter-offer tracking
+        public int? ParentOfferId { get; set; }
 
         // Relazioni
         [ForeignKey("SenderId")]
@@ -35,5 +40,12 @@ namespace CardExchange.Core.Entities
 
         [ForeignKey("ReceiverId")]
         public virtual User Receiver { get; set; } = null!;
+
+        [ForeignKey("ParentOfferId")]
+        public virtual TradeOffer? ParentOffer { get; set; }
+
+        public virtual ICollection<TradeOfferItem> Items { get; set; } = new List<TradeOfferItem>();
+        public virtual ICollection<TradeReview> Reviews { get; set; } = new List<TradeReview>();
+        public virtual ICollection<Conversation> Conversations { get; set; } = new List<Conversation>();
     }
 }
