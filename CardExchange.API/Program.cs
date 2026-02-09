@@ -4,6 +4,8 @@ using CardExchange.API.Middleware;
 using CardExchange.API.Services;
 using CardExchange.Infrastructure.Configuration;
 using CardExchange.Infrastructure.Data;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
@@ -29,7 +31,7 @@ if (Encoding.UTF8.GetByteCount(jwtSettings.SecretKey) < 32)
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
 // ============================================================
-// Controllers + JSON
+// Controllers + JSON + FluentValidation
 // ============================================================
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -42,6 +44,9 @@ builder.Services.AddControllers()
             options.JsonSerializerOptions.WriteIndented = true;
         }
     });
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -117,8 +122,25 @@ builder.Services.AddAuthorization();
 // ============================================================
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddRepositories();
+
+// ============================================================
+// Response Caching
+// ============================================================
+builder.Services.AddResponseCaching();
+builder.Services.AddOutputCache(options =>
+{
+    // Cache per endpoint ad alta lettura (giochi, set di carte)
+    options.AddBasePolicy(b => b.NoCache());
+    options.AddPolicy("CatalogCache", b =>
+        b.Expire(TimeSpan.FromMinutes(5))
+         .Tag("catalog"));
+    options.AddPolicy("StatisticsCache", b =>
+        b.Expire(TimeSpan.FromMinutes(15))
+         .Tag("statistics"));
+});
 
 // ============================================================
 // Rate Limiting
@@ -216,16 +238,23 @@ using (var scope = app.Services.CreateScope())
 // 1. Global exception handler (primo nel pipeline)
 app.UseMiddleware<GlobalExceptionHandler>();
 
-// 2. Security headers
+// 2. Request logging con correlation ID
+app.UseMiddleware<RequestLoggingMiddleware>();
+
+// 3. Security headers
 app.UseMiddleware<SecurityHeadersMiddleware>();
 
-// 3. HTTPS redirect
+// 4. HTTPS redirect
 app.UseHttpsRedirection();
 
-// 4. Rate limiting
+// 5. Rate limiting
 app.UseRateLimiter();
 
-// 5. CORS + Dev-only endpoints
+// 6. Response caching
+app.UseResponseCaching();
+app.UseOutputCache();
+
+// 7. CORS + Dev-only endpoints
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -243,11 +272,11 @@ else
     app.UseCors("ProductionPolicy");
 }
 
-// 6. Authentication & Authorization
+// 8. Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 7. Endpoints
+// 9. Endpoints
 app.MapControllers();
 app.MapHealthChecks("/health").AllowAnonymous();
 

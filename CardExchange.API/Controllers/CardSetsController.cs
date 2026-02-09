@@ -5,6 +5,7 @@ using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace CardExchange.API.Controllers
 {
@@ -34,6 +35,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene tutti i set di carte
         /// </summary>
         [HttpGet]
+        [OutputCache(PolicyName = "CatalogCache")]
         public async Task<ActionResult<IEnumerable<CardSetDto>>> GetAllCardSets()
         {
             try

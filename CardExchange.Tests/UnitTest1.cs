@@ -1,10 +1,6 @@
-﻿namespace CardExchange.Tests;
-
-public class UnitTest1
-{
-    [Fact]
-    public void Test1()
-    {
-
-    }
-}
+// File rimosso - i test sono ora nelle cartelle specifiche:
+// - Services/
+// - Repositories/
+// - Validators/
+// - Controllers/
+// - Middleware/

@@ -1,0 +1,12 @@
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/.git
+**/node_modules
+**/.idea
+*.md
+*.yml
+!docker-compose.yml
+.env
+.env.*

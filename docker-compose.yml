@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cardexchange-api
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=CardExchange;User Id=sa;Password=${SA_PASSWORD:-CardExchange2024!};TrustServerCertificate=True
+      - JwtSettings__SecretKey=${JWT_SECRET_KEY:-ChangeThisToASecureKeyInProduction123456!}
+      - JwtSettings__Issuer=CardExchangeAPI
+      - JwtSettings__Audience=CardExchangeClient
+      - JwtSettings__ExpirationInMinutes=60
+      - Cors__AllowedOrigins__0=${CORS_ORIGIN:-http://localhost:3000}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - cardexchange-network
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: cardexchange-db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${SA_PASSWORD:-CardExchange2024!}
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "${SA_PASSWORD:-CardExchange2024!}" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - cardexchange-network
+
+volumes:
+  sqlserver-data:
+    driver: local
+
+networks:
+  cardexchange-network:
+    driver: bridge
