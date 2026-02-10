@@ -14,6 +14,8 @@ namespace CardExchange.Infrastructure.Configuration
             services.AddScoped<ICardInfoRepository, CardInfoRepository>();
             services.AddScoped<IWishlistRepository, WishlistRepository>();
             services.AddScoped<ITradeOfferRepository, TradeOfferRepository>();
+            services.AddScoped<IEventRepository, EventRepository>();
+            services.AddScoped<IPriceHistoryRepository, PriceHistoryRepository>();
             services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
             return services;

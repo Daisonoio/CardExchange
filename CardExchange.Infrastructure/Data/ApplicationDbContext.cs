@@ -33,6 +33,12 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<TradeReview> TradeReviews { get; set; }
         public DbSet<SavedSearch> SavedSearches { get; set; }
 
+        // DbSets - Eventi & Price Tracking
+        public DbSet<Event> Events { get; set; }
+        public DbSet<EventParticipant> EventParticipants { get; set; }
+        public DbSet<PriceHistory> PriceHistories { get; set; }
+        public DbSet<PriceAlert> PriceAlerts { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -310,6 +316,77 @@ namespace CardExchange.Infrastructure.Data
             });
 
             // ============================================================
+            // Event (Eventi locali)
+            // ============================================================
+            modelBuilder.Entity<Event>(entity =>
+            {
+                entity.HasIndex(e => new { e.City, e.StartDate });
+                entity.HasIndex(e => new { e.Status, e.StartDate });
+                entity.Property(e => e.Latitude).HasPrecision(10, 8);
+                entity.Property(e => e.Longitude).HasPrecision(11, 8);
+
+                entity.HasOne(e => e.Organizer)
+                      .WithMany()
+                      .HasForeignKey(e => e.OrganizerId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ============================================================
+            // EventParticipant
+            // ============================================================
+            modelBuilder.Entity<EventParticipant>(entity =>
+            {
+                entity.HasIndex(ep => new { ep.EventId, ep.UserId }).IsUnique();
+
+                entity.HasOne(ep => ep.Event)
+                      .WithMany(e => e.Participants)
+                      .HasForeignKey(ep => ep.EventId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(ep => ep.User)
+                      .WithMany()
+                      .HasForeignKey(ep => ep.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ============================================================
+            // PriceHistory (Storico prezzi)
+            // ============================================================
+            modelBuilder.Entity<PriceHistory>(entity =>
+            {
+                entity.HasIndex(ph => new { ph.CardInfoId, ph.SnapshotDate }).IsUnique();
+                entity.Property(ph => ph.PriceUsd).HasPrecision(10, 2);
+                entity.Property(ph => ph.PriceUsdFoil).HasPrecision(10, 2);
+                entity.Property(ph => ph.PriceEur).HasPrecision(10, 2);
+                entity.Property(ph => ph.PriceEurFoil).HasPrecision(10, 2);
+
+                entity.HasOne(ph => ph.CardInfo)
+                      .WithMany()
+                      .HasForeignKey(ph => ph.CardInfoId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ============================================================
+            // PriceAlert (Alert prezzo)
+            // ============================================================
+            modelBuilder.Entity<PriceAlert>(entity =>
+            {
+                entity.HasIndex(pa => new { pa.UserId, pa.CardInfoId });
+                entity.HasIndex(pa => new { pa.IsActive, pa.IsTriggered });
+                entity.Property(pa => pa.TargetPrice).HasPrecision(10, 2);
+
+                entity.HasOne(pa => pa.User)
+                      .WithMany()
+                      .HasForeignKey(pa => pa.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(pa => pa.CardInfo)
+                      .WithMany()
+                      .HasForeignKey(pa => pa.CardInfoId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ============================================================
             // RBAC
             // ============================================================
             modelBuilder.Entity<Role>(entity =>
@@ -386,6 +463,10 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<Message>().HasQueryFilter(m => !m.IsDeleted);
             modelBuilder.Entity<Notification>().HasQueryFilter(n => !n.IsDeleted);
             modelBuilder.Entity<SavedSearch>().HasQueryFilter(ss => !ss.IsDeleted);
+            modelBuilder.Entity<Event>().HasQueryFilter(e => !e.IsDeleted);
+            modelBuilder.Entity<EventParticipant>().HasQueryFilter(ep => !ep.IsDeleted);
+            modelBuilder.Entity<PriceHistory>().HasQueryFilter(ph => !ph.IsDeleted);
+            modelBuilder.Entity<PriceAlert>().HasQueryFilter(pa => !pa.IsDeleted);
         }
 
         public override int SaveChanges()

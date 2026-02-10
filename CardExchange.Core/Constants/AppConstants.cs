@@ -39,6 +39,12 @@ namespace CardExchange.Core.Constants
         public const string UsersUpdateOwn = "USERS.UPDATE.OWN";
         public const string UsersDeleteAny = "USERS.DELETE.ANY";
 
+        // Events
+        public const string EventsCreate = "EVENTS.CREATE";
+        public const string EventsReadAll = "EVENTS.READ.ALL";
+        public const string EventsUpdateOwn = "EVENTS.UPDATE.OWN";
+        public const string EventsDeleteAny = "EVENTS.DELETE.ANY";
+
         // Admin
         public const string AdminPanel = "ADMIN.PANEL";
         public const string AdminStats = "ADMIN.STATS";
@@ -59,6 +65,10 @@ namespace CardExchange.Core.Constants
         public const string CardNotAvailable = "La carta non è disponibile per lo scambio";
         public const string AlreadyReviewed = "Hai già lasciato una recensione per questo scambio";
         public const string TradeNotCompleted = "Lo scambio deve essere completato prima di poter lasciare una recensione";
+        public const string EventNotFound = "Evento non trovato";
+        public const string EventFull = "L'evento ha raggiunto il numero massimo di partecipanti";
+        public const string AlreadyRegistered = "Sei già iscritto a questo evento";
+        public const string AlertNotFound = "Alert non trovato";
     }
 
     public static class RoleNames
