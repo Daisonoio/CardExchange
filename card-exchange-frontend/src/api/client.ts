@@ -1,11 +1,17 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const API_BASE = import.meta.env.VITE_API_URL+'/api';
+
+if (!API_BASE) {
+  throw new Error('VITE_API_URL non definita');
+}
 
 const client = axios.create({
   baseURL: API_BASE,
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });
+
 
 client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem('token');

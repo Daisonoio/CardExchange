@@ -153,6 +153,7 @@ namespace CardExchange.API.Controllers
 
         /// <summary>
         /// Elimina l'account e tutti i dati associati (GDPR Art. 17 - Diritto all'oblio)
+        /// Password123!
         /// </summary>
         [HttpDelete("delete-account")]
         public async Task<IActionResult> DeleteAccount([FromQuery] string confirmUsername)
