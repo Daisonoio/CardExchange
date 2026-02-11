@@ -233,6 +233,13 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
+
+        // Per SQLite in sviluppo, crea il database dal modello
+        if (context.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+        {
+            await context.Database.EnsureCreatedAsync();
+        }
+
         await RBACSeeder.SeedRolesAndPermissions(context);
     }
     catch (Exception ex)

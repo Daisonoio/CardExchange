@@ -23,9 +23,9 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 COPY --from=build /app/publish .
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+# Health check (usa wget, disponibile nel runtime image)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
 # Esponi porta
 EXPOSE 8080

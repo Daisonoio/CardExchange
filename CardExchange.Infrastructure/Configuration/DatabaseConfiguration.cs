@@ -9,19 +9,31 @@ namespace CardExchange.Infrastructure.Configuration
     {
         public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            var connectionString = configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' non configurata.");
+
+            var isSqlite = connectionString.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase);
 
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString, sqlOptions =>
+            {
+                if (isSqlite)
                 {
-                    sqlOptions.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(30),
-                        errorNumbersToAdd: null);
-                })
-                .EnableSensitiveDataLogging(false)
-                .EnableDetailedErrors(false)
-            );
+                    options.UseSqlite(connectionString);
+                }
+                else
+                {
+                    options.UseSqlServer(connectionString, sqlOptions =>
+                    {
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 5,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorNumbersToAdd: null);
+                    });
+                }
+
+                options.EnableSensitiveDataLogging(false)
+                       .EnableDetailedErrors(false);
+            });
 
             return services;
         }

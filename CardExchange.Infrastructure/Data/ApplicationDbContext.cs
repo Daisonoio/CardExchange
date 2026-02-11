@@ -43,6 +43,8 @@ namespace CardExchange.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            var isSqlite = Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite";
+
             // ============================================================
             // User
             // ============================================================
@@ -87,7 +89,8 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<CardSet>(entity =>
             {
                 entity.HasIndex(cs => new { cs.GameId, cs.Code }).IsUnique();
-                entity.HasIndex(cs => cs.ScryfallId).IsUnique().HasFilter("[ScryfallId] IS NOT NULL");
+                var scryfallIdIdx = entity.HasIndex(cs => cs.ScryfallId).IsUnique();
+                if (!isSqlite) scryfallIdIdx.HasFilter("[ScryfallId] IS NOT NULL");
                 entity.HasOne(cs => cs.Game)
                       .WithMany(g => g.CardSets)
                       .HasForeignKey(cs => cs.GameId)
@@ -100,7 +103,8 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<CardInfo>(entity =>
             {
                 entity.HasIndex(ci => new { ci.CardSetId, ci.Name });
-                entity.HasIndex(ci => ci.ScryfallId).IsUnique().HasFilter("[ScryfallId] IS NOT NULL");
+                var ciScryfallIdx = entity.HasIndex(ci => ci.ScryfallId).IsUnique();
+                if (!isSqlite) ciScryfallIdx.HasFilter("[ScryfallId] IS NOT NULL");
                 entity.HasIndex(ci => ci.OracleId);
                 entity.Property(ci => ci.Cmc).HasPrecision(5, 2);
                 entity.Property(ci => ci.PriceUsd).HasPrecision(10, 2);
@@ -173,7 +177,8 @@ namespace CardExchange.Infrastructure.Data
                       .HasForeignKey(to => to.ParentOfferId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasCheckConstraint("CK_TradeOffer_DifferentUsers", "[SenderId] != [ReceiverId]");
+                if (!isSqlite)
+                    entity.HasCheckConstraint("CK_TradeOffer_DifferentUsers", "[SenderId] != [ReceiverId]");
             });
 
             // ============================================================
@@ -216,7 +221,8 @@ namespace CardExchange.Infrastructure.Data
                       .HasForeignKey(tr => tr.ReviewedUserId)
                       .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasCheckConstraint("CK_TradeReview_DifferentUsers", "[ReviewerId] != [ReviewedUserId]");
+                if (!isSqlite)
+                    entity.HasCheckConstraint("CK_TradeReview_DifferentUsers", "[ReviewerId] != [ReviewedUserId]");
             });
 
             // ============================================================
@@ -269,7 +275,8 @@ namespace CardExchange.Infrastructure.Data
                       .HasForeignKey(c => c.TradeOfferId)
                       .OnDelete(DeleteBehavior.SetNull);
 
-                entity.HasCheckConstraint("CK_Conversation_DifferentUsers", "[User1Id] != [User2Id]");
+                if (!isSqlite)
+                    entity.HasCheckConstraint("CK_Conversation_DifferentUsers", "[User1Id] != [User2Id]");
             });
 
             // ============================================================

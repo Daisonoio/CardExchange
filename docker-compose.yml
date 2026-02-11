@@ -9,13 +9,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=CardExchange;User Id=sa;Password=${SA_PASSWORD:-CardExchange2024!};TrustServerCertificate=True
       - JwtSettings__SecretKey=${JWT_SECRET_KEY:-ChangeThisToASecureKeyInProduction123456!}
       - JwtSettings__Issuer=CardExchangeAPI
       - JwtSettings__Audience=CardExchangeClient
       - JwtSettings__ExpirationInMinutes=60
-      - Cors__AllowedOrigins__0=${CORS_ORIGIN:-http://localhost:3000}
+      - Cors__AllowedOrigins__0=${CORS_ORIGIN:-http://localhost:5173}
     depends_on:
       sqlserver:
         condition: service_healthy
