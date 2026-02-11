@@ -35,7 +35,7 @@ public class SubscriptionServiceTests : IDisposable
         {
             Name = "Premium Monthly",
             Tier = SubscriptionTier.Premium,
-            BillingCycle = BillingCycle.Monthly,
+            Cycle = BillingCycle.Monthly,
             Price = 9.99m,
             MaxCards = 999,
             MaxWishlistItems = 999,
@@ -69,7 +69,7 @@ public class SubscriptionServiceTests : IDisposable
         {
             Name = "Premium",
             Tier = SubscriptionTier.Premium,
-            BillingCycle = BillingCycle.Monthly,
+            Cycle = BillingCycle.Monthly,
             Price = 9.99m,
             MaxCards = 999,
             MaxWishlistItems = 999,
