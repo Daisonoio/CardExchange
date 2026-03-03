@@ -41,6 +41,7 @@ export default function RegisterPage() {
         firstName: form.firstName,
         lastName: form.lastName,
         password: form.password,
+        confirmPassword: form.confirmPassword,
       });
       navigate('/explore');
     } catch (err: unknown) {

@@ -8,7 +8,7 @@ import { Layers } from 'lucide-react';
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ emailOrUsername: '', password: '' });
+  const [form, setForm] = useState({ usernameOrEmail: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,8 +47,8 @@ export default function LoginPage() {
 
           <Input
             label="Email o Username"
-            value={form.emailOrUsername}
-            onChange={(e) => setForm({ ...form, emailOrUsername: e.target.value })}
+            value={form.usernameOrEmail}
+            onChange={(e) => setForm({ ...form, usernameOrEmail: e.target.value })}
             placeholder="mario@email.com"
             autoComplete="username"
             required

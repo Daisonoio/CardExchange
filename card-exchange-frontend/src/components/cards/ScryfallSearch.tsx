@@ -17,7 +17,7 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
   const [mode, setMode] = useState<'autocomplete' | 'results'>('autocomplete');
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const fetchAutocomplete = useCallback(async (q: string) => {
     if (q.length < 2) {

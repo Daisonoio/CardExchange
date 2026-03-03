@@ -1,6 +1,6 @@
 // === Auth ===
 export interface LoginRequest {
-  emailOrUsername: string;
+  usernameOrEmail: string;
   password: string;
 }
 
@@ -10,12 +10,16 @@ export interface RegisterRequest {
   firstName: string;
   lastName: string;
   password: string;
+  confirmPassword: string;
 }
 
 export interface AuthResponse {
-  token: string;
+  accessToken: string;
   refreshToken: string;
+  accessTokenExpiration: string;
+  refreshTokenExpiration: string;
   user: User;
+  message?: string;
 }
 
 // === User ===

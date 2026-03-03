@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Heart, X, Star, ChevronDown } from 'lucide-react';
+import { Plus, Heart, X } from 'lucide-react';
 import { wishlist, scryfall } from '../api';
+import { useAuth } from '../context/AuthContext';
 import type { WishlistItem, ScryfallCard, CardCondition } from '../types';
 import { CONDITION_LABELS } from '../types';
 import ScryfallSearch from '../components/cards/ScryfallSearch';
@@ -15,6 +16,7 @@ const PRIORITY_COLORS = {
 } as const;
 
 export default function WishlistPage() {
+  const { user } = useAuth();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -28,15 +30,16 @@ export default function WishlistPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   const loadItems = useCallback(async () => {
+    if (!user) return;
     try {
-      const { data } = await wishlist.getMine();
+      const { data } = await wishlist.getByUser(user.id);
       setItems(data);
     } catch (err) {
       console.error('Errore caricamento wishlist:', err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => { loadItems(); }, [loadItems]);
 
@@ -47,7 +50,7 @@ export default function WishlistPage() {
       const { data: importResult } = await scryfall.importCard(selectedCard.id);
       const cardInfoId = importResult.cardInfoId || importResult.id;
 
-      await wishlist.create({
+      await wishlist.create(user!.id, {
         cardInfoId,
         priority: addForm.priority,
         preferredCondition: addForm.preferredCondition,

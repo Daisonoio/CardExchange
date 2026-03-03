@@ -20,34 +20,40 @@ export const auth = {
     client.post<AuthResponse>('/auth/login', data),
   register: (data: RegisterRequest) =>
     client.post<AuthResponse>('/auth/register', data),
+  me: () => client.get<User>('/auth/me'),
   logout: () => client.post('/auth/logout'),
 };
 
 // === Cards ===
 export const cards = {
   getAll: () => client.get<Card[]>('/cards'),
-  getMine: () => client.get<Card[]>('/cards/my-cards'),
-  create: (data: CreateCardRequest) => client.post<Card>('/cards', data),
+  getByUser: (userId: number) => client.get<Card[]>(`/cards/user/${userId}`),
+  getById: (id: number) => client.get<Card>(`/cards/${id}`),
+  create: (userId: number, data: CreateCardRequest) =>
+    client.post<Card>(`/cards/user/${userId}`, data),
   update: (id: number, data: Partial<CreateCardRequest>) =>
     client.put<Card>(`/cards/${id}`, data),
   delete: (id: number) => client.delete(`/cards/${id}`),
   search: (term: string) =>
     client.get<Card[]>('/cards/search', { params: { term } }),
-  nearby: (lat: number, lon: number, radiusKm: number) =>
-    client.get<Card[]>('/cards/nearby', {
-      params: { latitude: lat, longitude: lon, radiusKm },
+  nearby: (userId: number, radiusKm: number) =>
+    client.get<Card[]>(`/cards/nearby/${userId}`, {
+      params: { radiusKm },
     }),
 };
 
 // === Wishlist ===
 export const wishlist = {
-  getMine: () => client.get<WishlistItem[]>('/wishlist'),
-  create: (data: CreateWishlistRequest) =>
-    client.post<WishlistItem>('/wishlist', data),
+  getByUser: (userId: number) =>
+    client.get<WishlistItem[]>(`/wishlist/user/${userId}`),
+  getById: (id: number) => client.get<WishlistItem>(`/wishlist/${id}`),
+  create: (userId: number, data: CreateWishlistRequest) =>
+    client.post<WishlistItem>(`/wishlist/user/${userId}`, data),
   update: (id: number, data: Partial<CreateWishlistRequest>) =>
     client.put<WishlistItem>(`/wishlist/${id}`, data),
   delete: (id: number) => client.delete(`/wishlist/${id}`),
-  getMatches: () => client.get('/wishlist/matches'),
+  getMatches: (userId: number) =>
+    client.get(`/wishlist/user/${userId}/all-matches`),
 };
 
 // === Scryfall ===
@@ -70,13 +76,14 @@ export const scryfall = {
 // === Users ===
 export const users = {
   getProfile: (id: number) => client.get<User>(`/users/${id}`),
-  getMyProfile: () => client.get<User>('/users/me'),
-  search: (params: Record<string, string | number>) =>
-    client.get<User[]>('/users/search', { params }),
+  getByUsername: (username: string) =>
+    client.get<User>(`/users/by-username/${username}`),
   nearby: (lat: number, lon: number, radiusKm: number) =>
     client.get<User[]>('/users/nearby', {
       params: { latitude: lat, longitude: lon, radiusKm },
     }),
+  byLocation: (params: Record<string, string | number>) =>
+    client.get<User[]>('/users/by-location', { params }),
 };
 
 // === Events ===

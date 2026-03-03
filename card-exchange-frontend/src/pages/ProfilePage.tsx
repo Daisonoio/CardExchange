@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext';
-import { Star, ArrowLeftRight, MessageCircle, MapPin, LogOut, ChevronRight, Crown } from 'lucide-react';
+import { Star, ArrowLeftRight, MessageCircle, MapPin, LogOut, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 

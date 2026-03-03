@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Library, Search, Filter, X } from 'lucide-react';
+import { Plus, Library, Search, X } from 'lucide-react';
 import { cards, scryfall } from '../api';
+import { useAuth } from '../context/AuthContext';
 import type { Card, ScryfallCard, CardCondition } from '../types';
 import { CONDITION_LABELS } from '../types';
 import CardItem from '../components/cards/CardItem';
@@ -10,6 +11,7 @@ import EmptyState from '../components/ui/EmptyState';
 import CardSkeleton from '../components/ui/CardSkeleton';
 
 export default function CollectionPage() {
+  const { user } = useAuth();
   const [myCards, setMyCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -25,15 +27,16 @@ export default function CollectionPage() {
   const [filterTrade, setFilterTrade] = useState<'all' | 'trade' | 'keep'>('all');
 
   const loadCards = useCallback(async () => {
+    if (!user) return;
     try {
-      const { data } = await cards.getMine();
+      const { data } = await cards.getByUser(user.id);
       setMyCards(data);
     } catch (err) {
       console.error('Errore caricamento carte:', err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => { loadCards(); }, [loadCards]);
 
@@ -49,7 +52,7 @@ export default function CollectionPage() {
       const { data: importResult } = await scryfall.importCard(selectedCard.id);
       const cardInfoId = importResult.cardInfoId || importResult.id;
 
-      await cards.create({
+      await cards.create(user!.id, {
         cardInfoId,
         condition: addForm.condition,
         quantity: addForm.quantity,

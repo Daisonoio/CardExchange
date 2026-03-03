@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User, LoginRequest, RegisterRequest } from '../types';
-import { auth, users } from '../api';
+import { auth } from '../api';
 
 interface AuthContextType {
   user: User | null;
@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     try {
-      const { data } = await users.getMyProfile();
+      const { data } = await auth.me();
       setUser(data);
     } catch {
       setUser(null);
@@ -40,14 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (data: LoginRequest) => {
     const res = await auth.login(data);
-    localStorage.setItem('token', res.data.token);
+    localStorage.setItem('token', res.data.accessToken);
     localStorage.setItem('refreshToken', res.data.refreshToken);
     setUser(res.data.user);
   };
 
   const register = async (data: RegisterRequest) => {
     const res = await auth.register(data);
-    localStorage.setItem('token', res.data.token);
+    localStorage.setItem('token', res.data.accessToken);
     localStorage.setItem('refreshToken', res.data.refreshToken);
     setUser(res.data.user);
   };

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation } from 'lucide-react';
 import { cards, users } from '../api';
+import { useAuth } from '../context/AuthContext';
 import type { Card, User } from '../types';
 import { useGeolocation } from '../hooks/useGeolocation';
 import CardItem from '../components/cards/CardItem';
@@ -10,6 +11,7 @@ import EmptyState from '../components/ui/EmptyState';
 type Tab = 'cards' | 'users';
 
 export default function ExplorePage() {
+  const { user: currentUser } = useAuth();
   const [tab, setTab] = useState<Tab>('cards');
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
   const [nearbyUsers, setNearbyUsers] = useState<User[]>([]);
@@ -25,8 +27,8 @@ export default function ExplorePage() {
       setIsLoading(true);
       try {
         if (tab === 'cards') {
-          if (useLocation && position) {
-            const { data } = await cards.nearby(position.latitude, position.longitude, radiusKm);
+          if (useLocation && currentUser) {
+            const { data } = await cards.nearby(currentUser.id, radiusKm);
             setAvailableCards(data);
           } else {
             const { data } = await cards.getAll();

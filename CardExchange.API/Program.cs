@@ -36,6 +36,8 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
         options.JsonSerializerOptions.DefaultIgnoreCondition =
             System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
 
@@ -262,8 +264,11 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 // 3. Security headers
 app.UseMiddleware<SecurityHeadersMiddleware>();
 
-// 4. HTTPS redirect
-app.UseHttpsRedirection();
+// 4. HTTPS redirect (solo in produzione)
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 // 5. Rate limiting
 app.UseRateLimiter();
