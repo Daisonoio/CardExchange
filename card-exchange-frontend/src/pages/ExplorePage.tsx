@@ -218,10 +218,10 @@ export default function ExplorePage() {
                       </p>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="text-xs text-text-muted">
-                          {user.totalTradesCompleted} scambi
+                          {user.totalTradesCompleted ?? 0} scambi
                         </span>
                         <span className="text-xs text-secondary font-medium">
-                          {user.reputationScore.toFixed(1)} rep
+                          {(user.reputationScore ?? 0).toFixed(1)} rep
                         </span>
                       </div>
                     </div>
