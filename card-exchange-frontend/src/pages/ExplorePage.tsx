@@ -29,10 +29,10 @@ export default function ExplorePage() {
         if (tab === 'cards') {
           if (useLocation && currentUser) {
             const { data } = await cards.nearby(currentUser.id, radiusKm);
-            setAvailableCards(data);
+            setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
           } else {
             const { data } = await cards.getAll();
-            setAvailableCards(data);
+            setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
           }
         } else {
           if (position) {
