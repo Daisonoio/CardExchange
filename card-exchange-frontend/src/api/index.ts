@@ -36,9 +36,9 @@ export const cards = {
   delete: (id: number) => client.delete(`/cards/${id}`),
   search: (term: string) =>
     client.get<Card[]>('/cards/search', { params: { term } }),
-  nearby: (userId: number, radiusKm: number) =>
+  nearby: (userId: number, radiusKm: number, coords?: { latitude: number; longitude: number }) =>
     client.get<Card[]>(`/cards/nearby/${userId}`, {
-      params: { radiusKm },
+      params: { radiusKm, ...coords },
     }),
 };
 

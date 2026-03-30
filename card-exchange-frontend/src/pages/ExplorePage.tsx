@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation } from 'lucide-react';
+import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cards, users } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -21,25 +21,39 @@ export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [radiusKm, setRadiusKm] = useState(50);
   const [useLocation, setUseLocation] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
+  const [showLocationDialog, setShowLocationDialog] = useState(false);
+  const [liveCoords, setLiveCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const { position, error: geoError, isLoading: geoLoading, requestPosition } = useGeolocation();
 
-  // Load available cards
+  const hasProfileLocation = !!(currentUser?.location?.latitude && currentUser?.location?.longitude);
+
+  // When browser position arrives and we were waiting for it (dialog flow)
+  useEffect(() => {
+    if (position && !hasProfileLocation && useLocation) {
+      setLiveCoords(position);
+    }
+  }, [position]);
+
+  // Load data
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
-      setLocationError(null);
       try {
         if (tab === 'cards') {
           if (useLocation && currentUser) {
-            if (!currentUser.location?.latitude || !currentUser.location?.longitude) {
-              setLocationError('Devi prima impostare la tua posizione nel profilo per cercare carte vicine.');
-              setAvailableCards([]);
-              setIsLoading(false);
-              return;
+            if (hasProfileLocation) {
+              // Use saved profile location
+              const { data } = await cards.nearby(currentUser.id, radiusKm);
+              setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
+            } else if (liveCoords) {
+              // Use live browser coordinates
+              const { data } = await cards.nearby(currentUser.id, radiusKm, liveCoords);
+              setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
+            } else {
+              // No location available, load all cards
+              const { data } = await cards.getAll();
+              setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
             }
-            const { data } = await cards.nearby(currentUser.id, radiusKm);
-            setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
           } else {
             const { data } = await cards.getAll();
             setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
@@ -57,11 +71,33 @@ export default function ExplorePage() {
       }
     };
     load();
-  }, [tab, useLocation, position, radiusKm]);
+  }, [tab, useLocation, position, radiusKm, liveCoords]);
 
   const handleEnableLocation = () => {
-    requestPosition();
+    if (tab === 'cards' && !hasProfileLocation) {
+      // Show choice dialog
+      setShowLocationDialog(true);
+    } else {
+      requestPosition();
+      setUseLocation(true);
+    }
+  };
+
+  const handleDialogSaveProfile = () => {
+    setShowLocationDialog(false);
+    navigate('/profile/edit');
+  };
+
+  const handleDialogUseCurrent = () => {
+    setShowLocationDialog(false);
     setUseLocation(true);
+    if (position) {
+      // Already have position from browser
+      setLiveCoords(position);
+    } else {
+      // Request browser geolocation
+      requestPosition();
+    }
   };
 
   const filteredCards = searchTerm
@@ -70,6 +106,8 @@ export default function ExplorePage() {
         c.cardInfo?.cardSet?.name?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : availableCards;
+
+  const isLocationActive = useLocation && (hasProfileLocation || !!liveCoords);
 
   return (
     <div>
@@ -109,7 +147,7 @@ export default function ExplorePage() {
             <Navigation size={16} className="text-primary" />
             <span className="text-sm font-medium">Geolocalizzazione</span>
           </div>
-          {!position ? (
+          {!isLocationActive && !position ? (
             <Button onClick={handleEnableLocation} size="sm" variant="outline" isLoading={geoLoading}>
               <MapPin size={14} />
               Attiva
@@ -123,19 +161,7 @@ export default function ExplorePage() {
           <p className="text-xs text-danger mt-2">{geoError}</p>
         )}
 
-        {locationError && (
-          <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-xs text-amber-700">{locationError}</p>
-            <button
-              onClick={() => navigate('/profile/edit')}
-              className="text-xs font-semibold text-primary mt-1 hover:underline"
-            >
-              Vai a Modifica profilo
-            </button>
-          </div>
-        )}
-
-        {position && (
+        {(position || isLocationActive) && (
           <div className="mt-3 flex items-center gap-3">
             <label className="text-xs text-text-secondary">Raggio:</label>
             <input
@@ -151,6 +177,33 @@ export default function ExplorePage() {
           </div>
         )}
       </div>
+
+      {/* Location choice dialog */}
+      {showLocationDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold">Posizione non impostata</h3>
+              <button onClick={() => setShowLocationDialog(false)} className="p-1 hover:bg-surface-dark rounded-lg">
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-sm text-text-secondary mb-5">
+              Non hai una posizione salvata nel profilo. Come vuoi procedere?
+            </p>
+            <div className="space-y-2.5">
+              <Button onClick={handleDialogSaveProfile} variant="outline" className="w-full">
+                <MapPin size={14} />
+                Salva posizione nel profilo
+              </Button>
+              <Button onClick={handleDialogUseCurrent} className="w-full">
+                <Navigation size={14} />
+                Usa posizione attuale
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cards tab */}
       {tab === 'cards' && (
@@ -182,7 +235,7 @@ export default function ExplorePage() {
             <div className="space-y-2">
               <p className="text-xs text-text-muted mb-2">
                 {filteredCards.length} carte disponibili
-                {useLocation && position && ` entro ${radiusKm} km`}
+                {isLocationActive && ` entro ${radiusKm} km`}
               </p>
               {filteredCards.map((card) => (
                 <CardItem key={card.id} card={card} showUser />

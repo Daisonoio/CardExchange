@@ -429,7 +429,9 @@ namespace CardExchange.API.Controllers
             [FromQuery] int radiusKm = 50,
             [FromQuery] string? searchTerm = null,
             [FromQuery] int? gameId = null,
-            [FromQuery] int? cardSetId = null)
+            [FromQuery] int? cardSetId = null,
+            [FromQuery] double? latitude = null,
+            [FromQuery] double? longitude = null)
         {
             try
             {
@@ -440,9 +442,23 @@ namespace CardExchange.API.Controllers
                     return NotFound(new { message = $"Utente con ID {userId} non trovato" });
                 }
 
-                if (user.Location == null || !user.Location.Latitude.HasValue || !user.Location.Longitude.HasValue)
+                // Usa le coordinate fornite via query, oppure quelle salvate nel profilo
+                double searchLat;
+                double searchLon;
+
+                if (latitude.HasValue && longitude.HasValue)
                 {
-                    return BadRequest(new { message = "L'utente non ha una location configurata" });
+                    searchLat = latitude.Value;
+                    searchLon = longitude.Value;
+                }
+                else if (user.Location != null && user.Location.Latitude.HasValue && user.Location.Longitude.HasValue)
+                {
+                    searchLat = (double)user.Location.Latitude.Value;
+                    searchLon = (double)user.Location.Longitude.Value;
+                }
+                else
+                {
+                    return BadRequest(new { message = "L'utente non ha una location configurata. Fornire latitude e longitude come parametri oppure salvare la posizione nel profilo." });
                 }
 
                 if (radiusKm < 1 || radiusKm > 1000)
@@ -488,8 +504,8 @@ namespace CardExchange.API.Controllers
                         card.User.Location.Longitude.HasValue)
                     {
                         var distance = CalculateDistance(
-                            (double)user.Location.Latitude.Value,
-                            (double)user.Location.Longitude.Value,
+                            searchLat,
+                            searchLon,
                             (double)card.User.Location.Latitude.Value,
                             (double)card.User.Location.Longitude.Value
                         );
@@ -512,13 +528,10 @@ namespace CardExchange.API.Controllers
                 {
                     userId,
                     username = user.Username,
-                    userLocation = new
+                    searchLocation = new
                     {
-                        city = user.Location.City,
-                        province = user.Location.Province,
-                        country = user.Location.Country,
-                        latitude = user.Location.Latitude,
-                        longitude = user.Location.Longitude
+                        latitude = searchLat,
+                        longitude = searchLon
                     },
                     radiusKm,
                     searchTerm,
