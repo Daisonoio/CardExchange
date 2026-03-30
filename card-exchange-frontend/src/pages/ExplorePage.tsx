@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { cards, users } from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { Card, User } from '../types';
@@ -12,6 +13,7 @@ type Tab = 'cards' | 'users';
 
 export default function ExplorePage() {
   const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('cards');
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
   const [nearbyUsers, setNearbyUsers] = useState<User[]>([]);
@@ -19,15 +21,23 @@ export default function ExplorePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [radiusKm, setRadiusKm] = useState(50);
   const [useLocation, setUseLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const { position, error: geoError, isLoading: geoLoading, requestPosition } = useGeolocation();
 
   // Load available cards
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
+      setLocationError(null);
       try {
         if (tab === 'cards') {
           if (useLocation && currentUser) {
+            if (!currentUser.location?.latitude || !currentUser.location?.longitude) {
+              setLocationError('Devi prima impostare la tua posizione nel profilo per cercare carte vicine.');
+              setAvailableCards([]);
+              setIsLoading(false);
+              return;
+            }
             const { data } = await cards.nearby(currentUser.id, radiusKm);
             setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
           } else {
@@ -111,6 +121,18 @@ export default function ExplorePage() {
 
         {geoError && (
           <p className="text-xs text-danger mt-2">{geoError}</p>
+        )}
+
+        {locationError && (
+          <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-xs text-amber-700">{locationError}</p>
+            <button
+              onClick={() => navigate('/profile/edit')}
+              className="text-xs font-semibold text-primary mt-1 hover:underline"
+            >
+              Vai a Modifica profilo
+            </button>
+          </div>
         )}
 
         {position && (
