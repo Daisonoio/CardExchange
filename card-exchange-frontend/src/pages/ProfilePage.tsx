@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext';
-import { Star, ArrowLeftRight, MessageCircle, MapPin, LogOut, ChevronRight } from 'lucide-react';
+import { Star, ArrowLeftRight, MessageCircle, MapPin, LogOut, ChevronRight, Pencil } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 
@@ -19,7 +19,7 @@ export default function ProfilePage() {
   return (
     <div className="max-w-lg mx-auto">
       {/* Profile card */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-border/50 mb-4">
+      <div className="bg-white rounded-2xl p-6 shadow-sm border border-border/50 mb-4 relative">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shrink-0">
             {user.avatarUrl ? (
@@ -39,6 +39,13 @@ export default function ProfilePage() {
             )}
           </div>
         </div>
+
+        <button
+          onClick={() => navigate('/profile/edit')}
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-surface-dark transition text-text-secondary"
+        >
+          <Pencil size={16} />
+        </button>
 
         {user.bio && (
           <p className="text-sm text-text-secondary mt-3">{user.bio}</p>
