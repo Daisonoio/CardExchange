@@ -33,7 +33,7 @@ export default function WishlistPage() {
     if (!user) return;
     try {
       const { data } = await wishlist.getByUser(user.id);
-      setItems(data);
+      setItems(Array.isArray(data) ? data : (data as any).items ?? []);
     } catch (err) {
       console.error('Errore caricamento wishlist:', err);
     } finally {

@@ -37,7 +37,7 @@ export default function ExplorePage() {
         } else {
           if (position) {
             const { data } = await users.nearby(position.latitude, position.longitude, radiusKm);
-            setNearbyUsers(data);
+            setNearbyUsers(Array.isArray(data) ? data : (data as any).users ?? []);
           }
         }
       } catch (err) {

@@ -30,7 +30,7 @@ export default function CollectionPage() {
     if (!user) return;
     try {
       const { data } = await cards.getByUser(user.id);
-      setMyCards(data);
+      setMyCards(Array.isArray(data) ? data : (data as any).cards ?? []);
     } catch (err) {
       console.error('Errore caricamento carte:', err);
     } finally {
