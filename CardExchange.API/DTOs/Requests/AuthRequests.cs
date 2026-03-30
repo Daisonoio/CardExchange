@@ -53,4 +53,22 @@ namespace CardExchange.API.DTOs.Requests
         [Required(ErrorMessage = "Il refresh token è obbligatorio")]
         public string RefreshToken { get; set; } = string.Empty;
     }
+
+    public class AssignRoleRequest
+    {
+        [Required(ErrorMessage = "L'ID utente è obbligatorio")]
+        public int UserId { get; set; }
+
+        [Required(ErrorMessage = "Il nome del ruolo è obbligatorio")]
+        public string RoleName { get; set; } = string.Empty;
+    }
+
+    public class RemoveRoleRequest
+    {
+        [Required(ErrorMessage = "L'ID utente è obbligatorio")]
+        public int UserId { get; set; }
+
+        [Required(ErrorMessage = "Il nome del ruolo è obbligatorio")]
+        public string RoleName { get; set; } = string.Empty;
+    }
 }
