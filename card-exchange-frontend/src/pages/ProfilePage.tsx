@@ -49,21 +49,21 @@ export default function ProfilePage() {
           <div className="bg-surface-dark rounded-xl p-3 text-center">
             <div className="flex items-center justify-center gap-1 text-secondary">
               <Star size={14} />
-              <span className="text-lg font-bold">{user.reputationScore.toFixed(1)}</span>
+              <span className="text-lg font-bold">{(user.reputationScore ?? 0).toFixed(1)}</span>
             </div>
             <p className="text-xs text-text-muted mt-0.5">Reputazione</p>
           </div>
           <div className="bg-surface-dark rounded-xl p-3 text-center">
             <div className="flex items-center justify-center gap-1 text-primary">
               <ArrowLeftRight size={14} />
-              <span className="text-lg font-bold">{user.totalTradesCompleted}</span>
+              <span className="text-lg font-bold">{user.totalTradesCompleted ?? 0}</span>
             </div>
             <p className="text-xs text-text-muted mt-0.5">Scambi</p>
           </div>
           <div className="bg-surface-dark rounded-xl p-3 text-center">
             <div className="flex items-center justify-center gap-1 text-accent">
               <MessageCircle size={14} />
-              <span className="text-lg font-bold">{user.totalReviewsReceived}</span>
+              <span className="text-lg font-bold">{user.totalReviewsReceived ?? 0}</span>
             </div>
             <p className="text-xs text-text-muted mt-0.5">Recensioni</p>
           </div>
