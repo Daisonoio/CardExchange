@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface CarouselCard {
@@ -25,95 +25,55 @@ interface CardCarouselProps {
 
 export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) {
   const [current, setCurrent] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const touchStartX = useRef(0);
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartX = useRef(0);
+  const dragStartTime = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const total = cards.length;
-
-  const prev = useCallback(() => {
-    if (isAnimating || total < 2) return;
-    setIsAnimating(true);
-    setCurrent((c) => (c - 1 + total) % total);
-    setTimeout(() => setIsAnimating(false), 600);
-  }, [isAnimating, total]);
-
-  const next = useCallback(() => {
-    if (isAnimating || total < 2) return;
-    setIsAnimating(true);
-    setCurrent((c) => (c + 1) % total);
-    setTimeout(() => setIsAnimating(false), 600);
-  }, [isAnimating, total]);
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') prev();
-      if (e.key === 'ArrowRight') next();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [prev, next]);
-
-  // Touch handling
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const onTouchEnd = (e: React.TouchEvent) => {
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) {
-      diff > 0 ? next() : prev();
-    }
-  };
-
   if (total === 0) return null;
 
-  const getIndex = (offset: number) => (current + offset + total) % total;
+  const go = useCallback((dir: number) => {
+    setCurrent((c) => (c + dir + total) % total);
+  }, [total]);
 
-  const getSlideStyle = (offset: number): React.CSSProperties => {
-    const base: React.CSSProperties = {
-      position: 'absolute',
-      width: 'min(55vw, 220px)',
-      aspectRatio: '2 / 3',
-      transition: 'all 600ms ease',
-      transformStyle: 'preserve-3d',
-      cursor: offset === 0 ? 'pointer' : 'default',
+  // Keyboard
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') go(-1);
+      if (e.key === 'ArrowRight') go(1);
     };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [go]);
 
-    if (offset === 0) {
-      return {
-        ...base,
-        transform: 'perspective(1000px) translateX(0) scale(1.15) rotateY(0deg)',
-        zIndex: 20,
-        filter: 'brightness(1)',
-      };
+  // Pointer events for smooth drag (mouse + touch)
+  const onPointerDown = (e: React.PointerEvent) => {
+    setIsDragging(true);
+    dragStartX.current = e.clientX;
+    dragStartTime.current = Date.now();
+    setDragX(0);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!isDragging) return;
+    setDragX(e.clientX - dragStartX.current);
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    const dx = e.clientX - dragStartX.current;
+    const dt = Date.now() - dragStartTime.current;
+    const velocity = Math.abs(dx) / dt;
+
+    // Swipe threshold: 40px or fast flick
+    if (Math.abs(dx) > 40 || velocity > 0.3) {
+      go(dx < 0 ? 1 : -1);
     }
-    if (offset === 1 || (offset === -(total - 1) && total > 2)) {
-      return {
-        ...base,
-        transform: 'perspective(1000px) translateX(calc(min(55vw, 220px) * 0.65)) scale(0.9) rotateY(-25deg)',
-        zIndex: 10,
-        filter: 'brightness(0.5)',
-        pointerEvents: 'none',
-      };
-    }
-    if (offset === -1 || (offset === total - 1 && total > 2)) {
-      return {
-        ...base,
-        transform: 'perspective(1000px) translateX(calc(min(55vw, 220px) * -0.65)) scale(0.9) rotateY(25deg)',
-        zIndex: 10,
-        filter: 'brightness(0.5)',
-        pointerEvents: 'none',
-      };
-    }
-    return {
-      ...base,
-      transform: 'perspective(1000px) translateX(0) scale(0.7)',
-      zIndex: 0,
-      opacity: 0,
-      pointerEvents: 'none',
-    };
+    setDragX(0);
   };
 
   const getOffset = (index: number) => {
@@ -123,98 +83,136 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
     return diff;
   };
 
+  // Compute drag-based fractional offset for smooth feel
+  const containerWidth = containerRef.current?.offsetWidth || 400;
+  const dragFraction = isDragging ? dragX / containerWidth : 0;
+
+  const getSlideStyle = (offset: number): React.CSSProperties => {
+    // Apply drag fraction to make slides follow finger
+    const adjustedOffset = offset - dragFraction * 1.5;
+
+    const tx = adjustedOffset * 55; // % translation
+    const absOff = Math.abs(adjustedOffset);
+    const scale = Math.max(0.65, 1 - absOff * 0.18);
+    const rotY = -adjustedOffset * 35; // degrees
+    const z = -absOff * 100;
+    const brightness = Math.max(0.35, 1 - absOff * 0.45);
+    const opacity = absOff > 2.5 ? 0 : 1;
+
+    return {
+      position: 'absolute',
+      left: '50%',
+      top: '50%',
+      width: 'min(60vw, 260px)',
+      aspectRatio: '488 / 680',
+      marginLeft: 'calc(min(60vw, 260px) / -2)',
+      marginTop: 'calc(min(60vw, 260px) * 680 / 488 / -2)',
+      transform: `perspective(1200px) translateX(${tx}%) translateZ(${z}px) rotateY(${rotY}deg) scale(${scale})`,
+      transition: isDragging ? 'none' : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s ease, opacity 0.4s ease',
+      filter: `brightness(${brightness})`,
+      opacity,
+      zIndex: 100 - Math.round(absOff * 10),
+      cursor: offset === 0 && !isDragging ? 'pointer' : 'grab',
+      pointerEvents: (absOff < 0.5 ? 'auto' : 'none') as React.CSSProperties['pointerEvents'],
+      willChange: 'transform',
+    };
+  };
+
   const currentCard = cards[current];
 
   return (
-    <div className="w-full select-none">
-      {/* Slider */}
+    <div className="w-full select-none touch-pan-y">
+      {/* Slider area */}
       <div
         ref={containerRef}
-        className="relative flex items-center justify-center"
-        style={{ height: 'calc(min(55vw, 220px) * 1.5 + 20px)' }}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
+        className="relative w-full overflow-hidden"
+        style={{ height: 'calc(min(60vw, 260px) * 680 / 488 + 24px)' }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
       >
         {/* Prev button */}
         {total > 1 && (
           <button
-            onClick={prev}
-            className="absolute left-0 z-30 p-2 text-white/70 hover:text-white transition-colors"
+            onClick={(e) => { e.stopPropagation(); go(-1); }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-[200] w-9 h-9 rounded-full bg-black/10 backdrop-blur-sm flex items-center justify-center text-text-secondary hover:bg-black/20 transition"
           >
-            <ChevronLeft size={28} />
+            <ChevronLeft size={20} />
           </button>
         )}
 
-        {/* Slides */}
-        <div className="relative flex items-center justify-center" style={{ width: 'calc(min(55vw, 220px) * 2.5)', height: '100%' }}>
-          {cards.map((card, index) => {
-            const offset = getOffset(index);
-            if (Math.abs(offset) > 2 && total > 4) return null;
+        {/* Cards */}
+        {cards.map((card, index) => {
+          const offset = getOffset(index);
+          if (Math.abs(offset) > 3) return null;
 
-            return (
-              <div
-                key={card.cardId}
-                style={getSlideStyle(offset)}
-                className="rounded-xl overflow-hidden shadow-2xl"
-                onClick={() => offset === 0 && onCardClick?.(card)}
-              >
-                {card.imageUrl ? (
-                  <img
-                    src={card.imageLarge || card.imageUrl}
-                    alt={card.cardName}
-                    className="w-full h-full object-cover"
-                    loading={Math.abs(offset) <= 1 ? 'eager' : 'lazy'}
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-3">
-                    <span className="text-white text-center text-xs font-bold">{card.cardName}</span>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+          return (
+            <div
+              key={card.cardId}
+              style={getSlideStyle(offset)}
+              className="rounded-xl overflow-hidden shadow-2xl"
+              onClick={() => {
+                if (Math.abs(offset) < 0.5 && !isDragging) onCardClick?.(card);
+              }}
+            >
+              {card.imageUrl ? (
+                <img
+                  src={card.imageLarge || card.imageUrl}
+                  alt={card.cardName}
+                  className="w-full h-full object-cover"
+                  draggable={false}
+                  loading={Math.abs(offset) <= 1 ? 'eager' : 'lazy'}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-3">
+                  <span className="text-white text-center text-sm font-bold">{card.cardName}</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
 
         {/* Next button */}
         {total > 1 && (
           <button
-            onClick={next}
-            className="absolute right-0 z-30 p-2 text-white/70 hover:text-white transition-colors"
+            onClick={(e) => { e.stopPropagation(); go(1); }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-[200] w-9 h-9 rounded-full bg-black/10 backdrop-blur-sm flex items-center justify-center text-text-secondary hover:bg-black/20 transition"
           >
-            <ChevronRight size={28} />
+            <ChevronRight size={20} />
           </button>
         )}
       </div>
 
-      {/* Card info */}
-      <div className="mt-4 text-center transition-all duration-500">
-        <h3 className="text-lg font-bold text-white truncate px-4">
+      {/* Card info below */}
+      <div className="mt-3 text-center px-4">
+        <h3 className="text-base font-bold text-text truncate">
           {currentCard.cardName}
         </h3>
-        <p className="text-sm text-white/60 mt-0.5">
+        <p className="text-sm text-text-secondary mt-0.5">
           {currentCard.cardSetName}
         </p>
-        <div className="flex items-center justify-center gap-3 mt-2">
-          <span className="text-sm font-bold text-amber-400">
+        <div className="flex items-center justify-center gap-2 mt-1.5">
+          <span className="text-sm font-bold text-amber-600">
             {currentCard.priceEur.toFixed(2)} EUR
           </span>
-          <span className="text-xs text-white/50">
+          <span className="text-xs text-text-muted">
             {currentCard.distanceKm} km - @{currentCard.ownerUsername}
           </span>
         </div>
       </div>
 
-      {/* Dots indicator */}
+      {/* Dots */}
       {total > 1 && total <= 20 && (
         <div className="flex items-center justify-center gap-1.5 mt-3">
           {cards.map((_, i) => (
             <button
               key={i}
-              onClick={() => { setCurrent(i); }}
+              onClick={() => setCurrent(i)}
               className={`rounded-full transition-all duration-300 ${
                 i === current
-                  ? 'w-6 h-1.5 bg-white'
-                  : 'w-1.5 h-1.5 bg-white/30 hover:bg-white/50'
+                  ? 'w-5 h-1.5 bg-primary'
+                  : 'w-1.5 h-1.5 bg-gray-300'
               }`}
             />
           ))}

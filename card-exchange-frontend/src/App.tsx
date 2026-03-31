@@ -11,6 +11,7 @@ import EventsPage from './pages/EventsPage';
 import ProfilePage from './pages/ProfilePage';
 import EditProfilePage from './pages/EditProfilePage';
 import HomePage from './pages/HomePage';
+import UserCollectionPage from './pages/UserCollectionPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +34,7 @@ export default function App() {
               <Route path="/home" element={<HomePage />} />
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/collection" element={<CollectionPage />} />
+              <Route path="/collection/:userId" element={<UserCollectionPage />} />
               <Route path="/wishlist" element={<WishlistPage />} />
               <Route path="/events" element={<EventsPage />} />
               <Route path="/profile" element={<ProfilePage />} />

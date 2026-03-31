@@ -63,7 +63,7 @@ export default function HomePage() {
   }, [user, position, hasProfileLocation]);
 
   const handleCardClick = (card: CarouselCard) => {
-    navigate(`/profile`); // TODO: navigate to user profile when available
+    navigate(`/collection/${card.ownerId}`);
   };
 
   const handleUseLivePosition = () => {
@@ -76,9 +76,9 @@ export default function HomePage() {
   const showLocationPrompt = !hasProfileLocation && !position && !isLoading;
 
   return (
-    <div className="max-w-lg mx-auto">
+    <div>
       {/* Welcome */}
-      <div className="mb-5">
+      <div className="max-w-lg mx-auto mb-5">
         <h1 className="text-xl font-bold text-text">
           Ciao, {user.firstName}!
         </h1>
@@ -89,7 +89,7 @@ export default function HomePage() {
 
       {/* Location prompt */}
       {showLocationPrompt && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
+        <div className="max-w-lg mx-auto bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
           <div className="flex items-center gap-2 mb-3">
             <MapPin size={18} className="text-primary" />
             <h2 className="text-sm font-bold">Imposta la tua posizione</h2>
@@ -117,17 +117,17 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Carousel section */}
+      {/* Carousel section — full width */}
       {!isLoading && !showLocationPrompt && topCards.length > 0 && (
-        <div className="rounded-2xl overflow-hidden mb-4" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-          <div className="px-4 pt-5 pb-1 flex items-center justify-between">
+        <div className="w-full mb-4">
+          <div className="max-w-lg mx-auto px-4 pt-3 pb-1 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles size={16} className="text-amber-400" />
-              <h2 className="text-sm font-bold text-white">Carte cercate disponibili</h2>
+              <h2 className="text-sm font-bold text-text">Carte cercate disponibili</h2>
             </div>
-            <span className="text-xs text-white/40">{topCards.length} risultati</span>
+            <span className="text-xs text-text-muted">{topCards.length} risultati</span>
           </div>
-          <div className="px-2 py-5">
+          <div className="py-5">
             <CardCarousel cards={topCards} onCardClick={handleCardClick} />
           </div>
         </div>
@@ -135,7 +135,7 @@ export default function HomePage() {
 
       {/* No matches */}
       {!isLoading && !showLocationPrompt && (hasProfileLocation || position) && topCards.length === 0 && (
-        <EmptyState
+        <div className="max-w-lg mx-auto"><EmptyState
           icon={Sparkles}
           title="Nessuna carta trovata"
           description="Non ci sono carte dalla tua wishlist disponibili nel raggio di ricerca. Prova ad aggiungere carte alla wishlist o ad aumentare il raggio."
@@ -149,11 +149,11 @@ export default function HomePage() {
               </Button>
             </div>
           }
-        />
+        /></div>
       )}
 
       {/* Quick links */}
-      <div className="grid grid-cols-2 gap-3 mt-2">
+      <div className="max-w-lg mx-auto grid grid-cols-2 gap-3 mt-2">
         <button
           onClick={() => navigate('/explore')}
           className="bg-white rounded-2xl p-4 shadow-sm border border-border/50 text-left hover:bg-surface-dark transition"
