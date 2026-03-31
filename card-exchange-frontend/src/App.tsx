@@ -10,6 +10,7 @@ import WishlistPage from './pages/WishlistPage';
 import EventsPage from './pages/EventsPage';
 import ProfilePage from './pages/ProfilePage';
 import EditProfilePage from './pages/EditProfilePage';
+import HomePage from './pages/HomePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +30,7 @@ export default function App() {
 
             {/* Protected routes */}
             <Route element={<Layout />}>
+              <Route path="/home" element={<HomePage />} />
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/collection" element={<CollectionPage />} />
               <Route path="/wishlist" element={<WishlistPage />} />
@@ -38,7 +40,7 @@ export default function App() {
             </Route>
 
             {/* Default redirect */}
-            <Route path="*" element={<Navigate to="/explore" replace />} />
+            <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>

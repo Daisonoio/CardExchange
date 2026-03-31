@@ -43,7 +43,7 @@ export default function RegisterPage() {
         password: form.password,
         confirmPassword: form.confirmPassword,
       });
-      navigate('/explore');
+      navigate('/home');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(msg || 'Errore durante la registrazione');

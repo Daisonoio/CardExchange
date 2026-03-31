@@ -828,6 +828,108 @@ namespace CardExchange.API.Controllers
             return degrees * Math.PI / 180;
         }
 
+        /// <summary>
+        /// Top 20 carte più costose dalla wishlist disponibili nel raggio di ricerca (per la home page)
+        /// </summary>
+        [HttpGet("user/{userId}/top-nearby-matches")]
+        public async Task<ActionResult> GetTopNearbyMatches(
+            int userId,
+            [FromQuery] int? radiusKm = null,
+            [FromQuery] double? latitude = null,
+            [FromQuery] double? longitude = null)
+        {
+            try
+            {
+                var user = await _userRepository.GetWithLocationAsync(userId);
+
+                if (user == null)
+                    return NotFound(new { message = $"Utente con ID {userId} non trovato" });
+
+                // Determina coordinate e raggio di ricerca
+                double searchLat, searchLon;
+                int searchRadius;
+
+                if (latitude.HasValue && longitude.HasValue)
+                {
+                    searchLat = latitude.Value;
+                    searchLon = longitude.Value;
+                    searchRadius = radiusKm ?? user.Location?.MaxDistanceKm ?? 50;
+                }
+                else if (user.Location != null && user.Location.Latitude.HasValue && user.Location.Longitude.HasValue)
+                {
+                    searchLat = (double)user.Location.Latitude.Value;
+                    searchLon = (double)user.Location.Longitude.Value;
+                    searchRadius = radiusKm ?? user.Location.MaxDistanceKm;
+                }
+                else
+                {
+                    return BadRequest(new { message = "NO_LOCATION" });
+                }
+
+                var wishlistItems = await _wishlistRepository.GetUserWishlistAsync(userId);
+                var topCards = new List<object>();
+
+                foreach (var item in wishlistItems)
+                {
+                    var matchingCards = await FindMatchingCards(item);
+
+                    foreach (var card in matchingCards)
+                    {
+                        var owner = await _userRepository.GetWithLocationAsync(card.UserId);
+                        if (owner?.Location == null || !owner.Location.Latitude.HasValue || !owner.Location.Longitude.HasValue)
+                            continue;
+
+                        var distance = CalculateDistance(
+                            searchLat, searchLon,
+                            (double)owner.Location.Latitude.Value,
+                            (double)owner.Location.Longitude.Value);
+
+                        if (distance > searchRadius)
+                            continue;
+
+                        var cardInfo = await _cardInfoRepository.GetByIdAsync(item.CardInfoId);
+                        var cardSet = cardInfo != null ? await _cardSetRepository.GetByIdAsync(cardInfo.CardSetId) : null;
+
+                        topCards.Add(new
+                        {
+                            cardId = card.Id,
+                            cardInfoId = item.CardInfoId,
+                            cardName = cardInfo?.Name ?? "Unknown",
+                            cardSetName = cardSet?.Name ?? "Unknown",
+                            imageUrl = cardInfo?.ImageNormal ?? cardInfo?.ImageSmall ?? cardInfo?.ImageUrl,
+                            imageLarge = cardInfo?.ImageLarge ?? cardInfo?.ImageNormal,
+                            priceEur = cardInfo?.PriceEur ?? card.EstimatedValue ?? 0,
+                            condition = card.Condition.ToString(),
+                            quantity = card.Quantity,
+                            ownerId = owner.Id,
+                            ownerUsername = owner.Username,
+                            ownerCity = owner.Location?.City,
+                            ownerCountry = owner.Location?.Country,
+                            distanceKm = Math.Round(distance, 1)
+                        });
+                    }
+                }
+
+                // Ordina per prezzo decrescente e prendi le top 20
+                var top20 = topCards
+                    .OrderByDescending(c => (decimal)((dynamic)c).priceEur)
+                    .Take(20)
+                    .ToList();
+
+                return Ok(new
+                {
+                    count = top20.Count,
+                    radiusKm = searchRadius,
+                    cards = top20
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante il recupero top nearby matches per l'utente {UserId}", userId);
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
 
 
         // Helper methods

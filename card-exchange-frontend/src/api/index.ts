@@ -54,6 +54,8 @@ export const wishlist = {
   delete: (id: number) => client.delete(`/wishlist/${id}`),
   getMatches: (userId: number) =>
     client.get(`/wishlist/user/${userId}/all-matches`),
+  topNearbyMatches: (userId: number, params?: Record<string, string | number>) =>
+    client.get(`/wishlist/user/${userId}/top-nearby-matches`, { params }),
 };
 
 // === Scryfall ===

@@ -18,7 +18,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await login(form);
-      navigate('/explore');
+      navigate('/home');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(msg || 'Credenziali non valide');

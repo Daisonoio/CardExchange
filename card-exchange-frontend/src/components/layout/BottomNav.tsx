@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom';
-import { Compass, Library, Heart, CalendarDays, UserCircle } from 'lucide-react';
+import { Home, Compass, Library, Heart, CalendarDays, UserCircle } from 'lucide-react';
 
 const NAV_ITEMS = [
+  { to: '/home', icon: Home, label: 'Home' },
   { to: '/explore', icon: Compass, label: 'Esplora' },
   { to: '/collection', icon: Library, label: 'Collezione' },
   { to: '/wishlist', icon: Heart, label: 'Ricerca' },
