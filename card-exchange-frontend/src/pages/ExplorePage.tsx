@@ -8,6 +8,7 @@ import { useGeolocation } from '../hooks/useGeolocation';
 import CardItem from '../components/cards/CardItem';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
+import BottomSheet from '../components/ui/BottomSheet';
 
 type Tab = 'cards' | 'users';
 
@@ -178,32 +179,26 @@ export default function ExplorePage() {
         )}
       </div>
 
-      {/* Location choice dialog */}
-      {showLocationDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-bold">Posizione non impostata</h3>
-              <button onClick={() => setShowLocationDialog(false)} className="p-1 hover:bg-surface-dark rounded-lg">
-                <X size={18} />
-              </button>
-            </div>
-            <p className="text-sm text-text-secondary mb-5">
-              Non hai una posizione salvata nel profilo. Come vuoi procedere?
-            </p>
-            <div className="space-y-2.5">
-              <Button onClick={handleDialogSaveProfile} variant="outline" className="w-full">
-                <MapPin size={14} />
-                Salva posizione nel profilo
-              </Button>
-              <Button onClick={handleDialogUseCurrent} className="w-full">
-                <Navigation size={14} />
-                Usa posizione attuale
-              </Button>
-            </div>
-          </div>
+      {/* Location choice bottom sheet */}
+      <BottomSheet
+        open={showLocationDialog}
+        onClose={() => setShowLocationDialog(false)}
+        title="Posizione non impostata"
+      >
+        <p className="text-sm text-text-secondary mb-5">
+          Non hai una posizione salvata nel profilo. Come vuoi procedere?
+        </p>
+        <div className="space-y-2.5">
+          <Button onClick={handleDialogSaveProfile} variant="outline" className="w-full">
+            <MapPin size={14} />
+            Salva posizione nel profilo
+          </Button>
+          <Button onClick={handleDialogUseCurrent} className="w-full">
+            <Navigation size={14} />
+            Usa posizione attuale
+          </Button>
         </div>
-      )}
+      </BottomSheet>
 
       {/* Cards tab */}
       {tab === 'cards' && (

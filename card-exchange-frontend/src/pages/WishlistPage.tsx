@@ -7,6 +7,7 @@ import { CONDITION_LABELS } from '../types';
 import ScryfallSearch from '../components/cards/ScryfallSearch';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
+import BottomSheet from '../components/ui/BottomSheet';
 
 const PRIORITY_LABELS = { 1: 'Alta', 2: 'Media', 3: 'Bassa' } as const;
 const PRIORITY_COLORS = {
@@ -239,179 +240,166 @@ export default function WishlistPage() {
         </div>
       )}
 
-      {/* Add Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-lg rounded-t-3xl md:rounded-2xl max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="flex items-center justify-between p-5 pb-0">
-              <h2 className="text-lg font-bold">Aggiungi alla Ricerca</h2>
-              <button onClick={closeModal}>
-                <X size={22} className="text-text-muted" />
-              </button>
+      {/* Add Bottom Sheet */}
+      <BottomSheet open={showAddModal} onClose={closeModal} title="Aggiungi alla Ricerca">
+        {!selectedCard ? (
+          <div>
+            <p className="text-sm text-text-secondary mb-3">
+              Quale carta stai cercando?
+            </p>
+            <ScryfallSearch onSelect={handleSelectCard} placeholder="Cerca la carta desiderata..." />
+          </div>
+        ) : (
+          <div>
+            {/* Card image - hero section */}
+            <div className="relative bg-gradient-to-b from-gray-900 to-gray-800 flex justify-center py-5 rounded-xl -mx-1">
+              {getCardImage(selectedCard) ? (
+                <img
+                  src={getCardImage(selectedCard)}
+                  alt={selectedCard.name}
+                  className="h-64 rounded-xl shadow-2xl object-contain"
+                />
+              ) : (
+                <div className="h-64 w-44 rounded-xl bg-gray-700 flex items-center justify-center">
+                  <span className="text-white text-center text-sm font-bold px-3">{selectedCard.name}</span>
+                </div>
+              )}
             </div>
 
-            {!selectedCard ? (
-              <div className="p-5">
-                <p className="text-sm text-text-secondary mb-3">
-                  Quale carta stai cercando?
-                </p>
-                <ScryfallSearch onSelect={handleSelectCard} placeholder="Cerca la carta desiderata..." />
-              </div>
-            ) : (
-              <div>
-                {/* Card image - hero section */}
-                <div className="relative bg-gradient-to-b from-gray-900 to-gray-800 flex justify-center py-5 mt-3">
-                  {getCardImage(selectedCard) ? (
-                    <img
-                      src={getCardImage(selectedCard)}
-                      alt={selectedCard.name}
-                      className="h-64 rounded-xl shadow-2xl object-contain"
-                    />
+            {/* Card name + set selector */}
+            <div className="pt-4">
+              <h3 className="text-base font-bold">{selectedCard.name}</h3>
+
+              {/* Set selector */}
+              <button
+                onClick={() => setShowPrintings(!showPrintings)}
+                className="mt-1.5 flex items-center gap-1.5 text-sm text-primary hover:underline"
+              >
+                <span className="uppercase font-semibold text-xs bg-primary/10 px-1.5 py-0.5 rounded">
+                  {getSetCode(selectedCard)}
+                </span>
+                <span>{getSetName(selectedCard)}</span>
+                <ChevronDown size={14} className={`transition-transform ${showPrintings ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Price */}
+              {selectedCard.prices?.eur && (
+                <p className="text-sm font-bold text-accent mt-1">{selectedCard.prices.eur} EUR</p>
+              )}
+
+              {/* Printings dropdown */}
+              {showPrintings && (
+                <div className="mt-2 max-h-48 overflow-y-auto border border-border rounded-xl bg-surface-dark">
+                  {loadingPrintings ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 size={20} className="animate-spin text-primary" />
+                    </div>
                   ) : (
-                    <div className="h-64 w-44 rounded-xl bg-gray-700 flex items-center justify-center">
-                      <span className="text-white text-center text-sm font-bold px-3">{selectedCard.name}</span>
-                    </div>
+                    <>
+                      <div className="px-3 py-2 text-xs text-text-muted border-b border-border/50">
+                        {printings.length} espansioni disponibili
+                      </div>
+                      {printings.map((p) => {
+                        const isSelected = getCardId(p) === getCardId(selectedCard);
+                        return (
+                          <button
+                            key={getCardId(p)}
+                            onClick={() => handleSelectPrinting(p)}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-white transition-colors border-b border-border/30 last:border-0 ${
+                              isSelected ? 'bg-primary/5' : ''
+                            }`}
+                          >
+                            {getCardImageSmall(p) && (
+                              <img src={getCardImageSmall(p)} alt="" className="w-8 h-11 rounded object-cover shrink-0" />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-semibold truncate">
+                                <span className="uppercase text-text-muted">{getSetCode(p)}</span>
+                                {' '}{getSetName(p)}
+                              </p>
+                              <p className="text-xs text-text-muted">
+                                {p.rarity}{p.prices?.eur ? ` · ${p.prices.eur} EUR` : ''}
+                              </p>
+                            </div>
+                            {isSelected && (
+                              <span className="text-xs font-semibold text-primary shrink-0">Selezionata</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </>
                   )}
                 </div>
+              )}
+            </div>
 
-                {/* Card name + set selector */}
-                <div className="px-5 pt-4">
-                  <h3 className="text-base font-bold">{selectedCard.name}</h3>
-
-                  {/* Set selector */}
-                  <button
-                    onClick={() => setShowPrintings(!showPrintings)}
-                    className="mt-1.5 flex items-center gap-1.5 text-sm text-primary hover:underline"
-                  >
-                    <span className="uppercase font-semibold text-xs bg-primary/10 px-1.5 py-0.5 rounded">
-                      {getSetCode(selectedCard)}
-                    </span>
-                    <span>{getSetName(selectedCard)}</span>
-                    <ChevronDown size={14} className={`transition-transform ${showPrintings ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {/* Price */}
-                  {selectedCard.prices?.eur && (
-                    <p className="text-sm font-bold text-accent mt-1">{selectedCard.prices.eur} EUR</p>
-                  )}
-
-                  {/* Printings dropdown */}
-                  {showPrintings && (
-                    <div className="mt-2 max-h-48 overflow-y-auto border border-border rounded-xl bg-surface-dark">
-                      {loadingPrintings ? (
-                        <div className="flex justify-center py-4">
-                          <Loader2 size={20} className="animate-spin text-primary" />
-                        </div>
-                      ) : (
-                        <>
-                          {/* Any expansion option */}
-                          <div className="px-3 py-2 text-xs text-text-muted border-b border-border/50">
-                            {printings.length} espansioni disponibili
-                          </div>
-                          {printings.map((p) => {
-                            const isSelected = getCardId(p) === getCardId(selectedCard);
-                            return (
-                              <button
-                                key={getCardId(p)}
-                                onClick={() => handleSelectPrinting(p)}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-white transition-colors border-b border-border/30 last:border-0 ${
-                                  isSelected ? 'bg-primary/5' : ''
-                                }`}
-                              >
-                                {getCardImageSmall(p) && (
-                                  <img src={getCardImageSmall(p)} alt="" className="w-8 h-11 rounded object-cover shrink-0" />
-                                )}
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-xs font-semibold truncate">
-                                    <span className="uppercase text-text-muted">{getSetCode(p)}</span>
-                                    {' '}{getSetName(p)}
-                                  </p>
-                                  <p className="text-xs text-text-muted">
-                                    {p.rarity}{p.prices?.eur ? ` · ${p.prices.eur} EUR` : ''}
-                                  </p>
-                                </div>
-                                {isSelected && (
-                                  <span className="text-xs font-semibold text-primary shrink-0">Selezionata</span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Form options */}
-                <div className="px-5 pt-4 pb-5 space-y-4">
-                  {/* Priority */}
-                  <div>
-                    <label className="text-xs font-semibold text-text-secondary block mb-1.5">Priorità</label>
-                    <div className="flex gap-2">
-                      {([1, 2, 3] as const).map((p) => (
-                        <button
-                          key={p}
-                          onClick={() => setAddForm({ ...addForm, priority: p })}
-                          className={`flex-1 px-3 py-2 rounded-xl text-xs font-medium border transition-colors ${
-                            addForm.priority === p
-                              ? 'border-primary bg-primary/10 text-primary'
-                              : 'border-border text-text-secondary hover:bg-surface-dark'
-                          }`}
-                        >
-                          {PRIORITY_LABELS[p]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Max price */}
-                  <div>
-                    <label className="text-xs font-semibold text-text-secondary block mb-1.5">Prezzo massimo (opzionale)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={addForm.maxPrice ?? ''}
-                      onChange={(e) => setAddForm({ ...addForm, maxPrice: e.target.value ? Number(e.target.value) : undefined })}
-                      placeholder="0.00 EUR"
-                      className="w-full px-4 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                  </div>
-
-                  {/* Notes */}
-                  <div>
-                    <label className="text-xs font-semibold text-text-secondary block mb-1.5">Note (opzionale)</label>
-                    <input
-                      type="text"
-                      value={addForm.notes}
-                      onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })}
-                      placeholder="es. Cerco versione foil"
-                      className="w-full px-4 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                  </div>
-
-                  {saveError && (
-                    <p className="text-xs text-danger bg-red-50 px-3 py-2 rounded-lg">{saveError}</p>
-                  )}
-
-                  <div className="flex gap-2">
+            {/* Form options */}
+            <div className="pt-4 space-y-4">
+              {/* Priority */}
+              <div>
+                <label className="text-xs font-semibold text-text-secondary block mb-1.5">Priorità</label>
+                <div className="flex gap-2">
+                  {([1, 2, 3] as const).map((p) => (
                     <button
-                      onClick={() => { setSelectedCard(null); setPrintings([]); setShowPrintings(false); }}
-                      className="px-4 py-2.5 rounded-xl text-sm font-medium text-text-secondary border border-border hover:bg-surface-dark transition-colors"
+                      key={p}
+                      onClick={() => setAddForm({ ...addForm, priority: p })}
+                      className={`flex-1 px-3 py-2 rounded-xl text-xs font-medium border transition-colors ${
+                        addForm.priority === p
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border text-text-secondary hover:bg-surface-dark'
+                      }`}
                     >
-                      Cambia carta
+                      {PRIORITY_LABELS[p]}
                     </button>
-                    <Button onClick={handleAdd} isLoading={isSaving} className="flex-1" size="lg">
-                      Aggiungi alla Ricerca
-                    </Button>
-                  </div>
+                  ))}
                 </div>
               </div>
-            )}
+
+              {/* Max price */}
+              <div>
+                <label className="text-xs font-semibold text-text-secondary block mb-1.5">Prezzo massimo (opzionale)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={addForm.maxPrice ?? ''}
+                  onChange={(e) => setAddForm({ ...addForm, maxPrice: e.target.value ? Number(e.target.value) : undefined })}
+                  placeholder="0.00 EUR"
+                  className="w-full px-4 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="text-xs font-semibold text-text-secondary block mb-1.5">Note (opzionale)</label>
+                <input
+                  type="text"
+                  value={addForm.notes}
+                  onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })}
+                  placeholder="es. Cerco versione foil"
+                  className="w-full px-4 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+
+              {saveError && (
+                <p className="text-xs text-danger bg-red-50 px-3 py-2 rounded-lg">{saveError}</p>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setSelectedCard(null); setPrintings([]); setShowPrintings(false); }}
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-text-secondary border border-border hover:bg-surface-dark transition-colors"
+                >
+                  Cambia carta
+                </button>
+                <Button onClick={handleAdd} isLoading={isSaving} className="flex-1" size="lg">
+                  Aggiungi alla Ricerca
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </BottomSheet>
     </div>
   );
 }
