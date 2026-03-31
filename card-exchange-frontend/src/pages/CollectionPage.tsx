@@ -72,7 +72,7 @@ export default function CollectionPage() {
   };
 
   const handleDelete = async (card: Card) => {
-    if (!confirm(`Rimuovere "${card.cardInfo?.name}" dalla collezione?`)) return;
+    if (!confirm(`Rimuovere "${card.cardName || card.cardInfo?.name}" dalla collezione?`)) return;
     try {
       await cards.delete(card.id);
       setMyCards((prev) => prev.filter((c) => c.id !== card.id));
@@ -83,7 +83,7 @@ export default function CollectionPage() {
 
   const filtered = myCards.filter((c) => {
     const matchText = !filterText ||
-      c.cardInfo?.name?.toLowerCase().includes(filterText.toLowerCase());
+      (c.cardName || c.cardInfo?.name || '').toLowerCase().includes(filterText.toLowerCase());
     const matchTrade = filterTrade === 'all' ||
       (filterTrade === 'trade' && c.isAvailableForTrade) ||
       (filterTrade === 'keep' && !c.isAvailableForTrade);
@@ -91,7 +91,7 @@ export default function CollectionPage() {
   });
 
   const totalValue = myCards.reduce(
-    (sum, c) => sum + (c.cardInfo?.priceEur || 0) * c.quantity, 0
+    (sum, c) => sum + (c.estimatedValue || c.cardInfo?.priceEur || 0) * c.quantity, 0
   );
 
   return (

@@ -9,14 +9,26 @@ interface CardItemProps {
   showUser?: boolean;
 }
 
+// Map string condition to numeric for color
+const CONDITION_MAP: Record<string, number> = {
+  Mint: 1, NearMint: 2, Excellent: 3, Good: 4,
+  LightlyPlayed: 5, ModeratelyPlayed: 6, HeavilyPlayed: 7, Damaged: 8,
+};
+
 export default function CardItem({ card, onEdit, onDelete, showUser }: CardItemProps) {
   const info = card.cardInfo;
+  const cardName = card.cardName || info?.name || 'Carta sconosciuta';
+  const cardSetName = card.cardSetName || info?.cardSet?.name || '';
+  const cardRarity = card.rarity || info?.rarity || '';
   const image = info?.imageSmall || info?.imageUrl || '';
-  const conditionLabel = CONDITION_LABELS[card.condition] || 'N/A';
+  const condNum = typeof card.condition === 'number' ? card.condition : (CONDITION_MAP[card.condition] || 0);
+  const conditionLabel = typeof card.condition === 'string'
+    ? card.condition
+    : (CONDITION_LABELS[card.condition as import('../types').CardCondition] || 'N/A');
 
-  const conditionColor = card.condition <= 2
+  const conditionColor = condNum <= 2
     ? 'text-green-600 bg-green-50'
-    : card.condition <= 4
+    : condNum <= 4
     ? 'text-amber-600 bg-amber-50'
     : 'text-red-600 bg-red-50';
 
@@ -44,11 +56,11 @@ export default function CardItem({ card, onEdit, onDelete, showUser }: CardItemP
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <h3 className="text-sm font-semibold text-text truncate">
-                {info?.name || 'Carta sconosciuta'}
+                {cardName}
               </h3>
               <p className="text-xs text-text-secondary truncate">
-                {info?.cardSet?.name || ''}
-                {info?.rarity && <span> &middot; {info.rarity}</span>}
+                {cardSetName}
+                {cardRarity && <span> &middot; {cardRarity}</span>}
               </p>
             </div>
 
@@ -109,8 +121,8 @@ export default function CardItem({ card, onEdit, onDelete, showUser }: CardItemP
                 </span>
               )}
             </div>
-            {showUser && card.user && (
-              <span className="text-xs text-text-secondary">@{card.user.username}</span>
+            {showUser && (card.user || card.userUsername) && (
+              <span className="text-xs text-text-secondary">@{card.user?.username || card.userUsername}</span>
             )}
           </div>
         </div>

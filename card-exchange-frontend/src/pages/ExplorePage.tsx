@@ -102,8 +102,8 @@ export default function ExplorePage() {
 
   const filteredCards = searchTerm
     ? availableCards.filter((c) =>
-        c.cardInfo?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.cardInfo?.cardSet?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        (c.cardName || c.cardInfo?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.cardSetName || c.cardInfo?.cardSet?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
       )
     : availableCards;
 

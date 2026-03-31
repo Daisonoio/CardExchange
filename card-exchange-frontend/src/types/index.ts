@@ -110,12 +110,22 @@ export const CONDITION_LABELS: Record<CardCondition, string> = {
 export interface Card {
   id: number;
   userId: number;
+  userUsername?: string;
   cardInfoId: number;
-  condition: CardCondition;
+  // Flat fields from backend CardDto
+  cardName?: string;
+  cardSetName?: string;
+  gameName?: string;
+  cardNumber?: string;
+  rarity?: string;
+  condition: CardCondition | string;
   quantity: number;
   notes?: string;
   isAvailableForTrade: boolean;
   estimatedValue?: number;
+  createdAt?: string;
+  userLocation?: UserLocation;
+  // Legacy nested field (not returned by backend, but kept for compatibility)
   cardInfo?: CardInfo;
   user?: User;
 }
