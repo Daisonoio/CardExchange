@@ -49,7 +49,7 @@ export default function CollectionPage() {
     setIsSaving(true);
     try {
       // Import Scryfall card to get a CardInfo ID
-      const { data: importResult } = await scryfall.importCard(selectedCard.id);
+      const { data: importResult } = await scryfall.importCard(selectedCard.scryfallId || selectedCard.id);
       const cardInfoId = importResult.cardInfoId || importResult.id;
 
       await cards.create(user!.id, {

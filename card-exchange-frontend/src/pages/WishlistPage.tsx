@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Heart, X } from 'lucide-react';
+import { Plus, Heart, X, ChevronDown, Loader2 } from 'lucide-react';
 import { wishlist, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { WishlistItem, ScryfallCard, CardCondition } from '../types';
@@ -21,6 +21,9 @@ export default function WishlistPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedCard, setSelectedCard] = useState<ScryfallCard | null>(null);
+  const [printings, setPrintings] = useState<ScryfallCard[]>([]);
+  const [loadingPrintings, setLoadingPrintings] = useState(false);
+  const [showPrintings, setShowPrintings] = useState(false);
   const [addForm, setAddForm] = useState({
     priority: 2 as 1 | 2 | 3,
     preferredCondition: undefined as CardCondition | undefined,
@@ -28,6 +31,7 @@ export default function WishlistPage() {
     notes: '',
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const loadItems = useCallback(async () => {
     if (!user) return;
@@ -43,11 +47,49 @@ export default function WishlistPage() {
 
   useEffect(() => { loadItems(); }, [loadItems]);
 
+  // Load all printings when card is selected
+  const loadPrintings = useCallback(async (cardName: string) => {
+    setLoadingPrintings(true);
+    try {
+      const { data } = await scryfall.search(`!"${cardName}" unique:prints`);
+      const cards = data.data ?? data.cards ?? [];
+      setPrintings(Array.isArray(cards) ? cards : []);
+    } catch {
+      setPrintings([]);
+    } finally {
+      setLoadingPrintings(false);
+    }
+  }, []);
+
+  const handleSelectCard = (card: ScryfallCard) => {
+    setSelectedCard(card);
+    setSaveError(null);
+    loadPrintings(card.name);
+  };
+
+  const handleSelectPrinting = (card: ScryfallCard) => {
+    setSelectedCard(card);
+    setShowPrintings(false);
+  };
+
+  const getCardId = (card: ScryfallCard) => card.scryfallId || card.id;
+  const getCardImage = (card: ScryfallCard) =>
+    card.image_uris?.normal || card.images?.normal ||
+    card.image_uris?.large || card.images?.large ||
+    card.card_faces?.[0]?.image_uris?.normal || '';
+  const getCardImageSmall = (card: ScryfallCard) =>
+    card.image_uris?.small || card.images?.small ||
+    card.card_faces?.[0]?.image_uris?.small || '';
+  const getSetName = (card: ScryfallCard) => card.set_name || card.setName || '';
+  const getSetCode = (card: ScryfallCard) => card.setCode || card.set || '';
+
   const handleAdd = async () => {
     if (!selectedCard) return;
     setIsSaving(true);
+    setSaveError(null);
     try {
-      const { data: importResult } = await scryfall.importCard(selectedCard.id);
+      const scryfallId = getCardId(selectedCard);
+      const { data: importResult } = await scryfall.importCard(scryfallId);
       const cardInfoId = importResult.cardInfoId || importResult.id;
 
       await wishlist.create(user!.id, {
@@ -60,9 +102,12 @@ export default function WishlistPage() {
 
       setShowAddModal(false);
       setSelectedCard(null);
+      setPrintings([]);
       setAddForm({ priority: 2, preferredCondition: undefined, maxPrice: undefined, notes: '' });
       loadItems();
-    } catch (err) {
+    } catch (err: any) {
+      const msg = err?.response?.data?.message;
+      setSaveError(msg || 'Errore durante il salvataggio');
       console.error('Errore aggiunta alla wishlist:', err);
     } finally {
       setIsSaving(false);
@@ -76,6 +121,14 @@ export default function WishlistPage() {
     } catch (err) {
       console.error('Errore eliminazione:', err);
     }
+  };
+
+  const closeModal = () => {
+    setShowAddModal(false);
+    setSelectedCard(null);
+    setPrintings([]);
+    setShowPrintings(false);
+    setSaveError(null);
   };
 
   const grouped = {
@@ -189,81 +242,171 @@ export default function WishlistPage() {
       {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-lg rounded-t-3xl md:rounded-2xl max-h-[90vh] overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white w-full max-w-lg rounded-t-3xl md:rounded-2xl max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 pb-0">
               <h2 className="text-lg font-bold">Aggiungi alla Ricerca</h2>
-              <button onClick={() => { setShowAddModal(false); setSelectedCard(null); }}>
+              <button onClick={closeModal}>
                 <X size={22} className="text-text-muted" />
               </button>
             </div>
 
             {!selectedCard ? (
-              <div>
+              <div className="p-5">
                 <p className="text-sm text-text-secondary mb-3">
                   Quale carta stai cercando?
                 </p>
-                <ScryfallSearch onSelect={setSelectedCard} placeholder="Cerca la carta desiderata..." />
+                <ScryfallSearch onSelect={handleSelectCard} placeholder="Cerca la carta desiderata..." />
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="flex gap-4 p-3 bg-surface-dark rounded-xl">
-                  {(selectedCard.image_uris?.small || selectedCard.images?.small) && (
+              <div>
+                {/* Card image - hero section */}
+                <div className="relative bg-gradient-to-b from-gray-900 to-gray-800 flex justify-center py-5 mt-3">
+                  {getCardImage(selectedCard) ? (
                     <img
-                      src={selectedCard.image_uris?.small || selectedCard.images?.small}
+                      src={getCardImage(selectedCard)}
                       alt={selectedCard.name}
-                      className="w-14 h-20 rounded-lg object-cover"
+                      className="h-64 rounded-xl shadow-2xl object-contain"
                     />
+                  ) : (
+                    <div className="h-64 w-44 rounded-xl bg-gray-700 flex items-center justify-center">
+                      <span className="text-white text-center text-sm font-bold px-3">{selectedCard.name}</span>
+                    </div>
                   )}
+                </div>
+
+                {/* Card name + set selector */}
+                <div className="px-5 pt-4">
+                  <h3 className="text-base font-bold">{selectedCard.name}</h3>
+
+                  {/* Set selector */}
+                  <button
+                    onClick={() => setShowPrintings(!showPrintings)}
+                    className="mt-1.5 flex items-center gap-1.5 text-sm text-primary hover:underline"
+                  >
+                    <span className="uppercase font-semibold text-xs bg-primary/10 px-1.5 py-0.5 rounded">
+                      {getSetCode(selectedCard)}
+                    </span>
+                    <span>{getSetName(selectedCard)}</span>
+                    <ChevronDown size={14} className={`transition-transform ${showPrintings ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Price */}
+                  {selectedCard.prices?.eur && (
+                    <p className="text-sm font-bold text-accent mt-1">{selectedCard.prices.eur} EUR</p>
+                  )}
+
+                  {/* Printings dropdown */}
+                  {showPrintings && (
+                    <div className="mt-2 max-h-48 overflow-y-auto border border-border rounded-xl bg-surface-dark">
+                      {loadingPrintings ? (
+                        <div className="flex justify-center py-4">
+                          <Loader2 size={20} className="animate-spin text-primary" />
+                        </div>
+                      ) : (
+                        <>
+                          {/* Any expansion option */}
+                          <div className="px-3 py-2 text-xs text-text-muted border-b border-border/50">
+                            {printings.length} espansioni disponibili
+                          </div>
+                          {printings.map((p) => {
+                            const isSelected = getCardId(p) === getCardId(selectedCard);
+                            return (
+                              <button
+                                key={getCardId(p)}
+                                onClick={() => handleSelectPrinting(p)}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-white transition-colors border-b border-border/30 last:border-0 ${
+                                  isSelected ? 'bg-primary/5' : ''
+                                }`}
+                              >
+                                {getCardImageSmall(p) && (
+                                  <img src={getCardImageSmall(p)} alt="" className="w-8 h-11 rounded object-cover shrink-0" />
+                                )}
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-semibold truncate">
+                                    <span className="uppercase text-text-muted">{getSetCode(p)}</span>
+                                    {' '}{getSetName(p)}
+                                  </p>
+                                  <p className="text-xs text-text-muted">
+                                    {p.rarity}{p.prices?.eur ? ` · ${p.prices.eur} EUR` : ''}
+                                  </p>
+                                </div>
+                                {isSelected && (
+                                  <span className="text-xs font-semibold text-primary shrink-0">Selezionata</span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Form options */}
+                <div className="px-5 pt-4 pb-5 space-y-4">
+                  {/* Priority */}
                   <div>
-                    <p className="font-semibold text-sm">{selectedCard.name}</p>
-                    <p className="text-xs text-text-secondary">{selectedCard.set_name || selectedCard.setName}</p>
-                    {selectedCard.prices?.eur && (
-                      <p className="text-sm font-bold text-accent mt-1">{selectedCard.prices.eur}</p>
-                    )}
+                    <label className="text-xs font-semibold text-text-secondary block mb-1.5">Priorità</label>
+                    <div className="flex gap-2">
+                      {([1, 2, 3] as const).map((p) => (
+                        <button
+                          key={p}
+                          onClick={() => setAddForm({ ...addForm, priority: p })}
+                          className={`flex-1 px-3 py-2 rounded-xl text-xs font-medium border transition-colors ${
+                            addForm.priority === p
+                              ? 'border-primary bg-primary/10 text-primary'
+                              : 'border-border text-text-secondary hover:bg-surface-dark'
+                          }`}
+                        >
+                          {PRIORITY_LABELS[p]}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <button onClick={() => setSelectedCard(null)} className="text-sm text-primary hover:underline">
-                  Cambia carta
-                </button>
+                  {/* Max price */}
+                  <div>
+                    <label className="text-xs font-semibold text-text-secondary block mb-1.5">Prezzo massimo (opzionale)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={addForm.maxPrice ?? ''}
+                      onChange={(e) => setAddForm({ ...addForm, maxPrice: e.target.value ? Number(e.target.value) : undefined })}
+                      placeholder="0.00 EUR"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
 
-                {/* Priority */}
-                <div>
-                  <label className="text-sm font-medium text-text-secondary block mb-1">Priorita</label>
+                  {/* Notes */}
+                  <div>
+                    <label className="text-xs font-semibold text-text-secondary block mb-1.5">Note (opzionale)</label>
+                    <input
+                      type="text"
+                      value={addForm.notes}
+                      onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })}
+                      placeholder="es. Cerco versione foil"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+
+                  {saveError && (
+                    <p className="text-xs text-danger bg-red-50 px-3 py-2 rounded-lg">{saveError}</p>
+                  )}
+
                   <div className="flex gap-2">
-                    {([1, 2, 3] as const).map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => setAddForm({ ...addForm, priority: p })}
-                        className={`flex-1 px-3 py-2 rounded-xl text-xs font-medium border transition-colors ${
-                          addForm.priority === p
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border text-text-secondary hover:bg-surface-dark'
-                        }`}
-                      >
-                        {PRIORITY_LABELS[p]}
-                      </button>
-                    ))}
+                    <button
+                      onClick={() => { setSelectedCard(null); setPrintings([]); setShowPrintings(false); }}
+                      className="px-4 py-2.5 rounded-xl text-sm font-medium text-text-secondary border border-border hover:bg-surface-dark transition-colors"
+                    >
+                      Cambia carta
+                    </button>
+                    <Button onClick={handleAdd} isLoading={isSaving} className="flex-1" size="lg">
+                      Aggiungi alla Ricerca
+                    </Button>
                   </div>
                 </div>
-
-                {/* Max price */}
-                <div>
-                  <label className="text-sm font-medium text-text-secondary block mb-1">Prezzo massimo (opzionale)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={addForm.maxPrice ?? ''}
-                    onChange={(e) => setAddForm({ ...addForm, maxPrice: e.target.value ? Number(e.target.value) : undefined })}
-                    placeholder="0.00"
-                    className="w-full px-4 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  />
-                </div>
-
-                <Button onClick={handleAdd} isLoading={isSaving} className="w-full" size="lg">
-                  Aggiungi alla Ricerca
-                </Button>
               </div>
             )}
           </div>
