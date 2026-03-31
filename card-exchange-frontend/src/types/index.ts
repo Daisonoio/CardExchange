@@ -151,17 +151,24 @@ export interface CreateWishlistRequest {
 }
 
 // === Scryfall ===
+// Supports both direct Scryfall format (snake_case) and backend proxy format (camelCase)
 export interface ScryfallCard {
   id: string;
   name: string;
-  set: string;
-  set_name: string;
-  collector_number: string;
+  set?: string;
+  set_name?: string;
+  setName?: string;
+  setCode?: string;
+  collector_number?: string;
+  collectorNumber?: string;
   rarity: string;
   mana_cost?: string;
+  manaCost?: string;
   cmc?: number;
   type_line?: string;
+  typeLine?: string;
   oracle_text?: string;
+  oracleText?: string;
   colors?: string[];
   power?: string;
   toughness?: string;
@@ -170,7 +177,13 @@ export interface ScryfallCard {
     small: string;
     normal: string;
     large: string;
-    art_crop: string;
+    art_crop?: string;
+  };
+  images?: {
+    small: string;
+    normal: string;
+    large: string;
+    artCrop?: string;
   };
   card_faces?: Array<{
     image_uris?: {
@@ -184,7 +197,11 @@ export interface ScryfallCard {
     usd_foil?: string;
     eur?: string;
     eur_foil?: string;
+    eurFoil?: string;
+    usdFoil?: string;
   };
+  scryfallId?: string;
+  scryfallUri?: string;
 }
 
 export interface ScryfallAutocomplete {

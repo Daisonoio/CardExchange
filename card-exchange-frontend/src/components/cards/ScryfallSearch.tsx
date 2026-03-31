@@ -26,7 +26,8 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
     }
     try {
       const { data } = await scryfall.autocomplete(q);
-      setSuggestions(data.data?.slice(0, 8) || []);
+      const list = data.data ?? data.suggestions ?? [];
+      setSuggestions(Array.isArray(list) ? list.slice(0, 8) : []);
       setMode('autocomplete');
       setIsOpen(true);
     } catch {
@@ -40,7 +41,7 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
     setMode('results');
     try {
       const { data } = await scryfall.search(name);
-      setResults(data.data || []);
+      setResults(data.data ?? data.cards ?? []);
       setIsOpen(true);
     } catch {
       setResults([]);
@@ -75,7 +76,7 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
   }, []);
 
   const getCardImage = (card: ScryfallCard) =>
-    card.image_uris?.small || card.card_faces?.[0]?.image_uris?.small || '';
+    card.image_uris?.small || card.images?.small || card.card_faces?.[0]?.image_uris?.small || '';
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -151,15 +152,15 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-text truncate">{card.name}</p>
                       <p className="text-xs text-text-secondary">
-                        {card.set_name} &middot; {card.rarity}
+                        {card.set_name || card.setName} &middot; {card.rarity}
                         {card.prices?.eur && (
                           <span className="ml-2 font-semibold text-accent">
                             {card.prices.eur}
                           </span>
                         )}
                       </p>
-                      {card.type_line && (
-                        <p className="text-xs text-text-muted truncate">{card.type_line}</p>
+                      {(card.type_line || card.typeLine) && (
+                        <p className="text-xs text-text-muted truncate">{card.type_line || card.typeLine}</p>
                       )}
                     </div>
                   </button>

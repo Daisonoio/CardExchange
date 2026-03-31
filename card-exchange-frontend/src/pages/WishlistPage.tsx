@@ -207,16 +207,16 @@ export default function WishlistPage() {
             ) : (
               <div className="space-y-4">
                 <div className="flex gap-4 p-3 bg-surface-dark rounded-xl">
-                  {selectedCard.image_uris?.small && (
+                  {(selectedCard.image_uris?.small || selectedCard.images?.small) && (
                     <img
-                      src={selectedCard.image_uris.small}
+                      src={selectedCard.image_uris?.small || selectedCard.images?.small}
                       alt={selectedCard.name}
                       className="w-14 h-20 rounded-lg object-cover"
                     />
                   )}
                   <div>
                     <p className="font-semibold text-sm">{selectedCard.name}</p>
-                    <p className="text-xs text-text-secondary">{selectedCard.set_name}</p>
+                    <p className="text-xs text-text-secondary">{selectedCard.set_name || selectedCard.setName}</p>
                     {selectedCard.prices?.eur && (
                       <p className="text-sm font-bold text-accent mt-1">{selectedCard.prices.eur}</p>
                     )}
