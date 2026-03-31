@@ -136,7 +136,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
     <div className="w-full select-none">
       {/* Dark background section */}
       <div className="relative w-full rounded-2xl overflow-hidden"
-        style={{ background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%)' }}
+        style={{ background: 'linear-gradient(180deg,#fff 0%, #e8e9e9 60%, #efefef 100%)' }}
       >
         {/* Slider area */}
         <div
@@ -191,11 +191,9 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
                 {Math.abs(offset) < 0.5 && (
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-10">
                     <h3 className="text-base font-bold text-white truncate">
-                      {card.cardName}
+                      
                     </h3>
-                    <p className="text-xs text-white/60 mt-0.5">
-                      {card.cardSetName}
-                    </p>
+                   
                   </div>
                 )}
               </div>
@@ -215,13 +213,22 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
 
         {/* Card details below carousel */}
         <div className="text-center px-4 pb-5">
-          <div className="flex items-center justify-center gap-3">
-            <span className="text-sm font-bold text-amber-400">
-              €{currentCard.priceEur.toFixed(2)}
+          <div >
+                    <h3 className="text-xl font-bold text-black-400">
+                      {currentCard.cardName}
+                    </h3>
+                   
+                  </div>
+          <div className="items-center justify-center gap-3"> 
+              <p className="text-m text-black/60 mt-0.5">
+                  {currentCard.cardSetName}
+              </p>
+            <span className="text-xl font-bold text-amber-400">
+                €{currentCard.priceEur.toFixed(2)}<br />
+            <span className="text-xs text-black/50">
+                {currentCard.distanceKm} km · @{currentCard.ownerUsername}
             </span>
-            <span className="text-xs text-white/50">
-              {currentCard.distanceKm} km &middot; @{currentCard.ownerUsername}
-            </span>
+</span>
           </div>
         </div>
 

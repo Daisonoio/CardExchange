@@ -22,7 +22,7 @@ export default function Layout() {
     <div className="flex flex-col min-h-screen">
       <TopBar />
       <main className="flex-1 pb-20 md:pb-4">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-1xl mx-auto px-8 py-4">
           <Outlet />
         </div>
       </main>

@@ -271,7 +271,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 // 5. Rate limiting
-app.UseRateLimiter();
+//app.UseRateLimiter();
 
 // 6. Response caching
 app.UseResponseCaching();
