@@ -117,19 +117,17 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Carousel section — full width */}
+      {/* Carousel section — full width, dark bg inside component */}
       {!isLoading && !showLocationPrompt && topCards.length > 0 && (
-        <div className="w-full mb-4">
-          <div className="max-w-lg mx-auto px-4 pt-3 pb-1 flex items-center justify-between">
+        <div className="w-full mb-4 -mx-4 px-0" style={{ width: 'calc(100% + 2rem)' }}>
+          <div className="max-w-lg mx-auto px-4 pb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles size={16} className="text-amber-400" />
               <h2 className="text-sm font-bold text-text">Carte cercate disponibili</h2>
             </div>
             <span className="text-xs text-text-muted">{topCards.length} risultati</span>
           </div>
-          <div className="py-5">
-            <CardCarousel cards={topCards} onCardClick={handleCardClick} />
-          </div>
+          <CardCarousel cards={topCards} onCardClick={handleCardClick} />
         </div>
       )}
 
