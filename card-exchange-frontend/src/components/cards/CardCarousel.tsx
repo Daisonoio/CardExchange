@@ -23,27 +23,48 @@ interface CardCarouselProps {
   onCardClick?: (card: CarouselCard) => void;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Voyage Slider – faithful React adaptation                         */
+/*  3 visible cards (prev / current / next) with CSS transitions,     */
+/*  perspective, rotateY, dark overlay, blurred bg, swipe support.    */
+/*  All cards are in the DOM; only ±1 offset are styled visible,      */
+/*  the rest stay off-screen until they rotate in.                    */
+/* ------------------------------------------------------------------ */
+
+const CARD_W = 'min(52vw, 250px)';
+const CARD_H = 'min(72.5vw, 350px)';
+const TRANSITION_MS = 800;
+
 export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) {
   const [current, setCurrent] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // drag / swipe
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartX = useRef(0);
   const dragStartTime = useRef(0);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   const total = cards.length;
   if (total === 0) return null;
 
-  const go = useCallback((dir: number) => {
-    setCurrent((c) => {
-      const next = c + dir;
-      if (next < 0) return 0;
-      if (next >= total) return total - 1;
-      return next;
-    });
-  }, [total]);
+  /* ---- navigate ---- */
+  const go = useCallback(
+    (dir: number) => {
+      if (isAnimating) return;
+      setCurrent((c) => {
+        const n = c + dir;
+        if (n < 0 || n >= total) return c;
+        return n;
+      });
+      setIsAnimating(true);
+      setTimeout(() => setIsAnimating(false), TRANSITION_MS);
+    },
+    [total, isAnimating],
+  );
 
-  // Keyboard navigation
+  /* keyboard */
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') go(-1);
@@ -53,195 +74,218 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
     return () => window.removeEventListener('keydown', h);
   }, [go]);
 
-  // Pointer events for smooth drag
+  /* ---- pointer events (touch + mouse) ---- */
   const onPointerDown = (e: React.PointerEvent) => {
+    if (isAnimating) return;
     setIsDragging(true);
     dragStartX.current = e.clientX;
     dragStartTime.current = Date.now();
     setDragX(0);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
-
   const onPointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
     setDragX(e.clientX - dragStartX.current);
   };
-
   const onPointerUp = (e: React.PointerEvent) => {
     if (!isDragging) return;
     setIsDragging(false);
     const dx = e.clientX - dragStartX.current;
     const dt = Date.now() - dragStartTime.current;
-    const velocity = Math.abs(dx) / dt;
-
-    if (Math.abs(dx) > 40 || velocity > 0.3) {
+    const vel = Math.abs(dx) / dt;
+    if (Math.abs(dx) > 50 || vel > 0.35) {
       go(dx < 0 ? 1 : -1);
     }
     setDragX(0);
   };
 
-  const getOffset = (index: number) => {
-    return index - current;
-  };
+  /* ---- card styles (Voyage Slider logic) ---- */
+  const containerW = sliderRef.current?.offsetWidth || 400;
+  const dragFrac = isDragging ? dragX / containerW : 0;
 
-  const containerWidth = containerRef.current?.offsetWidth || 400;
-  const dragFraction = isDragging ? dragX / containerWidth : 0;
-
-  // Card sizing: on mobile ~55vw, on desktop capped at 280px
-  // Space between cards ~30% of card width
-  const getSlideStyle = (offset: number): React.CSSProperties => {
-    const adj = offset - dragFraction * 2;
+  const getCardStyle = (index: number): React.CSSProperties => {
+    const raw = index - current;
+    const adj = raw - dragFrac * 1.8;
     const absAdj = Math.abs(adj);
 
-    // Horizontal spacing: percentage of container width
-    const tx = adj * 38;
-    // Scale: center card = 1, shrinks with distance
-    const scale = Math.max(0.5, 1 - absAdj * 0.12);
-    // 3D rotation
-    const rotY = Math.max(-60, Math.min(60, -adj * 25));
-    // Depth
-    const z = -absAdj * 120;
-    // Darken cards further from center
-    const brightness = Math.max(0.3, 1 - absAdj * 0.25);
-    // Fade out cards very far from center
-    const opacity = absAdj > 6 ? 0 : Math.max(0.2, 1 - absAdj * 0.12);
+    // Voyage values:
+    //   current  → translateX(0)  rotateY(0)    scale(1.2)  overlay 20%
+    //   ±1       → ±110%          ∓25deg        scale(0.9)  overlay 60%
+    //   ±2+      → keep stacking outwards, fully dark, hidden
+    const txPct = adj * 110;
+    const rotY = -adj * 25;
+    const scale = absAdj < 0.3 ? 1.2 : Math.max(0.55, 0.9 - (absAdj - 1) * 0.15);
+    const overlayOpacity = absAdj < 0.3 ? 0.15 : Math.min(0.75, 0.6 + (absAdj - 1) * 0.1);
+
+    // Cards beyond ±2 are invisible
+    const opacity = absAdj > 2.5 ? 0 : 1;
+    const zIndex = absAdj < 0.3 ? 50 : absAdj < 1.3 ? 30 : 10;
+
+    const transition = isDragging
+      ? 'none'
+      : `transform ${TRANSITION_MS}ms ease, opacity ${TRANSITION_MS}ms ease`;
 
     return {
       position: 'absolute',
       left: '50%',
       top: '50%',
-      width: 'min(55vw, 280px)',
-      aspectRatio: '488 / 680',
-      marginLeft: 'calc(min(55vw, 280px) / -2)',
-      marginTop: 'calc(min(55vw, 280px) * 680 / 488 / -2)',
-      transform: `perspective(1200px) translateX(${tx}%) translateZ(${z}px) rotateY(${rotY}deg) scale(${scale})`,
-      transition: isDragging
-        ? 'none'
-        : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s ease, opacity 0.4s ease',
-      filter: `brightness(${brightness})`,
+      width: CARD_W,
+      height: CARD_H,
+      marginLeft: `calc(${CARD_W} / -2)`,
+      marginTop: `calc(${CARD_H} / -2)`,
+      transform: `translateX(${txPct}%) rotateY(${rotY}deg) scale(${scale})`,
+      transition,
       opacity,
-      zIndex: 100 - Math.round(absAdj * 10),
-      cursor: absAdj < 0.5 && !isDragging ? 'pointer' : 'grab',
-      pointerEvents: (absAdj < 0.5 ? 'auto' : 'none') as React.CSSProperties['pointerEvents'],
-      willChange: 'transform',
-    };
+      zIndex,
+      cursor: absAdj < 0.5 && !isDragging ? 'pointer' : 'default',
+      pointerEvents: absAdj < 0.5 ? 'auto' : 'none',
+      willChange: 'transform, opacity',
+      '--overlay-opacity': `${overlayOpacity}`,
+    } as React.CSSProperties;
   };
 
   const currentCard = cards[current];
+  const bgImg = currentCard.imageLarge || currentCard.imageUrl;
 
-  // Show ALL cards, no filtering — they fade naturally with distance
-  const maxVisible = 10; // render at most 10 each side for perf
+  // Render ±3 cards for smooth transition (prev, current, next + one extra each side)
+  const renderRange = 3;
 
   return (
     <div className="w-full select-none">
-      {/* Dark background section */}
-      <div className="relative w-full rounded-2xl overflow-hidden"
-        style={{ background: 'linear-gradient(180deg,#fff 0%, #e8e9e9 60%, #efefef 100%)' }}
+      {/* Container with dark bg + blurred card image */}
+      <div
+        className="relative w-full overflow-hidden rounded-2xl"
+        style={{ background: '#0a0a14' }}
       >
-        {/* Slider area */}
+        {/* Blurred background – current card image */}
+        {bgImg && (
+          <div
+            key={current}
+            className="absolute inset-0 z-0"
+            style={{
+              backgroundImage: `url(${bgImg})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              filter: 'blur(16px) brightness(0.25)',
+              transform: 'scale(1.3)',
+            }}
+          />
+        )}
+        <div className="absolute inset-0 z-[1] bg-black/60" />
+
+        {/* Slider area with perspective */}
         <div
-          ref={containerRef}
-          className="relative w-full touch-pan-y"
-          style={{ height: 'calc(min(55vw, 280px) * 680 / 488 + 80px)', paddingTop: '20px' }}
+          ref={sliderRef}
+          className="relative z-[2] w-full touch-pan-y"
+          style={{
+            height: `calc(${CARD_H} * 1.25 + 40px)`,
+            perspective: '1000px',
+          }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          {/* Prev arrow — at left edge */}
+          {/* Left arrow – page edge */}
           {total > 1 && (
             <button
               onClick={(e) => { e.stopPropagation(); go(-1); }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-[200] w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/25 transition-colors"
+              disabled={current === 0}
+              className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-[200] w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-200 hover:bg-white/10 disabled:opacity-20"
             >
-              <ChevronLeft size={22} />
+              <ChevronLeft size={20} />
             </button>
           )}
 
           {/* Cards */}
-          {cards.map((card, index) => {
-            const offset = getOffset(index);
-            // Skip cards too far for performance
-            if (Math.abs(offset) > maxVisible) return null;
+          <div className="relative w-full h-full" style={{ transformStyle: 'preserve-3d' }}>
+            {cards.map((card, i) => {
+              if (Math.abs(i - current) > renderRange) return null;
+              const offset = i - current;
+              return (
+                <div
+                  key={card.cardId}
+                  style={getCardStyle(i)}
+                  className="rounded-xl overflow-hidden shadow-2xl"
+                  onClick={() => {
+                    if (Math.abs(offset) < 0.5 && !isDragging && !isAnimating)
+                      onCardClick?.(card);
+                  }}
+                >
+                  {/* Image */}
+                  {card.imageUrl ? (
+                    <img
+                      src={card.imageLarge || card.imageUrl}
+                      alt={card.cardName}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      draggable={false}
+                      loading={Math.abs(offset) <= 1 ? 'eager' : 'lazy'}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-4">
+                      <span className="text-white text-center text-sm font-bold leading-tight">
+                        {card.cardName}
+                      </span>
+                    </div>
+                  )}
 
-            return (
-              <div
-                key={card.cardId}
-                style={getSlideStyle(offset)}
-                className="rounded-xl overflow-hidden shadow-2xl"
-                onClick={() => {
-                  if (Math.abs(offset) < 0.5 && !isDragging) onCardClick?.(card);
-                }}
-              >
-                {card.imageUrl ? (
-                  <img
-                    src={card.imageLarge || card.imageUrl}
-                    alt={card.cardName}
-                    className="w-full h-full object-cover"
-                    draggable={false}
-                    loading={Math.abs(offset) <= 2 ? 'eager' : 'lazy'}
+                  {/* Dark overlay (Voyage style ::before) */}
+                  <div
+                    className="absolute inset-0 bg-black pointer-events-none"
+                    style={{
+                      opacity: `var(--overlay-opacity, 0)`,
+                      transition: `opacity ${TRANSITION_MS}ms ease`,
+                    }}
                   />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-3">
-                    <span className="text-white text-center text-sm font-bold">{card.cardName}</span>
-                  </div>
-                )}
+                </div>
+              );
+            })}
+          </div>
 
-                {/* Overlay info on the center card only */}
-                {Math.abs(offset) < 0.5 && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-10">
-                    <h3 className="text-base font-bold text-white truncate">
-                      
-                    </h3>
-                   
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          {/* Next arrow — at right edge */}
+          {/* Right arrow – page edge */}
           {total > 1 && (
             <button
               onClick={(e) => { e.stopPropagation(); go(1); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-[200] w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white/80 hover:bg-white/25 transition-colors"
+              disabled={current === total - 1}
+              className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-[200] w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-200 hover:bg-white/10 disabled:opacity-20"
             >
-              <ChevronRight size={22} />
+              <ChevronRight size={20} />
             </button>
           )}
         </div>
 
-        {/* Card details below carousel */}
-        <div className="text-center px-4 pb-5">
-          <div >
-                    <h3 className="text-xl font-bold text-black-400">
-                      {currentCard.cardName}
-                    </h3>
-                   
-                  </div>
-          <div className="items-center justify-center gap-3"> 
-              <p className="text-m text-black/60 mt-0.5">
-                  {currentCard.cardSetName}
-              </p>
-            <span className="text-xl font-bold text-amber-400">
-                €{currentCard.priceEur.toFixed(2)}<br />
-            <span className="text-xs text-black/50">
-                {currentCard.distanceKm} km · @{currentCard.ownerUsername}
+        {/* Info – Voyage style (name + location separator) */}
+        <div className="relative z-[2] text-center px-4 pb-1">
+          <h3 className="text-lg sm:text-xl font-bold text-white uppercase tracking-wider truncate">
+            {currentCard.cardName}
+          </h3>
+          <div className="flex items-center justify-center gap-2 mt-1">
+            <span className="w-5 h-[2px] bg-white/30 inline-block" />
+            <span className="text-sm text-white/60 font-semibold uppercase tracking-wide">
+              {currentCard.cardSetName}
             </span>
-</span>
+            <span className="w-5 h-[2px] bg-white/30 inline-block" />
+          </div>
+          <div className="flex items-center justify-center gap-3 mt-2">
+            <span className="text-base font-bold text-amber-400">
+              €{currentCard.priceEur.toFixed(2)}
+            </span>
+            <span className="text-xs text-white/40">
+              {currentCard.distanceKm} km · @{currentCard.ownerUsername}
+            </span>
           </div>
         </div>
 
-        {/* Dot indicators */}
+        {/* Dots */}
         {total > 1 && total <= 20 && (
-          <div className="flex items-center justify-center gap-1 pb-4">
+          <div className="relative z-[2] flex items-center justify-center gap-1 pt-3 pb-4">
             {cards.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setCurrent(i)}
-                className={`rounded-full transition-all duration-300 ${
+                onClick={() => { if (!isAnimating) setCurrent(i); }}
+                className={`rounded-full transition-all duration-500 ${
                   i === current
-                    ? 'w-5 h-1.5 bg-white'
+                    ? 'w-6 h-1.5 bg-white'
                     : 'w-1.5 h-1.5 bg-white/25 hover:bg-white/40'
                 }`}
               />
