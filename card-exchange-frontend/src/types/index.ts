@@ -123,6 +123,9 @@ export interface Card {
   notes?: string;
   isAvailableForTrade: boolean;
   estimatedValue?: number;
+  imageSmall?: string;
+  imageNormal?: string;
+  imageLarge?: string;
   createdAt?: string;
   userLocation?: UserLocation;
   // Legacy nested field (not returned by backend, but kept for compatibility)
@@ -148,6 +151,8 @@ export interface WishlistItem {
   maxPrice?: number;
   priority: 1 | 2 | 3;
   notes?: string;
+  imageSmall?: string;
+  imageNormal?: string;
   cardInfo?: CardInfo;
   availableMatchesCount?: number;
 }

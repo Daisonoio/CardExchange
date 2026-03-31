@@ -183,10 +183,10 @@ export default function WishlistPage() {
                     <div key={item.id} className="bg-white rounded-2xl p-3 shadow-sm border border-border/50">
                       <div className="flex gap-3">
                         <div className="w-14 shrink-0">
-                          {item.cardInfo?.imageSmall ? (
+                          {(item.imageSmall || item.imageNormal || item.cardInfo?.imageSmall) ? (
                             <img
-                              src={item.cardInfo.imageSmall}
-                              alt={item.cardInfo.name}
+                              src={item.imageSmall || item.imageNormal || item.cardInfo?.imageSmall || ''}
+                              alt={item.cardInfo?.name || item.cardName || 'Card'}
                               className="w-14 h-20 rounded-lg object-cover"
                               loading="lazy"
                             />
@@ -199,9 +199,9 @@ export default function WishlistPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between">
                             <div className="min-w-0">
-                              <h3 className="text-sm font-semibold truncate">{item.cardInfo?.name}</h3>
+                              <h3 className="text-sm font-semibold truncate">{item.cardName || item.cardInfo?.name}</h3>
                               <p className="text-xs text-text-secondary truncate">
-                                {item.cardInfo?.cardSet?.name}
+                                {item.cardSetName || item.cardInfo?.cardSet?.name}
                               </p>
                             </div>
                             <button

@@ -20,7 +20,7 @@ export default function CardItem({ card, onEdit, onDelete, showUser }: CardItemP
   const cardName = card.cardName || info?.name || 'Carta sconosciuta';
   const cardSetName = card.cardSetName || info?.cardSet?.name || '';
   const cardRarity = card.rarity || info?.rarity || '';
-  const image = info?.imageSmall || info?.imageUrl || '';
+  const image = card.imageSmall || card.imageNormal || info?.imageSmall || info?.imageUrl || '';
   const condNum = typeof card.condition === 'number' ? card.condition : (CONDITION_MAP[card.condition] || 0);
   const conditionLabel = typeof card.condition === 'string'
     ? card.condition

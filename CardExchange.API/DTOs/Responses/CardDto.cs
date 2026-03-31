@@ -16,6 +16,9 @@
         public string? Notes { get; set; }
         public bool IsAvailableForTrade { get; set; }
         public decimal? EstimatedValue { get; set; }
+        public string? ImageSmall { get; set; }
+        public string? ImageNormal { get; set; }
+        public string? ImageLarge { get; set; }
         public DateTime CreatedAt { get; set; }
         public UserLocationDto? UserLocation { get; set; }
     }

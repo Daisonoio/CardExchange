@@ -14,6 +14,8 @@
         public string? PreferredCondition { get; set; }
         public decimal? MaxPrice { get; set; }
         public string? Notes { get; set; }
+        public string? ImageSmall { get; set; }
+        public string? ImageNormal { get; set; }
         public int Priority { get; set; }
         public string PriorityLabel { get; set; } = string.Empty; // "Alta", "Media", "Bassa"
         public DateTime CreatedAt { get; set; }

@@ -962,6 +962,8 @@ namespace CardExchange.API.Controllers
                 PreferredCondition = wishlistItem.PreferredCondition?.ToString(),
                 MaxPrice = wishlistItem.MaxPrice,
                 Notes = wishlistItem.Notes,
+                ImageSmall = cardInfo?.ImageSmall,
+                ImageNormal = cardInfo?.ImageNormal ?? cardInfo?.ImageUrl,
                 Priority = wishlistItem.Priority,
                 PriorityLabel = GetPriorityLabel(wishlistItem.Priority),
                 CreatedAt = wishlistItem.CreatedAt,

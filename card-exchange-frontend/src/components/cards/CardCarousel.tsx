@@ -145,38 +145,21 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
   };
 
   const currentCard = cards[current];
-  const bgImg = currentCard.imageLarge || currentCard.imageUrl;
 
-  // Render ±3 cards for smooth transition (prev, current, next + one extra each side)
+  // Render ±3 cards for smooth transition
   const renderRange = 3;
 
   return (
     <div className="w-full select-none">
-      {/* Container with dark bg + blurred card image */}
+      {/* White gradient container that blends with site background */}
       <div
         className="relative w-full overflow-hidden rounded-2xl"
-        style={{ background: '#0a0a14' }}
+        style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%)' }}
       >
-        {/* Blurred background – current card image */}
-        {bgImg && (
-          <div
-            key={current}
-            className="absolute inset-0 z-0"
-            style={{
-              backgroundImage: `url(${bgImg})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              filter: 'blur(16px) brightness(0.25)',
-              transform: 'scale(1.3)',
-            }}
-          />
-        )}
-        <div className="absolute inset-0 z-[1] bg-black/60" />
-
         {/* Slider area with perspective */}
         <div
           ref={sliderRef}
-          className="relative z-[2] w-full touch-pan-y"
+          className="relative w-full touch-pan-y"
           style={{
             height: `calc(${CARD_H} * 1.25 + 40px)`,
             perspective: '1000px',
@@ -191,7 +174,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
             <button
               onClick={(e) => { e.stopPropagation(); go(-1); }}
               disabled={current === 0}
-              className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-[200] w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-200 hover:bg-white/10 disabled:opacity-20"
+              className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-[200] w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-border bg-white/80 backdrop-blur-sm flex items-center justify-center text-text-secondary transition-all duration-200 hover:bg-white hover:text-text disabled:opacity-20"
             >
               <ChevronLeft size={20} />
             </button>
@@ -247,30 +230,30 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
             <button
               onClick={(e) => { e.stopPropagation(); go(1); }}
               disabled={current === total - 1}
-              className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-[200] w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-white/20 flex items-center justify-center text-white transition-all duration-200 hover:bg-white/10 disabled:opacity-20"
+              className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-[200] w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-border bg-white/80 backdrop-blur-sm flex items-center justify-center text-text-secondary transition-all duration-200 hover:bg-white hover:text-text disabled:opacity-20"
             >
               <ChevronRight size={20} />
             </button>
           )}
         </div>
 
-        {/* Info – Voyage style (name + location separator) */}
-        <div className="relative z-[2] text-center px-4 pb-1">
-          <h3 className="text-lg sm:text-xl font-bold text-white uppercase tracking-wider truncate">
+        {/* Info section */}
+        <div className="text-center px-4 pb-1">
+          <h3 className="text-lg sm:text-xl font-bold text-text uppercase tracking-wider truncate">
             {currentCard.cardName}
           </h3>
           <div className="flex items-center justify-center gap-2 mt-1">
-            <span className="w-5 h-[2px] bg-white/30 inline-block" />
-            <span className="text-sm text-white/60 font-semibold uppercase tracking-wide">
+            <span className="w-5 h-[2px] bg-border inline-block" />
+            <span className="text-sm text-text-secondary font-semibold uppercase tracking-wide">
               {currentCard.cardSetName}
             </span>
-            <span className="w-5 h-[2px] bg-white/30 inline-block" />
+            <span className="w-5 h-[2px] bg-border inline-block" />
           </div>
           <div className="flex items-center justify-center gap-3 mt-2">
-            <span className="text-base font-bold text-amber-400">
+            <span className="text-base font-bold text-amber-600">
               €{currentCard.priceEur.toFixed(2)}
             </span>
-            <span className="text-xs text-white/40">
+            <span className="text-xs text-text-muted">
               {currentCard.distanceKm} km · @{currentCard.ownerUsername}
             </span>
           </div>
@@ -278,15 +261,15 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
 
         {/* Dots */}
         {total > 1 && total <= 20 && (
-          <div className="relative z-[2] flex items-center justify-center gap-1 pt-3 pb-4">
+          <div className="flex items-center justify-center gap-1 pt-3 pb-4">
             {cards.map((_, i) => (
               <button
                 key={i}
                 onClick={() => { if (!isAnimating) setCurrent(i); }}
                 className={`rounded-full transition-all duration-500 ${
                   i === current
-                    ? 'w-6 h-1.5 bg-white'
-                    : 'w-1.5 h-1.5 bg-white/25 hover:bg-white/40'
+                    ? 'w-6 h-1.5 bg-primary'
+                    : 'w-1.5 h-1.5 bg-gray-300 hover:bg-gray-400'
                 }`}
               />
             ))}

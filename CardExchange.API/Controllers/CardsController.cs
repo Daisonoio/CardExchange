@@ -587,6 +587,9 @@ namespace CardExchange.API.Controllers
                 Notes = card.Notes,
                 IsAvailableForTrade = card.IsAvailableForTrade,
                 EstimatedValue = card.EstimatedValue,
+                ImageSmall = card.CardInfo?.ImageSmall,
+                ImageNormal = card.CardInfo?.ImageNormal ?? card.CardInfo?.ImageUrl,
+                ImageLarge = card.CardInfo?.ImageLarge,
                 CreatedAt = card.CreatedAt,
                 UserLocation = card.User?.Location != null ? new UserLocationDto
                 {
