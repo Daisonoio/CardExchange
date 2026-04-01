@@ -43,6 +43,15 @@ namespace CardExchange.API.Controllers
 
         /// <summary>
         /// Registrazione nuovo utente
+        /// {
+        //  "email": "lucameli.lm@gmail.com", "mariorossi@gmail.com"
+        //  "username": "DaisonoIo",
+        //  "firstName": "Luca",
+        //  "lastName": "Meli",
+        //  "bio": "Yeuiuhis",
+        //  "password": "Password123!",
+        //  "confirmPassword": "Password123!"
+        //}
         /// </summary>
         [HttpPost("register")]
         [AllowAnonymous]
