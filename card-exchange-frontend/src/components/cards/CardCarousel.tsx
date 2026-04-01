@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface CarouselCard {
   cardId: number;
@@ -24,16 +23,12 @@ interface CardCarouselProps {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Voyage Slider – faithful React adaptation                         */
-/*  3 visible cards (prev / current / next) with CSS transitions,     */
-/*  perspective, rotateY, dark overlay, blurred bg, swipe support.    */
-/*  All cards are in the DOM; only ±1 offset are styled visible,      */
-/*  the rest stay off-screen until they rotate in.                    */
+/*  Voyage-style 3D carousel – no arrows, click side cards to nav     */
 /* ------------------------------------------------------------------ */
 
 const CARD_W = 'min(52vw, 250px)';
 const CARD_H = 'min(72.5vw, 350px)';
-const TRANSITION_MS = 800;
+const TRANSITION_MS = 600;
 
 export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) {
   const [current, setCurrent] = useState(0);
@@ -50,18 +45,19 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
   if (total === 0) return null;
 
   /* ---- navigate ---- */
-  const go = useCallback(
-    (dir: number) => {
-      if (isAnimating) return;
-      setCurrent((c) => {
-        const n = c + dir;
-        if (n < 0 || n >= total) return c;
-        return n;
-      });
+  const goTo = useCallback(
+    (index: number) => {
+      if (isAnimating || index < 0 || index >= total || index === current) return;
+      setCurrent(index);
       setIsAnimating(true);
       setTimeout(() => setIsAnimating(false), TRANSITION_MS);
     },
-    [total, isAnimating],
+    [total, isAnimating, current],
+  );
+
+  const go = useCallback(
+    (dir: number) => goTo(current + dir),
+    [current, goTo],
   );
 
   /* keyboard */
@@ -99,7 +95,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
     setDragX(0);
   };
 
-  /* ---- card styles (Voyage Slider logic) ---- */
+  /* ---- card styles ---- */
   const containerW = sliderRef.current?.offsetWidth || 400;
   const dragFrac = isDragging ? dragX / containerW : 0;
 
@@ -108,22 +104,21 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
     const adj = raw - dragFrac * 1.8;
     const absAdj = Math.abs(adj);
 
-    // Voyage values:
-    //   current  → translateX(0)  rotateY(0)    scale(1.2)  overlay 20%
-    //   ±1       → ±110%          ∓25deg        scale(0.9)  overlay 60%
-    //   ±2+      → keep stacking outwards, fully dark, hidden
     const txPct = adj * 110;
     const rotY = -adj * 25;
     const scale = absAdj < 0.3 ? 1.2 : Math.max(0.55, 0.9 - (absAdj - 1) * 0.15);
     const overlayOpacity = absAdj < 0.3 ? 0.15 : Math.min(0.75, 0.6 + (absAdj - 1) * 0.1);
 
-    // Cards beyond ±2 are invisible
     const opacity = absAdj > 2.5 ? 0 : 1;
     const zIndex = absAdj < 0.3 ? 50 : absAdj < 1.3 ? 30 : 10;
 
     const transition = isDragging
       ? 'none'
       : `transform ${TRANSITION_MS}ms ease, opacity ${TRANSITION_MS}ms ease`;
+
+    // Side cards (±1) are clickable to navigate
+    const isCurrent = absAdj < 0.5;
+    const isSide = absAdj >= 0.5 && absAdj < 1.5;
 
     return {
       position: 'absolute',
@@ -137,21 +132,31 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
       transition,
       opacity,
       zIndex,
-      cursor: absAdj < 0.5 && !isDragging ? 'pointer' : 'default',
-      pointerEvents: absAdj < 0.5 ? 'auto' : 'none',
+      cursor: (isCurrent || isSide) && !isDragging ? 'pointer' : 'default',
+      pointerEvents: (isCurrent || isSide) ? 'auto' : 'none',
       willChange: 'transform, opacity',
       '--overlay-opacity': `${overlayOpacity}`,
     } as React.CSSProperties;
   };
 
-  const currentCard = cards[current];
+  /* ---- click handler: center card → onCardClick, side card → navigate ---- */
+  const handleCardClick = (card: CarouselCard, index: number) => {
+    if (isDragging || isAnimating) return;
+    const offset = index - current;
+    if (Math.abs(offset) < 0.5) {
+      // Center card – trigger external action
+      onCardClick?.(card);
+    } else if (Math.abs(offset) < 1.5) {
+      // Side card – navigate to it
+      goTo(index);
+    }
+  };
 
-  // Render ±3 cards for smooth transition
+  const currentCard = cards[current];
   const renderRange = 3;
 
   return (
     <div className="w-full select-none">
-      {/* White gradient container that blends with site background */}
       <div
         className="relative w-full overflow-hidden rounded-2xl"
         style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%)' }}
@@ -169,31 +174,16 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
         >
-          {/* Left arrow – page edge */}
-          {total > 1 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); go(-1); }}
-              disabled={current === 0}
-              className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-[200] w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-border bg-white/80 backdrop-blur-sm flex items-center justify-center text-text-secondary transition-all duration-200 hover:bg-white hover:text-text disabled:opacity-20"
-            >
-              <ChevronLeft size={20} />
-            </button>
-          )}
-
           {/* Cards */}
           <div className="relative w-full h-full" style={{ transformStyle: 'preserve-3d' }}>
             {cards.map((card, i) => {
               if (Math.abs(i - current) > renderRange) return null;
-              const offset = i - current;
               return (
                 <div
                   key={card.cardId}
                   style={getCardStyle(i)}
                   className="rounded-xl overflow-hidden shadow-2xl"
-                  onClick={() => {
-                    if (Math.abs(offset) < 0.5 && !isDragging && !isAnimating)
-                      onCardClick?.(card);
-                  }}
+                  onClick={() => handleCardClick(card, i)}
                 >
                   {/* Image */}
                   {card.imageUrl ? (
@@ -202,7 +192,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
                       alt={card.cardName}
                       className="absolute inset-0 w-full h-full object-cover"
                       draggable={false}
-                      loading={Math.abs(offset) <= 1 ? 'eager' : 'lazy'}
+                      loading={Math.abs(i - current) <= 1 ? 'eager' : 'lazy'}
                     />
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-4">
@@ -212,7 +202,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
                     </div>
                   )}
 
-                  {/* Dark overlay (Voyage style ::before) */}
+                  {/* Dark overlay */}
                   <div
                     className="absolute inset-0 bg-black pointer-events-none"
                     style={{
@@ -224,17 +214,6 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
               );
             })}
           </div>
-
-          {/* Right arrow – page edge */}
-          {total > 1 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); go(1); }}
-              disabled={current === total - 1}
-              className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-[200] w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-border bg-white/80 backdrop-blur-sm flex items-center justify-center text-text-secondary transition-all duration-200 hover:bg-white hover:text-text disabled:opacity-20"
-            >
-              <ChevronRight size={20} />
-            </button>
-          )}
         </div>
 
         {/* Info section */}
@@ -265,7 +244,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
             {cards.map((_, i) => (
               <button
                 key={i}
-                onClick={() => { if (!isAnimating) setCurrent(i); }}
+                onClick={() => { if (!isAnimating) goTo(i); }}
                 className={`rounded-full transition-all duration-500 ${
                   i === current
                     ? 'w-6 h-1.5 bg-primary'
