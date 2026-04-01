@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
 import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation, Map } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cards, users } from '../api';
@@ -36,6 +36,7 @@ export default function ExplorePage() {
   const [zoneLoading, setZoneLoading] = useState(false);
   const [zoneSearched, setZoneSearched] = useState(false);
   const [zoneSearchTerm, setZoneSearchTerm] = useState('');
+  const zoneResultsRef = useRef<HTMLDivElement>(null);
 
   const hasProfileLocation = !!(currentUser?.location?.latitude && currentUser?.location?.longitude);
 
@@ -129,6 +130,9 @@ export default function ExplorePage() {
       setZoneCards([]);
     } finally {
       setZoneLoading(false);
+      setTimeout(() => {
+        zoneResultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
     }
   };
 
@@ -157,7 +161,7 @@ export default function ExplorePage() {
       <div className="flex gap-2 mb-4">
         <button
           onClick={() => setTab('cards')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-sm font-semibold transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors ${
             tab === 'cards'
               ? 'bg-primary text-white shadow-sm'
               : 'bg-white text-text-secondary border border-border'
@@ -168,7 +172,7 @@ export default function ExplorePage() {
         </button>
         <button
           onClick={() => setTab('zone')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-sm font-semibold transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors ${
             tab === 'zone'
               ? 'bg-primary text-white shadow-sm'
               : 'bg-white text-text-secondary border border-border'
@@ -179,7 +183,7 @@ export default function ExplorePage() {
         </button>
         <button
           onClick={() => setTab('users')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-sm font-semibold transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors ${
             tab === 'users'
               ? 'bg-primary text-white shadow-sm'
               : 'bg-white text-text-secondary border border-border'
@@ -271,7 +275,7 @@ export default function ExplorePage() {
       {/* ============ ZONE SEARCH TAB ============ */}
       {tab === 'zone' && (
         <><div>
-          <div className="bg-white rounded-2xl max-w-screen-sm p-4 mb-4 border border-border/50">
+          <div className="bg-white rounded-2xl max-w-3xl mx-auto p-4 mb-4 border border-border/50">
            
             <Suspense fallback={
               <div className="flex justify-center py-12">
@@ -301,8 +305,9 @@ export default function ExplorePage() {
           {/* Zone results */}
           {zoneSearched && (
             <>
+              <div ref={zoneResultsRef} />
               {zoneCards.length > 0 && (
-                <div className=" max-w-xs relative mb-4">
+                <div className="max-w-sm relative mb-4">
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     type="text"

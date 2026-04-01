@@ -19,6 +19,8 @@
         public string? ImageSmall { get; set; }
         public string? ImageNormal { get; set; }
         public string? ImageLarge { get; set; }
+        public bool HasUserPhotos { get; set; }
+        public int UserPhotoCount { get; set; }
         public DateTime CreatedAt { get; set; }
         public UserLocationDto? UserLocation { get; set; }
     }
@@ -44,6 +46,7 @@
         public CardImagesDto? Images { get; set; }
         public CardPricesDto? Prices { get; set; }
         public string? ScryfallUri { get; set; }
+        public List<CardPhotoDto> Photos { get; set; } = new();
     }
 
     public class CardImagesDto

@@ -84,6 +84,7 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
   const cardName = item.cardName || item.cardInfo?.name || 'Carta';
   const cardSetName = item.cardSetName || item.cardInfo?.cardSet?.name || '';
   const image = item.imageNormal || item.imageSmall || item.cardInfo?.imageNormal || item.cardInfo?.imageSmall || '';
+  const hasPhoto = !!image;
 
   return (
     <BottomSheet open={!!item} onClose={onClose} title="Modifica Ricerca">
@@ -98,6 +99,17 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
             <p className="font-semibold text-sm truncate">{cardName}</p>
             <p className="text-xs text-text-secondary truncate">{cardSetName}</p>
             {item.rarity && <p className="text-xs text-text-muted mt-0.5">{item.rarity}</p>}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="rounded-xl bg-white border border-border/60 p-2.5">
+            <p className="text-text-muted">ID ricerca</p>
+            <p className="font-semibold text-text">#{item.id}</p>
+          </div>
+          <div className="rounded-xl bg-white border border-border/60 p-2.5">
+            <p className="text-text-muted">Foto carta</p>
+            <p className="font-semibold text-text">{hasPhoto ? 'Presente' : 'Non presente'}</p>
           </div>
         </div>
 

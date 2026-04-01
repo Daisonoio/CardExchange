@@ -201,6 +201,10 @@ namespace CardExchange.API.Controllers
             if (offer.ExpiresAt.HasValue && offer.ExpiresAt < DateTime.UtcNow)
                 return BadRequest(new { message = ErrorMessages.TradeOfferExpired });
 
+            var availabilityCheck = await ValidateOfferCardsStillAvailableAsync(offer);
+            if (!availabilityCheck.IsValid)
+                return BadRequest(new { message = availabilityCheck.ErrorMessage });
+
             offer.Status = TradeOfferStatus.Accepted;
             offer.ResponseDate = DateTime.UtcNow;
 
@@ -372,6 +376,14 @@ namespace CardExchange.API.Controllers
 
             if (offer.Status != TradeOfferStatus.Accepted)
                 return BadRequest(new { message = "Solo le offerte accettate possono essere completate" });
+
+            var availabilityCheck = await ValidateOfferCardsStillAvailableAsync(offer);
+            if (!availabilityCheck.IsValid)
+                return BadRequest(new { message = availabilityCheck.ErrorMessage });
+
+            var transferResult = await ExecuteTradeTransferAsync(offer);
+            if (!transferResult.IsSuccess)
+                return BadRequest(new { message = transferResult.ErrorMessage });
 
             offer.Status = TradeOfferStatus.Completed;
             offer.CompletedDate = DateTime.UtcNow;
@@ -563,6 +575,83 @@ namespace CardExchange.API.Controllers
                 Quantity = item.Quantity,
                 OwnerUsername = item.Card?.User?.Username ?? string.Empty
             };
+        }
+
+        private async Task<(bool IsValid, string ErrorMessage)> ValidateOfferCardsStillAvailableAsync(TradeOffer offer)
+        {
+            foreach (var item in offer.Items)
+            {
+                var card = await _cardRepository.GetByIdAsync(item.CardId);
+                if (card == null || card.IsDeleted)
+                    return (false, $"La carta {item.CardId} non è più disponibile");
+
+                var expectedOwnerId = item.Side == TradeOfferItemSide.Offered ? offer.SenderId : offer.ReceiverId;
+                if (card.UserId != expectedOwnerId)
+                    return (false, $"La carta {item.CardId} non appartiene più al proprietario iniziale");
+
+                if (!card.IsAvailableForTrade)
+                    return (false, $"La carta {item.CardId} non è più disponibile per lo scambio");
+
+                if (card.Quantity < item.Quantity)
+                    return (false, $"Quantità insufficiente per la carta {item.CardId}");
+            }
+
+            return (true, string.Empty);
+        }
+
+        private async Task<(bool IsSuccess, string ErrorMessage)> ExecuteTradeTransferAsync(TradeOffer offer)
+        {
+            foreach (var item in offer.Items)
+            {
+                var sourceOwnerId = item.Side == TradeOfferItemSide.Offered ? offer.SenderId : offer.ReceiverId;
+                var destinationOwnerId = item.Side == TradeOfferItemSide.Offered ? offer.ReceiverId : offer.SenderId;
+
+                var sourceCard = await _cardRepository.GetByIdAsync(item.CardId);
+                if (sourceCard == null || sourceCard.IsDeleted)
+                    return (false, $"Carta {item.CardId} non trovata durante il trasferimento");
+
+                if (sourceCard.UserId != sourceOwnerId || sourceCard.Quantity < item.Quantity)
+                    return (false, $"Trasferimento non valido per carta {item.CardId}");
+
+                sourceCard.Quantity -= item.Quantity;
+                if (sourceCard.Quantity <= 0)
+                {
+                    _cardRepository.Delete(sourceCard);
+                }
+                else
+                {
+                    _cardRepository.Update(sourceCard);
+                }
+
+                var destinationCard = (await _cardRepository.GetUserCardsAsync(destinationOwnerId))
+                    .FirstOrDefault(c =>
+                        !c.IsDeleted &&
+                        c.CardInfoId == sourceCard.CardInfoId &&
+                        c.Condition == sourceCard.Condition &&
+                        (c.Notes ?? string.Empty) == (sourceCard.Notes ?? string.Empty));
+
+                if (destinationCard != null)
+                {
+                    destinationCard.Quantity += item.Quantity;
+                    destinationCard.IsAvailableForTrade = true;
+                    _cardRepository.Update(destinationCard);
+                }
+                else
+                {
+                    await _cardRepository.AddAsync(new Card
+                    {
+                        UserId = destinationOwnerId,
+                        CardInfoId = sourceCard.CardInfoId,
+                        Condition = sourceCard.Condition,
+                        Quantity = item.Quantity,
+                        Notes = sourceCard.Notes,
+                        IsAvailableForTrade = true,
+                        EstimatedValue = sourceCard.EstimatedValue,
+                    });
+                }
+            }
+
+            return (true, string.Empty);
         }
 
         private int GetCurrentUserId()

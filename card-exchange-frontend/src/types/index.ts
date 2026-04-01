@@ -31,6 +31,9 @@ export interface User {
   lastName: string;
   bio?: string;
   avatarUrl?: string;
+  paypalUsername?: string;
+  satispayUsername?: string;
+  paymentQrCodeUrl?: string;
   isActive: boolean;
   reputationScore: number;
   totalTradesCompleted: number;

@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeftRight, Loader2, Check, X, Clock, MessageSquare,
-  ChevronRight, Send, RotateCcw,
+  ChevronRight, RotateCcw, ExternalLink,
 } from 'lucide-react';
-import { tradeOffers } from '../api';
+import { cards, tradeOffers, users } from '../api';
 import { useAuth } from '../context/AuthContext';
-import type { TradeOffer, TradeOfferStatus } from '../types';
+import type { TradeOffer, TradeOfferStatus, User } from '../types';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import BottomSheet from '../components/ui/BottomSheet';
@@ -30,6 +30,21 @@ export default function TradesPage() {
   const [tab, setTab] = useState<TabFilter>('all');
   const [selectedOffer, setSelectedOffer] = useState<TradeOffer | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const checkOfferCardsAvailability = async (offer: TradeOffer) => {
+    const cardIds = new Set<number>([
+      ...offer.requestedCards.map((c) => c.cardId),
+      ...offer.offeredCards.map((c) => c.cardId),
+    ]);
+
+    await Promise.all(Array.from(cardIds).map(async (cardId) => {
+      const { data } = await cards.getById(cardId);
+      if (!data || data.quantity < 1 || data.isAvailableForTrade === false) {
+        throw new Error('Alcune carte non sono piu disponibili per questo scambio');
+      }
+    }));
+  };
 
   const loadOffers = async () => {
     if (!user) return;
@@ -54,8 +69,15 @@ export default function TradesPage() {
   });
 
   const handleAction = async (offerId: number, action: 'accept' | 'reject' | 'cancel' | 'complete') => {
+    setActionError(null);
     setActionLoading(offerId);
     try {
+      if (action === 'accept') {
+        const target = offers.find((o) => o.id === offerId);
+        if (target) {
+          await checkOfferCardsAvailability(target);
+        }
+      }
       if (action === 'accept') await tradeOffers.accept(offerId);
       else if (action === 'reject') await tradeOffers.reject(offerId);
       else if (action === 'cancel') await tradeOffers.cancel(offerId);
@@ -63,6 +85,7 @@ export default function TradesPage() {
       setSelectedOffer(null);
       await loadOffers();
     } catch (err: any) {
+      setActionError(err?.response?.data?.message || err?.message || 'Errore durante l\'azione sullo scambio');
       console.error('Errore azione:', err);
     } finally {
       setActionLoading(null);
@@ -113,6 +136,11 @@ export default function TradesPage() {
         />
       ) : (
         <div className="space-y-2">
+          {actionError && (
+            <div className="mb-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+              {actionError}
+            </div>
+          )}
           {filteredOffers.map((offer) => {
             const isSender = offer.senderId === user?.id;
             const otherUser = isSender ? offer.receiverUsername : offer.senderUsername;
@@ -174,6 +202,7 @@ export default function TradesPage() {
             userId={user?.id ?? 0}
             onAction={handleAction}
             actionLoading={actionLoading}
+            actionError={actionError}
             onNavigateToCounter={(offerId) => {
               setSelectedOffer(null);
               navigate(`/trades/${offerId}/counter`);
@@ -187,19 +216,49 @@ export default function TradesPage() {
 
 /* ---- Offer Detail Component ---- */
 function OfferDetail({
-  offer, userId, onAction, actionLoading, onNavigateToCounter,
+  offer, userId, onAction, actionLoading, actionError, onNavigateToCounter,
 }: {
   offer: TradeOffer;
   userId: number;
   onAction: (id: number, action: 'accept' | 'reject' | 'cancel' | 'complete') => void;
   actionLoading: number | null;
+  actionError: string | null;
   onNavigateToCounter: (offerId: number) => void;
 }) {
+  const [otherUserPayment, setOtherUserPayment] = useState<Pick<User, 'paypalUsername' | 'satispayUsername' | 'paymentQrCodeUrl'> | null>(null);
   const isSender = offer.senderId === userId;
   const isReceiver = offer.receiverId === userId;
   const isPending = offer.status === 'Pending';
   const isAccepted = offer.status === 'Accepted';
   const loading = actionLoading === offer.id;
+
+  useEffect(() => {
+    const loadOtherUserPayment = async () => {
+      try {
+        const username = isSender ? offer.receiverUsername : offer.senderUsername;
+        const { data } = await users.getByUsername(username);
+        setOtherUserPayment({
+          paypalUsername: data.paypalUsername,
+          satispayUsername: data.satispayUsername,
+          paymentQrCodeUrl: data.paymentQrCodeUrl,
+        });
+      } catch {
+        setOtherUserPayment(null);
+      }
+    };
+    loadOtherUserPayment();
+  }, [isSender, offer.receiverUsername, offer.senderUsername]);
+
+  const openPaypal = () => {
+    const username = otherUserPayment?.paypalUsername?.trim();
+    if (!username) return;
+    window.open(`https://www.paypal.me/${encodeURIComponent(username)}`, '_blank', 'noopener,noreferrer');
+  };
+
+  const openQr = () => {
+    if (!otherUserPayment?.paymentQrCodeUrl) return;
+    window.open(otherUserPayment.paymentQrCodeUrl, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <div className="space-y-4">
@@ -266,6 +325,39 @@ function OfferDetail({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {isAccepted && (otherUserPayment?.paypalUsername || otherUserPayment?.satispayUsername || otherUserPayment?.paymentQrCodeUrl) && (
+        <div className="bg-surface-dark rounded-xl p-3 space-y-2">
+          <p className="text-xs font-semibold text-text-secondary uppercase">Pagamento</p>
+          {otherUserPayment?.paypalUsername && (
+            <button
+              onClick={openPaypal}
+              className="w-full py-2.5 rounded-xl text-sm font-medium border border-border bg-white hover:bg-surface-dark transition-colors"
+            >
+              <ExternalLink size={14} className="inline mr-1" />
+              Paga con PayPal (@{otherUserPayment.paypalUsername})
+            </button>
+          )}
+          {otherUserPayment?.satispayUsername && (
+            <p className="text-xs text-text-muted">Satispay: {otherUserPayment.satispayUsername}</p>
+          )}
+          {otherUserPayment?.paymentQrCodeUrl && (
+            <button
+              onClick={openQr}
+              className="w-full py-2.5 rounded-xl text-sm font-medium border border-border bg-white hover:bg-surface-dark transition-colors"
+            >
+              <ExternalLink size={14} className="inline mr-1" />
+              Apri QR pagamento
+            </button>
+          )}
+        </div>
+      )}
+
+      {actionError && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+          {actionError}
         </div>
       )}
 

@@ -15,6 +15,9 @@ export default function EditProfilePage() {
     firstName: '',
     lastName: '',
     bio: '',
+    paypalUsername: '',
+    satispayUsername: '',
+    paymentQrCodeUrl: '',
   });
 
   const [locationForm, setLocationForm] = useState({
@@ -38,6 +41,9 @@ export default function EditProfilePage() {
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       bio: user.bio || '',
+      paypalUsername: user.paypalUsername || '',
+      satispayUsername: user.satispayUsername || '',
+      paymentQrCodeUrl: user.paymentQrCodeUrl || '',
     });
     if (user.location) {
       setLocationForm({
@@ -193,6 +199,36 @@ export default function EditProfilePage() {
               value={form.bio}
               onChange={(e) => setForm({ ...form, bio: e.target.value })}
               placeholder="Racconta qualcosa di te..."
+            />
+          </div>
+          <div>
+            <label className={labelClass}>PayPal username (opzionale)</label>
+            <input
+              type="text"
+              className={inputClass}
+              value={form.paypalUsername}
+              onChange={(e) => setForm({ ...form, paypalUsername: e.target.value })}
+              placeholder="es. mario.rossi"
+            />
+          </div>
+          <div>
+            <label className={labelClass}>Satispay username (opzionale)</label>
+            <input
+              type="text"
+              className={inputClass}
+              value={form.satispayUsername}
+              onChange={(e) => setForm({ ...form, satispayUsername: e.target.value })}
+              placeholder="es. @mario.rossi"
+            />
+          </div>
+          <div>
+            <label className={labelClass}>URL QR pagamento (opzionale)</label>
+            <input
+              type="url"
+              className={inputClass}
+              value={form.paymentQrCodeUrl}
+              onChange={(e) => setForm({ ...form, paymentQrCodeUrl: e.target.value })}
+              placeholder="https://..."
             />
           </div>
         </div>

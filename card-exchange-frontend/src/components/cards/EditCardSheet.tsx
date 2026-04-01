@@ -78,6 +78,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted }: E
   if (!card) return null;
 
   const image = card.imageNormal || card.imageSmall || card.cardInfo?.imageNormal || card.cardInfo?.imageSmall || '';
+  const hasPhoto = !!image;
   const cardName = card.cardName || card.cardInfo?.name || 'Carta';
   const cardSetName = card.cardSetName || card.cardInfo?.cardSet?.name || '';
 
@@ -100,6 +101,17 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted }: E
             {card.estimatedValue != null && card.estimatedValue > 0 && (
               <p className="text-sm font-bold text-accent mt-1">€{card.estimatedValue.toFixed(2)}</p>
             )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="rounded-xl bg-white border border-border/60 p-2.5">
+            <p className="text-text-muted">ID carta</p>
+            <p className="font-semibold text-text">#{card.id}</p>
+          </div>
+          <div className="rounded-xl bg-white border border-border/60 p-2.5">
+            <p className="text-text-muted">Foto carta</p>
+            <p className="font-semibold text-text">{hasPhoto ? 'Presente' : 'Non presente'}</p>
           </div>
         </div>
 

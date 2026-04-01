@@ -38,6 +38,13 @@ namespace CardExchange.API.Validators
             RuleFor(x => x.FirstName).MaximumLength(100).When(x => x.FirstName != null);
             RuleFor(x => x.LastName).MaximumLength(100).When(x => x.LastName != null);
             RuleFor(x => x.Bio).MaximumLength(500).When(x => x.Bio != null);
+            RuleFor(x => x.PaypalUsername).MaximumLength(120).When(x => x.PaypalUsername != null);
+            RuleFor(x => x.SatispayUsername).MaximumLength(120).When(x => x.SatispayUsername != null);
+            RuleFor(x => x.PaymentQrCodeUrl)
+                .MaximumLength(600)
+                .Must(url => Uri.IsWellFormedUriString(url, UriKind.Absolute))
+                .When(x => !string.IsNullOrWhiteSpace(x.PaymentQrCodeUrl))
+                .WithMessage("L'URL QR pagamento non è valido");
         }
     }
 

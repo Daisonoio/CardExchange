@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Search, Library, MapPin, ArrowLeftRight } from 'lucide-react';
 import { cards, users } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -12,6 +12,7 @@ export default function UserCollectionPage() {
   const { userId } = useParams<{ userId: string }>();
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [owner, setOwner] = useState<User | null>(null);
   const [userCards, setUserCards] = useState<Card[]>([]);
@@ -19,6 +20,9 @@ export default function UserCollectionPage() {
   const [filterText, setFilterText] = useState('');
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [selectionMode, setSelectionMode] = useState(true);
+
+  const preselectCardId = (location.state as any)?.preselectCardId as number | undefined;
+  const preselectCardInfoId = (location.state as any)?.preselectCardInfoId as number | undefined;
 
   const numericId = Number(userId);
   const isOwnCollection = currentUser?.id === numericId;
@@ -51,6 +55,18 @@ export default function UserCollectionPage() {
   }, [userId, numericId, isOwnCollection]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (!selectionMode || userCards.length === 0) return;
+    if (!preselectCardId && !preselectCardInfoId) return;
+    const preselected = userCards.find((c) =>
+      (preselectCardId != null && c.id === preselectCardId) ||
+      (preselectCardInfoId != null && c.cardInfoId === preselectCardInfoId)
+    );
+    if (preselected) {
+      setSelectedCards((prev) => (prev.some((c) => c.id === preselected.id) ? prev : [preselected]));
+    }
+  }, [selectionMode, userCards, preselectCardId, preselectCardInfoId]);
 
   const toggleCardSelection = (card: Card) => {
     setSelectedCards((prev) =>

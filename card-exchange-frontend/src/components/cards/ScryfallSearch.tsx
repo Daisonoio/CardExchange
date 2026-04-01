@@ -18,6 +18,7 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const skipAutocompleteOnceRef = useRef(false);
 
   const fetchAutocomplete = useCallback(async (q: string) => {
     if (q.length < 2) {
@@ -36,9 +37,12 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
   }, []);
 
   const handleSearch = async (name: string) => {
+    skipAutocompleteOnceRef.current = true;
     setQuery(name);
     setIsSearching(true);
     setMode('results');
+    setIsOpen(true);
+    setSuggestions([]);
     try {
       const { data } = await scryfall.search(name);
       setResults(data.data ?? data.cards ?? []);
@@ -59,10 +63,15 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
   };
 
   useEffect(() => {
+    if (skipAutocompleteOnceRef.current) {
+      skipAutocompleteOnceRef.current = false;
+      return;
+    }
+    if (mode === 'results') return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => fetchAutocomplete(query), 300);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [query, fetchAutocomplete]);
+  }, [query, fetchAutocomplete, mode]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -86,7 +95,10 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setMode('autocomplete');
+            setQuery(e.target.value);
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && query.length >= 2) handleSearch(query);
           }}
@@ -96,7 +108,7 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
         />
         {query && (
           <button
-            onClick={() => { setQuery(''); setSuggestions([]); setResults([]); setIsOpen(false); }}
+            onClick={() => { setQuery(''); setSuggestions([]); setResults([]); setMode('autocomplete'); setIsOpen(false); }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text"
           >
             <X size={18} />
@@ -104,8 +116,17 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
         )}
       </div>
 
+      <button
+        type="button"
+        onClick={() => { if (query.trim().length >= 2) handleSearch(query.trim()); }}
+        disabled={isSearching || query.trim().length < 2}
+        className="mt-2 w-full py-2.5 rounded-xl text-sm font-semibold bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Cerca
+      </button>
+
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-border max-h-96 overflow-y-auto z-50">
+        <div className="mt-2 bg-white rounded-xl shadow-lg border border-border max-h-96 overflow-y-auto z-50">
           {mode === 'autocomplete' && suggestions.length > 0 && (
             <ul>
               {suggestions.map((name) => (

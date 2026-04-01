@@ -17,6 +17,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<CardInfo> CardInfos { get; set; }
         public DbSet<Card> Cards { get; set; }
         public DbSet<WishlistItem> WishlistItems { get; set; }
+      public DbSet<CardPhoto> CardPhotos { get; set; }
         public DbSet<TradeOffer> TradeOffers { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Permission> Permissions { get; set; }
@@ -134,6 +135,29 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(c => c.CardInfo)
                       .WithMany(ci => ci.Cards)
                       .HasForeignKey(c => c.CardInfoId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ============================================================
+            // CardPhoto
+            // ============================================================
+            modelBuilder.Entity<CardPhoto>(entity =>
+            {
+                entity.HasIndex(cp => cp.CardId);
+                entity.HasIndex(cp => cp.UploadedByUserId);
+
+                entity.Property(cp => cp.ContentType)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.HasOne(cp => cp.Card)
+                      .WithMany(c => c.Photos)
+                      .HasForeignKey(cp => cp.CardId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(cp => cp.UploadedByUser)
+                      .WithMany()
+                      .HasForeignKey(cp => cp.UploadedByUserId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
 

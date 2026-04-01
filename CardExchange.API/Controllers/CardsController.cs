@@ -4,8 +4,10 @@ using CardExchange.API.DTOs.Responses;
 using CardExchange.API.Services;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
+using CardExchange.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CardExchange.API.Controllers
 {
@@ -19,6 +21,7 @@ namespace CardExchange.API.Controllers
         private readonly ICardInfoRepository _cardInfoRepository;
         private readonly ISubscriptionService _subscriptionService;
         private readonly IScryfallService _scryfallService;
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<CardsController> _logger;
 
         public CardsController(
@@ -27,6 +30,7 @@ namespace CardExchange.API.Controllers
             ICardInfoRepository cardInfoRepository,
             ISubscriptionService subscriptionService,
             IScryfallService scryfallService,
+            ApplicationDbContext context,
             ILogger<CardsController> logger)
         {
             _cardRepository = cardRepository;
@@ -34,6 +38,7 @@ namespace CardExchange.API.Controllers
             _cardInfoRepository = cardInfoRepository;
             _subscriptionService = subscriptionService;
             _scryfallService = scryfallService;
+            _context = context;
             _logger = logger;
         }
 
@@ -78,7 +83,7 @@ namespace CardExchange.API.Controllers
                     return NotFound(new { message = $"Carta con ID {id} non trovata" });
                 }
 
-                return Ok(MapToDetailDto(card));
+                return Ok(await MapToDetailDtoAsync(card));
             }
             catch (Exception ex)
             {
@@ -419,6 +424,132 @@ namespace CardExchange.API.Controllers
             }
         }
 
+        [HttpGet("{id}/photos")]
+        [RequirePermission("CARDS.READ.ALL")]
+        public async Task<ActionResult<IEnumerable<CardPhotoDto>>> GetCardPhotos(int id)
+        {
+            var card = await _cardRepository.GetByIdAsync(id);
+            if (card == null || card.IsDeleted)
+                return NotFound(new { message = $"Carta con ID {id} non trovata" });
+
+            var photos = await _context.CardPhotos
+                .Where(p => p.CardId == id && !p.IsDeleted)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new CardPhotoDto
+                {
+                    Id = p.Id,
+                    CardId = p.CardId,
+                    UploadedByUserId = p.UploadedByUserId,
+                    ContentType = p.ContentType,
+                    FileSizeBytes = p.FileSizeBytes,
+                    CreatedAt = p.CreatedAt,
+                    DownloadUrl = $"/api/cards/photos/{p.Id}/binary"
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                cardId = id,
+                count = photos.Count,
+                photos
+            });
+        }
+
+        [HttpPost("{id}/photos")]
+        [RequirePermission("CARDS.UPDATE.OWN", "CARDS.UPDATE.ANY")]
+        public async Task<ActionResult<CardPhotoDto>> UploadCardPhoto(int id, [FromBody] UploadCardPhotoRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized();
+
+            var card = await _cardRepository.GetByIdAsync(id);
+            if (card == null || card.IsDeleted)
+                return NotFound(new { message = $"Carta con ID {id} non trovata" });
+
+            if (card.UserId != userId)
+                return Forbid();
+
+            var allowedContentTypes = new[] { "image/webp", "image/jpeg", "image/png" };
+            if (!allowedContentTypes.Contains(request.ContentType))
+                return BadRequest(new { message = "Formato immagine non supportato. Usa webp, jpeg o png." });
+
+            byte[] imageBytes;
+            try
+            {
+                imageBytes = Convert.FromBase64String(request.Base64Image);
+            }
+            catch
+            {
+                return BadRequest(new { message = "Immagine Base64 non valida" });
+            }
+
+            const int maxPhotoSizeBytes = 350 * 1024;
+            if (imageBytes.Length > maxPhotoSizeBytes)
+                return BadRequest(new { message = "Immagine troppo grande. Massimo 350KB." });
+
+            var photo = new CardPhoto
+            {
+                CardId = id,
+                UploadedByUserId = userId,
+                ContentType = request.ContentType,
+                ImageData = imageBytes,
+                FileSizeBytes = imageBytes.Length
+            };
+
+            _context.CardPhotos.Add(photo);
+            await _context.SaveChangesAsync();
+
+            return Ok(new CardPhotoDto
+            {
+                Id = photo.Id,
+                CardId = photo.CardId,
+                UploadedByUserId = photo.UploadedByUserId,
+                ContentType = photo.ContentType,
+                FileSizeBytes = photo.FileSizeBytes,
+                CreatedAt = photo.CreatedAt,
+                DownloadUrl = $"/api/cards/photos/{photo.Id}/binary"
+            });
+        }
+
+        [HttpGet("photos/{photoId}/binary")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCardPhotoBinary(int photoId)
+        {
+            var photo = await _context.CardPhotos
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == photoId && !p.IsDeleted);
+
+            if (photo == null)
+                return NotFound(new { message = "Foto non trovata" });
+
+            return File(photo.ImageData, photo.ContentType);
+        }
+
+        [HttpDelete("{id}/photos/{photoId}")]
+        [RequirePermission("CARDS.UPDATE.OWN", "CARDS.UPDATE.ANY")]
+        public async Task<IActionResult> DeleteCardPhoto(int id, int photoId)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized();
+
+            var card = await _cardRepository.GetByIdAsync(id);
+            if (card == null || card.IsDeleted)
+                return NotFound(new { message = $"Carta con ID {id} non trovata" });
+
+            if (card.UserId != userId)
+                return Forbid();
+
+            var photo = await _context.CardPhotos
+                .FirstOrDefaultAsync(p => p.Id == photoId && p.CardId == id && !p.IsDeleted);
+
+            if (photo == null)
+                return NotFound(new { message = "Foto non trovata" });
+
+            photo.IsDeleted = true;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
         /// <summary>
         /// Cerca carte disponibili in un raggio specifico dalla posizione dell'utente
         /// </summary>
@@ -590,6 +721,9 @@ namespace CardExchange.API.Controllers
                 ImageSmall = card.CardInfo?.ImageSmall,
                 ImageNormal = card.CardInfo?.ImageNormal ?? card.CardInfo?.ImageUrl,
                 ImageLarge = card.CardInfo?.ImageLarge,
+                Quantity = card.Quantity,
+                HasUserPhotos = card.Photos?.Any(p => !p.IsDeleted) == true,
+                UserPhotoCount = card.Photos?.Count(p => !p.IsDeleted) ?? 0,
                 CreatedAt = card.CreatedAt,
                 UserLocation = card.User?.Location != null ? new UserLocationDto
                 {
@@ -604,9 +738,24 @@ namespace CardExchange.API.Controllers
             };
         }
 
-        private static CardDetailDto MapToDetailDto(Card card)
+        private async Task<CardDetailDto> MapToDetailDtoAsync(Card card)
         {
             var ci = card.CardInfo;
+            var photos = await _context.CardPhotos
+                .Where(p => p.CardId == card.Id && !p.IsDeleted)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new CardPhotoDto
+                {
+                    Id = p.Id,
+                    CardId = p.CardId,
+                    UploadedByUserId = p.UploadedByUserId,
+                    ContentType = p.ContentType,
+                    FileSizeBytes = p.FileSizeBytes,
+                    CreatedAt = p.CreatedAt,
+                    DownloadUrl = $"/api/cards/photos/{p.Id}/binary"
+                })
+                .ToListAsync();
+
             return new CardDetailDto
             {
                 Id = card.Id,
@@ -622,9 +771,13 @@ namespace CardExchange.API.Controllers
                 CardDescription = ci?.Description,
                 ImageUrl = ci?.ImageUrl,
                 Condition = card.Condition.ToString(),
+                Quantity = card.Quantity,
                 Notes = card.Notes,
                 IsAvailableForTrade = card.IsAvailableForTrade,
                 EstimatedValue = card.EstimatedValue,
+                HasUserPhotos = photos.Count > 0,
+                UserPhotoCount = photos.Count,
+                Photos = photos,
                 CreatedAt = card.CreatedAt,
                 // Campi Scryfall
                 ScryfallId = ci?.ScryfallId,
@@ -666,6 +819,12 @@ namespace CardExchange.API.Controllers
                     MaxDistanceKm = card.User.Location.MaxDistanceKm
                 } : null
             };
+        }
+
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst("UserId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(userIdClaim, out var userId) ? userId : 0;
         }
     }
 }

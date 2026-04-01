@@ -26,6 +26,15 @@ namespace CardExchange.Core.Entities
         [MaxLength(500)]
         public string? AvatarUrl { get; set; }
 
+        [MaxLength(120)]
+        public string? PaypalUsername { get; set; }
+
+        [MaxLength(120)]
+        public string? SatispayUsername { get; set; }
+
+        [MaxLength(600)]
+        public string? PaymentQrCodeUrl { get; set; }
+
         [Required]
         public string PasswordHash { get; set; } = string.Empty;
 

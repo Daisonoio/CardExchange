@@ -16,8 +16,6 @@ export default function HomePage() {
 
   const [topCards, setTopCards] = useState<CarouselCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [usedLivePosition, setUsedLivePosition] = useState(false);
 
   const hasProfileLocation = !!(user?.location?.latitude && user?.location?.longitude);
 
@@ -27,7 +25,6 @@ export default function HomePage() {
 
     const load = async () => {
       setIsLoading(true);
-      setError(null);
       try {
         let params: Record<string, string | number> = {};
 
@@ -37,7 +34,6 @@ export default function HomePage() {
         } else if (position) {
           // Use live GPS coordinates
           params = { latitude: position.latitude, longitude: position.longitude };
-          setUsedLivePosition(true);
         } else {
           // No location at all
           setIsLoading(false);
@@ -49,9 +45,7 @@ export default function HomePage() {
         setTopCards(cardsData);
       } catch (err: any) {
         const msg = err?.response?.data?.message;
-        if (msg === 'NO_LOCATION') {
-          setError('NO_LOCATION');
-        } else {
+        if (msg !== 'NO_LOCATION') {
           console.error('Errore caricamento home:', err);
         }
       } finally {
@@ -63,7 +57,12 @@ export default function HomePage() {
   }, [user, position, hasProfileLocation]);
 
   const handleCardClick = (card: CarouselCard) => {
-    navigate(`/collection/${card.ownerId}`);
+    navigate(`/collection/${card.ownerId}`, {
+      state: {
+        preselectCardId: card.cardId,
+        preselectCardInfoId: card.cardInfoId,
+      },
+    });
   };
 
   const handleUseLivePosition = () => {

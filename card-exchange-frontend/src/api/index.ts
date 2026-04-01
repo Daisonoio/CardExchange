@@ -83,7 +83,14 @@ export const users = {
   getProfile: (id: number) => client.get<User>(`/users/${id}`),
   getByUsername: (username: string) =>
     client.get<User>(`/users/by-username/${username}`),
-  update: (id: number, data: { firstName?: string; lastName?: string; bio?: string }) =>
+  update: (id: number, data: {
+    firstName?: string;
+    lastName?: string;
+    bio?: string;
+    paypalUsername?: string;
+    satispayUsername?: string;
+    paymentQrCodeUrl?: string;
+  }) =>
     client.put<User>(`/users/${id}`, data),
   updateLocation: (id: number, data: {
     city: string;

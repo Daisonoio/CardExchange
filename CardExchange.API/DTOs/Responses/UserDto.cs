@@ -8,6 +8,9 @@
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string? Bio { get; set; }
+        public string? PaypalUsername { get; set; }
+        public string? SatispayUsername { get; set; }
+        public string? PaymentQrCodeUrl { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public UserLocationDto? Location { get; set; }

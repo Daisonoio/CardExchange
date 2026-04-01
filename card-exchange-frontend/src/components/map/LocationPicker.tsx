@@ -30,7 +30,10 @@ interface NominatimResult {
 function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
   useEffect(() => {
-    map.setView([lat, lng], map.getZoom());
+    map.flyTo([lat, lng], Math.max(map.getZoom(), 12), {
+      duration: 0.6,
+      easeLinearity: 0.25,
+    });
   }, [lat, lng, map]);
   return null;
 }
@@ -59,7 +62,7 @@ export default function LocationPicker({
   const [results, setResults] = useState<NominatimResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -179,7 +182,7 @@ export default function LocationPicker({
       </div>
 
       {/* Map */}
-      <div className="rounded-xl overflow-hidden border border-border" style={{ height: 260 }}>
+      <div className="rounded-xl overflow-hidden border border-border h-[260px] md:h-[320px]">
         <MapContainer
           center={[lat, lng]}
           zoom={11}
@@ -190,7 +193,7 @@ export default function LocationPicker({
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <Marker position={[lat, lng]} />
+          <Marker key={`${lat}-${lng}`} position={[lat, lng]} />
           <Circle
             center={[lat, lng]}
             radius={radius * 1000}

@@ -43,5 +43,7 @@ namespace CardExchange.Core.Entities
 
         [ForeignKey("CardInfoId")]
         public virtual CardInfo CardInfo { get; set; } = null!;
+
+        public virtual ICollection<CardPhoto> Photos { get; set; } = new List<CardPhoto>();
     }
 }

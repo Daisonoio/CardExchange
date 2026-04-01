@@ -233,6 +233,15 @@ namespace CardExchange.API.Controllers
                 if (request.Bio != null)
                     user.Bio = request.Bio;
 
+                if (request.PaypalUsername != null)
+                    user.PaypalUsername = string.IsNullOrWhiteSpace(request.PaypalUsername) ? null : request.PaypalUsername.Trim();
+
+                if (request.SatispayUsername != null)
+                    user.SatispayUsername = string.IsNullOrWhiteSpace(request.SatispayUsername) ? null : request.SatispayUsername.Trim();
+
+                if (request.PaymentQrCodeUrl != null)
+                    user.PaymentQrCodeUrl = string.IsNullOrWhiteSpace(request.PaymentQrCodeUrl) ? null : request.PaymentQrCodeUrl.Trim();
+
                 _userRepository.Update(user);
                 await _userRepository.SaveChangesAsync();
 
@@ -347,6 +356,9 @@ namespace CardExchange.API.Controllers
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Bio = user.Bio,
+                PaypalUsername = user.PaypalUsername,
+                SatispayUsername = user.SatispayUsername,
+                PaymentQrCodeUrl = user.PaymentQrCodeUrl,
                 IsActive = user.IsActive,
                 CreatedAt = user.CreatedAt,
                 Location = user.Location != null ? new UserLocationDto
