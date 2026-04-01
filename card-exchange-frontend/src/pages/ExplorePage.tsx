@@ -194,7 +194,7 @@ export default function ExplorePage() {
       {tab === 'cards' && (
         <>
           {/* Location bar */}
-          <div className="bg-white rounded-2xl p-4 mb-4 border border-border/50">
+          <div className="bg-white rounded-2xl max-w-lg p-4 mb-4 border border-border/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Navigation size={16} className="text-primary" />
@@ -270,11 +270,9 @@ export default function ExplorePage() {
 
       {/* ============ ZONE SEARCH TAB ============ */}
       {tab === 'zone' && (
-        <>
-          <div className="bg-white rounded-2xl p-4 mb-4 border border-border/50">
-            <p className="text-sm text-text-secondary mb-3">
-              Seleziona un punto sulla mappa o cerca una città per trovare carte disponibili in quella zona.
-            </p>
+        <><div>
+          <div className="bg-white rounded-2xl max-w-screen-sm p-4 mb-4 border border-border/50">
+           
             <Suspense fallback={
               <div className="flex justify-center py-12">
                 <Loader2 size={28} className="animate-spin text-primary" />
@@ -296,7 +294,7 @@ export default function ExplorePage() {
               disabled={!zoneCoords}
             >
               <Search size={16} />
-              Cerca carte{zoneLabel ? ` a ${zoneLabel}` : ' in questa zona'}
+              Cerca carte in questa zona
             </Button>
           </div>
 
@@ -304,7 +302,7 @@ export default function ExplorePage() {
           {zoneSearched && (
             <>
               {zoneCards.length > 0 && (
-                <div className="relative mb-4">
+                <div className=" max-w-xs relative mb-4">
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     type="text"
@@ -339,6 +337,7 @@ export default function ExplorePage() {
               )}
             </>
           )}
+          </div>
         </>
       )}
 

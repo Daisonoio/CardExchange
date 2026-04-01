@@ -6,7 +6,7 @@ const NAV_ITEMS = [
   { to: '/explore', icon: Compass, label: 'Esplora' },
   { to: '/collection', icon: Library, label: 'Collezione' },
   { to: '/wishlist', icon: Heart, label: 'Ricerca' },
-  { to: '/events', icon: CalendarDays, label: 'Eventi' },
+  //{ to: '/events', icon: CalendarDays, label: 'Eventi' },
   { to: '/profile', icon: UserCircle, label: 'Profilo' },
 ];
 

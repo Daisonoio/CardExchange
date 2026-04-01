@@ -83,7 +83,7 @@ export default function ProfilePage() {
           { label: 'Le mie Carte', to: '/collection', icon: '🃏' },
           { label: 'Le mie Ricerche', to: '/wishlist', icon: '❤️' },
           { label: 'I miei Scambi', to: '/trades', icon: '🔄' },
-          { label: 'I miei Eventi', to: '/events', icon: '📅' },
+         // { label: 'I miei Eventi', to: '/events', icon: '📅' },
         ].map((item) => (
           <button
             key={item.to}
