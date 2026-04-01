@@ -97,15 +97,17 @@ namespace CardExchange.API.Controllers
                     }
                 }
 
-                var wishlistDtos = await Task.WhenAll(
-                    wishlistItems.Select(async wi => await MapToDto(wi, cardInfoDict, cardSets, games))
-                );
+                var wishlistDtos = new List<WishlistItemDto>();
+                foreach (var wi in wishlistItems)
+                {
+                    wishlistDtos.Add(await MapToDto(wi, cardInfoDict, cardSets, games));
+                }
 
                 return Ok(new
                 {
                     userId,
                     username = userExists.Username,
-                    count = wishlistDtos.Length,
+                    count = wishlistDtos.Count,
                     items = wishlistDtos
                 });
             }
@@ -220,9 +222,11 @@ namespace CardExchange.API.Controllers
                     }
                 }
 
-                var wishlistDtos = await Task.WhenAll(
-                    wishlistItems.Select(async wi => await MapToDto(wi, cardInfoDict, cardSets, games))
-                );
+                var wishlistDtos = new List<WishlistItemDto>();
+                foreach (var wi in wishlistItems)
+                {
+                    wishlistDtos.Add(await MapToDto(wi, cardInfoDict, cardSets, games));
+                }
 
                 string priorityLabel = priority switch
                 {
@@ -237,7 +241,7 @@ namespace CardExchange.API.Controllers
                     userId,
                     priority,
                     priorityLabel,
-                    count = wishlistDtos.Length,
+                    count = wishlistDtos.Count,
                     items = wishlistDtos
                 });
             }
@@ -478,9 +482,11 @@ namespace CardExchange.API.Controllers
                 // Carica le location degli utenti per calcolare le distanze
                 var user = await _userRepository.GetWithLocationAsync(wishlistItem.UserId);
 
-                var matchingCardDtos = await Task.WhenAll(
-                    matchingCards.Select(async card => await MapToMatchingCardDto(card, user))
-                );
+                var matchingCardDtos = new List<MatchingCardDto>();
+                foreach (var card in matchingCards)
+                {
+                    matchingCardDtos.Add(await MapToMatchingCardDto(card, user));
+                }
 
                 var detailDto = new WishlistItemDetailDto
                 {
@@ -502,7 +508,7 @@ namespace CardExchange.API.Controllers
                     Priority = wishlistItem.Priority,
                     PriorityLabel = GetPriorityLabel(wishlistItem.Priority),
                     CreatedAt = wishlistItem.CreatedAt,
-                    AvailableMatches = matchingCardDtos.Length,
+                    AvailableMatches = matchingCardDtos.Count,
                     MatchingCards = matchingCardDtos
                 };
 
@@ -544,9 +550,11 @@ namespace CardExchange.API.Controllers
                         var game = cardSet != null ? await _gameRepository.GetByIdAsync(cardSet.GameId) : null;
 
                         var user = await _userRepository.GetWithLocationAsync(userId);
-                        var matchingCardDtos = await Task.WhenAll(
-                            matchingCards.Select(async card => await MapToMatchingCardDto(card, user))
-                        );
+                        var matchingCardDtos = new List<MatchingCardDto>();
+                        foreach (var card in matchingCards)
+                        {
+                            matchingCardDtos.Add(await MapToMatchingCardDto(card, user));
+                        }
 
                         allMatches.Add(new
                         {
@@ -556,7 +564,7 @@ namespace CardExchange.API.Controllers
                             gameName = game?.Name ?? "Unknown",
                             priority = item.Priority,
                             priorityLabel = GetPriorityLabel(item.Priority),
-                            matchCount = matchingCardDtos.Length,
+                            matchCount = matchingCardDtos.Count,
                             matches = matchingCardDtos
                         });
                     }
