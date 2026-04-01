@@ -19,7 +19,7 @@ export default function UserCollectionPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [filterText, setFilterText] = useState('');
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
-  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(true);
 
   const numericId = Number(userId);
   const isOwnCollection = currentUser?.id === numericId;
@@ -101,14 +101,15 @@ export default function UserCollectionPage() {
         </div>
         {userCards.length > 0 && (
           <button
-            onClick={() => { setSelectionMode(!selectionMode); if (selectionMode) setSelectedCards([]); }}
+            onClick={() => {  if (selectionMode) setSelectedCards([]); }}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0 ${
               selectionMode
                 ? 'bg-primary text-white'
                 : 'bg-surface-dark text-text-secondary hover:bg-gray-200'
             }`}
           >
-            {selectionMode ? 'Annulla' : 'Seleziona'}
+            
+            {selectedCards.length!=0 ? 'Annulla ' : 'Seleziona'}
           </button>
         )}
       </div>

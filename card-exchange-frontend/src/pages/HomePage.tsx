@@ -80,11 +80,9 @@ export default function HomePage() {
       {/* Welcome */}
       <div className="max-w-lg mx-auto mb-5">
         <h1 className="text-xl font-bold text-text">
-          Ciao, {user.firstName}!
+          Nelle vicinanze
         </h1>
-        <p className="text-sm text-text-secondary mt-0.5">
-          Ecco le carte più ricercate disponibili vicino a te
-        </p>
+     
       </div>
 
       {/* Location prompt */}
@@ -119,13 +117,10 @@ export default function HomePage() {
 
       {/* Carousel section — full width, dark bg inside component */}
       {!isLoading && !showLocationPrompt && topCards.length > 0 && (
-        <div className="w-full mb-4 -mx-4 px-0" style={{ width: 'calc(100% + 2rem)' }}>
-          <div className="max-w-lg mx-auto px-4 pb-2 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles size={16} className="text-amber-400" />
-              <h2 className="text-sm font-bold text-text">Carte cercate disponibili</h2>
-            </div>
-            <span className="text-xs text-text-muted">{topCards.length} risultati</span>
+        <div className="w-full mb-4 -mx-4 px-0" style={{ width: 'calc(100% + 2rem)'  }}>
+          <div className="max-w-lg max-h-lg mx-auto px-4 pb-2 flex items-center justify-between">
+      
+            <span className="text-xs text-text-muted">{topCards.length} risultati vicino a te</span>
           </div>
           <CardCarousel cards={topCards} onCardClick={handleCardClick} />
         </div>
@@ -151,40 +146,7 @@ export default function HomePage() {
       )}
 
       {/* Quick links */}
-      <div className="max-w-lg mx-auto grid grid-cols-2 gap-3 mt-2">
-        <button
-          onClick={() => navigate('/explore')}
-          className="bg-white rounded-2xl p-4 shadow-sm border border-border/50 text-left hover:bg-surface-dark transition"
-        >
-          <span className="text-2xl">🔍</span>
-          <h3 className="text-sm font-bold mt-2">Esplora</h3>
-          <p className="text-xs text-text-muted mt-0.5">Carte e utenti vicini</p>
-        </button>
-        <button
-          onClick={() => navigate('/collection')}
-          className="bg-white rounded-2xl p-4 shadow-sm border border-border/50 text-left hover:bg-surface-dark transition"
-        >
-          <span className="text-2xl">🃏</span>
-          <h3 className="text-sm font-bold mt-2">Collezione</h3>
-          <p className="text-xs text-text-muted mt-0.5">Le tue carte</p>
-        </button>
-        <button
-          onClick={() => navigate('/wishlist')}
-          className="bg-white rounded-2xl p-4 shadow-sm border border-border/50 text-left hover:bg-surface-dark transition"
-        >
-          <span className="text-2xl">❤️</span>
-          <h3 className="text-sm font-bold mt-2">Wishlist</h3>
-          <p className="text-xs text-text-muted mt-0.5">Carte che cerchi</p>
-        </button>
-        <button
-          onClick={() => navigate('/events')}
-          className="bg-white rounded-2xl p-4 shadow-sm border border-border/50 text-left hover:bg-surface-dark transition"
-        >
-          <span className="text-2xl">📅</span>
-          <h3 className="text-sm font-bold mt-2">Eventi</h3>
-          <p className="text-xs text-text-muted mt-0.5">Incontri e tornei</p>
-        </button>
-      </div>
+      
     </div>
   );
 }
