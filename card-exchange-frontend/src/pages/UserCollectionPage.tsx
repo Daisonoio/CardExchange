@@ -1,12 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Library, MapPin, ArrowLeftRight, Check } from 'lucide-react';
+import { ArrowLeft, Search, Library, MapPin, ArrowLeftRight } from 'lucide-react';
 import { cards, users } from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { Card, User } from '../types';
-import CardItem from '../components/cards/CardItem';
+import CardGridItem from '../components/cards/CardGridItem';
 import EmptyState from '../components/ui/EmptyState';
-import CardSkeleton from '../components/ui/CardSkeleton';
 import Button from '../components/ui/Button';
 
 export default function UserCollectionPage() {
@@ -140,10 +139,12 @@ export default function UserCollectionPage() {
         </div>
       )}
 
-      {/* Cards list */}
+      {/* Cards grid */}
       {isLoading ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => <CardSkeleton key={i} />)}
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+          {[...Array(9)].map((_, i) => (
+            <div key={i} className="aspect-[5/7] bg-white rounded-xl animate-pulse" />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
@@ -156,26 +157,16 @@ export default function UserCollectionPage() {
           }
         />
       ) : (
-        <div className="space-y-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
           {filtered.map((card) => {
-            const isSelected = selectedCards.find((c) => c.id === card.id);
+            const isSelected = !!selectedCards.find((c) => c.id === card.id);
             return (
-              <div
+              <CardGridItem
                 key={card.id}
-                className={`relative ${selectionMode ? 'cursor-pointer' : ''}`}
+                card={card}
                 onClick={selectionMode ? () => toggleCardSelection(card) : undefined}
-              >
-                {selectionMode && (
-                  <div className={`absolute right-3 top-3 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    isSelected ? 'border-primary bg-primary' : 'border-gray-300 bg-white'
-                  }`}>
-                    {isSelected && <Check size={14} className="text-white" />}
-                  </div>
-                )}
-                <div className={selectionMode && isSelected ? 'ring-2 ring-primary/30 rounded-2xl' : ''}>
-                  <CardItem card={card} />
-                </div>
-              </div>
+                selected={selectionMode && isSelected}
+              />
             );
           })}
         </div>

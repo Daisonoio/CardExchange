@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import type { WishlistItem, ScryfallCard, CardCondition } from '../types';
 import { CONDITION_LABELS } from '../types';
 import ScryfallSearch from '../components/cards/ScryfallSearch';
+import WishlistGridItem from '../components/cards/WishlistGridItem';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import BottomSheet from '../components/ui/BottomSheet';
@@ -178,9 +179,9 @@ export default function WishlistPage() {
       )}
 
       {isLoading ? (
-        <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 animate-pulse h-20" />
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+          {[...Array(9)].map((_, i) => (
+            <div key={i} className="aspect-[5/7] bg-white rounded-xl animate-pulse" />
           ))}
         </div>
       ) : items.length === 0 && !loadError ? (
@@ -205,61 +206,9 @@ export default function WishlistPage() {
                   </span>
                   <span className="text-xs text-text-muted">{grouped[priority].length} carte</span>
                 </div>
-                <div className="space-y-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                   {grouped[priority].map((item) => (
-                    <div key={item.id} className="bg-white rounded-2xl p-3 shadow-sm border border-border/50">
-                      <div className="flex gap-3">
-                        <div className="w-14 shrink-0">
-                          {(item.imageSmall || item.imageNormal || item.cardInfo?.imageSmall) ? (
-                            <img
-                              src={item.imageSmall || item.imageNormal || item.cardInfo?.imageSmall || ''}
-                              alt={item.cardInfo?.name || item.cardName || 'Card'}
-                              className="w-14 h-20 rounded-lg object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <div className="w-14 h-20 rounded-lg bg-primary/10 flex items-center justify-center">
-                              <Heart size={20} className="text-primary" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between">
-                            <div className="min-w-0">
-                              <h3 className="text-sm font-semibold truncate">{item.cardName || item.cardInfo?.name}</h3>
-                              <p className="text-xs text-text-secondary truncate">
-                                {item.cardSetName || item.cardInfo?.cardSet?.name}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => handleDelete(item)}
-                              className="p-1 rounded-lg hover:bg-red-50 text-text-muted hover:text-danger"
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
-                          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                            {item.preferredCondition && (
-                              <span className="text-xs text-text-muted">
-                                Min: {typeof item.preferredCondition === 'number'
-                                  ? CONDITION_LABELS[item.preferredCondition as CardCondition]
-                                  : String(item.preferredCondition)}
-                              </span>
-                            )}
-                            {item.maxPrice != null && item.maxPrice > 0 && (
-                              <span className="text-xs font-medium text-accent">
-                                Max €{Number(item.maxPrice).toFixed(2)}
-                              </span>
-                            )}
-                            {((item.availableMatches ?? item.availableMatchesCount ?? 0) > 0) && (
-                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-600">
-                                {item.availableMatches ?? item.availableMatchesCount} disponibili
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <WishlistGridItem key={item.id} item={item} onDelete={handleDelete} />
                   ))}
                 </div>
               </div>

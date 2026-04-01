@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Library, Search, X } from 'lucide-react';
+import { Plus, Library, Search } from 'lucide-react';
 import { cards, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { Card, ScryfallCard, CardCondition } from '../types';
 import { CONDITION_LABELS } from '../types';
-import CardItem from '../components/cards/CardItem';
+import CardGridItem from '../components/cards/CardGridItem';
+import EditCardSheet from '../components/cards/EditCardSheet';
 import ScryfallSearch from '../components/cards/ScryfallSearch';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
-import CardSkeleton from '../components/ui/CardSkeleton';
 import BottomSheet from '../components/ui/BottomSheet';
 
 export default function CollectionPage() {
@@ -16,6 +16,7 @@ export default function CollectionPage() {
   const [myCards, setMyCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editCard, setEditCard] = useState<Card | null>(null);
   const [selectedCard, setSelectedCard] = useState<ScryfallCard | null>(null);
   const [addForm, setAddForm] = useState({
     condition: 2 as CardCondition,
@@ -49,7 +50,6 @@ export default function CollectionPage() {
     if (!selectedCard) return;
     setIsSaving(true);
     try {
-      // Import Scryfall card to get a CardInfo ID
       const { data: importResult } = await scryfall.importCard(selectedCard.scryfallId || selectedCard.id);
       const cardInfoId = importResult.cardInfoId || importResult.id;
 
@@ -72,14 +72,8 @@ export default function CollectionPage() {
     }
   };
 
-  const handleDelete = async (card: Card) => {
-    if (!confirm(`Rimuovere "${card.cardName || card.cardInfo?.name}" dalla collezione?`)) return;
-    try {
-      await cards.delete(card.id);
-      setMyCards((prev) => prev.filter((c) => c.id !== card.id));
-    } catch (err) {
-      console.error('Errore eliminazione:', err);
-    }
+  const handleCardDeleted = (card: Card) => {
+    setMyCards((prev) => prev.filter((c) => c.id !== card.id));
   };
 
   const filtered = myCards.filter((c) => {
@@ -102,7 +96,7 @@ export default function CollectionPage() {
         <div>
           <h1 className="text-xl font-bold text-text">La mia Collezione</h1>
           <p className="text-sm text-text-secondary">
-            {myCards.length} carte &middot; Valore: {totalValue.toFixed(2)}
+            {myCards.length} carte &middot; Valore: €{totalValue.toFixed(2)}
           </p>
         </div>
         <Button onClick={() => setShowAddModal(true)} size="sm">
@@ -138,10 +132,12 @@ export default function CollectionPage() {
         </div>
       </div>
 
-      {/* Cards list */}
+      {/* Cards grid */}
       {isLoading ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => <CardSkeleton key={i} />)}
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+          {[...Array(9)].map((_, i) => (
+            <div key={i} className="aspect-[5/7] bg-white rounded-xl animate-pulse" />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
@@ -157,12 +153,20 @@ export default function CollectionPage() {
           ) : undefined}
         />
       ) : (
-        <div className="space-y-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
           {filtered.map((card) => (
-            <CardItem key={card.id} card={card} onDelete={handleDelete} />
+            <CardGridItem key={card.id} card={card} onClick={setEditCard} />
           ))}
         </div>
       )}
+
+      {/* Edit Card Sheet */}
+      <EditCardSheet
+        card={editCard}
+        onClose={() => setEditCard(null)}
+        onUpdated={loadCards}
+        onDeleted={handleCardDeleted}
+      />
 
       {/* Add Card Bottom Sheet */}
       <BottomSheet
@@ -207,8 +211,8 @@ export default function CollectionPage() {
 
             {/* Condition select */}
             <div>
-              <label className="text-sm font-medium text-text-secondary block mb-1">Condizione</label>
-              <div className="grid grid-cols-2 gap-2">
+              <label className="text-xs font-semibold text-text-secondary block mb-1.5">Condizione</label>
+              <div className="grid grid-cols-2 gap-1.5">
                 {([1,2,3,4,5,6,7,8] as CardCondition[]).map((c) => (
                   <button
                     key={c}
@@ -227,7 +231,7 @@ export default function CollectionPage() {
 
             {/* Quantity */}
             <div>
-              <label className="text-sm font-medium text-text-secondary block mb-1">Quantita</label>
+              <label className="text-xs font-semibold text-text-secondary block mb-1.5">Quantità</label>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setAddForm({ ...addForm, quantity: Math.max(1, addForm.quantity - 1) })}
@@ -265,7 +269,7 @@ export default function CollectionPage() {
 
             {/* Notes */}
             <div>
-              <label className="text-sm font-medium text-text-secondary block mb-1">Note (opzionale)</label>
+              <label className="text-xs font-semibold text-text-secondary block mb-1.5">Note (opzionale)</label>
               <textarea
                 value={addForm.notes}
                 onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })}
