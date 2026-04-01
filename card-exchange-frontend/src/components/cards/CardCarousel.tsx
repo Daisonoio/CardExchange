@@ -39,6 +39,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
   const [isDragging, setIsDragging] = useState(false);
   const dragStartX = useRef(0);
   const dragStartTime = useRef(0);
+  const wasDragged = useRef(false);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   const total = cards.length;
@@ -74,6 +75,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
   const onPointerDown = (e: React.PointerEvent) => {
     if (isAnimating) return;
     setIsDragging(true);
+    wasDragged.current = false;
     dragStartX.current = e.clientX;
     dragStartTime.current = Date.now();
     setDragX(0);
@@ -81,7 +83,9 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
-    setDragX(e.clientX - dragStartX.current);
+    const dx = e.clientX - dragStartX.current;
+    if (Math.abs(dx) > 5) wasDragged.current = true;
+    setDragX(dx);
   };
   const onPointerUp = (e: React.PointerEvent) => {
     if (!isDragging) return;
@@ -90,6 +94,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
     const dt = Date.now() - dragStartTime.current;
     const vel = Math.abs(dx) / dt;
     if (Math.abs(dx) > 50 || vel > 0.35) {
+      wasDragged.current = true;
       go(dx < 0 ? 1 : -1);
     }
     setDragX(0);
@@ -141,7 +146,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
 
   /* ---- click handler: center card → onCardClick, side card → navigate ---- */
   const handleCardClick = (card: CarouselCard, index: number) => {
-    if (isDragging || isAnimating) return;
+    if (wasDragged.current || isAnimating) return;
     const offset = index - current;
     if (Math.abs(offset) < 0.5) {
       // Center card – trigger external action
@@ -185,8 +190,14 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
                   className="rounded-xl overflow-hidden shadow-2xl"
                   onClick={() => handleCardClick(card, i)}
                 >
-                  {/* Image */}
-                  {card.imageUrl ? (
+                  {/* Fallback background (always present) */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-4">
+                    <span className="text-white text-center text-sm font-bold leading-tight">
+                      {card.cardName}
+                    </span>
+                  </div>
+                  {/* Image (on top of fallback) */}
+                  {(card.imageLarge || card.imageUrl) && (
                     <img
                       src={card.imageLarge || card.imageUrl}
                       alt={card.cardName}
@@ -194,12 +205,6 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
                       draggable={false}
                       loading={Math.abs(i - current) <= 1 ? 'eager' : 'lazy'}
                     />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-4">
-                      <span className="text-white text-center text-sm font-bold leading-tight">
-                        {card.cardName}
-                      </span>
-                    </div>
                   )}
 
                   {/* Dark overlay */}

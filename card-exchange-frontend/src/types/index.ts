@@ -147,12 +147,22 @@ export interface WishlistItem {
   id: number;
   userId: number;
   cardInfoId: number;
-  preferredCondition?: CardCondition;
+  cardName?: string;
+  cardSetName?: string;
+  cardSetCode?: string;
+  gameName?: string;
+  cardNumber?: string;
+  rarity?: string;
+  preferredCondition?: CardCondition | string;
   maxPrice?: number;
-  priority: 1 | 2 | 3;
+  priority: number;
+  priorityLabel?: string;
   notes?: string;
   imageSmall?: string;
   imageNormal?: string;
+  createdAt?: string;
+  availableMatches?: number;
+  // Legacy/nested fields
   cardInfo?: CardInfo;
   availableMatchesCount?: number;
 }

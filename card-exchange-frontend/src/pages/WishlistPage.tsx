@@ -38,7 +38,10 @@ export default function WishlistPage() {
     if (!user) return;
     try {
       const { data } = await wishlist.getByUser(user.id);
-      setItems(Array.isArray(data) ? data : (data as any).items ?? []);
+      const list = Array.isArray(data)
+        ? data
+        : (data as any)?.items ?? (data as any)?.wishlistItems ?? [];
+      setItems(Array.isArray(list) ? list : []);
     } catch (err) {
       console.error('Errore caricamento wishlist:', err);
     } finally {
@@ -132,10 +135,12 @@ export default function WishlistPage() {
     setSaveError(null);
   };
 
+  const getPriority = (p: number | undefined): 1 | 2 | 3 =>
+    p === 1 || p === 2 || p === 3 ? p : 2;
   const grouped = {
-    1: items.filter((i) => i.priority === 1),
-    2: items.filter((i) => i.priority === 2),
-    3: items.filter((i) => i.priority === 3),
+    1: items.filter((i) => getPriority(i.priority) === 1),
+    2: items.filter((i) => getPriority(i.priority) === 2),
+    3: items.filter((i) => getPriority(i.priority) === 3),
   };
 
   return (
@@ -223,9 +228,9 @@ export default function WishlistPage() {
                                 Max {item.maxPrice.toFixed(2)}
                               </span>
                             )}
-                            {item.availableMatchesCount != null && item.availableMatchesCount > 0 && (
+                            {((item.availableMatches ?? item.availableMatchesCount ?? 0) > 0) && (
                               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-600">
-                                {item.availableMatchesCount} disponibili
+                                {item.availableMatches ?? item.availableMatchesCount} disponibili
                               </span>
                             )}
                           </div>
