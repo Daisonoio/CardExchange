@@ -3,6 +3,7 @@ import type { WishlistItem } from '../../types';
 
 interface WishlistGridItemProps {
   item: WishlistItem;
+  onClick?: (item: WishlistItem) => void;
   onDelete?: (item: WishlistItem) => void;
 }
 
@@ -12,13 +13,17 @@ const PRIORITY_DOT: Record<number, string> = {
   3: 'bg-blue-500',
 };
 
-export default function WishlistGridItem({ item, onDelete }: WishlistGridItemProps) {
+export default function WishlistGridItem({ item, onClick, onDelete }: WishlistGridItemProps) {
   const cardName = item.cardName || item.cardInfo?.name || 'Carta';
   const image = item.imageSmall || item.imageNormal || item.cardInfo?.imageSmall || '';
   const matches = item.availableMatches ?? item.availableMatchesCount ?? 0;
 
   return (
-    <div className="relative bg-white rounded-xl overflow-hidden shadow-sm border border-border/50">
+    <button
+      type="button"
+      onClick={() => onClick?.(item)}
+      className="relative w-full bg-white rounded-xl overflow-hidden shadow-sm border border-border/50 text-left transition-shadow hover:shadow-md"
+    >
       {/* Image */}
       <div className="aspect-[5/7] bg-gray-100 relative">
         {image ? (
@@ -57,6 +62,6 @@ export default function WishlistGridItem({ item, onDelete }: WishlistGridItemPro
         <p className="text-[11px] font-semibold text-text truncate leading-tight">{cardName}</p>
         <p className="text-[10px] text-text-muted truncate">{item.cardSetName || item.cardInfo?.cardSet?.name || ''}</p>
       </div>
-    </div>
+    </button>
   );
 }

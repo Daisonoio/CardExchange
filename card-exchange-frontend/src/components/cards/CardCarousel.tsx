@@ -28,12 +28,16 @@ interface CardCarouselProps {
 
 const CARD_W = 'min(52vw, 250px)';
 const CARD_H = 'min(72.5vw, 350px)';
-const TRANSITION_MS = 600;
+const TRANSITION_MS = 460;
 const DRAG_THRESHOLD = 8; // px – below this it's a tap, not a drag
+const SWIPE_DISTANCE = 42;
+const SWIPE_VELOCITY = 0.28;
+const SNAP_BACK_MS = 420;
 
 export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) {
   const [current, setCurrent] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isSnapBack, setIsSnapBack] = useState(false);
 
   // drag / swipe
   const [dragX, setDragX] = useState(0);
@@ -97,6 +101,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
   /* ---- pointer events (touch + mouse) ---- */
   const onPointerDown = (e: React.PointerEvent) => {
     if (isAnimating) return;
+    setIsSnapBack(false);
     setIsDragging(true);
     dragStartX.current = e.clientX;
     dragStartY.current = e.clientY;
@@ -119,9 +124,11 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
     const dt = Date.now() - dragStartTime.current;
     const vel = Math.abs(dx) / dt;
 
-    if (Math.abs(dx) > 50 || vel > 0.35) {
-      // Swipe → navigate
-      go(dx < 0 ? 1 : -1);
+    if (Math.abs(dx) > SWIPE_DISTANCE || vel > SWIPE_VELOCITY) {
+      // Requested behavior:
+      // swipe right -> show card on the left (previous)
+      // swipe left  -> show card on the right (next)
+      go(dx > 0 ? -1 : 1);
     } else if (dist < DRAG_THRESHOLD && dt < 500) {
       // Tap → figure out which card was tapped
       const tappedIndex = findTappedCardIndex(e.clientX, e.clientY);
@@ -135,6 +142,10 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
           goTo(tappedIndex);
         }
       }
+    } else {
+      // Elastic snap-back when release is not enough for a page switch.
+      setIsSnapBack(true);
+      window.setTimeout(() => setIsSnapBack(false), SNAP_BACK_MS);
     }
     setDragX(0);
   };
@@ -145,12 +156,14 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
 
   const getCardStyle = (index: number): React.CSSProperties => {
     const raw = index - current;
-    const adj = raw - dragFrac * 1.8;
+    // Keep drag direction visually aligned with the finger/mouse movement.
+    const adj = raw + dragFrac * 1.8;
     const absAdj = Math.abs(adj);
 
     const txPct = adj * 110;
     const rotY = -adj * 25;
-    const scale = absAdj < 0.3 ? 1.2 : Math.max(0.55, 0.9 - (absAdj - 1) * 0.15);
+    const scale = absAdj < 0.3 ? 1.16 : Math.max(0.58, 0.9 - (absAdj - 1) * 0.14);
+    const tyPx = Math.min(18, absAdj * 8);
     const overlayOpacity = absAdj < 0.3 ? 0.15 : Math.min(0.75, 0.6 + (absAdj - 1) * 0.1);
 
     const opacity = absAdj > 2.5 ? 0 : 1;
@@ -158,10 +171,15 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
 
     const transition = isDragging
       ? 'none'
-      : `transform ${TRANSITION_MS}ms ease, opacity ${TRANSITION_MS}ms ease`;
+      : isSnapBack
+      ? `transform ${SNAP_BACK_MS}ms cubic-bezier(0.18, 1.35, 0.32, 1), opacity ${SNAP_BACK_MS}ms cubic-bezier(0.18, 1.2, 0.32, 1), filter ${SNAP_BACK_MS}ms cubic-bezier(0.18, 1.2, 0.32, 1)`
+      : `transform ${TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1), opacity ${TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1), filter ${TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1)`;
 
     const isCurrent = absAdj < 0.5;
     const isSide = absAdj >= 0.5 && absAdj < 1.5;
+    const cardShadow = isCurrent
+      ? '0 30px 56px rgba(15, 23, 42, 0.28), 0 12px 20px rgba(15, 23, 42, 0.2)'
+      : '0 14px 30px rgba(15, 23, 42, 0.18)';
 
     return {
       position: 'absolute',
@@ -171,12 +189,16 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
       height: CARD_H,
       marginLeft: `calc(${CARD_W} / -2)`,
       marginTop: `calc(${CARD_H} / -2)`,
-      transform: `translateX(${txPct}%) rotateY(${rotY}deg) scale(${scale})`,
+      transform: `translateX(${txPct}%) translateY(${tyPx}px) rotateY(${rotY}deg) scale(${scale})`,
       transition,
       opacity,
       zIndex,
       cursor: (isCurrent || isSide) && !isDragging ? 'pointer' : 'default',
       willChange: 'transform, opacity',
+      filter: absAdj < 0.45 ? 'saturate(1.08) brightness(1.02)' : 'saturate(0.9) brightness(0.92) blur(0.35px)',
+      boxShadow: cardShadow,
+      border: '1px solid rgba(255, 255, 255, 0.45)',
+      animation: !isDragging && !isSnapBack && isCurrent ? 'cardCarouselBreath 3.8s ease-in-out infinite' : undefined,
       '--overlay-opacity': `${overlayOpacity}`,
     } as React.CSSProperties;
   };
@@ -186,10 +208,13 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
 
   return (
     <div className="w-full select-none">
-      <div
-        className="relative w-full overflow-hidden rounded-2xl"
-        style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%)' }}
-      >
+      <style>{`
+        @keyframes cardCarouselBreath {
+          0%, 100% { box-shadow: 0 30px 56px rgba(15, 23, 42, 0.28), 0 12px 20px rgba(15, 23, 42, 0.2); }
+          50% { box-shadow: 0 34px 64px rgba(15, 23, 42, 0.32), 0 14px 24px rgba(15, 23, 42, 0.24); }
+        }
+      `}</style>
+      <div className="relative w-full overflow-hidden rounded-2xl bg-white">
         {/* Slider area with perspective */}
         <div
           ref={sliderRef}
@@ -215,7 +240,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
                     else cardRefs.current.delete(i);
                   }}
                   style={getCardStyle(i)}
-                  className="rounded-xl overflow-hidden shadow-2xl"
+                  className="rounded-xl overflow-hidden"
                 >
                   {/* Fallback background (always present for clickable area) */}
                   <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-4">
@@ -242,6 +267,9 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
                       transition: `opacity ${TRANSITION_MS}ms ease`,
                     }}
                   />
+
+                  {/* Light sheen */}
+                  <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(130deg,rgba(255,255,255,0.22)_0%,rgba(255,255,255,0.02)_36%,rgba(255,255,255,0)_65%)]" />
                 </div>
               );
             })}
@@ -249,38 +277,40 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
         </div>
 
         {/* Info section */}
-        <div className="text-center px-4 pb-1">
-          <h3 className="text-lg sm:text-xl font-bold text-text uppercase tracking-wider truncate">
-            {currentCard.cardName}
-          </h3>
-          <div className="flex items-center justify-center gap-2 mt-1">
-            <span className="w-5 h-[2px] bg-border inline-block" />
-            <span className="text-sm text-text-secondary font-semibold uppercase tracking-wide">
-              {currentCard.cardSetName}
-            </span>
-            <span className="w-5 h-[2px] bg-border inline-block" />
-          </div>
-          <div className="flex items-center justify-center gap-3 mt-2">
-            <span className="text-base font-bold text-amber-600">
-              €{currentCard.priceEur.toFixed(2)}
-            </span>
-            <span className="text-xs text-text-muted">
-              {currentCard.distanceKm} km · @{currentCard.ownerUsername}
-            </span>
+        <div className="px-4 pb-2">
+          <div className="max-w-lg mx-auto rounded-2xl bg-white/75 backdrop-blur-md border border-white/70 shadow-[0_14px_34px_rgba(15,23,42,0.12)] px-4 py-3 text-center">
+            <h3 className="text-lg sm:text-xl font-bold text-text uppercase tracking-[0.08em] truncate">
+              {currentCard.cardName}
+            </h3>
+            <div className="flex items-center justify-center gap-2 mt-1">
+              <span className="w-5 h-[2px] bg-border inline-block" />
+              <span className="text-sm text-text-secondary font-semibold uppercase tracking-wide truncate max-w-[70%]">
+                {currentCard.cardSetName}
+              </span>
+              <span className="w-5 h-[2px] bg-border inline-block" />
+            </div>
+            <div className="flex items-center justify-center gap-3 mt-2 flex-wrap">
+              <span className="text-base font-bold text-amber-600 bg-amber-50 border border-amber-200/70 px-2.5 py-1 rounded-full">
+                €{currentCard.priceEur.toFixed(2)}
+              </span>
+              <span className="text-xs text-text-muted bg-white/70 px-2.5 py-1 rounded-full border border-border/60">
+                {currentCard.distanceKm} km · @{currentCard.ownerUsername}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Dots */}
         {total > 1 && total <= 20 && (
-          <div className="flex items-center justify-center gap-1 pt-3 pb-4">
+          <div className="flex items-center justify-center gap-1.5 pt-3 pb-4">
             {cards.map((_, i) => (
               <button
                 key={i}
                 onClick={() => { if (!isAnimating) goTo(i); }}
-                className={`rounded-full transition-all duration-500 ${
+                className={`rounded-full transition-all duration-500 border ${
                   i === current
-                    ? 'w-6 h-1.5 bg-primary'
-                    : 'w-1.5 h-1.5 bg-gray-300 hover:bg-gray-400'
+                    ? 'w-7 h-2 bg-primary border-primary/70 shadow-[0_0_0_3px_rgba(59,130,246,0.18)]'
+                    : 'w-2 h-2 bg-white/85 border-gray-300/80 hover:bg-gray-100'
                 }`}
               />
             ))}

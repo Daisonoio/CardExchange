@@ -6,6 +6,7 @@ import type { WishlistItem, ScryfallCard, CardCondition } from '../types';
 import { CONDITION_LABELS } from '../types';
 import ScryfallSearch from '../components/cards/ScryfallSearch';
 import WishlistGridItem from '../components/cards/WishlistGridItem';
+import EditWishlistSheet from '../components/cards/EditWishlistSheet';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import BottomSheet from '../components/ui/BottomSheet';
@@ -22,6 +23,7 @@ export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editItem, setEditItem] = useState<WishlistItem | null>(null);
   const [selectedCard, setSelectedCard] = useState<ScryfallCard | null>(null);
   const [printings, setPrintings] = useState<ScryfallCard[]>([]);
   const [loadingPrintings, setLoadingPrintings] = useState(false);
@@ -142,6 +144,10 @@ export default function WishlistPage() {
     }
   };
 
+  const handleItemDeleted = (item: WishlistItem) => {
+    setItems((prev) => prev.filter((i) => i.id !== item.id));
+  };
+
   const closeModal = () => {
     setShowAddModal(false);
     setSelectedCard(null);
@@ -179,7 +185,7 @@ export default function WishlistPage() {
       )}
 
       {isLoading ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
           {[...Array(9)].map((_, i) => (
             <div key={i} className="aspect-[5/7] bg-white rounded-xl animate-pulse" />
           ))}
@@ -206,9 +212,14 @@ export default function WishlistPage() {
                   </span>
                   <span className="text-xs text-text-muted">{grouped[priority].length} carte</span>
                 </div>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
                   {grouped[priority].map((item) => (
-                    <WishlistGridItem key={item.id} item={item} onDelete={handleDelete} />
+                    <WishlistGridItem
+                      key={item.id}
+                      item={item}
+                      onClick={setEditItem}
+                      onDelete={handleDelete}
+                    />
                   ))}
                 </div>
               </div>
@@ -216,6 +227,13 @@ export default function WishlistPage() {
           )}
         </div>
       )}
+
+      <EditWishlistSheet
+        item={editItem}
+        onClose={() => setEditItem(null)}
+        onUpdated={loadItems}
+        onDeleted={handleItemDeleted}
+      />
 
       {/* Add Bottom Sheet */}
       <BottomSheet open={showAddModal} onClose={closeModal} title="Aggiungi alla Ricerca">

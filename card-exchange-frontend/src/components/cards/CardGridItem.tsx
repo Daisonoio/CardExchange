@@ -40,7 +40,7 @@ export default function CardGridItem({ card, onClick, selected }: CardGridItemPr
           <img
             src={image}
             alt={cardName}
-            className="w-full h-full object-cover"
+            className="+."
             loading="lazy"
           />
         ) : (
