@@ -33,17 +33,31 @@ export default function WishlistPage() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadItems = useCallback(async () => {
     if (!user) return;
+    setLoadError(null);
     try {
-      const { data } = await wishlist.getByUser(user.id);
-      const list = Array.isArray(data)
-        ? data
-        : (data as any)?.items ?? (data as any)?.wishlistItems ?? [];
-      setItems(Array.isArray(list) ? list : []);
-    } catch (err) {
-      console.error('Errore caricamento wishlist:', err);
+      const resp = await wishlist.getByUser(user.id);
+      const data = resp.data;
+      // Backend wraps in { userId, username, count, items: [...] }
+      let list: WishlistItem[];
+      if (Array.isArray(data)) {
+        list = data;
+      } else if (data && typeof data === 'object') {
+        const obj = data as Record<string, unknown>;
+        list = (obj.items ?? obj.Items ?? obj.wishlistItems ?? obj.WishlistItems ?? []) as WishlistItem[];
+      } else {
+        list = [];
+      }
+      if (!Array.isArray(list)) list = [];
+      setItems(list);
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message || err?.message || 'Errore sconosciuto';
+      setLoadError(`Errore caricamento (${status || '?'}): ${msg}`);
+      console.error('Errore caricamento wishlist:', err?.response?.status, err?.response?.data, err);
     } finally {
       setIsLoading(false);
     }
@@ -156,13 +170,20 @@ export default function WishlistPage() {
         </Button>
       </div>
 
+      {loadError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+          {loadError}
+          <button onClick={loadItems} className="ml-2 underline font-medium">Riprova</button>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="bg-white rounded-2xl p-4 animate-pulse h-20" />
           ))}
         </div>
-      ) : items.length === 0 ? (
+      ) : items.length === 0 && !loadError ? (
         <EmptyState
           icon={Heart}
           title="Nessuna carta cercata"
@@ -220,12 +241,14 @@ export default function WishlistPage() {
                           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                             {item.preferredCondition && (
                               <span className="text-xs text-text-muted">
-                                Min: {CONDITION_LABELS[item.preferredCondition]}
+                                Min: {typeof item.preferredCondition === 'number'
+                                  ? CONDITION_LABELS[item.preferredCondition as CardCondition]
+                                  : String(item.preferredCondition)}
                               </span>
                             )}
-                            {item.maxPrice && (
+                            {item.maxPrice != null && item.maxPrice > 0 && (
                               <span className="text-xs font-medium text-accent">
-                                Max {item.maxPrice.toFixed(2)}
+                                Max €{Number(item.maxPrice).toFixed(2)}
                               </span>
                             )}
                             {((item.availableMatches ?? item.availableMatchesCount ?? 0) > 0) && (

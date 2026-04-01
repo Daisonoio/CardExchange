@@ -29,6 +29,7 @@ interface CardCarouselProps {
 const CARD_W = 'min(52vw, 250px)';
 const CARD_H = 'min(72.5vw, 350px)';
 const TRANSITION_MS = 600;
+const DRAG_THRESHOLD = 8; // px – below this it's a tap, not a drag
 
 export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) {
   const [current, setCurrent] = useState(0);
@@ -38,9 +39,10 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartX = useRef(0);
+  const dragStartY = useRef(0);
   const dragStartTime = useRef(0);
-  const wasDragged = useRef(false);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const total = cards.length;
   if (total === 0) return null;
@@ -71,31 +73,68 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
     return () => window.removeEventListener('keydown', h);
   }, [go]);
 
+  /* ---- find which card was tapped based on pointer coordinates ---- */
+  const findTappedCardIndex = (clientX: number, clientY: number): number => {
+    // Check cards from highest z-index to lowest (center first, then sides)
+    const candidates: { index: number; zIndex: number }[] = [];
+    cardRefs.current.forEach((el, index) => {
+      const rect = el.getBoundingClientRect();
+      if (
+        clientX >= rect.left &&
+        clientX <= rect.right &&
+        clientY >= rect.top &&
+        clientY <= rect.bottom
+      ) {
+        const z = parseInt(el.style.zIndex || '0', 10);
+        candidates.push({ index, zIndex: z });
+      }
+    });
+    if (candidates.length === 0) return -1;
+    candidates.sort((a, b) => b.zIndex - a.zIndex);
+    return candidates[0].index;
+  };
+
   /* ---- pointer events (touch + mouse) ---- */
   const onPointerDown = (e: React.PointerEvent) => {
     if (isAnimating) return;
     setIsDragging(true);
-    wasDragged.current = false;
     dragStartX.current = e.clientX;
+    dragStartY.current = e.clientY;
     dragStartTime.current = Date.now();
     setDragX(0);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
+
   const onPointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
-    const dx = e.clientX - dragStartX.current;
-    if (Math.abs(dx) > 5) wasDragged.current = true;
-    setDragX(dx);
+    setDragX(e.clientX - dragStartX.current);
   };
+
   const onPointerUp = (e: React.PointerEvent) => {
     if (!isDragging) return;
     setIsDragging(false);
     const dx = e.clientX - dragStartX.current;
+    const dy = e.clientY - dragStartY.current;
+    const dist = Math.sqrt(dx * dx + dy * dy);
     const dt = Date.now() - dragStartTime.current;
     const vel = Math.abs(dx) / dt;
+
     if (Math.abs(dx) > 50 || vel > 0.35) {
-      wasDragged.current = true;
+      // Swipe → navigate
       go(dx < 0 ? 1 : -1);
+    } else if (dist < DRAG_THRESHOLD && dt < 500) {
+      // Tap → figure out which card was tapped
+      const tappedIndex = findTappedCardIndex(e.clientX, e.clientY);
+      if (tappedIndex >= 0) {
+        const offset = tappedIndex - current;
+        if (Math.abs(offset) === 0) {
+          // Center card → open
+          onCardClick?.(cards[tappedIndex]);
+        } else if (Math.abs(offset) === 1) {
+          // Side card → navigate to it
+          goTo(tappedIndex);
+        }
+      }
     }
     setDragX(0);
   };
@@ -121,7 +160,6 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
       ? 'none'
       : `transform ${TRANSITION_MS}ms ease, opacity ${TRANSITION_MS}ms ease`;
 
-    // Side cards (±1) are clickable to navigate
     const isCurrent = absAdj < 0.5;
     const isSide = absAdj >= 0.5 && absAdj < 1.5;
 
@@ -138,23 +176,9 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
       opacity,
       zIndex,
       cursor: (isCurrent || isSide) && !isDragging ? 'pointer' : 'default',
-      pointerEvents: (isCurrent || isSide) ? 'auto' : 'none',
       willChange: 'transform, opacity',
       '--overlay-opacity': `${overlayOpacity}`,
     } as React.CSSProperties;
-  };
-
-  /* ---- click handler: center card → onCardClick, side card → navigate ---- */
-  const handleCardClick = (card: CarouselCard, index: number) => {
-    if (wasDragged.current || isAnimating) return;
-    const offset = index - current;
-    if (Math.abs(offset) < 0.5) {
-      // Center card – trigger external action
-      onCardClick?.(card);
-    } else if (Math.abs(offset) < 1.5) {
-      // Side card – navigate to it
-      goTo(index);
-    }
   };
 
   const currentCard = cards[current];
@@ -186,11 +210,14 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
               return (
                 <div
                   key={card.cardId}
+                  ref={(el) => {
+                    if (el) cardRefs.current.set(i, el);
+                    else cardRefs.current.delete(i);
+                  }}
                   style={getCardStyle(i)}
                   className="rounded-xl overflow-hidden shadow-2xl"
-                  onClick={() => handleCardClick(card, i)}
                 >
-                  {/* Fallback background (always present) */}
+                  {/* Fallback background (always present for clickable area) */}
                   <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-4">
                     <span className="text-white text-center text-sm font-bold leading-tight">
                       {card.cardName}
