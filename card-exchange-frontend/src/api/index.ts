@@ -12,6 +12,9 @@ import type {
   ScryfallAutocomplete,
   ScryfallCard,
   User,
+  TradeOffer,
+  CreateTradeOfferRequest,
+  TradeOfferStatus,
 } from '../types';
 
 // === Auth ===
@@ -126,6 +129,28 @@ export const cardInfos = {
       { params: { name } }
     ),
   getById: (id: number) => client.get(`/cardinfos/${id}`),
+};
+
+// === Trade Offers ===
+export const tradeOffers = {
+  getMine: (params?: { page?: number; pageSize?: number; status?: TradeOfferStatus }) =>
+    client.get<{ items: TradeOffer[]; totalCount: number }>('/tradeoffers', { params }),
+  getById: (id: number) =>
+    client.get<TradeOffer>(`/tradeoffers/${id}`),
+  create: (data: CreateTradeOfferRequest) =>
+    client.post<TradeOffer>('/tradeoffers', data),
+  accept: (id: number) =>
+    client.post<TradeOffer>(`/tradeoffers/${id}/accept`),
+  reject: (id: number) =>
+    client.post<TradeOffer>(`/tradeoffers/${id}/reject`),
+  cancel: (id: number) =>
+    client.post<TradeOffer>(`/tradeoffers/${id}/cancel`),
+  counter: (id: number, data: Omit<CreateTradeOfferRequest, 'receiverId'>) =>
+    client.post<TradeOffer>(`/tradeoffers/${id}/counter`, data),
+  complete: (id: number) =>
+    client.post<TradeOffer>(`/tradeoffers/${id}/complete`),
+  review: (id: number, data: { rating: number; comment?: string; cardAsDescribed: boolean; timelyShipping: boolean; goodCommunication: boolean }) =>
+    client.post(`/tradeoffers/${id}/review`, data),
 };
 
 // === Price Tracking ===

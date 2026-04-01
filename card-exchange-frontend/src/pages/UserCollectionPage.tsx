@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Library, MapPin } from 'lucide-react';
+import { ArrowLeft, Search, Library, MapPin, ArrowLeftRight, Check } from 'lucide-react';
 import { cards, users } from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { Card, User } from '../types';
 import CardItem from '../components/cards/CardItem';
 import EmptyState from '../components/ui/EmptyState';
 import CardSkeleton from '../components/ui/CardSkeleton';
+import Button from '../components/ui/Button';
 
 export default function UserCollectionPage() {
   const { userId } = useParams<{ userId: string }>();
@@ -17,8 +18,9 @@ export default function UserCollectionPage() {
   const [userCards, setUserCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterText, setFilterText] = useState('');
+  const [selectedCards, setSelectedCards] = useState<Card[]>([]);
+  const [selectionMode, setSelectionMode] = useState(false);
 
-  // If the user navigates to their own collection, redirect
   const numericId = Number(userId);
   const isOwnCollection = currentUser?.id === numericId;
 
@@ -40,7 +42,6 @@ export default function UserCollectionPage() {
       const allCards: Card[] = Array.isArray(cardsRes.data)
         ? cardsRes.data
         : (cardsRes.data as any).cards ?? [];
-      // Only show cards available for trade
       setUserCards(allCards.filter((c) => c.isAvailableForTrade));
       setOwner(userRes.data);
     } catch (err) {
@@ -51,6 +52,20 @@ export default function UserCollectionPage() {
   }, [userId, numericId, isOwnCollection]);
 
   useEffect(() => { load(); }, [load]);
+
+  const toggleCardSelection = (card: Card) => {
+    setSelectedCards((prev) =>
+      prev.find((c) => c.id === card.id)
+        ? prev.filter((c) => c.id !== card.id)
+        : [...prev, card]
+    );
+  };
+
+  const handleGoToTradeRequest = () => {
+    navigate(`/trades/new/${numericId}`, {
+      state: { selectedCards },
+    });
+  };
 
   const filtered = userCards.filter((c) => {
     if (!filterText) return true;
@@ -66,12 +81,12 @@ export default function UserCollectionPage() {
   if (isOwnCollection) return null;
 
   return (
-    <div>
+    <div className="pb-20">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <button
           onClick={() => navigate(-1)}
-          className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center hover:bg-gray-200 transition"
+          className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center hover:bg-gray-200 transition shrink-0"
         >
           <ArrowLeft size={18} />
         </button>
@@ -84,6 +99,18 @@ export default function UserCollectionPage() {
             {totalValue > 0 && <> &middot; Valore: €{totalValue.toFixed(2)}</>}
           </p>
         </div>
+        {userCards.length > 0 && (
+          <button
+            onClick={() => { setSelectionMode(!selectionMode); if (selectionMode) setSelectedCards([]); }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0 ${
+              selectionMode
+                ? 'bg-primary text-white'
+                : 'bg-surface-dark text-text-secondary hover:bg-gray-200'
+            }`}
+          >
+            {selectionMode ? 'Annulla' : 'Seleziona'}
+          </button>
+        )}
       </div>
 
       {/* Owner info */}
@@ -129,9 +156,59 @@ export default function UserCollectionPage() {
         />
       ) : (
         <div className="space-y-2">
-          {filtered.map((card) => (
-            <CardItem key={card.id} card={card} />
-          ))}
+          {filtered.map((card) => {
+            const isSelected = selectedCards.find((c) => c.id === card.id);
+            return (
+              <div
+                key={card.id}
+                className={`relative ${selectionMode ? 'cursor-pointer' : ''}`}
+                onClick={selectionMode ? () => toggleCardSelection(card) : undefined}
+              >
+                {selectionMode && (
+                  <div className={`absolute right-3 top-3 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                    isSelected ? 'border-primary bg-primary' : 'border-gray-300 bg-white'
+                  }`}>
+                    {isSelected && <Check size={14} className="text-white" />}
+                  </div>
+                )}
+                <div className={selectionMode && isSelected ? 'ring-2 ring-primary/30 rounded-2xl' : ''}>
+                  <CardItem card={card} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Floating action bar */}
+      {selectionMode && selectedCards.length > 0 && (
+        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white border-t border-border p-4 z-40 shadow-lg">
+          <div className="flex items-center gap-3 max-w-lg mx-auto">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">{selectedCards.length} carte selezionate</p>
+              <p className="text-xs text-text-muted">
+                {selectedCards.reduce((s, c) => s + (c.estimatedValue || 0), 0).toFixed(2)} EUR
+              </p>
+            </div>
+            <Button onClick={handleGoToTradeRequest} size="lg">
+              <ArrowLeftRight size={16} />
+              Richiedi
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Quick trade button when not in selection mode */}
+      {!selectionMode && userCards.length > 0 && (
+        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-border p-4 z-40">
+          <Button
+            onClick={() => setSelectionMode(true)}
+            className="w-full max-w-lg mx-auto"
+            size="lg"
+          >
+            <ArrowLeftRight size={16} />
+            Seleziona carte per scambio
+          </Button>
         </div>
       )}
     </div>

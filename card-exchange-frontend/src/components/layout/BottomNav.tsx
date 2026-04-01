@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Compass, Library, Heart, CalendarDays, UserCircle } from 'lucide-react';
+import { Home, Compass, Library, Heart, ArrowLeftRight, UserCircle } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/home', icon: Home, label: 'Home' },
   { to: '/explore', icon: Compass, label: 'Esplora' },
   { to: '/collection', icon: Library, label: 'Collezione' },
   { to: '/wishlist', icon: Heart, label: 'Ricerca' },
-  //{ to: '/events', icon: CalendarDays, label: 'Eventi' },
+  { to: '/trades', icon: ArrowLeftRight, label: 'Scambi' },
   { to: '/profile', icon: UserCircle, label: 'Profilo' },
 ];
 

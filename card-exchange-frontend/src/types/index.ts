@@ -276,3 +276,57 @@ export interface CardEvent {
   };
   createdAt: string;
 }
+
+// === Trade Offers ===
+export type TradeOfferStatus = 'Pending' | 'Accepted' | 'Rejected' | 'Cancelled' | 'Completed' | 'CounterOffer';
+
+export interface TradeOfferItem {
+  id: number;
+  cardId: number;
+  cardName: string;
+  cardSetName: string;
+  condition: string;
+  quantity: number;
+  ownerUsername: string;
+  imageSmall?: string;
+  imageNormal?: string;
+}
+
+export interface TradeOffer {
+  id: number;
+  senderId: number;
+  senderUsername: string;
+  receiverId: number;
+  receiverUsername: string;
+  status: TradeOfferStatus;
+  message?: string;
+  createdAt: string;
+  responseDate?: string;
+  completedDate?: string;
+  expiresAt?: string;
+  parentOfferId?: number;
+  offeredCards: TradeOfferItem[];
+  requestedCards: TradeOfferItem[];
+}
+
+export interface CreateTradeOfferRequest {
+  receiverId: number;
+  message?: string;
+  offeredCards: { cardId: number; quantity: number }[];
+  requestedCards: { cardId: number; quantity: number }[];
+}
+
+export interface TradeReview {
+  id: number;
+  tradeOfferId: number;
+  reviewerId: number;
+  reviewerUsername: string;
+  reviewedUserId: number;
+  reviewedUserUsername: string;
+  rating: number;
+  comment?: string;
+  cardAsDescribed: boolean;
+  timelyShipping: boolean;
+  goodCommunication: boolean;
+  createdAt: string;
+}
