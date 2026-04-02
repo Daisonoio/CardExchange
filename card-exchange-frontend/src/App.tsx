@@ -10,6 +10,7 @@ import WishlistPage from './pages/WishlistPage';
 import EventsPage from './pages/EventsPage';
 import ProfilePage from './pages/ProfilePage';
 import EditProfilePage from './pages/EditProfilePage';
+import HomePage from './pages/HomePage';
 import UserCollectionPage from './pages/UserCollectionPage';
 import TradesPage from './pages/TradesPage';
 import TradeRequestPage from './pages/TradeRequestPage';
@@ -32,6 +33,7 @@ export default function App() {
 
             {/* Protected routes */}
             <Route element={<Layout />}>
+              <Route path="/home" element={<HomePage />} />
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/collection" element={<CollectionPage />} />
               <Route path="/collection/:userId" element={<UserCollectionPage />} />
@@ -43,8 +45,8 @@ export default function App() {
               <Route path="/profile/edit" element={<EditProfilePage />} />
             </Route>
 
-            {/* Default redirect — Esplora is the homepage */}
-            <Route path="*" element={<Navigate to="/explore" replace />} />
+            {/* Default redirect */}
+            <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>

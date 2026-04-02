@@ -6,6 +6,7 @@ import { useNotifications } from '../../hooks/useNotifications';
 import NotificationCenter from '../notifications/NotificationCenter';
 
 const NAV_ITEMS = [
+  { to: '/home', icon: Home, label: 'Home' },
   { to: '/explore', icon: Compass, label: 'Esplora' },
   { to: '/collection', icon: Library, label: 'Collezione' },
   { to: '/wishlist', icon: Heart, label: 'Ricerca' },
