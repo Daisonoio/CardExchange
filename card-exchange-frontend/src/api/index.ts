@@ -15,6 +15,7 @@ import type {
   TradeOffer,
   CreateTradeOfferRequest,
   TradeOfferStatus,
+  Notification,
 } from '../types';
 
 // === Auth ===
@@ -43,6 +44,16 @@ export const cards = {
     client.get<Card[]>(`/cards/nearby/${userId}`, {
       params: { radiusKm, ...coords },
     }),
+};
+
+// === Card Photos ===
+export const cardPhotos = {
+  getByCard: (cardId: number) =>
+    client.get<{ cardId: number; count: number; photos: { id: number; cardId: number; contentType: string; fileSizeBytes: number; downloadUrl: string; createdAt: string }[] }>(`/cards/${cardId}/photos`),
+  upload: (cardId: number, base64Image: string, contentType: string) =>
+    client.post(`/cards/${cardId}/photos`, { base64Image, contentType }),
+  delete: (cardId: number, photoId: number) =>
+    client.delete(`/cards/${cardId}/photos/${photoId}`),
 };
 
 // === Wishlist ===
@@ -158,6 +169,34 @@ export const tradeOffers = {
     client.post<TradeOffer>(`/tradeoffers/${id}/complete`),
   review: (id: number, data: { rating: number; comment?: string; cardAsDescribed: boolean; timelyShipping: boolean; goodCommunication: boolean }) =>
     client.post(`/tradeoffers/${id}/review`, data),
+};
+
+// === Notifications ===
+export const notifications = {
+  getAll: (params?: { unreadOnly?: boolean; page?: number; pageSize?: number }) =>
+    client.get<{ totalCount: number; page: number; pageSize: number; notifications: Notification[] }>('/notifications', { params }),
+  markAsRead: (id: number) =>
+    client.put(`/notifications/${id}/read`),
+  markAllAsRead: () =>
+    client.put('/notifications/read-all'),
+  getUnreadCount: () =>
+    client.get<{ unreadCount: number }>('/notifications/unread-count'),
+  delete: (id: number) =>
+    client.delete(`/notifications/${id}`),
+};
+
+// === Favorites ===
+export const favorites = {
+  getAll: () =>
+    client.get<{ count: number; favorites: any[] }>('/favorites'),
+  add: (cardId: number) =>
+    client.post(`/favorites/${cardId}`),
+  remove: (cardId: number) =>
+    client.delete(`/favorites/${cardId}`),
+  check: (cardId: number) =>
+    client.get<{ isFavorite: boolean }>(`/favorites/check/${cardId}`),
+  getCardIds: () =>
+    client.get<{ cardIds: number[] }>('/favorites/card-ids'),
 };
 
 // === Price Tracking ===

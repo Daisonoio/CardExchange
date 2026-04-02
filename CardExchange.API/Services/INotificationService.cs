@@ -7,5 +7,6 @@ namespace CardExchange.API.Services
         Task SendAsync(int userId, NotificationType type, string title, string? body = null, int? referenceId = null, string? referenceType = null);
         Task SendTradeOfferNotificationAsync(int userId, NotificationType type, int tradeOfferId, string senderUsername);
         Task SendWishlistMatchNotificationAsync(int userId, string cardName, int cardId);
+        Task NotifyFavoriteCardChangedAsync(int cardId, string cardName, string changeType);
     }
 }

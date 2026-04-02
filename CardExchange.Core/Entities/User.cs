@@ -61,5 +61,6 @@ namespace CardExchange.Core.Entities
         public virtual ICollection<UserSubscription> Subscriptions { get; set; } = new List<UserSubscription>();
         public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
         public virtual ICollection<SavedSearch> SavedSearches { get; set; } = new List<SavedSearch>();
+        public virtual ICollection<FavoriteCard> FavoriteCards { get; set; } = new List<FavoriteCard>();
     }
 }

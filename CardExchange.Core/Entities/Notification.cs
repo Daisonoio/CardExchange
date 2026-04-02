@@ -13,7 +13,10 @@ namespace CardExchange.Core.Entities
         NewReview = 7,
         SubscriptionExpiring = 8,
         SubscriptionExpired = 9,
-        SystemAnnouncement = 10
+        SystemAnnouncement = 10,
+        FavoritePriceChanged = 11,
+        FavoriteCardTraded = 12,
+        CounterOfferReceived = 13
     }
 
     public class Notification : BaseEntity

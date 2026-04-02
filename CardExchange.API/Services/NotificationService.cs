@@ -1,5 +1,6 @@
 using CardExchange.Core.Entities;
 using CardExchange.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace CardExchange.API.Services
 {
@@ -56,6 +57,32 @@ namespace CardExchange.API.Services
                 cardId,
                 "Card"
             );
+        }
+
+        public async Task NotifyFavoriteCardChangedAsync(int cardId, string cardName, string changeType)
+        {
+            var favoriteUserIds = await _context.FavoriteCards
+                .AsNoTracking()
+                .Where(fc => fc.CardId == cardId)
+                .Select(fc => fc.UserId)
+                .ToListAsync();
+
+            var notificationType = changeType == "price"
+                ? NotificationType.FavoritePriceChanged
+                : NotificationType.FavoriteCardTraded;
+
+            var (title, body) = changeType switch
+            {
+                "price" => ("Prezzo aggiornato", $"Il prezzo della carta \"{cardName}\" che hai tra i preferiti è stato modificato"),
+                "traded" => ("Carta scambiata", $"La carta \"{cardName}\" che hai tra i preferiti è stata scambiata"),
+                "removed" => ("Carta rimossa", $"La carta \"{cardName}\" che hai tra i preferiti non è più disponibile"),
+                _ => ("Aggiornamento preferito", $"La carta \"{cardName}\" nei tuoi preferiti è stata aggiornata")
+            };
+
+            foreach (var uid in favoriteUserIds)
+            {
+                await SendAsync(uid, notificationType, title, body, cardId, "Card");
+            }
         }
     }
 }

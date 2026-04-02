@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
 import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation, Map } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { cards, users } from '../api';
+import { cards, users, favorites } from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { Card, User } from '../types';
 import { useGeolocation } from '../hooks/useGeolocation';
@@ -38,7 +38,21 @@ export default function ExplorePage() {
   const [zoneSearchTerm, setZoneSearchTerm] = useState('');
   const zoneResultsRef = useRef<HTMLDivElement>(null);
 
+  // Favorites
+  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
+
   const hasProfileLocation = !!(currentUser?.location?.latitude && currentUser?.location?.longitude);
+
+  // Load favorite card IDs
+  useEffect(() => {
+    if (!currentUser) return;
+    favorites.getCardIds()
+      .then(({ data }) => {
+        const ids = data?.cardIds ?? (data as any)?.CardIds ?? [];
+        setFavoriteIds(new Set(ids));
+      })
+      .catch(() => {});
+  }, [currentUser]);
 
   // When browser position arrives and we were waiting for it (dialog flow)
   useEffect(() => {
@@ -136,12 +150,19 @@ export default function ExplorePage() {
     }
   };
 
-  const filteredCards = searchTerm
+  const filteredCardsUnsorted = searchTerm
     ? availableCards.filter((c) =>
         (c.cardName || c.cardInfo?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (c.cardSetName || c.cardInfo?.cardSet?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
       )
     : availableCards;
+
+  // Favorites first
+  const filteredCards = [...filteredCardsUnsorted].sort((a, b) => {
+    const aFav = favoriteIds.has(a.id) ? 0 : 1;
+    const bFav = favoriteIds.has(b.id) ? 0 : 1;
+    return aFav - bFav;
+  });
 
   const filteredZoneCards = zoneSearchTerm
     ? zoneCards.filter((c) =>
@@ -157,39 +178,39 @@ export default function ExplorePage() {
       <h1 className="text-xl font-bold text-text mb-1">Esplora</h1>
       <p className="text-sm text-text-secondary mb-4">Trova carte e collezionisti</p>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-4">
+      {/* Tabs — compact for mobile */}
+      <div className="flex gap-1.5 mb-3">
         <button
           onClick={() => setTab('cards')}
-          className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-colors ${
             tab === 'cards'
               ? 'bg-primary text-white shadow-sm'
               : 'bg-white text-text-secondary border border-border'
           }`}
         >
-          <ArrowLeftRight size={15} />
+          <ArrowLeftRight size={12} />
           Carte
         </button>
         <button
           onClick={() => setTab('zone')}
-          className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-colors ${
             tab === 'zone'
               ? 'bg-primary text-white shadow-sm'
               : 'bg-white text-text-secondary border border-border'
           }`}
         >
-          <Map size={15} />
-          Cerca zona
+          <Map size={12} />
+          Zona
         </button>
         <button
           onClick={() => setTab('users')}
-          className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-colors ${
             tab === 'users'
               ? 'bg-primary text-white shadow-sm'
               : 'bg-white text-text-secondary border border-border'
           }`}
         >
-          <MapPin size={15} />
+          <MapPin size={12} />
           Utenti
         </button>
       </div>

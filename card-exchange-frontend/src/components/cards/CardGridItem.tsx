@@ -1,4 +1,4 @@
-import { ArrowLeftRight } from 'lucide-react';
+import { ArrowLeftRight, Camera, Heart } from 'lucide-react';
 import type { Card } from '../../types';
 import { CONDITION_LABELS } from '../../types';
 
@@ -6,6 +6,10 @@ interface CardGridItemProps {
   card: Card;
   onClick?: (card: Card) => void;
   selected?: boolean;
+  onPhotoClick?: (card: Card) => void;
+  isFavorite?: boolean;
+  onFavoriteToggle?: (card: Card) => void;
+  showFavorite?: boolean;
 }
 
 const CONDITION_MAP: Record<string, number> = {
@@ -13,7 +17,7 @@ const CONDITION_MAP: Record<string, number> = {
   LightlyPlayed: 5, ModeratelyPlayed: 6, HeavilyPlayed: 7, Damaged: 8,
 };
 
-export default function CardGridItem({ card, onClick, selected }: CardGridItemProps) {
+export default function CardGridItem({ card, onClick, selected, onPhotoClick, isFavorite, onFavoriteToggle, showFavorite }: CardGridItemProps) {
   const cardName = card.cardName || card.cardInfo?.name || 'Carta';
   const image = card.imageSmall || card.imageNormal || card.cardInfo?.imageSmall || card.cardInfo?.imageUrl || '';
   const condNum = typeof card.condition === 'number' ? card.condition : (CONDITION_MAP[card.condition] || 0);
@@ -26,6 +30,8 @@ export default function CardGridItem({ card, onClick, selected }: CardGridItemPr
     : condNum <= 4
     ? 'bg-amber-500'
     : 'bg-red-500';
+
+  const hasPhoto = !!card.hasUserPhotos;
 
   return (
     <button
@@ -40,7 +46,7 @@ export default function CardGridItem({ card, onClick, selected }: CardGridItemPr
           <img
             src={image}
             alt={cardName}
-            className="+."
+            className="w-full h-full object-cover"
             loading="lazy"
           />
         ) : (
@@ -63,6 +69,38 @@ export default function CardGridItem({ card, onClick, selected }: CardGridItemPr
           <span className="absolute top-1 left-1 bg-primary text-white p-1 rounded-full shadow">
             <ArrowLeftRight size={10} />
           </span>
+        )}
+
+        {/* Camera icon — has user photo */}
+        {hasPhoto && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPhotoClick?.(card);
+            }}
+            className="absolute bottom-1 left-1 bg-black/60 text-white p-1 rounded-full shadow hover:bg-black/80 transition-colors"
+            title="Vedi foto"
+          >
+            <Camera size={11} />
+          </button>
+        )}
+
+        {/* Favorite heart */}
+        {showFavorite && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onFavoriteToggle?.(card);
+            }}
+            className="absolute bottom-1 right-7 p-1 rounded-full shadow transition-colors"
+            title={isFavorite ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
+          >
+            <Heart
+              size={12}
+              className={isFavorite ? 'text-red-500 fill-red-500' : 'text-white'}
+              strokeWidth={2}
+            />
+          </button>
         )}
 
         {/* Condition dot */}

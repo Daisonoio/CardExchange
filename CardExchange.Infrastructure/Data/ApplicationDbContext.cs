@@ -34,6 +34,8 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<TradeReview> TradeReviews { get; set; }
         public DbSet<SavedSearch> SavedSearches { get; set; }
 
+        public DbSet<FavoriteCard> FavoriteCards { get; set; }
+
         // DbSets - Eventi & Price Tracking
         public DbSet<Event> Events { get; set; }
         public DbSet<EventParticipant> EventParticipants { get; set; }
@@ -418,6 +420,24 @@ namespace CardExchange.Infrastructure.Data
             });
 
             // ============================================================
+            // FavoriteCard (Preferiti carte altrui)
+            // ============================================================
+            modelBuilder.Entity<FavoriteCard>(entity =>
+            {
+                entity.HasIndex(fc => new { fc.UserId, fc.CardId }).IsUnique();
+
+                entity.HasOne(fc => fc.User)
+                      .WithMany(u => u.FavoriteCards)
+                      .HasForeignKey(fc => fc.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(fc => fc.Card)
+                      .WithMany()
+                      .HasForeignKey(fc => fc.CardId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ============================================================
             // RBAC
             // ============================================================
             modelBuilder.Entity<Role>(entity =>
@@ -498,6 +518,7 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<EventParticipant>().HasQueryFilter(ep => !ep.IsDeleted);
             modelBuilder.Entity<PriceHistory>().HasQueryFilter(ph => !ph.IsDeleted);
             modelBuilder.Entity<PriceAlert>().HasQueryFilter(pa => !pa.IsDeleted);
+            modelBuilder.Entity<FavoriteCard>().HasQueryFilter(fc => !fc.IsDeleted);
         }
 
         public override int SaveChanges()

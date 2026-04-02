@@ -21,6 +21,7 @@ namespace CardExchange.API.Controllers
         private readonly ICardInfoRepository _cardInfoRepository;
         private readonly ISubscriptionService _subscriptionService;
         private readonly IScryfallService _scryfallService;
+        private readonly INotificationService _notificationService;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<CardsController> _logger;
 
@@ -30,6 +31,7 @@ namespace CardExchange.API.Controllers
             ICardInfoRepository cardInfoRepository,
             ISubscriptionService subscriptionService,
             IScryfallService scryfallService,
+            INotificationService notificationService,
             ApplicationDbContext context,
             ILogger<CardsController> logger)
         {
@@ -38,6 +40,7 @@ namespace CardExchange.API.Controllers
             _cardInfoRepository = cardInfoRepository;
             _subscriptionService = subscriptionService;
             _scryfallService = scryfallService;
+            _notificationService = notificationService;
             _context = context;
             _logger = logger;
         }
@@ -375,6 +378,9 @@ namespace CardExchange.API.Controllers
                 if (request.IsAvailableForTrade.HasValue)
                     card.IsAvailableForTrade = request.IsAvailableForTrade.Value;
 
+                var oldPrice = card.EstimatedValue;
+                var oldAvailable = card.IsAvailableForTrade;
+
                 if (request.EstimatedValue.HasValue)
                     card.EstimatedValue = request.EstimatedValue.Value;
 
@@ -382,6 +388,24 @@ namespace CardExchange.API.Controllers
                 await _cardRepository.SaveChangesAsync();
 
                 _logger.LogInformation("Carta aggiornata: {CardId}", id);
+
+                // Notify favorite holders of price/availability changes
+                try
+                {
+                    var cardName = card.CardInfo?.Name ?? $"Carta #{id}";
+                    if (request.EstimatedValue.HasValue && oldPrice != request.EstimatedValue.Value)
+                    {
+                        await _notificationService.NotifyFavoriteCardChangedAsync(id, cardName, "price");
+                    }
+                    if (request.IsAvailableForTrade.HasValue && oldAvailable && !request.IsAvailableForTrade.Value)
+                    {
+                        await _notificationService.NotifyFavoriteCardChangedAsync(id, cardName, "removed");
+                    }
+                }
+                catch (Exception notifEx)
+                {
+                    _logger.LogWarning(notifEx, "Errore invio notifica preferiti per carta {CardId}", id);
+                }
 
                 // Ricarica con le relazioni
                 var updatedCard = (await _cardRepository.FindAsync(c => c.Id == id)).FirstOrDefault();
@@ -408,6 +432,17 @@ namespace CardExchange.API.Controllers
                 if (card == null)
                 {
                     return NotFound(new { message = $"Carta con ID {id} non trovata" });
+                }
+
+                // Notify favorite holders before deletion
+                try
+                {
+                    var cardName = card.CardInfo?.Name ?? $"Carta #{id}";
+                    await _notificationService.NotifyFavoriteCardChangedAsync(id, cardName, "removed");
+                }
+                catch (Exception notifEx)
+                {
+                    _logger.LogWarning(notifEx, "Errore invio notifica preferiti per carta eliminata {CardId}", id);
                 }
 
                 _cardRepository.Delete(card);

@@ -131,6 +131,8 @@ export interface Card {
   imageLarge?: string;
   createdAt?: string;
   userLocation?: UserLocation;
+  hasUserPhotos?: boolean;
+  userPhotoCount?: number;
   // Legacy nested field (not returned by backend, but kept for compatibility)
   cardInfo?: CardInfo;
   user?: User;
@@ -317,6 +319,27 @@ export interface CreateTradeOfferRequest {
   message?: string;
   offeredCards: { cardId: number; quantity: number }[];
   requestedCards: { cardId: number; quantity: number }[];
+}
+
+// === Notifications ===
+export interface Notification {
+  id: number;
+  type: string;
+  title: string;
+  body?: string;
+  isRead: boolean;
+  readAt?: string;
+  referenceId?: number;
+  referenceType?: string;
+  createdAt: string;
+}
+
+// === Favorites ===
+export interface FavoriteCard {
+  favoriteId: number;
+  cardId: number;
+  createdAt: string;
+  card: Card;
 }
 
 export interface TradeReview {

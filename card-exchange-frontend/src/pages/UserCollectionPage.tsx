@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Search, Library, MapPin, ArrowLeftRight } from 'lucide-react';
-import { cards, users } from '../api';
+import { cards, users, favorites } from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { Card, User } from '../types';
 import CardGridItem from '../components/cards/CardGridItem';
+import EditCardSheet from '../components/cards/EditCardSheet';
 import EmptyState from '../components/ui/EmptyState';
 import Button from '../components/ui/Button';
 
@@ -20,6 +21,12 @@ export default function UserCollectionPage() {
   const [filterText, setFilterText] = useState('');
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [selectionMode, setSelectionMode] = useState(true);
+
+  // Photo viewer
+  const [viewingCard, setViewingCard] = useState<Card | null>(null);
+
+  // Favorites
+  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
 
   const preselectCardId = (location.state as any)?.preselectCardId as number | undefined;
   const preselectCardInfoId = (location.state as any)?.preselectCardInfoId as number | undefined;
@@ -47,6 +54,15 @@ export default function UserCollectionPage() {
         : (cardsRes.data as any).cards ?? [];
       setUserCards(allCards.filter((c) => c.isAvailableForTrade));
       setOwner(userRes.data);
+
+      // Load favorite IDs
+      try {
+        const { data: favData } = await favorites.getCardIds();
+        const ids = favData?.cardIds ?? (favData as any)?.CardIds ?? [];
+        setFavoriteIds(new Set(ids));
+      } catch {
+        // favorites may not be available
+      }
     } catch (err) {
       console.error('Errore caricamento collezione utente:', err);
     } finally {
@@ -82,11 +98,37 @@ export default function UserCollectionPage() {
     });
   };
 
+  const handleFavoriteToggle = async (card: Card) => {
+    const isFav = favoriteIds.has(card.id);
+    try {
+      if (isFav) {
+        await favorites.remove(card.id);
+        setFavoriteIds((prev) => { const s = new Set(prev); s.delete(card.id); return s; });
+      } else {
+        await favorites.add(card.id);
+        setFavoriteIds((prev) => new Set(prev).add(card.id));
+      }
+    } catch (err) {
+      console.error('Errore preferiti:', err);
+    }
+  };
+
+  const handlePhotoClick = (card: Card) => {
+    setViewingCard(card);
+  };
+
   const filtered = userCards.filter((c) => {
     if (!filterText) return true;
     return (c.cardName || c.cardInfo?.name || '')
       .toLowerCase()
       .includes(filterText.toLowerCase());
+  });
+
+  // Sort: favorites first
+  const sortedFiltered = [...filtered].sort((a, b) => {
+    const aFav = favoriteIds.has(a.id) ? 0 : 1;
+    const bFav = favoriteIds.has(b.id) ? 0 : 1;
+    return aFav - bFav;
   });
 
   const totalValue = userCards.reduce(
@@ -123,7 +165,7 @@ export default function UserCollectionPage() {
                 : 'bg-surface-dark text-text-secondary hover:bg-gray-200'
             }`}
           >
-            
+
             {selectedCards.length!=0 ? 'Annulla ' : 'Seleziona'}
           </button>
         )}
@@ -162,7 +204,7 @@ export default function UserCollectionPage() {
             <div key={i} className="aspect-[5/7] bg-white rounded-xl animate-pulse" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : sortedFiltered.length === 0 ? (
         <EmptyState
           icon={Library}
           title={userCards.length === 0 ? 'Nessuna carta disponibile' : 'Nessun risultato'}
@@ -174,19 +216,31 @@ export default function UserCollectionPage() {
         />
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
-          {filtered.map((card) => {
+          {sortedFiltered.map((card) => {
             const isSelected = !!selectedCards.find((c) => c.id === card.id);
             return (
               <CardGridItem
                 key={card.id}
                 card={card}
-                onClick={selectionMode ? () => toggleCardSelection(card) : undefined}
+                onClick={selectionMode ? () => toggleCardSelection(card) : () => handlePhotoClick(card)}
                 selected={selectionMode && isSelected}
+                onPhotoClick={handlePhotoClick}
+                showFavorite
+                isFavorite={favoriteIds.has(card.id)}
+                onFavoriteToggle={handleFavoriteToggle}
               />
             );
           })}
         </div>
       )}
+
+      {/* Photo / detail viewer (read-only) */}
+      <EditCardSheet
+        card={viewingCard}
+        onClose={() => setViewingCard(null)}
+        onUpdated={() => {}}
+        readOnly
+      />
 
       {/* Floating action bar */}
       {selectionMode && selectedCards.length > 0 && (
