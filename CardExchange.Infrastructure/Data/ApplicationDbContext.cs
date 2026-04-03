@@ -429,12 +429,12 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(fc => fc.User)
                       .WithMany(u => u.FavoriteCards)
                       .HasForeignKey(fc => fc.UserId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(fc => fc.Card)
                       .WithMany()
                       .HasForeignKey(fc => fc.CardId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .OnDelete(DeleteBehavior.NoAction);
             });
 
             // ============================================================

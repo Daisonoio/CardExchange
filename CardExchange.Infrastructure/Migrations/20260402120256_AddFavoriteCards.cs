@@ -31,7 +31,7 @@ namespace CardExchange.Infrastructure.Migrations
                         column: x => x.CardId,
                         principalTable: "Cards",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_FavoriteCards_Users_UserId",
                         column: x => x.UserId,
