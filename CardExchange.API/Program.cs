@@ -2,6 +2,8 @@ using CardExchange.API.Authorization;
 using CardExchange.API.Configuration;
 using CardExchange.API.Middleware;
 using CardExchange.API.Services;
+using CardExchange.API.Services.Notifications;
+using CardExchange.API.Services.Notifications.Handlers;
 using CardExchange.Infrastructure.Configuration;
 using CardExchange.Infrastructure.Data;
 using FluentValidation;
@@ -125,6 +127,15 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
+
+// Notification Handlers (modulari - aggiungere qui nuovi handler)
+builder.Services.AddScoped<INotificationHandler, TradeNotificationHandler>();
+builder.Services.AddScoped<INotificationHandler, WishlistNotificationHandler>();
+builder.Services.AddScoped<INotificationHandler, FavoriteNotificationHandler>();
+builder.Services.AddScoped<INotificationHandler, MessageNotificationHandler>();
+builder.Services.AddScoped<INotificationHandler, SystemNotificationHandler>();
+
 builder.Services.AddScoped<IPriceTrackingService, PriceTrackingService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<IScryfallService, ScryfallService>(client =>

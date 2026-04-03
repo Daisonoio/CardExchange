@@ -1,4 +1,6 @@
 using CardExchange.API.Services;
+using CardExchange.API.Services.Notifications;
+using CardExchange.API.Services.Notifications.Handlers;
 using CardExchange.Core.Entities;
 using CardExchange.Infrastructure.Data;
 using FluentAssertions;
@@ -19,7 +21,24 @@ public class NotificationServiceTests : IDisposable
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         _context = new ApplicationDbContext(options);
-        _service = new NotificationService(_context, new Mock<ILogger<NotificationService>>().Object);
+
+        var handlers = new INotificationHandler[]
+        {
+            new TradeNotificationHandler(),
+            new WishlistNotificationHandler(),
+            new FavoriteNotificationHandler(),
+            new MessageNotificationHandler(),
+            new SystemNotificationHandler()
+        };
+        var dispatcher = new NotificationDispatcher(
+            _context,
+            new Mock<ILogger<NotificationDispatcher>>().Object,
+            handlers);
+
+        _service = new NotificationService(
+            _context,
+            new Mock<ILogger<NotificationService>>().Object,
+            dispatcher);
     }
 
     [Fact]

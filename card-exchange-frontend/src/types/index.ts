@@ -334,6 +334,12 @@ export interface Notification {
   createdAt: string;
 }
 
+export interface NotificationPreference {
+  type: string;
+  typeId: number;
+  isEnabled: boolean;
+}
+
 // === Favorites ===
 export interface FavoriteCard {
   favoriteId: number;

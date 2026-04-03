@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CardExchange.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260402120256_AddFavoriteCards")]
+    [Migration("20260403170906_AddFavoriteCards")]
     partial class AddFavoriteCards
     {
         /// <inheritdoc />
@@ -1601,13 +1601,13 @@ namespace CardExchange.Infrastructure.Migrations
                     b.HasOne("CardExchange.Core.Entities.Card", "Card")
                         .WithMany()
                         .HasForeignKey("CardId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("CardExchange.Core.Entities.User", "User")
                         .WithMany("FavoriteCards")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Card");

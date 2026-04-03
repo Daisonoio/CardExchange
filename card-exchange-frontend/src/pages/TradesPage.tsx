@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeftRight, Loader2, Check, X, Clock, MessageSquare,
@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { cards, tradeOffers, users } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useTrades } from '../hooks/useTrades';
 import type { TradeOffer, TradeOfferStatus, User } from '../types';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
@@ -25,8 +26,7 @@ type TabFilter = 'all' | 'received' | 'sent';
 export default function TradesPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [offers, setOffers] = useState<TradeOffer[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { offers, isLoading, refresh: refreshTrades } = useTrades(!!user);
   const [tab, setTab] = useState<TabFilter>('all');
   const [selectedOffer, setSelectedOffer] = useState<TradeOffer | null>(null);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
@@ -45,22 +45,6 @@ export default function TradesPage() {
       }
     }));
   };
-
-  const loadOffers = async () => {
-    if (!user) return;
-    setIsLoading(true);
-    try {
-      const { data } = await tradeOffers.getMine({ pageSize: 50 });
-      const items = Array.isArray(data) ? data : (data as any)?.items ?? [];
-      setOffers(Array.isArray(items) ? items : []);
-    } catch (err) {
-      console.error('Errore caricamento richieste:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => { loadOffers(); }, [user]);
 
   const filteredOffers = offers.filter((o) => {
     if (tab === 'received') return o.receiverId === user?.id;
@@ -83,7 +67,7 @@ export default function TradesPage() {
       else if (action === 'cancel') await tradeOffers.cancel(offerId);
       else if (action === 'complete') await tradeOffers.complete(offerId);
       setSelectedOffer(null);
-      await loadOffers();
+      refreshTrades();
     } catch (err: any) {
       setActionError(err?.response?.data?.message || err?.message || 'Errore durante l\'azione sullo scambio');
       console.error('Errore azione:', err);

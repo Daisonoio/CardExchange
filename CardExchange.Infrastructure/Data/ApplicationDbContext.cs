@@ -30,6 +30,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<NotificationPreference> NotificationPreferences { get; set; }
         public DbSet<TradeOfferItem> TradeOfferItems { get; set; }
         public DbSet<TradeReview> TradeReviews { get; set; }
         public DbSet<SavedSearch> SavedSearches { get; set; }
@@ -334,6 +335,19 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(n => n.User)
                       .WithMany(u => u.Notifications)
                       .HasForeignKey(n => n.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ============================================================
+            // NotificationPreference
+            // ============================================================
+            modelBuilder.Entity<NotificationPreference>(entity =>
+            {
+                entity.HasIndex(p => new { p.UserId, p.Type }).IsUnique();
+
+                entity.HasOne(p => p.User)
+                      .WithMany(u => u.NotificationPreferences)
+                      .HasForeignKey(p => p.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 

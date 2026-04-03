@@ -7,6 +7,17 @@ using System.Security.Claims;
 
 namespace CardExchange.API.Controllers
 {
+    public class UpdatePreferenceItem
+    {
+        public int TypeId { get; set; }
+        public bool IsEnabled { get; set; }
+    }
+
+    public class UpdatePreferencesRequest
+    {
+        public List<UpdatePreferenceItem> Preferences { get; set; } = new();
+    }
+
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -141,6 +152,77 @@ namespace CardExchange.API.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Notifica eliminata" });
+        }
+
+        /// <summary>
+        /// Ottiene le preferenze di notifica dell'utente corrente
+        /// </summary>
+        [HttpGet("preferences")]
+        public async Task<IActionResult> GetPreferences()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized();
+
+            var saved = await _context.NotificationPreferences
+                .AsNoTracking()
+                .Where(p => p.UserId == userId)
+                .ToListAsync();
+
+            var allTypes = Enum.GetValues<NotificationType>();
+            var preferences = allTypes.Select(type =>
+            {
+                var pref = saved.FirstOrDefault(p => p.Type == type);
+                return new
+                {
+                    type = type.ToString(),
+                    typeId = (int)type,
+                    isEnabled = pref?.IsEnabled ?? true
+                };
+            });
+
+            return Ok(new { preferences });
+        }
+
+        /// <summary>
+        /// Aggiorna le preferenze di notifica dell'utente
+        /// </summary>
+        [HttpPut("preferences")]
+        public async Task<IActionResult> UpdatePreferences([FromBody] UpdatePreferencesRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized();
+
+            if (request.Preferences == null || request.Preferences.Count == 0)
+                return BadRequest(new { message = "Nessuna preferenza fornita" });
+
+            foreach (var pref in request.Preferences)
+            {
+                if (!Enum.IsDefined(typeof(NotificationType), pref.TypeId))
+                    continue;
+
+                var type = (NotificationType)pref.TypeId;
+                var existing = await _context.NotificationPreferences
+                    .FirstOrDefaultAsync(p => p.UserId == userId && p.Type == type);
+
+                if (existing != null)
+                {
+                    existing.IsEnabled = pref.IsEnabled;
+                    existing.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    _context.NotificationPreferences.Add(new NotificationPreference
+                    {
+                        UserId = userId,
+                        Type = type,
+                        IsEnabled = pref.IsEnabled
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Preferenze aggiornate" });
         }
 
         private int GetCurrentUserId()

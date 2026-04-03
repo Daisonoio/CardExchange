@@ -1,5 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { notifications } from '../api';
+import { usePolling } from './usePolling';
+
+const POLL_INTERVAL = 15_000;
 
 export function useNotifications(enabled: boolean) {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -14,12 +17,10 @@ export function useNotifications(enabled: boolean) {
     }
   }, [enabled]);
 
-  useEffect(() => {
-    fetchCount();
-    // Poll every 30 seconds
-    const interval = setInterval(fetchCount, 30_000);
-    return () => clearInterval(interval);
-  }, [fetchCount]);
+  const { refresh } = usePolling(fetchCount, {
+    enabled,
+    intervalMs: POLL_INTERVAL,
+  });
 
-  return { unreadCount, setUnreadCount, refresh: fetchCount };
+  return { unreadCount, setUnreadCount, refresh };
 }

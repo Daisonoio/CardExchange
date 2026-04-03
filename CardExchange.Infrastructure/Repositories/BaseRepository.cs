@@ -88,18 +88,21 @@ namespace CardExchange.Infrastructure.Repositories
 
         public virtual void Update(T entity)
         {
-            _dbSet.Update(entity);
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
         public virtual void UpdateRange(IEnumerable<T> entities)
         {
-            _dbSet.UpdateRange(entities);
+            foreach (var entity in entities)
+            {
+                _context.Entry(entity).State = EntityState.Modified;
+            }
         }
 
         public virtual void Delete(T entity)
         {
             entity.IsDeleted = true;
-            _dbSet.Update(entity);
+            _context.Entry(entity).State = EntityState.Modified;
         }
 
         public virtual void DeleteRange(IEnumerable<T> entities)
@@ -107,8 +110,8 @@ namespace CardExchange.Infrastructure.Repositories
             foreach (var entity in entities)
             {
                 entity.IsDeleted = true;
+                _context.Entry(entity).State = EntityState.Modified;
             }
-            _dbSet.UpdateRange(entities);
         }
 
         public virtual async Task<bool> SaveChangesAsync()

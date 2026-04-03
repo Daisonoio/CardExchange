@@ -1,8 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Bell, Check, CheckCheck, Trash2, ArrowLeftRight, Heart, MessageSquare, AlertTriangle, X } from 'lucide-react';
+import { useState, useCallback, useRef } from 'react';
+import { Bell, Check, CheckCheck, Trash2, Settings } from 'lucide-react';
 import { notifications } from '../../api';
 import type { Notification } from '../../types';
+import { getNotificationConfig } from './notificationRegistry';
+import { usePolling } from '../../hooks/usePolling';
+import NotificationPreferences from './NotificationPreferences';
 import BottomSheet from '../ui/BottomSheet';
+
+const POLL_INTERVAL = 10_000;
 
 interface NotificationCenterProps {
   open: boolean;
@@ -10,26 +15,14 @@ interface NotificationCenterProps {
   onUnreadCountChange?: (count: number) => void;
 }
 
-const TYPE_CONFIG: Record<string, { icon: typeof Bell; color: string }> = {
-  TradeOfferReceived: { icon: ArrowLeftRight, color: 'text-blue-500 bg-blue-50' },
-  TradeOfferAccepted: { icon: Check, color: 'text-green-500 bg-green-50' },
-  TradeOfferRejected: { icon: X, color: 'text-red-500 bg-red-50' },
-  TradeCompleted: { icon: CheckCheck, color: 'text-emerald-500 bg-emerald-50' },
-  CounterOfferReceived: { icon: ArrowLeftRight, color: 'text-purple-500 bg-purple-50' },
-  FavoritePriceChanged: { icon: Heart, color: 'text-amber-500 bg-amber-50' },
-  FavoriteCardTraded: { icon: Heart, color: 'text-red-500 bg-red-50' },
-  WishlistMatch: { icon: Heart, color: 'text-pink-500 bg-pink-50' },
-  NewMessage: { icon: MessageSquare, color: 'text-indigo-500 bg-indigo-50' },
-  NewReview: { icon: Check, color: 'text-teal-500 bg-teal-50' },
-  SystemAnnouncement: { icon: AlertTriangle, color: 'text-gray-500 bg-gray-50' },
-};
-
 export default function NotificationCenter({ open, onClose, onUnreadCountChange }: NotificationCenterProps) {
   const [items, setItems] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showPreferences, setShowPreferences] = useState(false);
+  const hasDoneInitialLoad = useRef(false);
 
   const loadNotifications = useCallback(async () => {
-    setIsLoading(true);
+    if (!hasDoneInitialLoad.current) setIsLoading(true);
     try {
       const { data } = await notifications.getAll({ pageSize: 50 });
       const list = data?.notifications ?? (data as any)?.Notifications ?? [];
@@ -40,12 +33,15 @@ export default function NotificationCenter({ open, onClose, onUnreadCountChange 
       console.error('Errore caricamento notifiche:', err);
     } finally {
       setIsLoading(false);
+      hasDoneInitialLoad.current = true;
     }
   }, [onUnreadCountChange]);
 
-  useEffect(() => {
-    if (open) loadNotifications();
-  }, [open, loadNotifications]);
+  usePolling(loadNotifications, {
+    enabled: open,
+    intervalMs: POLL_INTERVAL,
+    onVisibilityChange: true,
+  });
 
   const handleMarkAsRead = async (id: number) => {
     try {
@@ -73,19 +69,31 @@ export default function NotificationCenter({ open, onClose, onUnreadCountChange 
   const unreadCount = items.filter((n) => !n.isRead).length;
 
   return (
+    <>
     <BottomSheet open={open} onClose={onClose} title="Notifiche">
       <div className="space-y-2">
-        {unreadCount > 0 && (
-          <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-2">
+          {unreadCount > 0 && (
             <span className="text-xs text-text-muted">{unreadCount} non lette</span>
+          )}
+          <div className="flex items-center gap-2 ml-auto">
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllRead}
+                className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
+              >
+                <CheckCheck size={12} /> Segna tutte
+              </button>
+            )}
             <button
-              onClick={handleMarkAllRead}
-              className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
+              onClick={() => setShowPreferences(true)}
+              className="p-1.5 rounded-lg text-text-muted hover:bg-gray-100 hover:text-text"
+              title="Preferenze notifiche"
             >
-              <CheckCheck size={12} /> Segna tutte come lette
+              <Settings size={14} />
             </button>
           </div>
-        )}
+        </div>
 
         {isLoading ? (
           <div className="space-y-2">
@@ -100,7 +108,7 @@ export default function NotificationCenter({ open, onClose, onUnreadCountChange 
           </div>
         ) : (
           items.map((notification) => {
-            const cfg = TYPE_CONFIG[notification.type] || TYPE_CONFIG.SystemAnnouncement;
+            const cfg = getNotificationConfig(notification.type);
             const Icon = cfg.icon;
             return (
               <div
@@ -151,5 +159,10 @@ export default function NotificationCenter({ open, onClose, onUnreadCountChange 
         )}
       </div>
     </BottomSheet>
+    <NotificationPreferences
+      open={showPreferences}
+      onClose={() => setShowPreferences(false)}
+    />
+    </>
   );
 }

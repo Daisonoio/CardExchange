@@ -16,6 +16,7 @@ import type {
   CreateTradeOfferRequest,
   TradeOfferStatus,
   Notification,
+  NotificationPreference,
 } from '../types';
 
 // === Auth ===
@@ -183,6 +184,10 @@ export const notifications = {
     client.get<{ unreadCount: number }>('/notifications/unread-count'),
   delete: (id: number) =>
     client.delete(`/notifications/${id}`),
+  getPreferences: () =>
+    client.get<{ preferences: NotificationPreference[] }>('/notifications/preferences'),
+  updatePreferences: (preferences: { typeId: number; isEnabled: boolean }[]) =>
+    client.put('/notifications/preferences', { preferences }),
 };
 
 // === Favorites ===
