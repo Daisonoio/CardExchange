@@ -20,6 +20,14 @@ namespace CardExchange.API.Services
 
         // Trade Analyzer
         Task<TradeAnalysis> AnalyzeTradeAsync(IEnumerable<int> offeredCardIds, IEnumerable<int> requestedCardIds);
+
+        // Spike Detection
+        Task<IEnumerable<PriceSpikeInfo>> DetectPriceSpikesAsync(int userId);
+        Task<int> CheckAndNotifySpikesAsync(int userId);
+
+        // User Settings
+        Task<decimal> GetUserSpikeThresholdAsync(int userId);
+        Task UpdateUserSpikeThresholdAsync(int userId, decimal threshold);
     }
 
     public class PortfolioSummary
@@ -76,5 +84,25 @@ namespace CardExchange.API.Services
         public decimal? PriceEur { get; set; }
         public decimal? PriceUsd { get; set; }
         public string? ImageSmall { get; set; }
+    }
+
+    public class PriceSpikeInfo
+    {
+        public int CardId { get; set; }
+        public int CardInfoId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? SetName { get; set; }
+        public string? ImageSmall { get; set; }
+        public decimal CurrentPriceEur { get; set; }
+        public decimal OldPriceEur { get; set; }
+        public decimal ChangePercentage { get; set; }
+        public decimal ChangeAmount { get; set; }
+        public List<PriceDayPoint> Last5Days { get; set; } = new();
+    }
+
+    public class PriceDayPoint
+    {
+        public DateTime Date { get; set; }
+        public decimal? PriceEur { get; set; }
     }
 }

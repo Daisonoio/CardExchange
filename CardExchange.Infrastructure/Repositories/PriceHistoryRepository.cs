@@ -79,5 +79,16 @@ namespace CardExchange.Infrastructure.Repositories
         {
             return await _dbSet.AnyAsync(ph => ph.CardInfoId == cardInfoId && ph.SnapshotDate == date.Date);
         }
+
+        public async Task<IEnumerable<PriceHistory>> GetHistoryForCardsAsync(IEnumerable<int> cardInfoIds, int days)
+        {
+            var ids = cardInfoIds.ToList();
+            var since = DateTime.UtcNow.AddDays(-days);
+            return await _dbSet
+                .Where(ph => ids.Contains(ph.CardInfoId) && ph.SnapshotDate >= since)
+                .OrderBy(ph => ph.SnapshotDate)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

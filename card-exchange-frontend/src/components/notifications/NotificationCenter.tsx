@@ -20,6 +20,10 @@ interface NotificationCenterProps {
 /** Determina la route di navigazione in base al tipo e referenceId */
 function getNavigationTarget(notification: Notification): string | null {
   const { referenceType, referenceId } = notification;
+
+  // PriceSpike naviga sempre alla collezione
+  if (referenceType === 'PriceSpike') return '/collection';
+
   if (!referenceId) return null;
 
   switch (referenceType) {

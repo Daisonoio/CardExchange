@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Library, Search } from 'lucide-react';
-import { cards, scryfall } from '../api';
+import { Plus, Library, Search, TrendingUp } from 'lucide-react';
+import { cards, scryfall, priceTracking } from '../api';
 import { useAuth } from '../context/AuthContext';
-import type { Card, ScryfallCard, CardCondition } from '../types';
+import type { Card, ScryfallCard, CardCondition, PriceSpike } from '../types';
 import { CONDITION_LABELS } from '../types';
 import CardGridItem from '../components/cards/CardGridItem';
 import EditCardSheet from '../components/cards/EditCardSheet';
@@ -27,6 +27,9 @@ export default function CollectionPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [filterText, setFilterText] = useState('');
   const [filterTrade, setFilterTrade] = useState<'all' | 'trade' | 'keep'>('all');
+  const [spikeCards, setSpikeCards] = useState<PriceSpike[]>([]);
+  const [spikeCardIds, setSpikeCardIds] = useState<Set<number>>(new Set());
+  const [showSpikesOnly, setShowSpikesOnly] = useState(false);
 
   const loadCards = useCallback(async () => {
     if (!user) return;
@@ -40,7 +43,18 @@ export default function CollectionPage() {
     }
   }, [user]);
 
-  useEffect(() => { loadCards(); }, [loadCards]);
+  const loadSpikes = useCallback(async () => {
+    try {
+      const { data } = await priceTracking.getSpikes();
+      const spikes = Array.isArray(data) ? data : [];
+      setSpikeCards(spikes);
+      setSpikeCardIds(new Set(spikes.map((s) => s.cardId)));
+    } catch {
+      // silently fail - spikes are non-essential
+    }
+  }, []);
+
+  useEffect(() => { loadCards(); loadSpikes(); }, [loadCards, loadSpikes]);
 
   const handleSelectScryfall = (card: ScryfallCard) => {
     setSelectedCard(card);
@@ -82,7 +96,8 @@ export default function CollectionPage() {
     const matchTrade = filterTrade === 'all' ||
       (filterTrade === 'trade' && c.isAvailableForTrade) ||
       (filterTrade === 'keep' && !c.isAvailableForTrade);
-    return matchText && matchTrade;
+    const matchSpike = !showSpikesOnly || spikeCardIds.has(c.id);
+    return matchText && matchTrade && matchSpike;
   });
 
   const totalValue = myCards.reduce(
@@ -104,6 +119,28 @@ export default function CollectionPage() {
           Aggiungi
         </Button>
       </div>
+
+      {/* Spike alert banner */}
+      {spikeCards.length > 0 && (
+        <button
+          onClick={() => setShowSpikesOnly(!showSpikesOnly)}
+          className={`w-full mb-3 flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all ${
+            showSpikesOnly
+              ? 'border-amber-400 bg-amber-50 text-amber-800'
+              : 'border-amber-300 bg-amber-50/60 text-amber-700 hover:bg-amber-50'
+          }`}
+        >
+          <TrendingUp size={16} className="text-amber-500" />
+          <span className="text-sm font-medium flex-1 text-left">
+            {spikeCards.length} {spikeCards.length === 1 ? 'carta sta' : 'carte stanno'} salendo di prezzo!
+          </span>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+            showSpikesOnly ? 'bg-amber-200 text-amber-800' : 'bg-amber-100 text-amber-600'
+          }`}>
+            {showSpikesOnly ? 'Mostra tutte' : 'Mostra'}
+          </span>
+        </button>
+      )}
 
       {/* Search & filters */}
       <div className="flex gap-2 mb-4">
@@ -155,7 +192,12 @@ export default function CollectionPage() {
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
           {filtered.map((card) => (
-            <CardGridItem key={card.id} card={card} onClick={setEditCard} />
+            <CardGridItem
+              key={card.id}
+              card={card}
+              onClick={setEditCard}
+              hasPriceSpike={spikeCardIds.has(card.id)}
+            />
           ))}
         </div>
       )}
@@ -166,6 +208,7 @@ export default function CollectionPage() {
         onClose={() => setEditCard(null)}
         onUpdated={loadCards}
         onDeleted={handleCardDeleted}
+        spikeInfo={editCard ? spikeCards.find((s) => s.cardId === editCard.id) ?? null : null}
       />
 
       {/* Add Card Bottom Sheet */}

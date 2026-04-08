@@ -367,6 +367,44 @@ export interface FavoriteCard {
   card: Card;
 }
 
+// === Price Tracking ===
+export interface PricePoint {
+  date: string;
+  priceUsd?: number;
+  priceUsdFoil?: number;
+  priceEur?: number;
+  priceEurFoil?: number;
+}
+
+export interface PriceHistoryData {
+  cardInfoId: number;
+  cardName: string;
+  setName?: string;
+  dataPoints: PricePoint[];
+}
+
+export interface PriceDayPoint {
+  date: string;
+  priceEur?: number;
+}
+
+export interface PriceSpike {
+  cardId: number;
+  cardInfoId: number;
+  name: string;
+  setName?: string;
+  imageSmall?: string;
+  currentPriceEur: number;
+  oldPriceEur: number;
+  changePercentage: number;
+  changeAmount: number;
+  last5Days: PriceDayPoint[];
+}
+
+export interface SpikeSettings {
+  thresholdPercentage: number;
+}
+
 export interface TradeReview {
   id: number;
   tradeOfferId: number;

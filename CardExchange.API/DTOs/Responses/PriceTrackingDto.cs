@@ -105,4 +105,34 @@ namespace CardExchange.API.DTOs.Responses
         public List<int> OfferedCardIds { get; set; } = new();
         public List<int> RequestedCardIds { get; set; } = new();
     }
+
+    public class PriceSpikeDto
+    {
+        public int CardId { get; set; }
+        public int CardInfoId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? SetName { get; set; }
+        public string? ImageSmall { get; set; }
+        public decimal CurrentPriceEur { get; set; }
+        public decimal OldPriceEur { get; set; }
+        public decimal ChangePercentage { get; set; }
+        public decimal ChangeAmount { get; set; }
+        public List<PriceDayPointDto> Last5Days { get; set; } = new();
+    }
+
+    public class PriceDayPointDto
+    {
+        public DateTime Date { get; set; }
+        public decimal? PriceEur { get; set; }
+    }
+
+    public class SpikeSettingsDto
+    {
+        public decimal ThresholdPercentage { get; set; }
+    }
+
+    public class UpdateSpikeSettingsRequest
+    {
+        public decimal ThresholdPercentage { get; set; }
+    }
 }

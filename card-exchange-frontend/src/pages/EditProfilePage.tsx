@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Navigation, Loader2, MapPin } from 'lucide-react';
-import { users } from '../api';
+import { ArrowLeft, Save, Navigation, Loader2, MapPin, TrendingUp } from 'lucide-react';
+import { users, priceTracking } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGeolocation } from '../hooks/useGeolocation';
 import Button from '../components/ui/Button';
@@ -35,6 +35,10 @@ export default function EditProfilePage() {
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Spike threshold settings
+  const [spikeThreshold, setSpikeThreshold] = useState(10);
+  const [isSavingSpike, setIsSavingSpike] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     setForm({
@@ -57,6 +61,26 @@ export default function EditProfilePage() {
       });
     }
   }, [user]);
+
+  // Load spike threshold
+  useEffect(() => {
+    priceTracking.getSpikeSettings().then(({ data }) => {
+      setSpikeThreshold(data.thresholdPercentage);
+    }).catch(() => {});
+  }, []);
+
+  const handleSaveSpikeSettings = async () => {
+    setIsSavingSpike(true);
+    setMessage(null);
+    try {
+      await priceTracking.updateSpikeSettings(spikeThreshold);
+      setMessage({ type: 'success', text: 'Soglia spike aggiornata con successo' });
+    } catch {
+      setMessage({ type: 'error', text: 'Errore durante il salvataggio della soglia' });
+    } finally {
+      setIsSavingSpike(false);
+    }
+  };
 
   // When geolocation resolves, do reverse geocoding
   useEffect(() => {
@@ -331,6 +355,38 @@ export default function EditProfilePage() {
 
         <Button onClick={handleSaveLocation} isLoading={isSavingLocation} className="w-full mt-4">
           <MapPin size={14} /> Salva posizione
+        </Button>
+      </div>
+
+      {/* Spike threshold section */}
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mt-4">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp size={16} className="text-amber-500" />
+          <h2 className="text-sm font-bold">Avvisi Prezzo</h2>
+        </div>
+        <p className="text-xs text-text-muted mb-3">
+          Ricevi una notifica quando le carte nella tua collezione aumentano di prezzo oltre la soglia impostata negli ultimi 5 giorni.
+        </p>
+        <div>
+          <label className={labelClass}>
+            Soglia spike: {spikeThreshold}%
+          </label>
+          <input
+            type="range"
+            min={1}
+            max={50}
+            step={1}
+            value={spikeThreshold}
+            onChange={(e) => setSpikeThreshold(parseInt(e.target.value))}
+            className="w-full accent-amber-500"
+          />
+          <div className="flex justify-between text-xs text-text-muted">
+            <span>1%</span>
+            <span>50%</span>
+          </div>
+        </div>
+        <Button onClick={handleSaveSpikeSettings} isLoading={isSavingSpike} className="w-full mt-4">
+          <TrendingUp size={14} /> Salva soglia
         </Button>
       </div>
     </div>

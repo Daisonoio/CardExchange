@@ -47,6 +47,9 @@ namespace CardExchange.Core.Entities
         public int TotalTradesCompleted { get; set; } = 0;
         public int TotalReviewsReceived { get; set; } = 0;
 
+        // Soglia spike prezzo (percentuale, default 10%)
+        public decimal PriceSpikeThreshold { get; set; } = 10;
+
         // JWT Refresh Token
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryTime { get; set; }

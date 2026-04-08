@@ -228,4 +228,14 @@ export const priceTracking = {
       offeredCardIds,
       requestedCardIds,
     }),
+  history: (cardInfoId: number, days = 90) =>
+    client.get<import('../types').PriceHistoryData>(`/pricetracking/history/${cardInfoId}`, { params: { days } }),
+  getSpikes: () =>
+    client.get<import('../types').PriceSpike[]>('/pricetracking/spikes'),
+  checkSpikes: () =>
+    client.post<{ spikeCount: number; message: string }>('/pricetracking/spikes/check'),
+  getSpikeSettings: () =>
+    client.get<import('../types').SpikeSettings>('/pricetracking/spike-settings'),
+  updateSpikeSettings: (thresholdPercentage: number) =>
+    client.put('/pricetracking/spike-settings', { thresholdPercentage }),
 };

@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Camera, Heart } from 'lucide-react';
+import { ArrowLeftRight, Camera, Heart, TrendingUp } from 'lucide-react';
 import type { Card } from '../../types';
 import { CONDITION_LABELS } from '../../types';
 
@@ -10,6 +10,7 @@ interface CardGridItemProps {
   isFavorite?: boolean;
   onFavoriteToggle?: (card: Card) => void;
   showFavorite?: boolean;
+  hasPriceSpike?: boolean;
 }
 
 const CONDITION_MAP: Record<string, number> = {
@@ -17,7 +18,7 @@ const CONDITION_MAP: Record<string, number> = {
   LightlyPlayed: 5, ModeratelyPlayed: 6, HeavilyPlayed: 7, Damaged: 8,
 };
 
-export default function CardGridItem({ card, onClick, selected, onPhotoClick, isFavorite, onFavoriteToggle, showFavorite }: CardGridItemProps) {
+export default function CardGridItem({ card, onClick, selected, onPhotoClick, isFavorite, onFavoriteToggle, showFavorite, hasPriceSpike }: CardGridItemProps) {
   const cardName = card.cardName || card.cardInfo?.name || 'Carta';
   const image = card.imageSmall || card.imageNormal || card.cardInfo?.imageSmall || card.cardInfo?.imageUrl || '';
   const condNum = typeof card.condition === 'number' ? card.condition : (CONDITION_MAP[card.condition] || 0);
@@ -36,8 +37,12 @@ export default function CardGridItem({ card, onClick, selected, onPhotoClick, is
   return (
     <button
       onClick={() => onClick?.(card)}
-      className={`relative bg-white rounded-xl overflow-hidden shadow-sm border transition-all text-left ${
-        selected ? 'ring-2 ring-primary border-primary' : 'border-border/50 hover:shadow-md'
+      className={`relative bg-white rounded-xl overflow-hidden shadow-sm border-2 transition-all text-left ${
+        selected
+          ? 'ring-2 ring-primary border-primary'
+          : hasPriceSpike
+          ? 'border-amber-400 ring-2 ring-amber-300/50 shadow-amber-100 shadow-md'
+          : 'border-border/50 hover:shadow-md'
       }`}
     >
       {/* Image */}
@@ -106,6 +111,13 @@ export default function CardGridItem({ card, onClick, selected, onPhotoClick, is
         {/* Condition dot */}
         <span className={`absolute bottom-1 right-1 w-2.5 h-2.5 rounded-full ${condColor} ring-1 ring-white`}
               title={conditionLabel} />
+
+        {/* Price spike badge */}
+        {hasPriceSpike && (
+          <span className={`absolute ${card.quantity > 1 ? 'top-7' : 'top-1'} right-1 bg-amber-500 text-white p-1 rounded-full shadow animate-pulse`}>
+            <TrendingUp size={10} />
+          </span>
+        )}
       </div>
 
       {/* Info */}

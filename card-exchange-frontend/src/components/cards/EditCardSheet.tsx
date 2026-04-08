@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Trash2, Camera, X, Upload } from 'lucide-react';
-import type { Card, CardCondition } from '../../types';
+import { Trash2, Camera, Upload, TrendingUp } from 'lucide-react';
+import type { Card, CardCondition, PriceSpike } from '../../types';
 import { CONDITION_LABELS } from '../../types';
 import { cards, cardPhotos } from '../../api';
 import Button from '../ui/Button';
 import BottomSheet from '../ui/BottomSheet';
+import PriceHistoryChart from './PriceHistoryChart';
 
 interface EditCardSheetProps {
   card: Card | null;
@@ -12,6 +13,7 @@ interface EditCardSheetProps {
   onUpdated: () => void;
   onDeleted?: (card: Card) => void;
   readOnly?: boolean;
+  spikeInfo?: PriceSpike | null;
 }
 
 const CONDITION_MAP: Record<string, number> = {
@@ -19,7 +21,7 @@ const CONDITION_MAP: Record<string, number> = {
   LightlyPlayed: 5, ModeratelyPlayed: 6, HeavilyPlayed: 7, Damaged: 8,
 };
 
-export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, readOnly }: EditCardSheetProps) {
+export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, readOnly, spikeInfo }: EditCardSheetProps) {
   const [condition, setCondition] = useState<CardCondition>(2);
   const [quantity, setQuantity] = useState(1);
   const [isAvailableForTrade, setIsAvailableForTrade] = useState(true);
@@ -233,6 +235,31 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
             </p>
           )}
         </div>
+
+        {/* Price History Chart */}
+        {card.cardInfoId && (
+          <div className="rounded-xl bg-white border border-border/60 p-2.5">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp size={14} className="text-text-muted" />
+              <p className="text-xs font-semibold text-text-secondary">Storico Prezzi</p>
+              {spikeInfo && (
+                <span className="ml-auto text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                  +{spikeInfo.changePercentage}% spike
+                </span>
+              )}
+            </div>
+            <PriceHistoryChart
+              cardInfoId={card.cardInfoId}
+              spikeData={spikeInfo ? {
+                last5Days: spikeInfo.last5Days,
+                changePercentage: spikeInfo.changePercentage,
+                changeAmount: spikeInfo.changeAmount,
+                currentPriceEur: spikeInfo.currentPriceEur,
+                oldPriceEur: spikeInfo.oldPriceEur,
+              } : undefined}
+            />
+          </div>
+        )}
 
         {readOnly ? (
           /* Read-only info grid */

@@ -16,7 +16,8 @@ namespace CardExchange.Core.Entities
         SystemAnnouncement = 10,
         FavoritePriceChanged = 11,
         FavoriteCardTraded = 12,
-        CounterOfferReceived = 13
+        CounterOfferReceived = 13,
+        PriceSpike = 14
     }
 
     public class Notification : BaseEntity

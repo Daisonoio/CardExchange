@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   X,
   Bell,
+  TrendingUp,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -89,6 +90,14 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
     color: 'text-teal-500 bg-teal-50',
     label: 'Nuova recensione',
     category: 'social',
+  },
+
+  // === Prezzi ===
+  PriceSpike: {
+    icon: TrendingUp,
+    color: 'text-amber-500 bg-amber-50',
+    label: 'Carte in aumento di prezzo',
+    category: 'collection',
   },
 
   // === Sistema ===

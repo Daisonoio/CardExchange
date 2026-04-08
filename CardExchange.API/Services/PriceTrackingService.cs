@@ -10,6 +10,7 @@ namespace CardExchange.API.Services
         private readonly IPriceHistoryRepository _priceHistoryRepository;
         private readonly IBaseRepository<PriceAlert> _priceAlertRepository;
         private readonly INotificationService _notificationService;
+        private readonly IUserRepository _userRepository;
         private readonly ILogger<PriceTrackingService> _logger;
 
         public PriceTrackingService(
@@ -18,6 +19,7 @@ namespace CardExchange.API.Services
             IPriceHistoryRepository priceHistoryRepository,
             IBaseRepository<PriceAlert> priceAlertRepository,
             INotificationService notificationService,
+            IUserRepository userRepository,
             ILogger<PriceTrackingService> logger)
         {
             _cardRepository = cardRepository;
@@ -25,6 +27,7 @@ namespace CardExchange.API.Services
             _priceHistoryRepository = priceHistoryRepository;
             _priceAlertRepository = priceAlertRepository;
             _notificationService = notificationService;
+            _userRepository = userRepository;
             _logger = logger;
         }
 
@@ -310,6 +313,100 @@ namespace CardExchange.API.Services
                 OfferedCards = offeredCards,
                 RequestedCards = requestedCards
             };
+        }
+
+        public async Task<IEnumerable<PriceSpikeInfo>> DetectPriceSpikesAsync(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            var threshold = user?.PriceSpikeThreshold ?? 10m;
+
+            var cards = await _cardRepository.GetUserCardsAsync(userId);
+            var cardList = cards.ToList();
+            if (!cardList.Any()) return Enumerable.Empty<PriceSpikeInfo>();
+
+            var cardInfoIds = cardList
+                .Where(c => c.CardInfo != null)
+                .Select(c => c.CardInfoId)
+                .Distinct()
+                .ToList();
+
+            // Get last 5 days of price history for all cards
+            var history = await _priceHistoryRepository.GetHistoryForCardsAsync(cardInfoIds, 5);
+            var historyByCard = history.GroupBy(h => h.CardInfoId).ToDictionary(g => g.Key, g => g.OrderBy(h => h.SnapshotDate).ToList());
+
+            var spikes = new List<PriceSpikeInfo>();
+
+            foreach (var card in cardList)
+            {
+                var info = card.CardInfo;
+                if (info?.PriceEur == null || info.PriceEur <= 0) continue;
+
+                if (!historyByCard.TryGetValue(card.CardInfoId, out var cardHistory) || !cardHistory.Any())
+                    continue;
+
+                // Compare current price with the oldest available snapshot in last 5 days
+                var oldestSnapshot = cardHistory.First();
+                if (oldestSnapshot.PriceEur == null || oldestSnapshot.PriceEur <= 0) continue;
+
+                var changeAmount = info.PriceEur.Value - oldestSnapshot.PriceEur.Value;
+                var changePct = (changeAmount / oldestSnapshot.PriceEur.Value) * 100;
+
+                // Only report upward spikes above threshold
+                if (changePct >= threshold)
+                {
+                    spikes.Add(new PriceSpikeInfo
+                    {
+                        CardId = card.Id,
+                        CardInfoId = info.Id,
+                        Name = info.Name,
+                        SetName = info.CardSet?.Name,
+                        ImageSmall = info.ImageSmall,
+                        CurrentPriceEur = info.PriceEur.Value,
+                        OldPriceEur = oldestSnapshot.PriceEur.Value,
+                        ChangePercentage = Math.Round(changePct, 2),
+                        ChangeAmount = Math.Round(changeAmount, 2),
+                        Last5Days = cardHistory.Select(h => new PriceDayPoint
+                        {
+                            Date = h.SnapshotDate,
+                            PriceEur = h.PriceEur
+                        }).ToList()
+                    });
+                }
+            }
+
+            return spikes.OrderByDescending(s => s.ChangePercentage);
+        }
+
+        public async Task<int> CheckAndNotifySpikesAsync(int userId)
+        {
+            var spikes = (await DetectPriceSpikesAsync(userId)).ToList();
+            if (!spikes.Any()) return 0;
+
+            await _notificationService.SendAsync(
+                userId,
+                NotificationType.PriceSpike,
+                "Hai delle carte che stanno salendo di prezzo!",
+                $"{spikes.Count} carte nella tua collezione hanno avuto un aumento significativo di prezzo negli ultimi giorni.",
+                null,
+                "PriceSpike");
+
+            return spikes.Count;
+        }
+
+        public async Task<decimal> GetUserSpikeThresholdAsync(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            return user?.PriceSpikeThreshold ?? 10m;
+        }
+
+        public async Task UpdateUserSpikeThresholdAsync(int userId, decimal threshold)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null) return;
+
+            user.PriceSpikeThreshold = Math.Clamp(threshold, 1, 100);
+            _userRepository.Update(user);
+            await _userRepository.SaveChangesAsync();
         }
     }
 }

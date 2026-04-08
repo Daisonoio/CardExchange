@@ -9,5 +9,6 @@ namespace CardExchange.Core.Interfaces
         Task<IEnumerable<PriceHistory>> GetLatestSnapshotsAsync(IEnumerable<int> cardInfoIds);
         Task SaveSnapshotAsync(int cardInfoId, decimal? priceUsd, decimal? priceUsdFoil, decimal? priceEur, decimal? priceEurFoil);
         Task<bool> HasSnapshotForDateAsync(int cardInfoId, DateTime date);
+        Task<IEnumerable<PriceHistory>> GetHistoryForCardsAsync(IEnumerable<int> cardInfoIds, int days);
     }
 }

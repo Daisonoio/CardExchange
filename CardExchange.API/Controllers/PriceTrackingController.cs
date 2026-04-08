@@ -377,6 +377,114 @@ namespace CardExchange.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Ottiene le carte con spike di prezzo nella collezione dell'utente
+        /// </summary>
+        [HttpGet("spikes")]
+        public async Task<ActionResult<IEnumerable<PriceSpikeDto>>> GetPriceSpikes()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId == 0) return Unauthorized();
+
+                var spikes = await _priceTrackingService.DetectPriceSpikesAsync(userId);
+
+                var dtos = spikes.Select(s => new PriceSpikeDto
+                {
+                    CardId = s.CardId,
+                    CardInfoId = s.CardInfoId,
+                    Name = s.Name,
+                    SetName = s.SetName,
+                    ImageSmall = s.ImageSmall,
+                    CurrentPriceEur = s.CurrentPriceEur,
+                    OldPriceEur = s.OldPriceEur,
+                    ChangePercentage = s.ChangePercentage,
+                    ChangeAmount = s.ChangeAmount,
+                    Last5Days = s.Last5Days.Select(d => new PriceDayPointDto
+                    {
+                        Date = d.Date,
+                        PriceEur = d.PriceEur
+                    }).ToList()
+                });
+
+                return Ok(dtos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante il rilevamento spike prezzi");
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
+        /// <summary>
+        /// Controlla spike e invia notifica se ci sono carte in salita
+        /// </summary>
+        [HttpPost("spikes/check")]
+        public async Task<ActionResult> CheckSpikes()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId == 0) return Unauthorized();
+
+                var count = await _priceTrackingService.CheckAndNotifySpikesAsync(userId);
+                return Ok(new { spikeCount = count, message = count > 0
+                    ? $"{count} carte con spike rilevate"
+                    : "Nessuno spike rilevato" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante il controllo spike");
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
+        /// <summary>
+        /// Ottiene le impostazioni soglia spike dell'utente
+        /// </summary>
+        [HttpGet("spike-settings")]
+        public async Task<ActionResult<SpikeSettingsDto>> GetSpikeSettings()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId == 0) return Unauthorized();
+
+                var threshold = await _priceTrackingService.GetUserSpikeThresholdAsync(userId);
+                return Ok(new SpikeSettingsDto { ThresholdPercentage = threshold });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante il recupero delle impostazioni spike");
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
+        /// <summary>
+        /// Aggiorna la soglia % spike dell'utente
+        /// </summary>
+        [HttpPut("spike-settings")]
+        public async Task<ActionResult> UpdateSpikeSettings([FromBody] UpdateSpikeSettingsRequest request)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId == 0) return Unauthorized();
+
+                if (request.ThresholdPercentage < 1 || request.ThresholdPercentage > 100)
+                    return BadRequest(new { message = "La soglia deve essere tra 1% e 100%" });
+
+                await _priceTrackingService.UpdateUserSpikeThresholdAsync(userId, request.ThresholdPercentage);
+                return Ok(new { message = "Impostazioni aggiornate" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante l'aggiornamento delle impostazioni spike");
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
         private int GetCurrentUserId()
         {
             var userIdClaim = User.FindFirst("userId")?.Value;
