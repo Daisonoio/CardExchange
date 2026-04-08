@@ -367,6 +367,41 @@ export interface FavoriteCard {
   card: Card;
 }
 
+// === Matchmaking ===
+export interface MatchCard {
+  cardId: number;
+  cardInfoId: number;
+  name: string;
+  setName?: string;
+  imageSmall?: string;
+  condition: string;
+  quantity: number;
+  priceEur?: number;
+  wishlistPriority: number;
+}
+
+export interface MatchResult {
+  userId: number;
+  username: string;
+  avatarUrl?: string;
+  reputationScore: number;
+  totalTradesCompleted: number;
+  city?: string;
+  province?: string;
+  distanceKm?: number;
+  score: number;
+  mutualCardCount: number;
+  isMutual: boolean;
+  theyHaveIWant: MatchCard[];
+  iHaveTheyWant: MatchCard[];
+}
+
+export interface MatchmakingResponse {
+  totalMatches: number;
+  mutualMatches: number;
+  matches: MatchResult[];
+}
+
 // === Price Tracking ===
 export interface PricePoint {
   date: string;

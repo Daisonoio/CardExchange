@@ -142,6 +142,7 @@ builder.Services.AddScoped<INotificationHandler, MessageNotificationHandler>();
 builder.Services.AddScoped<INotificationHandler, SystemNotificationHandler>();
 
 builder.Services.AddScoped<IPriceTrackingService, PriceTrackingService>();
+builder.Services.AddScoped<IMatchmakingService, MatchmakingService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<IScryfallService, ScryfallService>(client =>
 {

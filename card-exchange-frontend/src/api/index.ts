@@ -218,6 +218,12 @@ export const favorites = {
     client.get<{ cardIds: number[] }>('/favorites/card-ids'),
 };
 
+// === Matchmaking ===
+export const matchmaking = {
+  getMatches: (params?: { radiusKm?: number; latitude?: number; longitude?: number }) =>
+    client.get<import('../types').MatchmakingResponse>('/matchmaking', { params }),
+};
+
 // === Price Tracking ===
 export const priceTracking = {
   portfolio: () => client.get('/pricetracking/portfolio'),

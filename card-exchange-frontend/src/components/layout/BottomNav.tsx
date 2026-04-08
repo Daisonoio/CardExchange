@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Compass, Library, Heart, ArrowLeftRight, Bell, MessageSquare } from 'lucide-react';
+import { Compass, Library, ArrowLeftRight, Bell, MessageSquare, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
 import { messages } from '../../api';
@@ -9,7 +9,7 @@ import NotificationCenter from '../notifications/NotificationCenter';
 const NAV_ITEMS = [
   { to: '/explore', icon: Compass, label: 'Esplora' },
   { to: '/collection', icon: Library, label: 'Collezione' },
-  { to: '/wishlist', icon: Heart, label: 'Ricerca' },
+  { to: '/matchmaking', icon: Sparkles, label: 'Match' },
   { to: '/trades', icon: ArrowLeftRight, label: 'Scambi' },
 ];
 

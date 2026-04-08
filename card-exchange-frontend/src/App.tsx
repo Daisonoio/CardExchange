@@ -15,6 +15,7 @@ import UserCollectionPage from './pages/UserCollectionPage';
 import TradesPage from './pages/TradesPage';
 import TradeRequestPage from './pages/TradeRequestPage';
 import ChatPage from './pages/ChatPage';
+import MatchmakingPage from './pages/MatchmakingPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +39,7 @@ export default function App() {
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/collection" element={<CollectionPage />} />
               <Route path="/collection/:userId" element={<UserCollectionPage />} />
+              <Route path="/matchmaking" element={<MatchmakingPage />} />
               <Route path="/trades" element={<TradesPage />} />
               <Route path="/trades/new/:userId" element={<TradeRequestPage />} />
               <Route path="/chat" element={<ChatPage />} />
