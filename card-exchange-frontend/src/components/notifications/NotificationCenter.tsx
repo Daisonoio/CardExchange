@@ -1,9 +1,11 @@
 import { useState, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Check, CheckCheck, Trash2, Settings } from 'lucide-react';
 import { notifications } from '../../api';
 import type { Notification } from '../../types';
 import { getNotificationConfig } from './notificationRegistry';
 import { usePolling } from '../../hooks/usePolling';
+import { useSignalR } from '../../hooks/useSignalR';
 import NotificationPreferences from './NotificationPreferences';
 import BottomSheet from '../ui/BottomSheet';
 
@@ -15,7 +17,27 @@ interface NotificationCenterProps {
   onUnreadCountChange?: (count: number) => void;
 }
 
+/** Determina la route di navigazione in base al tipo e referenceId */
+function getNavigationTarget(notification: Notification): string | null {
+  const { referenceType, referenceId } = notification;
+  if (!referenceId) return null;
+
+  switch (referenceType) {
+    case 'TradeOffer':
+      return '/trades';
+    case 'Card':
+      return `/collection`;
+    case 'WishlistItem':
+      return '/wishlist';
+    case 'Conversation':
+      return '/trades';
+    default:
+      return null;
+  }
+}
+
 export default function NotificationCenter({ open, onClose, onUnreadCountChange }: NotificationCenterProps) {
+  const navigate = useNavigate();
   const [items, setItems] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showPreferences, setShowPreferences] = useState(false);
@@ -43,11 +65,30 @@ export default function NotificationCenter({ open, onClose, onUnreadCountChange 
     onVisibilityChange: true,
   });
 
+  // SignalR real-time: quando arriva una notifica push, aggiungila in cima
+  useSignalR(open, (incoming: any) => {
+    const newNotif: Notification = {
+      id: incoming.id ?? incoming.Id,
+      type: incoming.type ?? incoming.Type,
+      title: incoming.title ?? incoming.Title,
+      body: incoming.body ?? incoming.Body,
+      isRead: false,
+      referenceId: incoming.referenceId ?? incoming.ReferenceId,
+      referenceType: incoming.referenceType ?? incoming.ReferenceType,
+      createdAt: incoming.createdAt ?? incoming.CreatedAt ?? new Date().toISOString(),
+    };
+    setItems((prev) => [newNotif, ...prev.filter((n) => n.id !== newNotif.id)]);
+    onUnreadCountChange?.(items.filter((n) => !n.isRead).length + 1);
+  });
+
   const handleMarkAsRead = async (id: number) => {
     try {
       await notifications.markAsRead(id);
-      setItems((prev) => prev.map((n) => n.id === id ? { ...n, isRead: true } : n));
-      onUnreadCountChange?.(items.filter((n) => !n.isRead && n.id !== id).length);
+      setItems((prev) => {
+        const updated = prev.map((n) => n.id === id ? { ...n, isRead: true } : n);
+        onUnreadCountChange?.(updated.filter((n) => !n.isRead).length);
+        return updated;
+      });
     } catch {}
   };
 
@@ -62,8 +103,23 @@ export default function NotificationCenter({ open, onClose, onUnreadCountChange 
   const handleDelete = async (id: number) => {
     try {
       await notifications.delete(id);
-      setItems((prev) => prev.filter((n) => n.id !== id));
+      setItems((prev) => {
+        const updated = prev.filter((n) => n.id !== id);
+        onUnreadCountChange?.(updated.filter((n) => !n.isRead).length);
+        return updated;
+      });
     } catch {}
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    if (!notification.isRead) {
+      await handleMarkAsRead(notification.id);
+    }
+    const target = getNavigationTarget(notification);
+    if (target) {
+      onClose();
+      navigate(target);
+    }
   };
 
   const unreadCount = items.filter((n) => !n.isRead).length;
@@ -110,10 +166,15 @@ export default function NotificationCenter({ open, onClose, onUnreadCountChange 
           items.map((notification) => {
             const cfg = getNotificationConfig(notification.type);
             const Icon = cfg.icon;
+            const hasTarget = !!getNavigationTarget(notification);
+
             return (
               <div
                 key={notification.id}
+                onClick={() => handleNotificationClick(notification)}
                 className={`flex items-start gap-3 p-3 rounded-xl border transition-colors ${
+                  hasTarget ? 'cursor-pointer hover:border-primary/40' : ''
+                } ${
                   notification.isRead
                     ? 'bg-white border-border/30'
                     : 'bg-blue-50/40 border-primary/20'
@@ -135,7 +196,7 @@ export default function NotificationCenter({ open, onClose, onUnreadCountChange 
                     })}
                   </p>
                 </div>
-                <div className="flex flex-col gap-1 shrink-0">
+                <div className="flex flex-col gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                   {!notification.isRead && (
                     <button
                       onClick={() => handleMarkAsRead(notification.id)}

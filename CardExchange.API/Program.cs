@@ -122,6 +122,11 @@ builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler
 builder.Services.AddAuthorization();
 
 // ============================================================
+// SignalR (notifiche real-time)
+// ============================================================
+builder.Services.AddSignalR();
+
+// ============================================================
 // Services & Repositories
 // ============================================================
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -312,6 +317,7 @@ app.UseAuthorization();
 
 // 9. Endpoints
 app.MapControllers();
+app.MapHub<CardExchange.API.Hubs.NotificationHub>("/hubs/notifications");
 app.MapHealthChecks("/health").AllowAnonymous();
 
 app.Run();

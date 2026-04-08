@@ -1,5 +1,7 @@
+using CardExchange.API.Hubs;
 using CardExchange.Core.Entities;
 using CardExchange.Infrastructure.Data;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace CardExchange.API.Services.Notifications
@@ -14,15 +16,18 @@ namespace CardExchange.API.Services.Notifications
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<NotificationDispatcher> _logger;
+        private readonly IHubContext<NotificationHub> _hubContext;
         private readonly Dictionary<NotificationType, INotificationHandler> _handlerMap;
 
         public NotificationDispatcher(
             ApplicationDbContext context,
             ILogger<NotificationDispatcher> logger,
+            IHubContext<NotificationHub> hubContext,
             IEnumerable<INotificationHandler> handlers)
         {
             _context = context;
             _logger = logger;
+            _hubContext = hubContext;
             _handlerMap = new Dictionary<NotificationType, INotificationHandler>();
 
             foreach (var handler in handlers)
@@ -50,7 +55,8 @@ namespace CardExchange.API.Services.Notifications
                 return;
             }
 
-            await PersistNotificationAsync(payload);
+            var notification = await PersistNotificationAsync(payload);
+            await PushToClientAsync(notification);
         }
 
         public async Task DispatchToMultipleAsync(NotificationType type, IEnumerable<int> userIds, Dictionary<string, object> sharedParameters)
@@ -79,7 +85,8 @@ namespace CardExchange.API.Services.Notifications
                 };
 
                 var payload = handler.BuildPayload(type, parameters);
-                await PersistNotificationAsync(payload);
+                var notification = await PersistNotificationAsync(payload);
+                await PushToClientAsync(notification);
             }
         }
 
@@ -89,11 +96,10 @@ namespace CardExchange.API.Services.Notifications
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.UserId == userId && p.Type == type);
 
-            // Default: abilitata se non esiste una preferenza esplicita
             return preference?.IsEnabled ?? true;
         }
 
-        private async Task PersistNotificationAsync(NotificationPayload payload)
+        private async Task<Notification> PersistNotificationAsync(NotificationPayload payload)
         {
             var notification = new Notification
             {
@@ -110,6 +116,36 @@ namespace CardExchange.API.Services.Notifications
 
             _logger.LogInformation("Notifica inviata a utente {UserId}: {Type} - {Title}",
                 payload.UserId, payload.Type, payload.Title);
+
+            return notification;
+        }
+
+        /// <summary>
+        /// Invia la notifica in tempo reale via SignalR al client connesso
+        /// </summary>
+        private async Task PushToClientAsync(Notification notification)
+        {
+            try
+            {
+                await _hubContext.Clients
+                    .Group($"user_{notification.UserId}")
+                    .SendAsync("ReceiveNotification", new
+                    {
+                        notification.Id,
+                        type = notification.Type.ToString(),
+                        notification.Title,
+                        notification.Body,
+                        notification.IsRead,
+                        notification.ReferenceId,
+                        notification.ReferenceType,
+                        createdAt = notification.CreatedAt
+                    });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Errore push SignalR per notifica {NotifId} a utente {UserId}",
+                    notification.Id, notification.UserId);
+            }
         }
     }
 }
