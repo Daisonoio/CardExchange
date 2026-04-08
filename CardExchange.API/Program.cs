@@ -318,6 +318,7 @@ app.UseAuthorization();
 // 9. Endpoints
 app.MapControllers();
 app.MapHub<CardExchange.API.Hubs.NotificationHub>("/hubs/notifications");
+app.MapHub<CardExchange.API.Hubs.ChatHub>("/hubs/chat");
 app.MapHealthChecks("/health").AllowAnonymous();
 
 app.Run();

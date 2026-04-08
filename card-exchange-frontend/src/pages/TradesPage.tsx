@@ -382,6 +382,19 @@ function OfferDetail({
           <Check size={16} /> Segna come completato
         </Button>
       )}
+
+      {/* Chat button — always visible */}
+      <button
+        onClick={() => {
+          const otherId = isSender ? offer.receiverId : offer.senderId;
+          onNavigateToCounter(-1); // close sheet
+          window.location.href = `/chat?userId=${otherId}&tradeOfferId=${offer.id}`;
+        }}
+        className="w-full py-2.5 rounded-xl text-sm font-medium border border-border text-text-secondary hover:bg-surface-dark transition-colors flex items-center justify-center gap-1.5 mt-2"
+      >
+        <MessageSquare size={14} />
+        Invia messaggio
+      </button>
     </div>
   );
 }

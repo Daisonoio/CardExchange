@@ -172,6 +172,20 @@ export const tradeOffers = {
     client.post(`/tradeoffers/${id}/review`, data),
 };
 
+// === Messages / Chat ===
+export const messages = {
+  getConversations: () =>
+    client.get<import('../types').ConversationPreview[]>('/messages/conversations'),
+  getMessages: (conversationId: number, page = 1, pageSize = 50) =>
+    client.get<{ totalCount: number; page: number; pageSize: number; messages: import('../types').ChatMessage[] }>(
+      `/messages/conversations/${conversationId}`, { params: { page, pageSize } }),
+  send: (recipientId: number, content: string, tradeOfferId?: number) =>
+    client.post<{ messageId: number; conversationId: number; sentAt: string }>(
+      '/messages/send', { recipientId, content, tradeOfferId }),
+  getUnreadCount: () =>
+    client.get<{ unreadCount: number }>('/messages/unread-count'),
+};
+
 // === Notifications ===
 export const notifications = {
   getAll: (params?: { unreadOnly?: boolean; page?: number; pageSize?: number }) =>

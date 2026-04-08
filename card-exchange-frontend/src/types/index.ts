@@ -334,6 +334,25 @@ export interface Notification {
   createdAt: string;
 }
 
+// === Chat / Messaging ===
+export interface ConversationPreview {
+  conversationId: number;
+  otherUser: { id: number; username: string; avatarUrl?: string };
+  lastMessage?: { content: string; sentAt: string; isFromMe: boolean };
+  unreadCount: number;
+  tradeOfferId?: number;
+}
+
+export interface ChatMessage {
+  id: number;
+  senderId: number;
+  senderUsername: string;
+  content: string;
+  isRead: boolean;
+  sentAt: string;
+  isFromMe: boolean;
+}
+
 export interface NotificationPreference {
   type: string;
   typeId: number;
