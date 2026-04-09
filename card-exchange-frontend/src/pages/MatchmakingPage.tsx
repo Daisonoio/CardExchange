@@ -6,12 +6,14 @@ import {
 } from 'lucide-react';
 import { matchmaking } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useGame } from '../context/GameContext';
 import type { MatchResult, MatchCard } from '../types';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 
 export default function MatchmakingPage() {
   const { user } = useAuth();
+  const { selectedGameId } = useGame();
   const navigate = useNavigate();
 
   const [matches, setMatches] = useState<MatchResult[]>([]);
@@ -33,7 +35,7 @@ export default function MatchmakingPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data } = await matchmaking.getMatches({ radiusKm });
+      const { data } = await matchmaking.getMatches({ radiusKm, gameId: selectedGameId });
       const list = data?.matches ?? [];
       setMatches(Array.isArray(list) ? list : []);
       setTotalMatches(data?.totalMatches ?? 0);
@@ -48,7 +50,7 @@ export default function MatchmakingPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, radiusKm]);
+  }, [user, radiusKm, selectedGameId]);
 
   useEffect(() => { loadMatches(); }, [loadMatches]);
 

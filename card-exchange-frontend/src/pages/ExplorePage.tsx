@@ -3,6 +3,7 @@ import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation, Map } fro
 import { useNavigate } from 'react-router-dom';
 import { cards, users, favorites } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useGame } from '../context/GameContext';
 import type { Card, User } from '../types';
 import { useGeolocation } from '../hooks/useGeolocation';
 import CardItem from '../components/cards/CardItem';
@@ -16,6 +17,7 @@ type Tab = 'cards' | 'users' | 'zone';
 
 export default function ExplorePage() {
   const { user: currentUser } = useAuth();
+  const { selectedGameId } = useGame();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('cards');
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
@@ -70,10 +72,10 @@ export default function ExplorePage() {
         if (tab === 'cards') {
           if (useLocation && currentUser) {
             if (hasProfileLocation) {
-              const { data } = await cards.nearby(currentUser.id, radiusKm);
+              const { data } = await cards.nearby(currentUser.id, radiusKm, undefined, selectedGameId);
               setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
             } else if (liveCoords) {
-              const { data } = await cards.nearby(currentUser.id, radiusKm, liveCoords);
+              const { data } = await cards.nearby(currentUser.id, radiusKm, liveCoords, selectedGameId);
               setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
             } else {
               const { data } = await cards.getAll();
@@ -96,7 +98,7 @@ export default function ExplorePage() {
       }
     };
     load();
-  }, [tab, useLocation, position, radiusKm, liveCoords]);
+  }, [tab, useLocation, position, radiusKm, liveCoords, selectedGameId]);
 
   const handleEnableLocation = () => {
     if (tab === 'cards' && !hasProfileLocation) {
@@ -137,7 +139,7 @@ export default function ExplorePage() {
       const { data } = await cards.nearby(currentUser.id, zoneRadius, {
         latitude: zoneCoords.lat,
         longitude: zoneCoords.lng,
-      });
+      }, selectedGameId);
       setZoneCards(Array.isArray(data) ? data : (data as any).cards ?? []);
     } catch (err) {
       console.error('Errore ricerca zona:', err);

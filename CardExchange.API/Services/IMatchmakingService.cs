@@ -4,7 +4,7 @@ namespace CardExchange.API.Services
 {
     public interface IMatchmakingService
     {
-        Task<IEnumerable<MatchResult>> FindMatchesAsync(int userId, int? radiusKm = null, double? latitude = null, double? longitude = null);
+        Task<IEnumerable<MatchResult>> FindMatchesAsync(int userId, int? radiusKm = null, double? latitude = null, double? longitude = null, int? gameId = null);
     }
 
     public class MatchResult

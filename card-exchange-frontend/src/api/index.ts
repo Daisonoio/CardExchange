@@ -32,7 +32,8 @@ export const auth = {
 // === Cards ===
 export const cards = {
   getAll: () => client.get<Card[]>('/cards'),
-  getByUser: (userId: number) => client.get<Card[]>(`/cards/user/${userId}`),
+  getByUser: (userId: number, gameId?: number | null) =>
+    client.get<Card[]>(`/cards/user/${userId}`, { params: gameId ? { gameId } : undefined }),
   getById: (id: number) => client.get<Card>(`/cards/${id}`),
   create: (userId: number, data: CreateCardRequest) =>
     client.post<Card>(`/cards/user/${userId}`, data),
@@ -41,9 +42,9 @@ export const cards = {
   delete: (id: number) => client.delete(`/cards/${id}`),
   search: (term: string) =>
     client.get<Card[]>('/cards/search', { params: { term } }),
-  nearby: (userId: number, radiusKm: number, coords?: { latitude: number; longitude: number }) =>
+  nearby: (userId: number, radiusKm: number, coords?: { latitude: number; longitude: number }, gameId?: number | null) =>
     client.get<Card[]>(`/cards/nearby/${userId}`, {
-      params: { radiusKm, ...coords },
+      params: { radiusKm, ...coords, ...(gameId ? { gameId } : {}) },
     }),
 };
 
@@ -59,8 +60,8 @@ export const cardPhotos = {
 
 // === Wishlist ===
 export const wishlist = {
-  getByUser: (userId: number) =>
-    client.get<WishlistItem[]>(`/wishlist/user/${userId}`),
+  getByUser: (userId: number, gameId?: number | null) =>
+    client.get<WishlistItem[]>(`/wishlist/user/${userId}`, { params: gameId ? { gameId } : undefined }),
   getById: (id: number) => client.get<WishlistItem>(`/wishlist/${id}`),
   create: (userId: number, data: CreateWishlistRequest) =>
     client.post<WishlistItem>(`/wishlist/user/${userId}`, data),
@@ -218,10 +219,15 @@ export const favorites = {
     client.get<{ cardIds: number[] }>('/favorites/card-ids'),
 };
 
+// === Games ===
+export const games = {
+  getAll: () => client.get<{ id: number; name: string; description?: string; publisher: string; isActive: boolean }[]>('/games'),
+};
+
 // === Matchmaking ===
 export const matchmaking = {
-  getMatches: (params?: { radiusKm?: number; latitude?: number; longitude?: number }) =>
-    client.get<import('../types').MatchmakingResponse>('/matchmaking', { params }),
+  getMatches: (params?: { radiusKm?: number; latitude?: number; longitude?: number; gameId?: number | null }) =>
+    client.get<import('../types').MatchmakingResponse>('/matchmaking', { params: params ?? undefined }),
 };
 
 // === Price Tracking ===
@@ -236,8 +242,8 @@ export const priceTracking = {
     }),
   history: (cardInfoId: number, days = 90) =>
     client.get<import('../types').PriceHistoryData>(`/pricetracking/history/${cardInfoId}`, { params: { days } }),
-  getSpikes: () =>
-    client.get<import('../types').PriceSpike[]>('/pricetracking/spikes'),
+  getSpikes: (gameId?: number | null) =>
+    client.get<import('../types').PriceSpike[]>('/pricetracking/spikes', { params: gameId ? { gameId } : undefined }),
   checkSpikes: () =>
     client.post<{ spikeCount: number; message: string }>('/pricetracking/spikes/check'),
   getSpikeSettings: () =>

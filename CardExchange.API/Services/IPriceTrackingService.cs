@@ -22,7 +22,7 @@ namespace CardExchange.API.Services
         Task<TradeAnalysis> AnalyzeTradeAsync(IEnumerable<int> offeredCardIds, IEnumerable<int> requestedCardIds);
 
         // Spike Detection
-        Task<IEnumerable<PriceSpikeInfo>> DetectPriceSpikesAsync(int userId);
+        Task<IEnumerable<PriceSpikeInfo>> DetectPriceSpikesAsync(int userId, int? gameId = null);
         Task<int> CheckAndNotifySpikesAsync(int userId);
 
         // User Settings

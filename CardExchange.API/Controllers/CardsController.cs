@@ -100,7 +100,7 @@ namespace CardExchange.API.Controllers
         /// </summary>
         [HttpGet("user/{userId}")]
         [RequirePermission("CARDS.READ.ALL")]
-        public async Task<ActionResult<IEnumerable<CardDto>>> GetUserCards(int userId)
+        public async Task<ActionResult<IEnumerable<CardDto>>> GetUserCards(int userId, [FromQuery] int? gameId = null)
         {
             try
             {
@@ -111,6 +111,12 @@ namespace CardExchange.API.Controllers
                 }
 
                 var cards = await _cardRepository.GetUserCardsAsync(userId);
+
+                if (gameId.HasValue)
+                {
+                    cards = cards.Where(c => c.CardInfo?.CardSet?.GameId == gameId.Value);
+                }
+
                 var cardDtos = cards.Select(MapToDto);
 
                 return Ok(new

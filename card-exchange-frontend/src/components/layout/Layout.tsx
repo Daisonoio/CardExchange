@@ -2,6 +2,7 @@ import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import TopBar from './TopBar';
 import BottomNav from './BottomNav';
+import GameSelector from './GameSelector';
 
 export default function Layout() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -21,6 +22,7 @@ export default function Layout() {
   return (
     <div className="flex flex-col min-h-screen">
       <TopBar />
+      <GameSelector />
       <main className="flex-1 pb-20 md:pb-4">
         <div className="max-w-1xl mx-auto px-8 py-4" style={{ height: 'calc(100vh - 5rem)' }}  >
           <Outlet />

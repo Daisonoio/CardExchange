@@ -27,14 +27,15 @@ namespace CardExchange.API.Controllers
         public async Task<ActionResult> GetMatches(
             [FromQuery] int? radiusKm = null,
             [FromQuery] double? latitude = null,
-            [FromQuery] double? longitude = null)
+            [FromQuery] double? longitude = null,
+            [FromQuery] int? gameId = null)
         {
             try
             {
                 var userId = GetCurrentUserId();
                 if (userId == 0) return Unauthorized();
 
-                var matches = await _matchmakingService.FindMatchesAsync(userId, radiusKm, latitude, longitude);
+                var matches = await _matchmakingService.FindMatchesAsync(userId, radiusKm, latitude, longitude, gameId);
                 var matchList = matches.ToList();
 
                 var mutualCount = matchList.Count(m => m.IsMutual);

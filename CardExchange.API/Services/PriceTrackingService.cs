@@ -315,13 +315,15 @@ namespace CardExchange.API.Services
             };
         }
 
-        public async Task<IEnumerable<PriceSpikeInfo>> DetectPriceSpikesAsync(int userId)
+        public async Task<IEnumerable<PriceSpikeInfo>> DetectPriceSpikesAsync(int userId, int? gameId = null)
         {
             var user = await _userRepository.GetByIdAsync(userId);
             var threshold = user?.PriceSpikeThreshold ?? 10m;
 
             var cards = await _cardRepository.GetUserCardsAsync(userId);
-            var cardList = cards.ToList();
+            var cardList = gameId.HasValue
+                ? cards.Where(c => c.CardInfo?.CardSet?.GameId == gameId.Value).ToList()
+                : cards.ToList();
             if (!cardList.Any()) return Enumerable.Empty<PriceSpikeInfo>();
 
             var cardInfoIds = cardList

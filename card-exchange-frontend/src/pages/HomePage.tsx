@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Navigation, Loader2, Settings, Sparkles } from 'lucide-react';
 import { wishlist } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useGame } from '../context/GameContext';
 import { useGeolocation } from '../hooks/useGeolocation';
 import CardCarousel from '../components/cards/CardCarousel';
 import type { CarouselCard } from '../components/cards/CardCarousel';
@@ -11,6 +12,7 @@ import EmptyState from '../components/ui/EmptyState';
 
 export default function HomePage() {
   const { user } = useAuth();
+  const { selectedGameId } = useGame();
   const navigate = useNavigate();
   const { position, isLoading: geoLoading, requestPosition } = useGeolocation();
 
@@ -40,6 +42,7 @@ export default function HomePage() {
           return;
         }
 
+        if (selectedGameId) params.gameId = selectedGameId;
         const { data } = await wishlist.topNearbyMatches(user.id, params);
         const cardsData = (data as any).cards ?? [];
         setTopCards(cardsData);
@@ -54,7 +57,7 @@ export default function HomePage() {
     };
 
     load();
-  }, [user, position, hasProfileLocation]);
+  }, [user, position, hasProfileLocation, selectedGameId]);
 
   const handleCardClick = (card: CarouselCard) => {
     navigate(`/collection/${card.ownerId}`, {

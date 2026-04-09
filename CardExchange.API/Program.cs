@@ -260,11 +260,12 @@ using (var scope = app.Services.CreateScope())
         }
 
         await RBACSeeder.SeedRolesAndPermissions(context);
+        await GameSeeder.SeedGames(context);
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Errore durante il seed dei dati RBAC");
+        logger.LogError(ex, "Errore durante il seed dei dati RBAC/Giochi");
     }
 }
 

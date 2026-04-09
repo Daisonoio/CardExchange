@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, Heart, X, ChevronDown, Loader2 } from 'lucide-react';
 import { wishlist, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useGame } from '../context/GameContext';
 import type { WishlistItem, ScryfallCard, CardCondition } from '../types';
 import { CONDITION_LABELS } from '../types';
 import ScryfallSearch from '../components/cards/ScryfallSearch';
@@ -20,6 +21,7 @@ const PRIORITY_COLORS = {
 
 export default function WishlistPage() {
   const { user } = useAuth();
+  const { selectedGameId } = useGame();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -40,9 +42,10 @@ export default function WishlistPage() {
 
   const loadItems = useCallback(async () => {
     if (!user) return;
+    setIsLoading(true);
     setLoadError(null);
     try {
-      const resp = await wishlist.getByUser(user.id);
+      const resp = await wishlist.getByUser(user.id, selectedGameId);
       const data = resp.data;
       // Backend wraps in { userId, username, count, items: [...] }
       let list: WishlistItem[];
@@ -64,7 +67,7 @@ export default function WishlistPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, selectedGameId]);
 
   useEffect(() => { loadItems(); }, [loadItems]);
 

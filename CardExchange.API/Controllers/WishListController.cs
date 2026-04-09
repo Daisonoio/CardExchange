@@ -48,7 +48,7 @@ namespace CardExchange.API.Controllers
         /// </summary>
         [HttpGet("user/{userId}")]
         [RequirePermission("WISHLIST.READ.OWN")]
-        public async Task<ActionResult<IEnumerable<WishlistItemDto>>> GetUserWishlist(int userId)
+        public async Task<ActionResult<IEnumerable<WishlistItemDto>>> GetUserWishlist(int userId, [FromQuery] int? gameId = null)
         {
             try
             {
@@ -59,6 +59,22 @@ namespace CardExchange.API.Controllers
                 }
 
                 var wishlistItems = await _wishlistRepository.GetUserWishlistAsync(userId);
+
+                if (gameId.HasValue)
+                {
+                    var filteredItems = new List<WishlistItem>();
+                    foreach (var wi in wishlistItems)
+                    {
+                        var ci = await _cardInfoRepository.GetByIdAsync(wi.CardInfoId);
+                        if (ci != null)
+                        {
+                            var cs = await _cardSetRepository.GetByIdAsync(ci.CardSetId);
+                            if (cs != null && cs.GameId == gameId.Value)
+                                filteredItems.Add(wi);
+                        }
+                    }
+                    wishlistItems = filteredItems;
+                }
 
                 // Carica le informazioni necessarie per i DTOs
                 var cardInfoIds = wishlistItems.Select(wi => wi.CardInfoId).Distinct();

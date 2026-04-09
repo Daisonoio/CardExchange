@@ -381,14 +381,14 @@ namespace CardExchange.API.Controllers
         /// Ottiene le carte con spike di prezzo nella collezione dell'utente
         /// </summary>
         [HttpGet("spikes")]
-        public async Task<ActionResult<IEnumerable<PriceSpikeDto>>> GetPriceSpikes()
+        public async Task<ActionResult<IEnumerable<PriceSpikeDto>>> GetPriceSpikes([FromQuery] int? gameId = null)
         {
             try
             {
                 var userId = GetCurrentUserId();
                 if (userId == 0) return Unauthorized();
 
-                var spikes = await _priceTrackingService.DetectPriceSpikesAsync(userId);
+                var spikes = await _priceTrackingService.DetectPriceSpikesAsync(userId, gameId);
 
                 var dtos = spikes.Select(s => new PriceSpikeDto
                 {

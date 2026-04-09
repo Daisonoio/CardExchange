@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, Library, Search, TrendingUp } from 'lucide-react';
 import { cards, scryfall, priceTracking } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { useGame } from '../context/GameContext';
 import type { Card, ScryfallCard, CardCondition, PriceSpike } from '../types';
 import { CONDITION_LABELS } from '../types';
 import CardGridItem from '../components/cards/CardGridItem';
@@ -13,6 +14,7 @@ import BottomSheet from '../components/ui/BottomSheet';
 
 export default function CollectionPage() {
   const { user } = useAuth();
+  const { selectedGameId } = useGame();
   const [myCards, setMyCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -33,26 +35,27 @@ export default function CollectionPage() {
 
   const loadCards = useCallback(async () => {
     if (!user) return;
+    setIsLoading(true);
     try {
-      const { data } = await cards.getByUser(user.id);
+      const { data } = await cards.getByUser(user.id, selectedGameId);
       setMyCards(Array.isArray(data) ? data : (data as any).cards ?? []);
     } catch (err) {
       console.error('Errore caricamento carte:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, selectedGameId]);
 
   const loadSpikes = useCallback(async () => {
     try {
-      const { data } = await priceTracking.getSpikes();
+      const { data } = await priceTracking.getSpikes(selectedGameId);
       const spikes = Array.isArray(data) ? data : [];
       setSpikeCards(spikes);
       setSpikeCardIds(new Set(spikes.map((s) => s.cardId)));
     } catch {
       // silently fail - spikes are non-essential
     }
-  }, []);
+  }, [selectedGameId]);
 
   useEffect(() => { loadCards(); loadSpikes(); }, [loadCards, loadSpikes]);
 

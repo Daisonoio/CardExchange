@@ -26,7 +26,7 @@ namespace CardExchange.API.Services
         }
 
         public async Task<IEnumerable<MatchResult>> FindMatchesAsync(
-            int userId, int? radiusKm = null, double? latitude = null, double? longitude = null)
+            int userId, int? radiusKm = null, double? latitude = null, double? longitude = null, int? gameId = null)
         {
             var user = await _userRepository.GetWithLocationAsync(userId);
             if (user == null) return Enumerable.Empty<MatchResult>();
@@ -37,13 +37,38 @@ namespace CardExchange.API.Services
             int searchRadius = radiusKm ?? user.Location?.MaxDistanceKm ?? 100;
 
             // 1. Get my wishlist (what I want)
-            var myWishlist = (await _wishlistRepository.GetUserWishlistAsync(userId)).ToList();
+            var myWishlistAll = (await _wishlistRepository.GetUserWishlistAsync(userId)).ToList();
+
+            // Filter by game if specified
+            List<WishlistItem> myWishlist;
+            if (gameId.HasValue)
+            {
+                myWishlist = new List<WishlistItem>();
+                foreach (var w in myWishlistAll)
+                {
+                    var ci = await _cardInfoRepository.GetByIdAsync(w.CardInfoId);
+                    if (ci?.CardSet?.GameId == gameId.Value || ci?.CardSetId > 0)
+                    {
+                        // Need to check via CardSet
+                        var info = ci;
+                        if (info?.CardSet != null && info.CardSet.GameId == gameId.Value)
+                            myWishlist.Add(w);
+                    }
+                }
+            }
+            else
+            {
+                myWishlist = myWishlistAll;
+            }
             var myWishlistCardInfoIds = myWishlist.Select(w => w.CardInfoId).ToHashSet();
 
             // 2. Get my cards available for trade (what I offer)
-            var myCards = (await _cardRepository.GetUserCardsAsync(userId))
-                .Where(c => c.IsAvailableForTrade)
-                .ToList();
+            var myCardsAll = (await _cardRepository.GetUserCardsAsync(userId))
+                .Where(c => c.IsAvailableForTrade);
+
+            var myCards = gameId.HasValue
+                ? myCardsAll.Where(c => c.CardInfo?.CardSet?.GameId == gameId.Value).ToList()
+                : myCardsAll.ToList();
             var myCardInfoIds = myCards.Select(c => c.CardInfoId).ToHashSet();
 
             if (!myWishlistCardInfoIds.Any() && !myCardInfoIds.Any())
