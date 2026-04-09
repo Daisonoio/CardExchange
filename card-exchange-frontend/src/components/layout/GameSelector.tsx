@@ -5,7 +5,7 @@ const GAME_META: Record<string, { short: string; color: string }> = {
   'Magic: The Gathering': { short: 'Magic', color: 'bg-violet-600' },
   'Pokémon TCG': { short: 'Pokémon', color: 'bg-yellow-500' },
   'Yu-Gi-Oh!': { short: 'Yu-Gi-Oh!', color: 'bg-red-600' },
-  'Disney Lorcana': { short: 'Lorcana', color: 'bg-blue-500' },
+  'One Piece TCG': { short: 'One Piece', color: 'bg-sky-500' },
 };
 
 export default function GameSelector() {

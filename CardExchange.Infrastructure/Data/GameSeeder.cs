@@ -12,7 +12,7 @@ namespace CardExchange.Infrastructure.Data
                 new { Name = "Magic: The Gathering", Publisher = "Wizards of the Coast", Description = "Il gioco di carte collezionabili più famoso al mondo" },
                 new { Name = "Pokémon TCG", Publisher = "The Pokémon Company", Description = "Il gioco di carte collezionabili dei Pokémon, il TCG più venduto al mondo" },
                 new { Name = "Yu-Gi-Oh!", Publisher = "Konami", Description = "Il gioco di carte collezionabili basato sul manga e anime Yu-Gi-Oh!" },
-                new { Name = "Disney Lorcana", Publisher = "Ravensburger", Description = "Il gioco di carte collezionabili ambientato nel mondo Disney" },
+                new { Name = "One Piece TCG", Publisher = "Bandai", Description = "Il gioco di carte collezionabili basato sul manga e anime One Piece" },
             };
 
             foreach (var g in gamesToSeed)
