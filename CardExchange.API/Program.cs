@@ -151,6 +151,13 @@ builder.Services.AddHttpClient<IScryfallService, ScryfallService>(client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     client.Timeout = TimeSpan.FromSeconds(15);
 });
+builder.Services.AddHttpClient<IPokemonTcgService, PokemonTcgService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.pokemontcg.io");
+    client.DefaultRequestHeaders.Add("User-Agent", "CardExchange/1.0");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(20);
+});
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddRepositories();
 

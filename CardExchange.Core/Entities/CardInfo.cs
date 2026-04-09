@@ -88,6 +88,49 @@ namespace CardExchange.Core.Entities
         public string? ScryfallUri { get; set; }
         public DateTime? ScryfallUpdatedAt { get; set; }
 
+        // === Campi Pokémon TCG ===
+
+        [MaxLength(50)]
+        public string? PokemonTcgId { get; set; }
+
+        [MaxLength(20)]
+        public string? Supertype { get; set; } // Pokémon, Trainer, Energy
+
+        [MaxLength(200)]
+        public string? Subtypes { get; set; } // CSV: "Stage 1,VMAX"
+
+        [MaxLength(10)]
+        public string? Hp { get; set; }
+
+        [MaxLength(200)]
+        public string? PokemonTypes { get; set; } // CSV: "Fire,Water"
+
+        [MaxLength(200)]
+        public string? EvolvesFrom { get; set; }
+
+        // Dati complessi compressi in JSON (attacchi, debolezze, resistenze, regole)
+        public string? PokemonTcgData { get; set; }
+
+        // Immagini Pokémon TCG (CDN, no rate limit)
+        public string? PokemonImageSmall { get; set; }
+        public string? PokemonImageLarge { get; set; }
+
+        // Prezzi Pokémon TCG (TCGPlayer market)
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? PriceTcgNormal { get; set; }
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? PriceTcgHolofoil { get; set; }
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? PriceTcgReverseHolofoil { get; set; }
+
+        // Prezzi Pokémon TCG (Cardmarket)
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? PriceCardmarketAvg { get; set; }
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? PriceCardmarketTrend { get; set; }
+
+        public DateTime? PokemonTcgUpdatedAt { get; set; }
+
         // Relazioni
         [ForeignKey("CardSetId")]
         public virtual CardSet CardSet { get; set; } = null!;

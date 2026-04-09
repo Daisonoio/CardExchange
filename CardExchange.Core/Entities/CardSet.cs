@@ -14,7 +14,7 @@ namespace CardExchange.Core.Entities
         public string Name { get; set; } = string.Empty;
 
         [Required]
-        [MaxLength(10)]
+        [MaxLength(20)]
         public string Code { get; set; } = string.Empty;
 
         public DateTime? ReleaseDate { get; set; }
@@ -39,6 +39,21 @@ namespace CardExchange.Core.Entities
         public bool IsDigital { get; set; } = false;
 
         public DateTime? ScryfallUpdatedAt { get; set; }
+
+        // === Campi Pokémon TCG ===
+
+        [MaxLength(50)]
+        public string? PokemonTcgId { get; set; }
+
+        [MaxLength(100)]
+        public string? Series { get; set; }
+
+        public int? PrintedTotal { get; set; }
+
+        public string? PokemonLogoUrl { get; set; }
+        public string? PokemonSymbolUrl { get; set; }
+
+        public DateTime? PokemonTcgUpdatedAt { get; set; }
 
         // Relazioni
         [ForeignKey("GameId")]

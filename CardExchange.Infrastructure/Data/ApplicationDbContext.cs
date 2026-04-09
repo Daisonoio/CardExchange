@@ -43,6 +43,10 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<PriceHistory> PriceHistories { get; set; }
         public DbSet<PriceAlert> PriceAlerts { get; set; }
 
+        // DbSets - Configurazione
+        public DbSet<AppConfig> AppConfigs { get; set; }
+        public DbSet<AppConfigKey> AppConfigKeys { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -95,6 +99,8 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(cs => new { cs.GameId, cs.Code }).IsUnique();
                 var scryfallIdIdx = entity.HasIndex(cs => cs.ScryfallId).IsUnique();
                 if (!isSqlite) scryfallIdIdx.HasFilter("[ScryfallId] IS NOT NULL");
+                var pokemonIdIdx = entity.HasIndex(cs => cs.PokemonTcgId).IsUnique();
+                if (!isSqlite) pokemonIdIdx.HasFilter("[PokemonTcgId] IS NOT NULL");
                 entity.HasOne(cs => cs.Game)
                       .WithMany(g => g.CardSets)
                       .HasForeignKey(cs => cs.GameId)
@@ -110,11 +116,18 @@ namespace CardExchange.Infrastructure.Data
                 var ciScryfallIdx = entity.HasIndex(ci => ci.ScryfallId).IsUnique();
                 if (!isSqlite) ciScryfallIdx.HasFilter("[ScryfallId] IS NOT NULL");
                 entity.HasIndex(ci => ci.OracleId);
+                var ciPokemonIdx = entity.HasIndex(ci => ci.PokemonTcgId).IsUnique();
+                if (!isSqlite) ciPokemonIdx.HasFilter("[PokemonTcgId] IS NOT NULL");
                 entity.Property(ci => ci.Cmc).HasPrecision(5, 2);
                 entity.Property(ci => ci.PriceUsd).HasPrecision(10, 2);
                 entity.Property(ci => ci.PriceUsdFoil).HasPrecision(10, 2);
                 entity.Property(ci => ci.PriceEur).HasPrecision(10, 2);
                 entity.Property(ci => ci.PriceEurFoil).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceTcgNormal).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceTcgHolofoil).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceTcgReverseHolofoil).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceCardmarketAvg).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceCardmarketTrend).HasPrecision(10, 2);
                 entity.HasOne(ci => ci.CardSet)
                       .WithMany(cs => cs.CardInfos)
                       .HasForeignKey(ci => ci.CardSetId)
@@ -509,6 +522,23 @@ namespace CardExchange.Infrastructure.Data
             });
 
             // ============================================================
+            // AppConfig (Configurazioni di sistema)
+            // ============================================================
+            modelBuilder.Entity<AppConfig>(entity =>
+            {
+                entity.HasIndex(ac => ac.Key).IsUnique();
+                entity.HasIndex(ac => ac.Category);
+            });
+
+            // ============================================================
+            // AppConfigKey (Chiavi API e segreti)
+            // ============================================================
+            modelBuilder.Entity<AppConfigKey>(entity =>
+            {
+                entity.HasIndex(ak => new { ak.ServiceName, ak.KeyName }).IsUnique();
+            });
+
+            // ============================================================
             // Query filters per soft delete
             // ============================================================
             modelBuilder.Entity<User>().HasQueryFilter(u => u.IsActive);
@@ -533,6 +563,8 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<PriceHistory>().HasQueryFilter(ph => !ph.IsDeleted);
             modelBuilder.Entity<PriceAlert>().HasQueryFilter(pa => !pa.IsDeleted);
             modelBuilder.Entity<FavoriteCard>().HasQueryFilter(fc => !fc.IsDeleted);
+            modelBuilder.Entity<AppConfig>().HasQueryFilter(ac => !ac.IsDeleted);
+            modelBuilder.Entity<AppConfigKey>().HasQueryFilter(ak => !ak.IsDeleted);
         }
 
         public override int SaveChanges()
