@@ -243,7 +243,7 @@ namespace CardExchange.API.Services
             }
         }
 
-        private async Task<PokemonTcgResponse<T>?> GetListAsync<T>(string path)
+        private async Task<PokemonTcgResponse<List<T>>?> GetListAsync<T>(string path)
         {
             await ApplyApiKeyAsync();
             await RateLimitAsync();
@@ -260,7 +260,7 @@ namespace CardExchange.API.Services
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<PokemonTcgResponse<T>>(json, _jsonOptions);
+                return JsonSerializer.Deserialize<PokemonTcgResponse<List<T>>>(json, _jsonOptions);
             }
             catch (Exception ex)
             {

@@ -1,9 +1,11 @@
+using CardExchange.API.Hubs;
 using CardExchange.API.Services;
 using CardExchange.API.Services.Notifications;
 using CardExchange.API.Services.Notifications.Handlers;
 using CardExchange.Core.Entities;
 using CardExchange.Infrastructure.Data;
 using FluentAssertions;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -30,9 +32,16 @@ public class NotificationServiceTests : IDisposable
             new MessageNotificationHandler(),
             new SystemNotificationHandler()
         };
+
+        var hubClientsMock = new Mock<IHubClients>();
+        hubClientsMock.Setup(c => c.Group(It.IsAny<string>())).Returns(new Mock<IClientProxy>().Object);
+        var hubContextMock = new Mock<IHubContext<NotificationHub>>();
+        hubContextMock.Setup(h => h.Clients).Returns(hubClientsMock.Object);
+
         var dispatcher = new NotificationDispatcher(
             _context,
             new Mock<ILogger<NotificationDispatcher>>().Object,
+            hubContextMock.Object,
             handlers);
 
         _service = new NotificationService(
