@@ -158,6 +158,20 @@ builder.Services.AddHttpClient<IPokemonTcgService, PokemonTcgService>(client =>
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     client.Timeout = TimeSpan.FromSeconds(20);
 });
+builder.Services.AddHttpClient<IYuGiOhService, YuGiOhService>(client =>
+{
+    client.BaseAddress = new Uri("https://db.ygoprodeck.com");
+    client.DefaultRequestHeaders.Add("User-Agent", "CardExchange/1.0");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
+builder.Services.AddHttpClient<IOnePieceTcgService, OnePieceTcgService>(client =>
+{
+    client.BaseAddress = new Uri("https://apitcg.com");
+    client.DefaultRequestHeaders.Add("User-Agent", "CardExchange/1.0");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(20);
+});
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddRepositories();
 

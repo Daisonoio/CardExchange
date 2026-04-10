@@ -55,6 +55,25 @@ namespace CardExchange.Core.Entities
 
         public DateTime? PokemonTcgUpdatedAt { get; set; }
 
+        // === Campi Yu-Gi-Oh! (YGOProDeck) ===
+
+        [MaxLength(50)]
+        public string? YuGiOhSetCode { get; set; }
+
+        public int? YuGiOhNumCards { get; set; }
+
+        [MaxLength(20)]
+        public string? YuGiOhTcgDate { get; set; } // Data formato "YYYY-MM-DD"
+
+        public DateTime? YuGiOhUpdatedAt { get; set; }
+
+        // === Campi One Piece TCG (ApiTCG) ===
+
+        [MaxLength(100)]
+        public string? OnePieceTcgSetName { get; set; }
+
+        public DateTime? OnePieceTcgUpdatedAt { get; set; }
+
         // Relazioni
         [ForeignKey("GameId")]
         public virtual Game Game { get; set; } = null!;

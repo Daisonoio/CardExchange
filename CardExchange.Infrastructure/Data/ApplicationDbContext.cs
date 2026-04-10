@@ -101,6 +101,8 @@ namespace CardExchange.Infrastructure.Data
                 if (!isSqlite) scryfallIdIdx.HasFilter("[ScryfallId] IS NOT NULL");
                 var pokemonIdIdx = entity.HasIndex(cs => cs.PokemonTcgId).IsUnique();
                 if (!isSqlite) pokemonIdIdx.HasFilter("[PokemonTcgId] IS NOT NULL");
+                var yugiohSetIdx = entity.HasIndex(cs => cs.YuGiOhSetCode).IsUnique();
+                if (!isSqlite) yugiohSetIdx.HasFilter("[YuGiOhSetCode] IS NOT NULL");
                 entity.HasOne(cs => cs.Game)
                       .WithMany(g => g.CardSets)
                       .HasForeignKey(cs => cs.GameId)
@@ -118,6 +120,10 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(ci => ci.OracleId);
                 var ciPokemonIdx = entity.HasIndex(ci => ci.PokemonTcgId).IsUnique();
                 if (!isSqlite) ciPokemonIdx.HasFilter("[PokemonTcgId] IS NOT NULL");
+                var ciYuGiOhIdx = entity.HasIndex(ci => ci.YuGiOhId).IsUnique();
+                if (!isSqlite) ciYuGiOhIdx.HasFilter("[YuGiOhId] IS NOT NULL");
+                var ciOnePieceIdx = entity.HasIndex(ci => ci.OnePieceTcgId).IsUnique();
+                if (!isSqlite) ciOnePieceIdx.HasFilter("[OnePieceTcgId] IS NOT NULL");
                 entity.Property(ci => ci.Cmc).HasPrecision(5, 2);
                 entity.Property(ci => ci.PriceUsd).HasPrecision(10, 2);
                 entity.Property(ci => ci.PriceUsdFoil).HasPrecision(10, 2);
@@ -128,6 +134,11 @@ namespace CardExchange.Infrastructure.Data
                 entity.Property(ci => ci.PriceTcgReverseHolofoil).HasPrecision(10, 2);
                 entity.Property(ci => ci.PriceCardmarketAvg).HasPrecision(10, 2);
                 entity.Property(ci => ci.PriceCardmarketTrend).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceYuGiOhTcgPlayer).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceYuGiOhCardmarket).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceYuGiOhEbay).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceYuGiOhAmazon).HasPrecision(10, 2);
+                entity.Property(ci => ci.PriceYuGiOhCoolstuffinc).HasPrecision(10, 2);
                 entity.HasOne(ci => ci.CardSet)
                       .WithMany(cs => cs.CardInfos)
                       .HasForeignKey(ci => ci.CardSetId)

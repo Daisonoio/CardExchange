@@ -131,6 +131,73 @@ namespace CardExchange.Core.Entities
 
         public DateTime? PokemonTcgUpdatedAt { get; set; }
 
+        // === Campi Yu-Gi-Oh! (YGOProDeck) ===
+
+        public int? YuGiOhId { get; set; } // Passcode a 8 cifre
+
+        [MaxLength(50)]
+        public string? YuGiOhType { get; set; } // Effect Monster, Spell Card, Trap Card, etc.
+
+        [MaxLength(20)]
+        public string? YuGiOhAttribute { get; set; } // DARK, LIGHT, FIRE, WATER, EARTH, WIND, DIVINE
+
+        [MaxLength(50)]
+        public string? YuGiOhRace { get; set; } // Dragon, Spellcaster, Warrior, etc.
+
+        public int? YuGiOhLevel { get; set; } // Livello/Rank/Link Rating
+
+        public int? YuGiOhAtk { get; set; }
+        public int? YuGiOhDef { get; set; }
+
+        [MaxLength(100)]
+        public string? YuGiOhArchetype { get; set; }
+
+        [MaxLength(50)]
+        public string? YuGiOhFrameType { get; set; } // normal, effect, ritual, fusion, synchro, xyz, link, spell, trap
+
+        public string? YuGiOhImageUrl { get; set; }
+        public string? YuGiOhImageSmall { get; set; }
+
+        // Dati estesi compressi in JSON (card_sets, banlist_info)
+        public string? YuGiOhData { get; set; }
+
+        // Prezzi Yu-Gi-Oh! (da card_prices)
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? PriceYuGiOhTcgPlayer { get; set; }
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? PriceYuGiOhCardmarket { get; set; }
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? PriceYuGiOhEbay { get; set; }
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? PriceYuGiOhAmazon { get; set; }
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? PriceYuGiOhCoolstuffinc { get; set; }
+
+        public DateTime? YuGiOhUpdatedAt { get; set; }
+
+        // === Campi One Piece TCG (ApiTCG) ===
+
+        [MaxLength(20)]
+        public string? OnePieceTcgId { get; set; } // Codice carta, es. "OP06-014"
+
+        [MaxLength(30)]
+        public string? OnePieceColor { get; set; } // Red, Blue, Green, etc.
+
+        public int? OnePieceCost { get; set; }
+        public int? OnePiecePower { get; set; }
+        public int? OnePieceCounter { get; set; }
+
+        [MaxLength(200)]
+        public string? OnePieceFamily { get; set; } // Straw Hat Crew, etc.
+
+        public string? OnePieceAbility { get; set; } // Effetto della carta
+        public string? OnePieceTrigger { get; set; } // Trigger text
+
+        public string? OnePieceImageSmall { get; set; }
+        public string? OnePieceImageLarge { get; set; }
+
+        public DateTime? OnePieceTcgUpdatedAt { get; set; }
+
         // Relazioni
         [ForeignKey("CardSetId")]
         public virtual CardSet CardSet { get; set; } = null!;
