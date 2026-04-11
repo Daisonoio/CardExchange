@@ -227,8 +227,12 @@ export const games = {
 
 // === Matchmaking ===
 export const matchmaking = {
-  getMatches: (params?: { radiusKm?: number; latitude?: number; longitude?: number; gameId?: number | null }) =>
-    client.get<import('../types').MatchmakingResponse>('/matchmaking', { params: params ?? undefined }),
+  getMatches: (params?: { radiusKm?: number; latitude?: number; longitude?: number; gameId?: number | null }) => {
+    const { gameId, ...rest } = params ?? {};
+    return client.get<import('../types').MatchmakingResponse>('/matchmaking', {
+      params: { ...rest, ...(gameId ? { gameId } : {}) },
+    });
+  },
 };
 
 // === Price Tracking ===

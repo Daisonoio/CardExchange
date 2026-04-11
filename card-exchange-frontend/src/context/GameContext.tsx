@@ -13,7 +13,7 @@ interface GameContextType {
   games: GameInfo[];
   selectedGame: GameInfo | null;
   selectedGameId: number | null;
-  setSelectedGameId: (id: number) => void;
+  setSelectedGameId: (id: number | null) => void;
   isLoading: boolean;
 }
 
@@ -35,7 +35,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [games, setGames] = useState<GameInfo[]>([]);
   const [selectedGameId, setSelectedGameIdState] = useState<number | null>(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? parseInt(stored, 10) : null;
+    if (!stored || stored === 'all') return null;
+    return parseInt(stored, 10);
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -46,13 +47,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const active = list.filter((g: GameInfo) => g.isActive);
         setGames(active);
 
-        // If no game selected or selected game not found, default to first
+        // If stored game is not found among active games, reset to null (all games)
         if (active.length > 0) {
           const storedId = localStorage.getItem(STORAGE_KEY);
-          const storedNum = storedId ? parseInt(storedId, 10) : null;
-          if (!storedNum || !active.find((g: GameInfo) => g.id === storedNum)) {
-            setSelectedGameIdState(active[0].id);
-            localStorage.setItem(STORAGE_KEY, String(active[0].id));
+          if (storedId !== null && storedId !== 'all') {
+            const storedNum = parseInt(storedId, 10);
+            if (!active.find((g: GameInfo) => g.id === storedNum)) {
+              setSelectedGameIdState(null);
+              localStorage.setItem(STORAGE_KEY, 'all');
+            }
           }
         }
       })
@@ -60,9 +63,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const setSelectedGameId = useCallback((id: number) => {
+  const setSelectedGameId = useCallback((id: number | null) => {
     setSelectedGameIdState(id);
-    localStorage.setItem(STORAGE_KEY, String(id));
+    localStorage.setItem(STORAGE_KEY, id === null ? 'all' : String(id));
   }, []);
 
   const selectedGame = games.find(g => g.id === selectedGameId) ?? null;
