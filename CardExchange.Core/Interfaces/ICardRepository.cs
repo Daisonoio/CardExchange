@@ -7,6 +7,7 @@ namespace CardExchange.Core.Interfaces
         Task<IEnumerable<Card>> GetUserCardsAsync(int userId);
         Task<IEnumerable<Card>> GetCardsByCardInfoAsync(int cardInfoId);
         Task<IEnumerable<Card>> GetAvailableCardsAsync();
+        Task<IEnumerable<Card>> GetAvailableCardsAsync(int gameId);
         Task<IEnumerable<Card>> SearchCardsAsync(string searchTerm);
         Task<IEnumerable<Card>> GetCardsByLocationAsync(string city, string province, string country);
         Task<IEnumerable<Card>> GetCardsByConditionAsync(CardCondition condition);

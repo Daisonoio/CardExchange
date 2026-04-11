@@ -31,7 +31,8 @@ export const auth = {
 
 // === Cards ===
 export const cards = {
-  getAll: () => client.get<Card[]>('/cards'),
+  getAll: (gameId?: number | null) =>
+    client.get<Card[]>('/cards', { params: gameId ? { gameId } : undefined }),
   getByUser: (userId: number, gameId?: number | null) =>
     client.get<Card[]>(`/cards/user/${userId}`, { params: gameId ? { gameId } : undefined }),
   getById: (id: number) => client.get<Card>(`/cards/${id}`),

@@ -50,11 +50,13 @@ namespace CardExchange.API.Controllers
         /// </summary>
         [HttpGet]
         [RequirePermission("CARDS.READ.ALL")]
-        public async Task<ActionResult<IEnumerable<CardDto>>> GetAllAvailableCards()
+        public async Task<ActionResult<IEnumerable<CardDto>>> GetAllAvailableCards([FromQuery] int? gameId = null)
         {
             try
             {
-                var cards = await _cardRepository.GetAvailableCardsAsync();
+                var cards = gameId.HasValue
+                    ? await _cardRepository.GetAvailableCardsAsync(gameId.Value)
+                    : await _cardRepository.GetAvailableCardsAsync();
                 var cardDtos = cards.Select(MapToDto);
 
                 return Ok(new

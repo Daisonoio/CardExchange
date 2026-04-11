@@ -78,11 +78,11 @@ export default function ExplorePage() {
               const { data } = await cards.nearby(currentUser.id, radiusKm, liveCoords, selectedGameId);
               setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
             } else {
-              const { data } = await cards.getAll();
+              const { data } = await cards.getAll(selectedGameId);
               setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
             }
           } else {
-            const { data } = await cards.getAll();
+            const { data } = await cards.getAll(selectedGameId);
             setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
           }
         } else {

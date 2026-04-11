@@ -45,6 +45,19 @@ namespace CardExchange.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Card>> GetAvailableCardsAsync(int gameId)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .Include(c => c.CardInfo)
+                    .ThenInclude(ci => ci.CardSet)
+                        .ThenInclude(cs => cs.Game)
+                .Include(c => c.User)
+                    .ThenInclude(u => u.Location)
+                .Where(c => c.IsAvailableForTrade && c.CardInfo.CardSet.GameId == gameId)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<Card>> SearchCardsAsync(string searchTerm)
         {
             var lowerSearchTerm = searchTerm.ToLower();
