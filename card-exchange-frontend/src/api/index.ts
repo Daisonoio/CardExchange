@@ -92,6 +92,39 @@ export const scryfall = {
     client.post('/scryfall/import', { scryfallId }),
 };
 
+// === Pokémon TCG ===
+export const pokemontcg = {
+  search: (q: string, page = 1) =>
+    client.get<{ source: string; cards: any[]; totalCount: number }>(
+      '/pokemontcg/search',
+      { params: { q, page } }
+    ),
+  importCard: (pokemonTcgId: string) =>
+    client.post<{ cardInfoId: number; isNew: boolean }>('/pokemontcg/import', { pokemonTcgId }),
+};
+
+// === Yu-Gi-Oh! ===
+export const yugioh = {
+  search: (q: string, page = 1) =>
+    client.get<{ source: string; cards: any[]; totalCount: number }>(
+      '/yugioh/search',
+      { params: { q, page } }
+    ),
+  importCard: (yuGiOhId: number) =>
+    client.post<{ cardInfoId: number; isNew: boolean }>('/yugioh/import', { yuGiOhId }),
+};
+
+// === One Piece TCG ===
+export const onepiece = {
+  search: (q: string, page = 1) =>
+    client.get<{ source: string; cards: any[]; totalCount: number }>(
+      '/onepiece/search',
+      { params: { q, page } }
+    ),
+  importCard: (code: string) =>
+    client.post<{ cardInfoId: number; isNew: boolean }>('/onepiece/import', { code }),
+};
+
 // === Users ===
 export const users = {
   getProfile: (id: number) => client.get<User>(`/users/${id}`),

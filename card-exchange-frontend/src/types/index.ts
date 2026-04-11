@@ -244,6 +244,20 @@ export interface ScryfallSearchResult {
   total_cards: number;
 }
 
+// === Generic card search result (normalized across all games) ===
+export interface GameCard {
+  /** The external API identifier used for import */
+  externalId: string;
+  name: string;
+  setName?: string;
+  rarity?: string;
+  imageSmall?: string;
+  imageLarge?: string;
+  priceEur?: string;
+  /** Extra info line (type, HP, etc.) */
+  subtitle?: string;
+}
+
 // === Paged ===
 export interface PagedResult<T> {
   items: T[];

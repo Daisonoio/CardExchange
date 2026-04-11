@@ -1,25 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Library, Search, TrendingUp } from 'lucide-react';
-import { cards, scryfall, priceTracking } from '../api';
+import { cards, priceTracking } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
-import type { Card, ScryfallCard, CardCondition, PriceSpike } from '../types';
+import type { Card, GameCard, CardCondition, PriceSpike } from '../types';
 import { CONDITION_LABELS } from '../types';
 import CardGridItem from '../components/cards/CardGridItem';
 import EditCardSheet from '../components/cards/EditCardSheet';
-import ScryfallSearch from '../components/cards/ScryfallSearch';
+import GameCardSearch, { importGameCard } from '../components/cards/GameCardSearch';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import BottomSheet from '../components/ui/BottomSheet';
 
 export default function CollectionPage() {
   const { user } = useAuth();
-  const { selectedGameId } = useGame();
+  const { selectedGameId, selectedGame } = useGame();
   const [myCards, setMyCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editCard, setEditCard] = useState<Card | null>(null);
-  const [selectedCard, setSelectedCard] = useState<ScryfallCard | null>(null);
+  const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);
   const [addForm, setAddForm] = useState({
     condition: 2 as CardCondition,
     quantity: 1,
@@ -59,7 +59,7 @@ export default function CollectionPage() {
 
   useEffect(() => { loadCards(); loadSpikes(); }, [loadCards, loadSpikes]);
 
-  const handleSelectScryfall = (card: ScryfallCard) => {
+  const handleSelectCard = (card: GameCard) => {
     setSelectedCard(card);
   };
 
@@ -67,8 +67,7 @@ export default function CollectionPage() {
     if (!selectedCard) return;
     setIsSaving(true);
     try {
-      const { data: importResult } = await scryfall.importCard(selectedCard.scryfallId || selectedCard.id);
-      const cardInfoId = importResult.cardInfoId || importResult.id;
+      const cardInfoId = await importGameCard(selectedGame?.name, selectedCard.externalId);
 
       await cards.create(user!.id, {
         cardInfoId,
@@ -225,25 +224,25 @@ export default function CollectionPage() {
             <p className="text-sm text-text-secondary mb-3">
               Cerca la carta da aggiungere alla tua collezione:
             </p>
-            <ScryfallSearch onSelect={handleSelectScryfall} />
+            <GameCardSearch onSelect={handleSelectCard} />
           </div>
         ) : (
           <div className="space-y-4">
             {/* Selected card preview */}
             <div className="flex gap-4 p-3 bg-surface-dark rounded-xl">
-              {(selectedCard.image_uris?.small || selectedCard.images?.small || selectedCard.card_faces?.[0]?.image_uris?.small) && (
+              {selectedCard.imageSmall && (
                 <img
-                  src={selectedCard.image_uris?.small || selectedCard.images?.small || selectedCard.card_faces?.[0]?.image_uris?.small}
+                  src={selectedCard.imageSmall}
                   alt={selectedCard.name}
                   className="w-16 h-22 rounded-lg object-cover"
                 />
               )}
               <div>
                 <p className="font-semibold text-sm">{selectedCard.name}</p>
-                <p className="text-xs text-text-secondary">{selectedCard.set_name || selectedCard.setName}</p>
-                <p className="text-xs text-text-muted">{selectedCard.type_line || selectedCard.typeLine}</p>
-                {selectedCard.prices?.eur && (
-                  <p className="text-sm font-bold text-accent mt-1">{selectedCard.prices.eur}</p>
+                <p className="text-xs text-text-secondary">{selectedCard.setName}</p>
+                {selectedCard.subtitle && <p className="text-xs text-text-muted">{selectedCard.subtitle}</p>}
+                {selectedCard.priceEur && (
+                  <p className="text-sm font-bold text-accent mt-1">{selectedCard.priceEur} EUR</p>
                 )}
               </div>
             </div>

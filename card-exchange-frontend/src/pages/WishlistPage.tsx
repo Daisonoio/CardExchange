@@ -3,9 +3,9 @@ import { Plus, Heart, X, ChevronDown, Loader2 } from 'lucide-react';
 import { wishlist, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
-import type { WishlistItem, ScryfallCard, CardCondition } from '../types';
+import type { WishlistItem, ScryfallCard, GameCard, CardCondition } from '../types';
 import { CONDITION_LABELS } from '../types';
-import ScryfallSearch from '../components/cards/ScryfallSearch';
+import GameCardSearch, { importGameCard } from '../components/cards/GameCardSearch';
 import WishlistGridItem from '../components/cards/WishlistGridItem';
 import EditWishlistSheet from '../components/cards/EditWishlistSheet';
 import Button from '../components/ui/Button';
@@ -21,15 +21,16 @@ const PRIORITY_COLORS = {
 
 export default function WishlistPage() {
   const { user } = useAuth();
-  const { selectedGameId } = useGame();
+  const { selectedGameId, selectedGame } = useGame();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editItem, setEditItem] = useState<WishlistItem | null>(null);
-  const [selectedCard, setSelectedCard] = useState<ScryfallCard | null>(null);
+  const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);
   const [printings, setPrintings] = useState<ScryfallCard[]>([]);
   const [loadingPrintings, setLoadingPrintings] = useState(false);
   const [showPrintings, setShowPrintings] = useState(false);
+  const isMagic = !selectedGame || selectedGame.name.toLowerCase().includes('magic');
   const [addForm, setAddForm] = useState({
     priority: 2 as 1 | 2 | 3,
     preferredCondition: undefined as CardCondition | undefined,
@@ -85,14 +86,24 @@ export default function WishlistPage() {
     }
   }, []);
 
-  const handleSelectCard = (card: ScryfallCard) => {
+  const handleSelectCard = (card: GameCard) => {
     setSelectedCard(card);
     setSaveError(null);
-    loadPrintings(card.name);
+    if (isMagic) loadPrintings(card.name);
   };
 
   const handleSelectPrinting = (card: ScryfallCard) => {
-    setSelectedCard(card);
+    // Update selectedCard with the chosen printing's details
+    setSelectedCard({
+      externalId: card.scryfallId || card.id,
+      name: card.name,
+      setName: card.set_name || card.setName,
+      rarity: card.rarity,
+      imageSmall: card.image_uris?.small || card.images?.small || card.card_faces?.[0]?.image_uris?.small || '',
+      imageLarge: card.image_uris?.normal || card.images?.normal || card.image_uris?.large || card.images?.large || card.card_faces?.[0]?.image_uris?.normal || '',
+      priceEur: card.prices?.eur,
+      subtitle: card.type_line || card.typeLine,
+    });
     setShowPrintings(false);
   };
 
@@ -112,9 +123,7 @@ export default function WishlistPage() {
     setIsSaving(true);
     setSaveError(null);
     try {
-      const scryfallId = getCardId(selectedCard);
-      const { data: importResult } = await scryfall.importCard(scryfallId);
-      const cardInfoId = importResult.cardInfoId || importResult.id;
+      const cardInfoId = await importGameCard(selectedGame?.name, selectedCard.externalId);
 
       await wishlist.create(user!.id, {
         cardInfoId,
@@ -245,15 +254,15 @@ export default function WishlistPage() {
             <p className="text-sm text-text-secondary mb-3">
               Quale carta stai cercando?
             </p>
-            <ScryfallSearch onSelect={handleSelectCard} placeholder="Cerca la carta desiderata..." />
+            <GameCardSearch onSelect={handleSelectCard} placeholder="Cerca la carta desiderata..." />
           </div>
         ) : (
           <div>
             {/* Card image - hero section */}
             <div className="relative bg-gradient-to-b from-gray-900 to-gray-800 flex justify-center py-5 rounded-xl -mx-1">
-              {getCardImage(selectedCard) ? (
+              {(selectedCard.imageLarge || selectedCard.imageSmall) ? (
                 <img
-                  src={getCardImage(selectedCard)}
+                  src={selectedCard.imageLarge || selectedCard.imageSmall}
                   alt={selectedCard.name}
                   className="h-64 rounded-xl shadow-2xl object-contain"
                 />
@@ -268,25 +277,28 @@ export default function WishlistPage() {
             <div className="pt-4">
               <h3 className="text-base font-bold">{selectedCard.name}</h3>
 
-              {/* Set selector */}
-              <button
-                onClick={() => setShowPrintings(!showPrintings)}
-                className="mt-1.5 flex items-center gap-1.5 text-sm text-primary hover:underline"
-              >
-                <span className="uppercase font-semibold text-xs bg-primary/10 px-1.5 py-0.5 rounded">
-                  {getSetCode(selectedCard)}
-                </span>
-                <span>{getSetName(selectedCard)}</span>
-                <ChevronDown size={14} className={`transition-transform ${showPrintings ? 'rotate-180' : ''}`} />
-              </button>
+              {/* Set selector (printings only for Magic) */}
+              {isMagic ? (
+                <button
+                  onClick={() => setShowPrintings(!showPrintings)}
+                  className="mt-1.5 flex items-center gap-1.5 text-sm text-primary hover:underline"
+                >
+                  <span className="uppercase font-semibold text-xs bg-primary/10 px-1.5 py-0.5 rounded">
+                    {selectedCard.setName}
+                  </span>
+                  <ChevronDown size={14} className={`transition-transform ${showPrintings ? 'rotate-180' : ''}`} />
+                </button>
+              ) : selectedCard.setName ? (
+                <p className="mt-1.5 text-sm text-text-secondary">{selectedCard.setName}</p>
+              ) : null}
 
               {/* Price */}
-              {selectedCard.prices?.eur && (
-                <p className="text-sm font-bold text-accent mt-1">{selectedCard.prices.eur} EUR</p>
+              {selectedCard.priceEur && (
+                <p className="text-sm font-bold text-accent mt-1">{selectedCard.priceEur} EUR</p>
               )}
 
-              {/* Printings dropdown */}
-              {showPrintings && (
+              {/* Printings dropdown (Magic only) */}
+              {isMagic && showPrintings && (
                 <div className="mt-2 max-h-48 overflow-y-auto border border-border rounded-xl bg-surface-dark">
                   {loadingPrintings ? (
                     <div className="flex justify-center py-4">
