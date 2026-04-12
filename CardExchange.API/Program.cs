@@ -279,6 +279,11 @@ using (var scope = app.Services.CreateScope())
         {
             await context.Database.EnsureCreatedAsync();
         }
+        else
+        {
+            // Applica le migration pendenti automaticamente
+            await context.Database.MigrateAsync();
+        }
 
         await RBACSeeder.SeedRolesAndPermissions(context);
         await GameSeeder.SeedGames(context);
