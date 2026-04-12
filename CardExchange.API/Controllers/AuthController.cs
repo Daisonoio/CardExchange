@@ -218,6 +218,7 @@ namespace CardExchange.API.Controllers
         /// </summary>
         [HttpPost("refresh-token")]
         [AllowAnonymous]
+        [DisableRateLimiting]
         public async Task<ActionResult<AuthResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
         {
             try

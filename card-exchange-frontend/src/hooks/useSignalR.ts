@@ -12,13 +12,7 @@ export function useSignalR(
   onNotificationRef.current = onNotification;
 
   const getToken = useCallback(() => {
-    const raw = localStorage.getItem('auth_tokens');
-    if (!raw) return '';
-    try {
-      return JSON.parse(raw).accessToken || '';
-    } catch {
-      return '';
-    }
+    return localStorage.getItem('token') || '';
   }, []);
 
   useEffect(() => {

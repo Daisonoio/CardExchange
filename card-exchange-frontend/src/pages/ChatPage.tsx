@@ -30,9 +30,7 @@ export default function ChatPage() {
   const prevConvRef = useRef<number | null>(null);
 
   const getToken = useCallback(() => {
-    const raw = localStorage.getItem('auth_tokens');
-    if (!raw) return '';
-    try { return JSON.parse(raw).accessToken || ''; } catch { return ''; }
+    return localStorage.getItem('token') || '';
   }, []);
 
   // SignalR connection

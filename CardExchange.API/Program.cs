@@ -208,13 +208,13 @@ builder.Services.AddRateLimiter(options =>
         opt.QueueLimit = 5;
     });
 
-    // Policy stringente per autenticazione: 10 richieste/15 minuti per IP
+    // Policy per autenticazione: 20 richieste/15 minuti per IP
     options.AddFixedWindowLimiter("AuthPolicy", opt =>
     {
-        opt.PermitLimit = 10;
+        opt.PermitLimit = 20;
         opt.Window = TimeSpan.FromMinutes(15);
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 0;
+        opt.QueueLimit = 2;
     });
 
     options.OnRejected = async (context, cancellationToken) =>
