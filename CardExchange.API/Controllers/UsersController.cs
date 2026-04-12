@@ -24,18 +24,39 @@ namespace CardExchange.API.Controllers
         }
 
         /// <summary>
-        /// Ottiene tutti gli utenti, Endpoint solo per ADMIN
-        /// </summary> 
+        /// Ottiene tutti gli utenti con paginazione, Endpoint solo per ADMIN
+        /// </summary>
         [HttpGet]
         [RequirePermission("USERS.READ.ALL")]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
+        public async Task<ActionResult<object>> GetAllUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             try
             {
-                // TODO: Implementare paginazione per performance
-                var users = await _userRepository.GetAllUsersAsync();
-                var userDtos = users.Select(MapToDto);
-                return Ok(userDtos);
+                if (page < 1) page = 1;
+                if (pageSize < 1) pageSize = 1;
+                if (pageSize > 100) pageSize = 100;
+
+                var allUsers = await _userRepository.GetAllUsersAsync();
+                var usersList = allUsers.ToList();
+                var totalCount = usersList.Count;
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+                var pagedUsers = usersList
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(MapToDto);
+
+                return Ok(new
+                {
+                    data = pagedUsers,
+                    pagination = new
+                    {
+                        currentPage = page,
+                        pageSize,
+                        totalCount,
+                        totalPages
+                    }
+                });
             }
             catch (Exception ex)
             {
@@ -178,7 +199,6 @@ namespace CardExchange.API.Controllers
                     return BadRequest(new { message = "Username già in uso" });
                 }
 
-                // TODO: Implementare hashing password sicuro (BCrypt)
                 var passwordHash = HashPassword(request.Password);
 
                 var user = new User

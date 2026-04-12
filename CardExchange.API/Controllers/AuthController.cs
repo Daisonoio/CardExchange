@@ -75,6 +75,8 @@ namespace CardExchange.API.Controllers
 
                 // Crea il nuovo utente
                 // Crea il nuovo utente
+                var emailVerificationToken = Guid.NewGuid().ToString("N");
+
                 var user = new User
                 {
                     Email = request.Email,
@@ -85,6 +87,8 @@ namespace CardExchange.API.Controllers
                     PasswordHash = passwordHash,
                     IsActive = true,
                     EmailConfirmed = false,
+                    EmailVerificationToken = emailVerificationToken,
+                    EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24),
                     RefreshToken = _tokenService.GenerateRefreshToken(),
                     RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays)
                 };
@@ -400,6 +404,100 @@ namespace CardExchange.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Errore durante il cambio password");
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
+        /// <summary>
+        /// Verifica l'email dell'utente tramite token
+        /// </summary>
+        [HttpGet("verify-email")]
+        [AllowAnonymous]
+        public async Task<ActionResult> VerifyEmail([FromQuery] string token)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    return BadRequest(new { message = "Token di verifica mancante" });
+                }
+
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.EmailVerificationToken == token);
+
+                if (user == null)
+                {
+                    return BadRequest(new { message = "Token di verifica non valido" });
+                }
+
+                if (user.EmailVerificationTokenExpiry < DateTime.UtcNow)
+                {
+                    return BadRequest(new { message = "Token di verifica scaduto. Richiedi un nuovo link di verifica." });
+                }
+
+                user.EmailConfirmed = true;
+                user.EmailVerificationToken = null;
+                user.EmailVerificationTokenExpiry = null;
+
+                _userRepository.Update(user);
+                await _userRepository.SaveChangesAsync();
+
+                _logger.LogInformation("Email verificata per l'utente: {UserId} - {Email}", user.Id, user.Email);
+
+                return Ok(new { message = "Email verificata con successo" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante la verifica email");
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
+        /// <summary>
+        /// Rigenera il token di verifica email
+        /// </summary>
+        [HttpPost("resend-verification")]
+        [Authorize]
+        public async Task<ActionResult> ResendVerificationEmail()
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return Unauthorized();
+                }
+
+                var userId = int.Parse(userIdClaim.Value);
+                var user = await _userRepository.GetByIdAsync(userId);
+
+                if (user == null)
+                {
+                    return NotFound(new { message = "Utente non trovato" });
+                }
+
+                if (user.EmailConfirmed)
+                {
+                    return BadRequest(new { message = "Email già verificata" });
+                }
+
+                user.EmailVerificationToken = Guid.NewGuid().ToString("N");
+                user.EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24);
+
+                _userRepository.Update(user);
+                await _userRepository.SaveChangesAsync();
+
+                _logger.LogInformation("Token verifica email rigenerato per utente: {UserId}", userId);
+
+                return Ok(new
+                {
+                    message = "Nuovo link di verifica generato",
+                    verificationToken = user.EmailVerificationToken
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante la rigenerazione del token di verifica");
                 return StatusCode(500, new { message = "Errore interno del server" });
             }
         }

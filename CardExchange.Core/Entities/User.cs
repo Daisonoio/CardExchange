@@ -40,6 +40,8 @@ namespace CardExchange.Core.Entities
 
         public bool IsActive { get; set; } = true;
         public bool EmailConfirmed { get; set; } = false;
+        public string? EmailVerificationToken { get; set; }
+        public DateTime? EmailVerificationTokenExpiry { get; set; }
         public DateTime? LastLoginAt { get; set; }
 
         // Reputazione

@@ -45,8 +45,7 @@ namespace CardExchange.API.Controllers
                 return Ok(new
                 {
                     message = "Password aggiornata con successo",
-                    username = user.Username,
-                    newPassword = request.NewPassword
+                    username = user.Username
                 });
             }
             catch (Exception ex)
