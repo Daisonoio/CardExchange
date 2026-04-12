@@ -6,6 +6,7 @@ using CardExchange.API.Services.Notifications;
 using CardExchange.API.Services.Notifications.Handlers;
 using CardExchange.Infrastructure.Configuration;
 using CardExchange.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
