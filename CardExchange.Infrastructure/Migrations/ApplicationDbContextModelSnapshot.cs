@@ -1558,8 +1558,7 @@ namespace CardExchange.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("EmailVerificationToken")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("EmailVerificationTokenExpiry")
                         .HasColumnType("datetime2");

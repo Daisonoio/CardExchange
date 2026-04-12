@@ -14,8 +14,7 @@ namespace CardExchange.Infrastructure.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "EmailVerificationToken",
                 table: "Users",
-                type: "nvarchar(100)",
-                maxLength: 100,
+                type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<DateTime>(
@@ -29,11 +28,11 @@ namespace CardExchange.Infrastructure.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "EmailVerificationToken",
+                name: "EmailVerificationTokenExpiry",
                 table: "Users");
 
             migrationBuilder.DropColumn(
-                name: "EmailVerificationTokenExpiry",
+                name: "EmailVerificationToken",
                 table: "Users");
         }
     }
