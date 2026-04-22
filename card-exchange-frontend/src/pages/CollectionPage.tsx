@@ -173,9 +173,9 @@ export default function CollectionPage() {
 
       {/* Cards grid */}
       {isLoading ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+        <div className="grid grid-cols-3 ">
           {[...Array(9)].map((_, i) => (
-            <div key={i} className="aspect-[5/7] bg-white rounded-xl animate-pulse" />
+            <div key={i} className="aspect-[6/7] bg-white rounded-xl animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -192,7 +192,7 @@ export default function CollectionPage() {
           ) : undefined}
         />
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {filtered.map((card) => (
             <CardGridItem
               key={card.id}

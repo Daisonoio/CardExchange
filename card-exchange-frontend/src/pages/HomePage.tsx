@@ -77,17 +77,7 @@ export default function HomePage() {
           <h1 className="text-white text-2xl font-bold leading-tight">
             Ciao, {user.firstName}!
           </h1>
-          <p className="text-white/70 text-sm mt-1 mb-4">
-            Scopri le carte vicino a te
-          </p>
-          <button
-            onClick={() => navigate('/explore')}
-            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full"
-            style={{ background: '#f5b800', color: '#1a3461' }}
-          >
-            Esplora
-            <ArrowRight size={14} />
-          </button>
+    
         </div>
         {/* Decorative circles */}
         <div
