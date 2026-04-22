@@ -3,7 +3,6 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Search, Library, MapPin, ArrowLeftRight } from 'lucide-react';
 import { cards, users, favorites } from '../api';
 import { useAuth } from '../context/AuthContext';
-import { useGame } from '../context/GameContext';
 import type { Card, User } from '../types';
 import CardGridItem from '../components/cards/CardGridItem';
 import EditCardSheet from '../components/cards/EditCardSheet';
@@ -13,7 +12,6 @@ import Button from '../components/ui/Button';
 export default function UserCollectionPage() {
   const { userId } = useParams<{ userId: string }>();
   const { user: currentUser } = useAuth();
-  const { selectedGameId } = useGame();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -48,7 +46,7 @@ export default function UserCollectionPage() {
     setIsLoading(true);
     try {
       const [cardsRes, userRes] = await Promise.all([
-        cards.getByUser(numericId, selectedGameId),
+        cards.getByUser(numericId),
         users.getProfile(numericId),
       ]);
       const allCards: Card[] = Array.isArray(cardsRes.data)
@@ -70,7 +68,7 @@ export default function UserCollectionPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [userId, numericId, isOwnCollection, selectedGameId]);
+  }, [userId, numericId, isOwnCollection]);
 
   useEffect(() => { load(); }, [load]);
 

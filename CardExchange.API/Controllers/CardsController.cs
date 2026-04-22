@@ -54,9 +54,11 @@ namespace CardExchange.API.Controllers
         {
             try
             {
+                var currentUser = GetCurrentUserId();
                 var cards = gameId.HasValue
                     ? await _cardRepository.GetAvailableCardsAsync(gameId.Value)
                     : await _cardRepository.GetAvailableCardsAsync();
+                cards = cards.Where(x => x.UserId != currentUser);
                 var cardDtos = cards.Select(MapToDto);
 
                 return Ok(new

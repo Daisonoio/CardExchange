@@ -161,8 +161,9 @@ namespace CardExchange.API.Controllers
                 {
                     return BadRequest(new { message = "Il raggio deve essere tra 1 e 1000 km" });
                 }
-
+                var userIdClaim = int.TryParse(User.FindFirst("UserId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var userId) ? userId : 0;
                 var users = await _userRepository.GetUsersInRadiusAsync(latitude, longitude, radiusKm);
+                users = users.Where(x => x.Id != userIdClaim);
                 var userDtos = users.Select(MapToDto);
 
                 return Ok(new
