@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowLeftRight, DollarSign, Send, ArrowLeft, Loader2, X, Plus, Check, Search,
+  ArrowLeftRight, DollarSign, Send, ArrowLeft, Loader2, X, Plus, Check, Search, MessageSquare,
 } from 'lucide-react';
 import { cards, wishlist, tradeOffers } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -40,6 +40,7 @@ export default function TradeRequestPage() {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [createdOfferId, setCreatedOfferId] = useState<number | null>(null);
   const [searchMyCards, setSearchMyCards] = useState('');
   const [searchOtherCards, setSearchOtherCards] = useState('');
 
@@ -157,9 +158,9 @@ export default function TradeRequestPage() {
           : [];
       }
 
-      await tradeOffers.create(payload);
+      const { data: createdOffer } = await tradeOffers.create(payload);
+      setCreatedOfferId((createdOffer as any)?.id ?? null);
       setSuccess(true);
-      setTimeout(() => navigate('/trades'), 1500);
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Errore durante l\'invio della richiesta';
       setError(msg);
@@ -188,13 +189,27 @@ export default function TradeRequestPage() {
   const totalOfferedValue = offeredCards.reduce((sum, c) => sum + (c.estimatedValue || 0), 0);
 
   if (success) {
+    const chatUrl = `/chat?userId=${receiverId}${createdOfferId ? `&tradeOfferId=${createdOfferId}` : ''}`;
     return (
-      <div className="flex flex-col items-center justify-center py-20">
+      <div className="flex flex-col items-center justify-center py-20 px-4">
         <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
           <Check size={32} className="text-green-600" />
         </div>
         <h2 className="text-xl font-bold text-text mb-2">Richiesta inviata!</h2>
-        <p className="text-sm text-text-secondary">Reindirizzamento alle tue richieste...</p>
+        <p className="text-sm text-text-secondary mb-8 text-center">
+          La proposta è stata inviata a{' '}
+          <span className="font-semibold">@{otherUsername || `utente #${receiverId}`}</span>
+        </p>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <Button onClick={() => navigate(chatUrl)} className="w-full" size="lg">
+            <MessageSquare size={16} />
+            Chatta con @{otherUsername || `utente #${receiverId}`}
+          </Button>
+          <Button onClick={() => navigate('/trades')} variant="outline" className="w-full" size="lg">
+            <ArrowLeftRight size={16} />
+            Vai agli Scambi
+          </Button>
+        </div>
       </div>
     );
   }

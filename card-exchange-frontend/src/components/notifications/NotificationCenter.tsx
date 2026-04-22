@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Check, CheckCheck, Trash2, Settings } from 'lucide-react';
+import { Bell, Check, CheckCheck, Trash2, Settings, X } from 'lucide-react';
 import { notifications } from '../../api';
 import type { Notification } from '../../types';
 import { getNotificationConfig } from './notificationRegistry';
@@ -15,32 +15,29 @@ interface NotificationCenterProps {
   open: boolean;
   onClose: () => void;
   onUnreadCountChange?: (count: number) => void;
+  /** 'sheet' (default): mobile bottom-sheet / desktop modal. 'panel': desktop dropdown. */
+  variant?: 'sheet' | 'panel';
 }
 
-/** Determina la route di navigazione in base al tipo e referenceId */
 function getNavigationTarget(notification: Notification): string | null {
   const { referenceType, referenceId } = notification;
-
-  // PriceSpike naviga sempre alla collezione
   if (referenceType === 'PriceSpike') return '/collection';
-
   if (!referenceId) return null;
-
   switch (referenceType) {
-    case 'TradeOffer':
-      return '/trades';
-    case 'Card':
-      return `/collection`;
-    case 'WishlistItem':
-      return '/wishlist';
-    case 'Conversation':
-      return '/trades';
-    default:
-      return null;
+    case 'TradeOffer': return '/trades';
+    case 'Card': return '/collection';
+    case 'WishlistItem': return '/wishlist';
+    case 'Conversation': return '/chat';
+    default: return null;
   }
 }
 
-export default function NotificationCenter({ open, onClose, onUnreadCountChange }: NotificationCenterProps) {
+export default function NotificationCenter({
+  open,
+  onClose,
+  onUnreadCountChange,
+  variant = 'sheet',
+}: NotificationCenterProps) {
   const navigate = useNavigate();
   const [items, setItems] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,7 +66,6 @@ export default function NotificationCenter({ open, onClose, onUnreadCountChange 
     onVisibilityChange: true,
   });
 
-  // SignalR real-time: quando arriva una notifica push, aggiungila in cima
   useSignalR(open, (incoming: any) => {
     const newNotif: Notification = {
       id: incoming.id ?? incoming.Id,
@@ -116,9 +112,7 @@ export default function NotificationCenter({ open, onClose, onUnreadCountChange 
   };
 
   const handleNotificationClick = async (notification: Notification) => {
-    if (!notification.isRead) {
-      await handleMarkAsRead(notification.id);
-    }
+    if (!notification.isRead) await handleMarkAsRead(notification.id);
     const target = getNavigationTarget(notification);
     if (target) {
       onClose();
@@ -128,106 +122,139 @@ export default function NotificationCenter({ open, onClose, onUnreadCountChange 
 
   const unreadCount = items.filter((n) => !n.isRead).length;
 
+  const listContent = (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between mb-2">
+        {unreadCount > 0 && (
+          <span className="text-xs text-text-muted">{unreadCount} non lette</span>
+        )}
+        <div className="flex items-center gap-2 ml-auto">
+          {unreadCount > 0 && (
+            <button
+              onClick={handleMarkAllRead}
+              className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
+            >
+              <CheckCheck size={12} /> Segna tutte
+            </button>
+          )}
+          <button
+            onClick={() => setShowPreferences(true)}
+            className="p-1.5 rounded-lg text-text-muted hover:bg-gray-100 hover:text-text"
+            title="Preferenze notifiche"
+          >
+            <Settings size={14} />
+          </button>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-2">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <div className="text-center py-8">
+          <Bell size={32} className="mx-auto text-text-muted mb-2" />
+          <p className="text-sm text-text-muted">Nessuna notifica</p>
+        </div>
+      ) : (
+        items.map((notification) => {
+          const cfg = getNotificationConfig(notification.type);
+          const Icon = cfg.icon;
+          const hasTarget = !!getNavigationTarget(notification);
+
+          return (
+            <div
+              key={notification.id}
+              onClick={() => handleNotificationClick(notification)}
+              className={`flex items-start gap-3 p-3 rounded-xl border transition-colors ${
+                hasTarget ? 'cursor-pointer hover:border-primary/40' : ''
+              } ${
+                notification.isRead
+                  ? 'bg-white border-border/30'
+                  : 'bg-blue-50/40 border-primary/20'
+              }`}
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${cfg.color}`}>
+                <Icon size={14} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-xs font-semibold truncate ${notification.isRead ? 'text-text-secondary' : 'text-text'}`}>
+                  {notification.title}
+                </p>
+                {notification.body && (
+                  <p className="text-[11px] text-text-muted mt-0.5 line-clamp-2">{notification.body}</p>
+                )}
+                <p className="text-[10px] text-text-muted mt-1">
+                  {new Date(notification.createdAt).toLocaleDateString('it-IT', {
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+                  })}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                {!notification.isRead && (
+                  <button
+                    onClick={() => handleMarkAsRead(notification.id)}
+                    className="p-1 rounded text-primary hover:bg-primary/10"
+                    title="Segna come letta"
+                  >
+                    <Check size={12} />
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDelete(notification.id)}
+                  className="p-1 rounded text-text-muted hover:bg-red-50 hover:text-red-500"
+                  title="Elimina"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+
   return (
     <>
-    <BottomSheet open={open} onClose={onClose} title="Notifiche">
-      <div className="space-y-2">
-        <div className="flex items-center justify-between mb-2">
-          {unreadCount > 0 && (
-            <span className="text-xs text-text-muted">{unreadCount} non lette</span>
-          )}
-          <div className="flex items-center gap-2 ml-auto">
-            {unreadCount > 0 && (
-              <button
-                onClick={handleMarkAllRead}
-                className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
-              >
-                <CheckCheck size={12} /> Segna tutte
-              </button>
-            )}
-            <button
-              onClick={() => setShowPreferences(true)}
-              className="p-1.5 rounded-lg text-text-muted hover:bg-gray-100 hover:text-text"
-              title="Preferenze notifiche"
+      {variant === 'panel' ? (
+        open ? (
+          <>
+            {/* Invisible overlay to catch outside clicks */}
+            <div className="fixed inset-0 z-[59]" onClick={onClose} />
+            {/* Dropdown panel */}
+            <div
+              className="fixed top-16 right-4 w-96 bg-white rounded-2xl shadow-2xl border border-border z-[60] flex flex-col overflow-hidden"
+              style={{ maxHeight: 'calc(100vh - 5rem)' }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <Settings size={14} />
-            </button>
-          </div>
-        </div>
-
-        {isLoading ? (
-          <div className="space-y-2">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
-            ))}
-          </div>
-        ) : items.length === 0 ? (
-          <div className="text-center py-8">
-            <Bell size={32} className="mx-auto text-text-muted mb-2" />
-            <p className="text-sm text-text-muted">Nessuna notifica</p>
-          </div>
-        ) : (
-          items.map((notification) => {
-            const cfg = getNotificationConfig(notification.type);
-            const Icon = cfg.icon;
-            const hasTarget = !!getNavigationTarget(notification);
-
-            return (
-              <div
-                key={notification.id}
-                onClick={() => handleNotificationClick(notification)}
-                className={`flex items-start gap-3 p-3 rounded-xl border transition-colors ${
-                  hasTarget ? 'cursor-pointer hover:border-primary/40' : ''
-                } ${
-                  notification.isRead
-                    ? 'bg-white border-border/30'
-                    : 'bg-blue-50/40 border-primary/20'
-                }`}
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${cfg.color}`}>
-                  <Icon size={14} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-xs font-semibold truncate ${notification.isRead ? 'text-text-secondary' : 'text-text'}`}>
-                    {notification.title}
-                  </p>
-                  {notification.body && (
-                    <p className="text-[11px] text-text-muted mt-0.5 line-clamp-2">{notification.body}</p>
-                  )}
-                  <p className="text-[10px] text-text-muted mt-1">
-                    {new Date(notification.createdAt).toLocaleDateString('it-IT', {
-                      day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
-                    })}
-                  </p>
-                </div>
-                <div className="flex flex-col gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                  {!notification.isRead && (
-                    <button
-                      onClick={() => handleMarkAsRead(notification.id)}
-                      className="p-1 rounded text-primary hover:bg-primary/10"
-                      title="Segna come letta"
-                    >
-                      <Check size={12} />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDelete(notification.id)}
-                    className="p-1 rounded text-text-muted hover:bg-red-50 hover:text-red-500"
-                    title="Elimina"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 shrink-0">
+                <h2 className="text-base font-bold text-text">Notifiche</h2>
+                <button
+                  onClick={onClose}
+                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-dark transition-colors"
+                >
+                  <X size={16} className="text-text-muted" />
+                </button>
               </div>
-            );
-          })
-        )}
-      </div>
-    </BottomSheet>
-    <NotificationPreferences
-      open={showPreferences}
-      onClose={() => setShowPreferences(false)}
-    />
+              <div className="flex-1 overflow-y-auto p-4">
+                {listContent}
+              </div>
+            </div>
+          </>
+        ) : null
+      ) : (
+        <BottomSheet open={open} onClose={onClose} title="Notifiche">
+          {listContent}
+        </BottomSheet>
+      )}
+
+      <NotificationPreferences
+        open={showPreferences}
+        onClose={() => setShowPreferences(false)}
+      />
     </>
   );
 }

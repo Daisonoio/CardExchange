@@ -187,6 +187,7 @@ export default function TradesPage() {
             onAction={handleAction}
             actionLoading={actionLoading}
             actionError={actionError}
+            onClose={() => setSelectedOffer(null)}
             onNavigateToCounter={(offerId) => {
               setSelectedOffer(null);
               navigate(`/trades/${offerId}/counter`);
@@ -200,7 +201,7 @@ export default function TradesPage() {
 
 /* ---- Offer Detail Component ---- */
 function OfferDetail({
-  offer, userId, onAction, actionLoading, actionError, onNavigateToCounter,
+  offer, userId, onAction, actionLoading, actionError, onNavigateToCounter, onClose,
 }: {
   offer: TradeOffer;
   userId: number;
@@ -208,7 +209,9 @@ function OfferDetail({
   actionLoading: number | null;
   actionError: string | null;
   onNavigateToCounter: (offerId: number) => void;
+  onClose: () => void;
 }) {
+  const navigate = useNavigate();
   const [otherUserPayment, setOtherUserPayment] = useState<Pick<User, 'paypalUsername' | 'satispayUsername' | 'paymentQrCodeUrl'> | null>(null);
   const isSender = offer.senderId === userId;
   const isReceiver = offer.receiverId === userId;
@@ -387,13 +390,13 @@ function OfferDetail({
       <button
         onClick={() => {
           const otherId = isSender ? offer.receiverId : offer.senderId;
-          onNavigateToCounter(-1); // close sheet
-          window.location.href = `/chat?userId=${otherId}&tradeOfferId=${offer.id}`;
+          onClose();
+          navigate(`/chat?userId=${otherId}&tradeOfferId=${offer.id}`);
         }}
         className="w-full py-2.5 rounded-xl text-sm font-medium border border-border text-text-secondary hover:bg-surface-dark transition-colors flex items-center justify-center gap-1.5 mt-2"
       >
         <MessageSquare size={14} />
-        Invia messaggio
+        Chatta con @{isSender ? offer.receiverUsername : offer.senderUsername}
       </button>
     </div>
   );
