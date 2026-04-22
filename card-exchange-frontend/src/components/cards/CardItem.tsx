@@ -6,6 +6,7 @@ interface CardItemProps {
   card: Card;
   onEdit?: (card: Card) => void;
   onDelete?: (card: Card) => void;
+  onClick?: (card: Card) => void;
   showUser?: boolean;
 }
 
@@ -15,7 +16,7 @@ const CONDITION_MAP: Record<string, number> = {
   LightlyPlayed: 5, ModeratelyPlayed: 6, HeavilyPlayed: 7, Damaged: 8,
 };
 
-export default function CardItem({ card, onEdit, onDelete, showUser }: CardItemProps) {
+export default function CardItem({ card, onEdit, onDelete, onClick, showUser }: CardItemProps) {
   const info = card.cardInfo;
   const cardName = card.cardName || info?.name || 'Carta sconosciuta';
   const cardSetName = card.cardSetName || info?.cardSet?.name || '';
@@ -33,7 +34,10 @@ export default function CardItem({ card, onEdit, onDelete, showUser }: CardItemP
     : 'text-red-600 bg-red-50';
 
   return (
-    <div className="bg-white rounded-2xl p-3 shadow-sm border border-border/50 hover:shadow-md transition-shadow">
+    <div
+      className={`bg-white rounded-2xl p-3 shadow-sm border border-border/50 hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick ? () => onClick(card) : undefined}
+    >
       <div className="flex gap-3">
         {/* Card image */}
         <div className="w-16 shrink-0">

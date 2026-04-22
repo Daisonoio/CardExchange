@@ -173,6 +173,12 @@ export default function ExplorePage() {
       )
     : zoneCards;
 
+  const handleCardClick = useCallback((card: Card) => {
+    navigate(`/collection/${card.userId}`, {
+      state: { preselectCardId: card.id, preselectCardInfoId: card.cardInfoId },
+    });
+  }, [navigate]);
+
   const isLocationActive = useLocation && (hasProfileLocation || !!liveCoords);
 
   return (
@@ -288,7 +294,7 @@ export default function ExplorePage() {
                 {isLocationActive && ` entro ${radiusKm} km`}
               </p>
               {filteredCards.map((card) => (
-                <CardItem key={card.id} card={card} showUser />
+                <CardItem key={card.id} card={card} showUser onClick={handleCardClick} />
               ))}
             </div>
           )}
@@ -359,7 +365,7 @@ export default function ExplorePage() {
                     {zoneLabel && ` da ${zoneLabel}`}
                   </p>
                   {filteredZoneCards.map((card) => (
-                    <CardItem key={card.id} card={card} showUser />
+                    <CardItem key={card.id} card={card} showUser onClick={handleCardClick} />
                   ))}
                 </div>
               )}
