@@ -197,7 +197,8 @@ export default function WishlistPage() {
       )}
 
       {isLoading ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+
           {[...Array(9)].map((_, i) => (
             <div key={i} className="aspect-[5/7] bg-white rounded-xl animate-pulse" />
           ))}
@@ -224,7 +225,7 @@ export default function WishlistPage() {
                   </span>
                   <span className="text-xs text-text-muted">{grouped[priority].length} carte</span>
                 </div>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {grouped[priority].map((item) => (
                     <WishlistGridItem
                       key={item.id}
