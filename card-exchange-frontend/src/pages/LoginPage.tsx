@@ -28,17 +28,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gradient-to-b from-primary/5 to-surface-dark">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: 'linear-gradient(160deg, #1a3461 0%, #2a4d8f 60%, #eef2f7 100%)' }}>
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
-            <Layers size={32} className="text-primary" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4" style={{ background: '#f5b800' }}>
+            <Layers size={32} style={{ color: '#1a3461' }} />
           </div>
-          <h1 className="text-2xl font-bold text-text">CardExchange</h1>
-          <p className="text-sm text-text-secondary mt-1">Accedi al tuo account</p>
+          <h1 className="text-2xl font-bold text-white">CardExchange</h1>
+          <p className="text-sm text-white/70 mt-1">Accedi al tuo account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-sm border border-border/50 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-xl space-y-4">
           {error && (
             <div className="px-4 py-3 rounded-xl bg-red-50 text-danger text-sm">
               {error}
@@ -69,9 +69,9 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-text-secondary mt-6">
+        <p className="text-center text-sm text-white/70 mt-6">
           Non hai un account?{' '}
-          <Link to="/register" className="text-primary font-semibold hover:underline">
+          <Link to="/register" className="text-secondary font-semibold hover:underline">
             Registrati
           </Link>
         </p>

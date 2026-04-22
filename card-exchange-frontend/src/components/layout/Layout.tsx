@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import TopBar from './TopBar';
 import BottomNav from './BottomNav';
 import GameSelector from './GameSelector';
+import MobileHeader from './MobileHeader';
 
 export default function Layout() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -21,10 +22,13 @@ export default function Layout() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Desktop nav */}
       <TopBar />
+      {/* Mobile top bar with hamburger */}
+      <MobileHeader />
       <GameSelector />
-      <main className="flex-1 pb-20 md:pb-4">
-        <div className="max-w-1xl mx-auto px-8 py-4" style={{ height: 'calc(100vh - 5rem)' }}  >
+      <main className="flex-1 pb-20 md:pb-4 pt-14 md:pt-0">
+        <div className="max-w-2xl mx-auto px-4 py-4">
           <Outlet />
         </div>
       </main>

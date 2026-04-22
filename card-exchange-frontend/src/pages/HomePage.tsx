@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Navigation, Loader2, Settings, Sparkles } from 'lucide-react';
+import { MapPin, Navigation, Loader2, Settings, Sparkles, ArrowRight } from 'lucide-react';
 import { wishlist } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
@@ -21,7 +21,6 @@ export default function HomePage() {
 
   const hasProfileLocation = !!(user?.location?.latitude && user?.location?.longitude);
 
-  // Load top cards when we have a location source
   useEffect(() => {
     if (!user) return;
 
@@ -31,13 +30,10 @@ export default function HomePage() {
         let params: Record<string, string | number> = {};
 
         if (hasProfileLocation) {
-          // Use saved profile location
           params = {};
         } else if (position) {
-          // Use live GPS coordinates
           params = { latitude: position.latitude, longitude: position.longitude };
         } else {
-          // No location at all
           setIsLoading(false);
           return;
         }
@@ -61,38 +57,55 @@ export default function HomePage() {
 
   const handleCardClick = (card: CarouselCard) => {
     navigate(`/collection/${card.ownerId}`, {
-      state: {
-        preselectCardId: card.cardId,
-        preselectCardInfoId: card.cardInfoId,
-      },
+      state: { preselectCardId: card.cardId, preselectCardInfoId: card.cardInfoId },
     });
-  };
-
-  const handleUseLivePosition = () => {
-    requestPosition();
   };
 
   if (!user) return null;
 
-  // No location set at all
   const showLocationPrompt = !hasProfileLocation && !position && !isLoading;
 
   return (
     <div>
-      {/* Welcome */}
-      <div className="max-w-lg mx-auto mb-5">
-        <h1 className="text-xl font-bold text-text">
-          Nelle vicinanze
-        </h1>
-     
+      {/* Hero banner */}
+      <div
+        className="rounded-2xl overflow-hidden mb-6 relative"
+        style={{ background: 'linear-gradient(135deg, #1a3461 0%, #2a4d8f 100%)', minHeight: '140px' }}
+      >
+        <div className="p-5 pr-28">
+          <p className="text-white/70 text-xs font-medium mb-1 uppercase tracking-wider">Benvenuto</p>
+          <h1 className="text-white text-2xl font-bold leading-tight">
+            Ciao, {user.firstName}!
+          </h1>
+          <p className="text-white/70 text-sm mt-1 mb-4">
+            Scopri le carte vicino a te
+          </p>
+          <button
+            onClick={() => navigate('/explore')}
+            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full"
+            style={{ background: '#f5b800', color: '#1a3461' }}
+          >
+            Esplora
+            <ArrowRight size={14} />
+          </button>
+        </div>
+        {/* Decorative circles */}
+        <div
+          className="absolute -right-8 -top-8 w-36 h-36 rounded-full opacity-20"
+          style={{ background: '#f5b800' }}
+        />
+        <div
+          className="absolute right-8 top-10 w-20 h-20 rounded-full opacity-10"
+          style={{ background: '#ffffff' }}
+        />
       </div>
 
       {/* Location prompt */}
       {showLocationPrompt && (
-        <div className="max-w-lg mx-auto bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
-          <div className="flex items-center gap-2 mb-3">
-            <MapPin size={18} className="text-primary" />
-            <h2 className="text-sm font-bold">Imposta la tua posizione</h2>
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <MapPin size={16} style={{ color: '#1a3461' }} />
+            <h2 className="text-sm font-bold text-text">Imposta la tua posizione</h2>
           </div>
           <p className="text-sm text-text-secondary mb-4">
             Per vedere le carte disponibili nelle tue vicinanze, devi impostare la tua posizione.
@@ -102,7 +115,7 @@ export default function HomePage() {
               <Settings size={14} />
               Imposta nel profilo
             </Button>
-            <Button onClick={handleUseLivePosition} className="w-full" isLoading={geoLoading}>
+            <Button onClick={requestPosition} className="w-full" isLoading={geoLoading}>
               <Navigation size={14} />
               Usa posizione attuale
             </Button>
@@ -113,24 +126,26 @@ export default function HomePage() {
       {/* Loading */}
       {isLoading && (
         <div className="flex justify-center py-16">
-          <Loader2 size={28} className="animate-spin text-primary" />
+          <Loader2 size={28} className="animate-spin" style={{ color: '#1a3461' }} />
         </div>
       )}
 
-      {/* Carousel section — full width, dark bg inside component */}
+      {/* Cards nearby */}
       {!isLoading && !showLocationPrompt && topCards.length > 0 && (
-        <div className="w-full mb-4 -mx-4 px-0" style={{ width: 'calc(100% + 2rem)'  }}>
-          <div className="max-w-lg max-h-lg mx-auto px-4 pb-2 flex items-center justify-between">
-      
-            <span className="text-xs text-text-muted">{topCards.length} risultati vicino a te</span>
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-bold text-text">Nelle vicinanze</h2>
+            <span className="text-xs text-text-muted">{topCards.length} risultati</span>
           </div>
-          <CardCarousel cards={topCards} onCardClick={handleCardClick} />
+          <div className="w-full -mx-4" style={{ width: 'calc(100% + 2rem)' }}>
+            <CardCarousel cards={topCards} onCardClick={handleCardClick} />
+          </div>
         </div>
       )}
 
       {/* No matches */}
       {!isLoading && !showLocationPrompt && (hasProfileLocation || position) && topCards.length === 0 && (
-        <div className="max-w-lg mx-auto"><EmptyState
+        <EmptyState
           icon={Sparkles}
           title="Nessuna carta trovata"
           description="Non ci sono carte dalla tua wishlist disponibili nel raggio di ricerca. Prova ad aggiungere carte alla wishlist o ad aumentare il raggio."
@@ -144,11 +159,8 @@ export default function HomePage() {
               </Button>
             </div>
           }
-        /></div>
+        />
       )}
-
-      {/* Quick links */}
-      
     </div>
   );
 }

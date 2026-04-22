@@ -1,7 +1,9 @@
 import { useAuth } from '../context/AuthContext';
-import { Star, ArrowLeftRight, MessageCircle, MapPin, LogOut, ChevronRight, Pencil } from 'lucide-react';
+import {
+  Star, ArrowLeftRight, MessageCircle, MapPin, LogOut,
+  ChevronRight, Pencil, Library, Heart, Trophy,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Button from '../components/ui/Button';
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
@@ -14,96 +16,95 @@ export default function ProfilePage() {
     navigate('/login');
   };
 
-  const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+  const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase();
+
+  const menuItems = [
+    { label: 'Modifica Profilo', icon: Pencil, to: '/profile/edit' },
+    { label: 'Le mie Carte', icon: Library, to: '/collection' },
+    { label: 'Wishlist', icon: Heart, to: '/wishlist' },
+    { label: 'I miei Scambi', icon: ArrowLeftRight, to: '/trades' },
+    { label: 'Recensioni ricevute', icon: Trophy, to: null },
+  ];
 
   return (
     <div className="max-w-lg mx-auto">
-      {/* Profile card */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-border/50 mb-4 relative">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center shrink-0">
-            {user.avatarUrl ? (
-              <img src={user.avatarUrl} alt={user.username} className="w-16 h-16 rounded-full object-cover" />
-            ) : (
-              <span className="text-xl font-bold text-white">{initials}</span>
-            )}
-          </div>
-          <div className="min-w-0">
-            <h2 className="text-lg font-bold truncate">{user.firstName} {user.lastName}</h2>
-            <p className="text-sm text-text-secondary">@{user.username}</p>
-            {user.location && (
-              <p className="text-xs text-text-muted flex items-center gap-1 mt-1">
-                <MapPin size={12} />
-                {user.location.city}, {user.location.country}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <button
-          onClick={() => navigate('/profile/edit')}
-          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-surface-dark transition text-text-secondary"
+      {/* User identity */}
+      <div className="flex items-center gap-4 mb-6 px-1">
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center shrink-0 text-xl font-bold overflow-hidden"
+          style={{ background: '#1a3461', color: '#f5b800' }}
         >
-          <Pencil size={16} />
-        </button>
-
-        {user.bio && (
-          <p className="text-sm text-text-secondary mt-3">{user.bio}</p>
-        )}
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mt-5">
-          <div className="bg-surface-dark rounded-xl p-3 text-center">
-            <div className="flex items-center justify-center gap-1 text-secondary">
-              <Star size={14} />
-              <span className="text-lg font-bold">{(user.reputationScore ?? 0).toFixed(1)}</span>
-            </div>
-            <p className="text-xs text-text-muted mt-0.5">Reputazione</p>
-          </div>
-          <div className="bg-surface-dark rounded-xl p-3 text-center">
-            <div className="flex items-center justify-center gap-1 text-primary">
-              <ArrowLeftRight size={14} />
-              <span className="text-lg font-bold">{user.totalTradesCompleted ?? 0}</span>
-            </div>
-            <p className="text-xs text-text-muted mt-0.5">Scambi</p>
-          </div>
-          <div className="bg-surface-dark rounded-xl p-3 text-center">
-            <div className="flex items-center justify-center gap-1 text-accent">
-              <MessageCircle size={14} />
-              <span className="text-lg font-bold">{user.totalReviewsReceived ?? 0}</span>
-            </div>
-            <p className="text-xs text-text-muted mt-0.5">Recensioni</p>
-          </div>
+          {user.avatarUrl ? (
+            <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
+          ) : (
+            <span>{initials}</span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <h2 className="text-xl font-bold text-text">{user.firstName} {user.lastName}</h2>
+          <p className="text-sm text-text-secondary">@{user.username}</p>
+          {user.location && (
+            <p className="text-xs text-text-muted flex items-center gap-1 mt-0.5">
+              <MapPin size={11} />
+              {user.location.city}, {user.location.country}
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Menu sections */}
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-border/50 mb-4">
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
         {[
-          { label: 'Le mie Carte', to: '/collection', icon: '🃏' },
-          { label: 'Le mie Ricerche', to: '/wishlist', icon: '❤️' },
-          { label: 'I miei Scambi', to: '/trades', icon: '🔄' },
-         // { label: 'I miei Eventi', to: '/events', icon: '📅' },
-        ].map((item) => (
+          { icon: Star, value: (user.reputationScore ?? 0).toFixed(1), label: 'Reputazione', color: '#f5b800' },
+          { icon: ArrowLeftRight, value: user.totalTradesCompleted ?? 0, label: 'Scambi', color: '#1a3461' },
+          { icon: MessageCircle, value: user.totalReviewsReceived ?? 0, label: 'Recensioni', color: '#10b981' },
+        ].map(({ icon: Icon, value, label, color }) => (
+          <div key={label} className="bg-white rounded-2xl p-3 text-center shadow-sm border border-border/50">
+            <div className="flex items-center justify-center gap-1 mb-0.5" style={{ color }}>
+              <Icon size={14} />
+              <span className="text-lg font-bold text-text">{value}</span>
+            </div>
+            <p className="text-[11px] text-text-muted">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Menu list */}
+      <div className="bg-white rounded-2xl shadow-sm border border-border/50 overflow-hidden mb-4">
+        {menuItems.map(({ label, icon: Icon, to }, idx) => (
           <button
-            key={item.to}
-            onClick={() => navigate(item.to)}
-            className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-surface-dark transition-colors border-b border-border/50 last:border-0"
+            key={label}
+            onClick={() => to && navigate(to)}
+            disabled={!to}
+            className={`w-full flex items-center gap-3 px-4 py-4 transition-colors text-left ${
+              idx < menuItems.length - 1 ? 'border-b border-border/50' : ''
+            } ${to ? 'hover:bg-surface-dark' : 'cursor-default opacity-50'}`}
           >
-            <span className="flex items-center gap-3 text-sm font-medium">
-              <span className="text-base">{item.icon}</span>
-              {item.label}
+            <span
+              className="w-9 h-9 rounded-full border-2 border-border flex items-center justify-center shrink-0"
+              style={{ color: '#1a3461' }}
+            >
+              <Icon size={16} />
             </span>
-            <ChevronRight size={16} className="text-text-muted" />
+            <span className="flex-1 text-sm font-medium text-text">{label}</span>
+            {to && <ChevronRight size={16} className="text-text-muted" />}
           </button>
         ))}
       </div>
 
       {/* Logout */}
-      <Button onClick={handleLogout} variant="outline" className="w-full" size="lg">
-        <LogOut size={16} />
-        Esci dall'account
-      </Button>
+      <div className="bg-white rounded-2xl shadow-sm border border-border/50 overflow-hidden mb-6">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-4 hover:bg-red-50 transition-colors text-left"
+        >
+          <span className="w-9 h-9 rounded-full border-2 border-danger/40 flex items-center justify-center shrink-0 text-danger">
+            <LogOut size={16} />
+          </span>
+          <span className="flex-1 text-sm font-medium text-danger">Esci dall'account</span>
+          <ChevronRight size={16} className="text-danger/40" />
+        </button>
+      </div>
     </div>
   );
 }

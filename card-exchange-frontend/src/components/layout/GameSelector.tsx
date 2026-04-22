@@ -14,17 +14,17 @@ export default function GameSelector() {
   if (isLoading || games.length === 0) return null;
 
   return (
-    <div className="sticky top-0 md:top-16 z-40 bg-white/90 backdrop-blur-md border-b border-border/50">
-      <div className="max-w-7xl mx-auto px-2 md:px-4">
-        <div className="flex gap-1 py-1.5 overflow-x-auto scrollbar-hide">
-          {/* "All games" option */}
+    <div className="sticky top-14 md:top-16 z-40 bg-white border-b border-border/50">
+      <div className="max-w-2xl mx-auto px-4">
+        <div className="flex gap-2 py-2.5 overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setSelectedGameId(null)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
+            className={`px-5 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all shrink-0 ${
               selectedGameId === null
-                ? 'bg-gray-700 text-white shadow-sm'
-                : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
+                ? 'text-white shadow-sm'
+                : 'bg-surface-dark text-text-secondary hover:bg-border'
             }`}
+            style={selectedGameId === null ? { background: '#1a3461' } : {}}
           >
             Tutti
           </button>
@@ -36,13 +36,13 @@ export default function GameSelector() {
               <button
                 key={game.id}
                 onClick={() => setSelectedGameId(game.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
+                className={`px-5 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all shrink-0 ${
                   isSelected
-                    ? `${meta.color} text-white shadow-sm`
-                    : 'bg-gray-100 text-text-secondary hover:bg-gray-200'
+                    ? 'text-white shadow-sm'
+                    : 'bg-surface-dark text-text-secondary hover:bg-border'
                 }`}
+                style={isSelected ? { background: '#1a3461' } : {}}
               >
-                <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white/80' : meta.color}`} />
                 {meta.short}
               </button>
             );
