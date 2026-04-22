@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useLocation, NavLink, useNavigate } from 'react-router-dom';
 import {
   Menu, X, Layers, Bell, MessageSquare, Sparkles,
-  ArrowLeftRight, CalendarDays, LogOut,
+  ArrowLeftRight, LogOut,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -18,7 +18,6 @@ const PAGE_TITLES: Record<string, string> = {
   '/trades': 'Scambi',
   '/matchmaking': 'Matchmaking',
   '/chat': 'Chat',
-  '/events': 'Eventi',
   '/profile/edit': 'Modifica Profilo',
 };
 
@@ -26,7 +25,6 @@ const SIDEBAR_LINKS = [
   { to: '/trades', icon: ArrowLeftRight, label: 'Scambi' },
   { to: '/matchmaking', icon: Sparkles, label: 'Matchmaking' },
   { to: '/chat', icon: MessageSquare, label: 'Chat' },
-  { to: '/events', icon: CalendarDays, label: 'Eventi' },
 ];
 
 export default function MobileHeader() {
@@ -52,7 +50,6 @@ export default function MobileHeader() {
     return () => clearInterval(id);
   }, [fetchChat]);
 
-  // Close drawer on route change
   useEffect(() => {
     setDrawerOpen(false);
   }, [location.pathname]);
@@ -72,12 +69,21 @@ export default function MobileHeader() {
         className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 md:hidden"
         style={{ background: '#ffffff', borderBottom: '1px solid #dde4ee' }}
       >
+        {/* Hamburger with badge */}
         <button
           onClick={() => setDrawerOpen(true)}
-          className="w-9 h-9 flex items-center justify-center rounded-lg text-text"
+          className="w-9 h-9 flex items-center justify-center rounded-lg text-text relative"
           aria-label="Menu"
         >
           <Menu size={22} />
+          {chatUnread > 0 && (
+            <span
+              className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1"
+              style={{ background: '#ef4444' }}
+            >
+              {chatUnread > 99 ? '99+' : chatUnread}
+            </span>
+          )}
         </button>
 
         <div className="flex items-center gap-2 font-bold text-lg" style={{ color: '#1a3461' }}>
@@ -92,12 +98,12 @@ export default function MobileHeader() {
           aria-label="Notifiche"
         >
           <Bell size={20} />
-          {totalBadge > 0 && (
+          {unreadCount > 0 && (
             <span
               className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1"
               style={{ background: '#ef4444' }}
             >
-              {totalBadge > 99 ? '99+' : totalBadge}
+              {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
         </button>
