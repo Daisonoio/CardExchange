@@ -43,9 +43,9 @@ export const cards = {
   delete: (id: number) => client.delete(`/cards/${id}`),
   search: (term: string) =>
     client.get<Card[]>('/cards/search', { params: { term } }),
-  nearby: (userId: number, radiusKm: number, coords?: { latitude: number; longitude: number }, gameId?: number | null) =>
+  nearby: (userId: number, radiusKm: number, coords?: { latitude: number; longitude: number }, gameId?: number | null, searchTerm?: string) =>
     client.get<Card[]>(`/cards/nearby/${userId}`, {
-      params: { radiusKm, ...coords, ...(gameId ? { gameId } : {}) },
+      params: { radiusKm, ...coords, ...(gameId ? { gameId } : {}), ...(searchTerm ? { searchTerm } : {}) },
     }),
 };
 

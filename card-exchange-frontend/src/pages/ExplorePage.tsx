@@ -24,6 +24,7 @@ export default function ExplorePage() {
   const [nearbyUsers, setNearbyUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [radiusKm, setRadiusKm] = useState(50);
   const [useLocation, setUseLocation] = useState(false);
   const [showLocationDialog, setShowLocationDialog] = useState(false);
@@ -63,6 +64,12 @@ export default function ExplorePage() {
     }
   }, [hasProfileLocation]);
 
+  // Debounce search term so API calls don't fire on every keystroke
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(searchTerm), 350);
+    return () => clearTimeout(id);
+  }, [searchTerm]);
+
   // When browser position arrives and we were waiting for it (dialog flow)
   useEffect(() => {
     if (position && !hasProfileLocation && useLocation) {
@@ -72,23 +79,21 @@ export default function ExplorePage() {
 
   // Load data for cards/users tabs
   useEffect(() => {
-    if (tab === 'zone') return; // Zone tab loads on demand
+    if (tab === 'zone') return;
+    if (hasProfileLocation && !useLocation) return;
     const load = async () => {
       setIsLoading(true);
       try {
         if (tab === 'cards') {
           if (useLocation && currentUser) {
             if (hasProfileLocation) {
-              const { data } = await cards.nearby(currentUser.id, radiusKm, undefined, selectedGameId);
+              const { data } = await cards.nearby(currentUser.id, radiusKm, undefined, selectedGameId, debouncedSearch || undefined);
               setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
             } else if (liveCoords) {
-              const { data } = await cards.nearby(currentUser.id, radiusKm, liveCoords, selectedGameId);
-              setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
-            } else {
-              const { data } = await cards.getAll(selectedGameId);
+              const { data } = await cards.nearby(currentUser.id, radiusKm, liveCoords, selectedGameId, debouncedSearch || undefined);
               setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
             }
-          } else {
+          } else if (!useLocation) {
             const { data } = await cards.getAll(selectedGameId);
             setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
           }
@@ -105,7 +110,7 @@ export default function ExplorePage() {
       }
     };
     load();
-  }, [tab, useLocation, position, radiusKm, liveCoords, selectedGameId]);
+  }, [tab, useLocation, position, radiusKm, liveCoords, selectedGameId, hasProfileLocation, debouncedSearch]);
 
   const handleEnableLocation = () => {
     if (tab === 'cards' && !hasProfileLocation) {
@@ -159,7 +164,9 @@ export default function ExplorePage() {
     }
   };
 
-  const filteredCardsUnsorted = searchTerm
+  // When location is active, search is handled server-side via debouncedSearch;
+  // use local filter only for non-location mode or while debounce is pending
+  const filteredCardsUnsorted = searchTerm && (!useLocation || searchTerm !== debouncedSearch)
     ? availableCards.filter((c) =>
         (c.cardName || c.cardInfo?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (c.cardSetName || c.cardInfo?.cardSet?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
