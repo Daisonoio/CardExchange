@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Library, Search, TrendingUp } from 'lucide-react';
-import { cards, priceTracking } from '../api';
+import { Plus, Library, Search, TrendingUp, ChevronDown, Loader2 } from 'lucide-react';
+import { cards, priceTracking, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
-import type { Card, GameCard, CardCondition, PriceSpike } from '../types';
+import type { Card, GameCard, CardCondition, PriceSpike, ScryfallCard } from '../types';
 import { CONDITION_LABELS } from '../types';
 import CardGridItem from '../components/cards/CardGridItem';
 import EditCardSheet from '../components/cards/EditCardSheet';
@@ -26,6 +26,10 @@ export default function CollectionPage() {
     isAvailableForTrade: true,
     notes: '',
   });
+  const [printings, setPrintings] = useState<ScryfallCard[]>([]);
+  const [loadingPrintings, setLoadingPrintings] = useState(false);
+  const [showPrintings, setShowPrintings] = useState(false);
+  const isMagic = !selectedGame || selectedGame.name.toLowerCase().includes('magic');
   const [isSaving, setIsSaving] = useState(false);
   const [filterText, setFilterText] = useState('');
   const [filterTrade, setFilterTrade] = useState<'all' | 'trade' | 'keep'>('all');
@@ -59,9 +63,44 @@ export default function CollectionPage() {
 
   useEffect(() => { loadCards(); loadSpikes(); }, [loadCards, loadSpikes]);
 
+  const loadPrintings = useCallback(async (cardName: string) => {
+    setLoadingPrintings(true);
+    try {
+      const { data } = await scryfall.search(`!"${cardName}" unique:prints`);
+      const list = data.data ?? data.cards ?? [];
+      setPrintings(Array.isArray(list) ? list : []);
+    } catch {
+      setPrintings([]);
+    } finally {
+      setLoadingPrintings(false);
+    }
+  }, []);
+
   const handleSelectCard = (card: GameCard) => {
     setSelectedCard(card);
+    setShowPrintings(false);
+    if (isMagic) loadPrintings(card.name);
   };
+
+  const handleSelectPrinting = (card: ScryfallCard) => {
+    setSelectedCard({
+      externalId: card.scryfallId || card.id,
+      name: card.name,
+      setName: card.set_name || card.setName,
+      rarity: card.rarity,
+      imageSmall: card.image_uris?.small || card.images?.small || card.card_faces?.[0]?.image_uris?.small || '',
+      imageLarge: card.image_uris?.normal || card.images?.normal || card.image_uris?.large || card.images?.large || card.card_faces?.[0]?.image_uris?.normal || '',
+      priceEur: card.prices?.eur,
+      subtitle: card.type_line || card.typeLine,
+    });
+    setShowPrintings(false);
+  };
+
+  const getCardId = (card: ScryfallCard) => card.scryfallId || card.id;
+  const getCardImageSmall = (card: ScryfallCard) =>
+    card.image_uris?.small || card.images?.small || card.card_faces?.[0]?.image_uris?.small || '';
+  const getSetName = (card: ScryfallCard) => card.set_name || card.setName || '';
+  const getSetCode = (card: ScryfallCard) => card.setCode || card.set || '';
 
   const handleAddCard = async () => {
     if (!selectedCard) return;
@@ -79,6 +118,8 @@ export default function CollectionPage() {
 
       setShowAddModal(false);
       setSelectedCard(null);
+      setPrintings([]);
+      setShowPrintings(false);
       setAddForm({ condition: 2, quantity: 1, isAvailableForTrade: true, notes: '' });
       loadCards();
     } catch (err) {
@@ -216,7 +257,7 @@ export default function CollectionPage() {
       {/* Add Card Bottom Sheet */}
       <BottomSheet
         open={showAddModal}
-        onClose={() => { setShowAddModal(false); setSelectedCard(null); }}
+        onClose={() => { setShowAddModal(false); setSelectedCard(null); setPrintings([]); setShowPrintings(false); }}
         title="Aggiungi Carta"
       >
         {!selectedCard ? (
@@ -237,18 +278,78 @@ export default function CollectionPage() {
                   className="w-16 h-22 rounded-lg object-cover"
                 />
               )}
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="font-semibold text-sm">{selectedCard.name}</p>
-                <p className="text-xs text-text-secondary">{selectedCard.setName}</p>
-                {selectedCard.subtitle && <p className="text-xs text-text-muted">{selectedCard.subtitle}</p>}
+
+                {/* Edition selector (Magic only) */}
+                {isMagic ? (
+                  <button
+                    onClick={() => setShowPrintings(!showPrintings)}
+                    className="mt-0.5 flex items-center gap-1.5 text-sm text-primary hover:underline"
+                  >
+                    <span className="uppercase font-semibold text-xs bg-primary/10 px-1.5 py-0.5 rounded truncate max-w-[180px]">
+                      {selectedCard.setName}
+                    </span>
+                    <ChevronDown size={14} className={`transition-transform shrink-0 ${showPrintings ? 'rotate-180' : ''}`} />
+                  </button>
+                ) : selectedCard.setName ? (
+                  <p className="mt-0.5 text-xs text-text-secondary">{selectedCard.setName}</p>
+                ) : null}
+
+                {selectedCard.subtitle && <p className="text-xs text-text-muted mt-0.5">{selectedCard.subtitle}</p>}
                 {selectedCard.priceEur && (
                   <p className="text-sm font-bold text-accent mt-1">{selectedCard.priceEur} EUR</p>
                 )}
               </div>
             </div>
 
+            {/* Printings dropdown (Magic only) */}
+            {isMagic && showPrintings && (
+              <div className="max-h-48 overflow-y-auto border border-border rounded-xl bg-surface-dark">
+                {loadingPrintings ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 size={20} className="animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="px-3 py-2 text-xs text-text-muted border-b border-border/50">
+                      {printings.length} edizioni disponibili
+                    </div>
+                    {printings.map((p) => {
+                      const isSelected = getCardId(p) === selectedCard.externalId;
+                      return (
+                        <button
+                          key={getCardId(p)}
+                          onClick={() => handleSelectPrinting(p)}
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-white transition-colors border-b border-border/30 last:border-0 ${
+                            isSelected ? 'bg-primary/5' : ''
+                          }`}
+                        >
+                          {getCardImageSmall(p) && (
+                            <img src={getCardImageSmall(p)} alt="" className="w-8 h-11 rounded object-cover shrink-0" />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold truncate">
+                              <span className="uppercase text-text-muted">{getSetCode(p)}</span>
+                              {' '}{getSetName(p)}
+                            </p>
+                            <p className="text-xs text-text-muted">
+                              {p.rarity}{p.prices?.eur ? ` · ${p.prices.eur} EUR` : ''}
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <span className="text-xs font-semibold text-primary shrink-0">Selezionata</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+            )}
+
             <button
-              onClick={() => setSelectedCard(null)}
+              onClick={() => { setSelectedCard(null); setPrintings([]); setShowPrintings(false); }}
               className="text-sm text-primary hover:underline"
             >
               Cambia carta
