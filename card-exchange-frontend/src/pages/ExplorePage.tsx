@@ -56,6 +56,13 @@ export default function ExplorePage() {
       .catch(() => {});
   }, [currentUser]);
 
+  // Auto-enable location-based search when the user has a saved profile location
+  useEffect(() => {
+    if (hasProfileLocation) {
+      setUseLocation(true);
+    }
+  }, [hasProfileLocation]);
+
   // When browser position arrives and we were waiting for it (dialog flow)
   useEffect(() => {
     if (position && !hasProfileLocation && useLocation) {
@@ -233,7 +240,7 @@ export default function ExplorePage() {
                 <Navigation size={16} className="text-primary" />
                 <span className="text-sm font-medium">Geolocalizzazione</span>
               </div>
-              {!isLocationActive && !position ? (
+              {!isLocationActive && !position && !hasProfileLocation ? (
                 <Button onClick={handleEnableLocation} size="sm" variant="outline" isLoading={geoLoading}>
                   <MapPin size={14} />
                   Attiva
@@ -247,7 +254,7 @@ export default function ExplorePage() {
               <p className="text-xs text-danger mt-2">{geoError}</p>
             )}
 
-            {(position || isLocationActive) && (
+            {(position || isLocationActive || hasProfileLocation) && (
               <div className="mt-3 flex items-center gap-3">
                 <label className="text-xs text-text-secondary">Raggio:</label>
                 <input
