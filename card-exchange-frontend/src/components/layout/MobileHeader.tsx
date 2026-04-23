@@ -55,8 +55,6 @@ export default function MobileHeader() {
   }, [location.pathname]);
 
   const title = PAGE_TITLES[location.pathname] ?? 'CardExchange';
-  const totalBadge = chatUnread + unreadCount;
-
   const handleLogout = () => {
     logout();
     navigate('/login');

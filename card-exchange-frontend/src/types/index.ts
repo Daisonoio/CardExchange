@@ -236,6 +236,7 @@ export interface ScryfallCard {
 
 export interface ScryfallAutocomplete {
   data: string[];
+  suggestions?: string[];
 }
 
 export interface ScryfallSearchResult {

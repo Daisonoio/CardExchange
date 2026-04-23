@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Navigation, Loader2, MapPin, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Save, Navigation, MapPin, TrendingUp } from 'lucide-react';
 import { users, priceTracking } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGeolocation } from '../hooks/useGeolocation';

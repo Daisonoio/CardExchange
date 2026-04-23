@@ -82,7 +82,7 @@ export const scryfall = {
       params: { q },
     }),
   search: (q: string, page = 1) =>
-    client.get<{ data: ScryfallCard[]; has_more: boolean; total_cards: number }>(
+    client.get<{ data: ScryfallCard[]; cards?: ScryfallCard[]; has_more: boolean; total_cards: number }>(
       '/scryfall/search',
       { params: { q, page } }
     ),

@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Heart, X, ChevronDown, Loader2 } from 'lucide-react';
+import { Plus, Heart, ChevronDown, Loader2 } from 'lucide-react';
 import { wishlist, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import type { WishlistItem, ScryfallCard, GameCard, CardCondition } from '../types';
-import { CONDITION_LABELS } from '../types';
 import GameCardSearch, { importGameCard } from '../components/cards/GameCardSearch';
 import WishlistGridItem from '../components/cards/WishlistGridItem';
 import EditWishlistSheet from '../components/cards/EditWishlistSheet';
@@ -108,10 +107,6 @@ export default function WishlistPage() {
   };
 
   const getCardId = (card: ScryfallCard) => card.scryfallId || card.id;
-  const getCardImage = (card: ScryfallCard) =>
-    card.image_uris?.normal || card.images?.normal ||
-    card.image_uris?.large || card.images?.large ||
-    card.card_faces?.[0]?.image_uris?.normal || '';
   const getCardImageSmall = (card: ScryfallCard) =>
     card.image_uris?.small || card.images?.small ||
     card.card_faces?.[0]?.image_uris?.small || '';
@@ -311,7 +306,7 @@ export default function WishlistPage() {
                         {printings.length} espansioni disponibili
                       </div>
                       {printings.map((p) => {
-                        const isSelected = getCardId(p) === getCardId(selectedCard);
+                        const isSelected = getCardId(p) === (selectedCard?.externalId || '');
                         return (
                           <button
                             key={getCardId(p)}

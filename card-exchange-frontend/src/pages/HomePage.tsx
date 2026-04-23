@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Navigation, Loader2, Settings, Sparkles, ArrowRight } from 'lucide-react';
+import { MapPin, Navigation, Loader2, Settings, Sparkles } from 'lucide-react';
 import { wishlist } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';

@@ -1,5 +1,5 @@
 import { MoreHorizontal, ArrowLeftRight } from 'lucide-react';
-import type { Card } from '../../types';
+import type { Card, CardCondition } from '../../types';
 import { CONDITION_LABELS } from '../../types';
 
 interface CardItemProps {
@@ -25,7 +25,7 @@ export default function CardItem({ card, onEdit, onDelete, onClick, showUser }: 
   const condNum = typeof card.condition === 'number' ? card.condition : (CONDITION_MAP[card.condition] || 0);
   const conditionLabel = typeof card.condition === 'string'
     ? card.condition
-    : (CONDITION_LABELS[card.condition as import('../types').CardCondition] || 'N/A');
+    : (CONDITION_LABELS[card.condition as CardCondition] || 'N/A');
 
   const conditionColor = condNum <= 2
     ? 'text-green-600 bg-green-50'

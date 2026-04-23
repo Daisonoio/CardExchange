@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowLeftRight, DollarSign, Send, ArrowLeft, Loader2, X, Plus, Check, Search, MessageSquare,
+  ArrowLeftRight, DollarSign, Send, ArrowLeft, Loader2, X, Check, Search, MessageSquare,
 } from 'lucide-react';
 import { cards, wishlist, tradeOffers } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -23,7 +23,7 @@ export default function TradeRequestPage() {
   const [requestedCards, setRequestedCards] = useState<Card[]>(preselectedCards);
 
   // The other user's full collection (for adding more)
-  const [otherUserCards, setOtherUserCards] = useState<Card[]>([]);
+  const [, setOtherUserCards] = useState<Card[]>([]);
   const [otherUsername, setOtherUsername] = useState('');
 
   // My cards (for offering in trade)
@@ -42,7 +42,6 @@ export default function TradeRequestPage() {
   const [success, setSuccess] = useState(false);
   const [createdOfferId, setCreatedOfferId] = useState<number | null>(null);
   const [searchMyCards, setSearchMyCards] = useState('');
-  const [searchOtherCards, setSearchOtherCards] = useState('');
 
   // Load data
   useEffect(() => {
@@ -176,14 +175,6 @@ export default function TradeRequestPage() {
         (c.cardSetName || '').toLowerCase().includes(searchMyCards.toLowerCase())
       )
     : myCards;
-
-  const filteredOtherCards = searchOtherCards
-    ? otherUserCards.filter((c) =>
-        !requestedCards.find((r) => r.id === c.id) &&
-        ((c.cardName || '').toLowerCase().includes(searchOtherCards.toLowerCase()) ||
-        (c.cardSetName || '').toLowerCase().includes(searchOtherCards.toLowerCase()))
-      )
-    : otherUserCards.filter((c) => !requestedCards.find((r) => r.id === c.id));
 
   const totalRequestedValue = requestedCards.reduce((sum, c) => sum + (c.estimatedValue || 0), 0);
   const totalOfferedValue = offeredCards.reduce((sum, c) => sum + (c.estimatedValue || 0), 0);
@@ -441,7 +432,6 @@ export default function TradeRequestPage() {
 /* ---- Mini Card Components ---- */
 
 function MiniCard({ card, onRemove, offered }: { card: Card; onRemove: () => void; offered?: boolean }) {
-  const image = card.imageSmall || card.imageNormal || '';
   return (
     <div className={`flex items-center gap-2.5 p-2 rounded-xl border ${offered ? 'border-amber-200 bg-amber-50/50' : 'border-border/50 bg-white'}`}>
       {/* {image ? (
@@ -460,24 +450,6 @@ function MiniCard({ card, onRemove, offered }: { card: Card; onRemove: () => voi
         <X size={16} />
       </button>
     </div>
-  );
-}
-
-function MiniCardAdd({ card, onAdd }: { card: Card; onAdd: () => void }) {
-  const image = card.imageSmall || card.imageNormal || '';
-  return (
-    <button onClick={onAdd} className="w-full flex items-center gap-2 p-1.5 rounded-lg hover:bg-white transition-colors text-left">
-      {image ? (
-        <img src={image} alt={card.cardName} className="w-7 h-10 rounded object-cover shrink-0" />
-      ) : (
-        <div className="w-7 h-10 rounded bg-gray-200 shrink-0" />
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold truncate">{card.cardName || 'Carta'}</p>
-        <p className="text-[10px] text-text-muted truncate">{card.cardSetName}</p>
-      </div>
-      <Plus size={14} className="text-primary shrink-0" />
-    </button>
   );
 }
 

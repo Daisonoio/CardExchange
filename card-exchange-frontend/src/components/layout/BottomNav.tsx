@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Compass, Library, Heart, UserCircle, MessageSquare, Bell } from 'lucide-react';
+import { Home, Compass, Library, Heart, UserCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
 import { messages } from '../../api';
@@ -16,25 +16,8 @@ const NAV_ITEMS = [
 
 export default function BottomNav() {
   const { user } = useAuth();
-  const { unreadCount, setUnreadCount } = useNotifications(!!user);
+  const { setUnreadCount } = useNotifications(!!user);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [chatUnread, setChatUnread] = useState(0);
-
-  const fetchChatUnread = useCallback(async () => {
-    if (!user) return;
-    try {
-      const { data } = await messages.getUnreadCount();
-      setChatUnread(data?.unreadCount ?? 0);
-    } catch {}
-  }, [user]);
-
-  useEffect(() => {
-    fetchChatUnread();
-    const interval = setInterval(fetchChatUnread, 30_000);
-    return () => clearInterval(interval);
-  }, [fetchChatUnread]);
-
-  const totalBadge = chatUnread + unreadCount;
 
   return (
     <>
