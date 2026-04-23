@@ -119,7 +119,7 @@ export default function LocationPicker({
     }
   }, []);
 
-  // Debounced search
+  // Debounced search — shows dropdown suggestions while typing
   const handleQueryChange = (value: string) => {
     setQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -138,6 +138,38 @@ export default function LocationPicker({
     setResults([]);
   };
 
+  // Explicit search — triggered by button or Enter key; auto-selects first result
+  const handleExplicitSearch = useCallback(async () => {
+    if (query.length < 2) return;
+    setSearching(true);
+    setShowResults(false);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&countrycodes=it&addressdetails=1`,
+        { headers: { 'Accept-Language': 'it' } }
+      );
+      const data: NominatimResult[] = await res.json();
+      if (data.length > 0) {
+        selectResult(data[0]);
+      } else {
+        setResults([]);
+        setShowResults(true);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSearching(false);
+    }
+  }, [query]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      handleExplicitSearch();
+    }
+  };
+
   const handleMapClick = (newLat: number, newLng: number) => {
     setLat(newLat);
     setLng(newLng);
@@ -148,18 +180,29 @@ export default function LocationPicker({
     <div className="space-y-3">
       {/* Search bar */}
       <div ref={wrapperRef} className="relative">
-        <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => handleQueryChange(e.target.value)}
-            placeholder="Cerca una città (es. Pavia, Milano...)"
-            className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-          {searching && (
-            <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-primary" />
-          )}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => handleQueryChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Cerca una città (es. Pavia, Milano...)"
+              className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            {searching && (
+              <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-primary" />
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleExplicitSearch}
+            disabled={query.length < 2 || searching}
+            className="flex items-center justify-center px-3 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm disabled:opacity-40 transition-opacity shrink-0"
+          >
+            {searching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+          </button>
         </div>
 
         {/* Results dropdown */}
