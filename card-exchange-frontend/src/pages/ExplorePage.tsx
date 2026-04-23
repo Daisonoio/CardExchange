@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
-import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation, Map } from 'lucide-react';
+import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation, Map, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cards, users, favorites } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -9,7 +9,6 @@ import { useGeolocation } from '../hooks/useGeolocation';
 import CardItem from '../components/cards/CardItem';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
-import BottomSheet from '../components/ui/BottomSheet';
 
 const LocationPicker = lazy(() => import('../components/map/LocationPicker'));
 
@@ -25,11 +24,8 @@ export default function ExplorePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [radiusKm, setRadiusKm] = useState(50);
-  const [useLocation, setUseLocation] = useState(false);
-  const [showLocationDialog, setShowLocationDialog] = useState(false);
-  const [liveCoords, setLiveCoords] = useState<{ latitude: number; longitude: number } | null>(null);
-  const { position, error: geoError, isLoading: geoLoading, requestPosition } = useGeolocation();
+  const [radiusKm, setRadiusKm] = useState<number | null>(null);
+  const { position, isLoading: geoLoading, requestPosition } = useGeolocation();
 
   // Zone search state
   const [zoneCoords, setZoneCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -45,6 +41,16 @@ export default function ExplorePage() {
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
 
   const hasProfileLocation = !!(currentUser?.location?.latitude && currentUser?.location?.longitude);
+  const profileRadius = currentUser?.location?.maxDistanceKm ?? 50;
+
+  // Initialize radius from profile setting
+  useEffect(() => {
+    if (radiusKm === null && currentUser) {
+      setRadiusKm(profileRadius);
+    }
+  }, [currentUser, profileRadius, radiusKm]);
+
+  const effectiveRadius = radiusKm ?? profileRadius;
 
   // Load favorite card IDs
   useEffect(() => {
@@ -57,50 +63,43 @@ export default function ExplorePage() {
       .catch(() => {});
   }, [currentUser]);
 
-  // Auto-enable location-based search when the user has a saved profile location
-  useEffect(() => {
-    if (hasProfileLocation) {
-      setUseLocation(true);
-    }
-  }, [hasProfileLocation]);
-
-  // Debounce search term so API calls don't fire on every keystroke
+  // Debounce search term
   useEffect(() => {
     const id = setTimeout(() => setDebouncedSearch(searchTerm), 350);
     return () => clearTimeout(id);
   }, [searchTerm]);
 
-  // When browser position arrives and we were waiting for it (dialog flow)
-  useEffect(() => {
-    if (position && !hasProfileLocation && useLocation) {
-      setLiveCoords(position);
-    }
-  }, [position]);
-
-  // Load data for cards/users tabs
+  // Load cards — always filtered by radius
   useEffect(() => {
     if (tab === 'zone') return;
-    if (hasProfileLocation && !useLocation) return;
+    if (!currentUser) return;
+
     const load = async () => {
       setIsLoading(true);
       try {
         if (tab === 'cards') {
-          if (useLocation && currentUser) {
-            if (hasProfileLocation) {
-              const { data } = await cards.nearby(currentUser.id, radiusKm, undefined, selectedGameId, debouncedSearch || undefined);
-              setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
-            } else if (liveCoords) {
-              const { data } = await cards.nearby(currentUser.id, radiusKm, liveCoords, selectedGameId, debouncedSearch || undefined);
-              setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
-            }
-          } else if (!useLocation) {
-            const { data } = await cards.getAll(selectedGameId);
+          if (hasProfileLocation) {
+            const { data } = await cards.nearby(currentUser.id, effectiveRadius, undefined, selectedGameId, debouncedSearch || undefined);
             setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
+          } else if (position) {
+            const { data } = await cards.nearby(currentUser.id, effectiveRadius, position, selectedGameId, debouncedSearch || undefined);
+            setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
+          } else {
+            setAvailableCards([]);
+            setIsLoading(false);
+            return;
           }
-        } else {
-          if (position) {
-            const { data } = await users.nearby(position.latitude, position.longitude, radiusKm);
+        } else if (tab === 'users') {
+          if (hasProfileLocation && currentUser.location?.latitude && currentUser.location?.longitude) {
+            const { data } = await users.nearby(currentUser.location.latitude, currentUser.location.longitude, effectiveRadius);
             setNearbyUsers(Array.isArray(data) ? data : (data as any).users ?? []);
+          } else if (position) {
+            const { data } = await users.nearby(position.latitude, position.longitude, effectiveRadius);
+            setNearbyUsers(Array.isArray(data) ? data : (data as any).users ?? []);
+          } else {
+            setNearbyUsers([]);
+            setIsLoading(false);
+            return;
           }
         }
       } catch (err) {
@@ -110,31 +109,7 @@ export default function ExplorePage() {
       }
     };
     load();
-  }, [tab, useLocation, position, radiusKm, liveCoords, selectedGameId, hasProfileLocation, debouncedSearch]);
-
-  const handleEnableLocation = () => {
-    if (tab === 'cards' && !hasProfileLocation) {
-      setShowLocationDialog(true);
-    } else {
-      requestPosition();
-      setUseLocation(true);
-    }
-  };
-
-  const handleDialogSaveProfile = () => {
-    setShowLocationDialog(false);
-    navigate('/profile/edit');
-  };
-
-  const handleDialogUseCurrent = () => {
-    setShowLocationDialog(false);
-    setUseLocation(true);
-    if (position) {
-      setLiveCoords(position);
-    } else {
-      requestPosition();
-    }
-  };
+  }, [tab, currentUser, hasProfileLocation, position, effectiveRadius, selectedGameId, debouncedSearch]);
 
   // Zone search
   const handleZoneLocationChange = useCallback((lat: number, lng: number, radius: number, label: string) => {
@@ -164,9 +139,8 @@ export default function ExplorePage() {
     }
   };
 
-  // When location is active, search is handled server-side via debouncedSearch;
-  // use local filter only for non-location mode or while debounce is pending
-  const filteredCardsUnsorted = searchTerm && (!useLocation || searchTerm !== debouncedSearch)
+  // Local filter only while debounce is pending
+  const filteredCardsUnsorted = searchTerm && searchTerm !== debouncedSearch
     ? availableCards.filter((c) =>
         (c.cardName || c.cardInfo?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (c.cardSetName || c.cardInfo?.cardSet?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -193,14 +167,37 @@ export default function ExplorePage() {
     });
   }, [navigate]);
 
-  const isLocationActive = useLocation && (hasProfileLocation || !!liveCoords);
+  const hasLocation = hasProfileLocation || !!position;
+
+  // Location prompt shown when user has no location
+  const locationPrompt = (
+    <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
+      <div className="flex items-center gap-2 mb-2">
+        <MapPin size={16} className="text-primary" />
+        <h2 className="text-sm font-bold text-text">Imposta la tua posizione</h2>
+      </div>
+      <p className="text-sm text-text-secondary mb-4">
+        Per vedere le carte disponibili nelle tue vicinanze, devi impostare la tua posizione.
+      </p>
+      <div className="space-y-2.5">
+        <Button onClick={() => navigate('/profile/edit')} variant="outline" className="w-full">
+          <Settings size={14} />
+          Imposta nel profilo
+        </Button>
+        <Button onClick={requestPosition} className="w-full" isLoading={geoLoading}>
+          <Navigation size={14} />
+          Usa posizione attuale
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <div>
       <h1 className="text-xl font-bold text-text mb-1">Esplora</h1>
       <p className="text-sm text-text-secondary mb-4">Trova carte e collezionisti</p>
 
-      {/* Tabs — compact for mobile */}
+      {/* Tabs */}
       <div className="flex gap-1.5 mb-3">
         <button
           onClick={() => setTab('cards')}
@@ -240,77 +237,69 @@ export default function ExplorePage() {
       {/* ============ CARDS TAB ============ */}
       {tab === 'cards' && (
         <>
-          {/* Location bar */}
-          <div className="bg-white rounded-2xl max-w-lg p-4 mb-4 border border-border/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Navigation size={16} className="text-primary" />
-                <span className="text-sm font-medium">Geolocalizzazione</span>
+          {!hasLocation ? locationPrompt : (
+            <>
+              {/* Radius control */}
+              <div className="bg-white rounded-2xl max-w-lg p-4 mb-4 border border-border/50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Navigation size={16} className="text-primary" />
+                    <span className="text-sm font-medium">Raggio di ricerca</span>
+                  </div>
+                  <span className="text-xs text-accent font-medium">
+                    {hasProfileLocation ? 'Posizione profilo' : 'Posizione attuale'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={5}
+                    max={200}
+                    step={5}
+                    value={effectiveRadius}
+                    onChange={(e) => setRadiusKm(Number(e.target.value))}
+                    className="flex-1 accent-primary"
+                  />
+                  <span className="text-xs font-bold text-primary w-12 text-right">{effectiveRadius} km</span>
+                </div>
               </div>
-              {!isLocationActive && !position && !hasProfileLocation ? (
-                <Button onClick={handleEnableLocation} size="sm" variant="outline" isLoading={geoLoading}>
-                  <MapPin size={14} />
-                  Attiva
-                </Button>
-              ) : (
-                <span className="text-xs text-accent font-medium">Attiva</span>
-              )}
-            </div>
 
-            {geoError && (
-              <p className="text-xs text-danger mt-2">{geoError}</p>
-            )}
-
-            {(position || isLocationActive || hasProfileLocation) && (
-              <div className="mt-3 flex items-center gap-3">
-                <label className="text-xs text-text-secondary">Raggio:</label>
+              <div className="relative mb-4">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
-                  type="range"
-                  min={5}
-                  max={200}
-                  step={5}
-                  value={radiusKm}
-                  onChange={(e) => setRadiusKm(Number(e.target.value))}
-                  className="flex-1 accent-primary"
+                  type="text"
+                  placeholder="Cerca tra le carte nelle vicinanze..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
-                <span className="text-xs font-bold text-primary w-12 text-right">{radiusKm} km</span>
               </div>
-            )}
-          </div>
 
-          <div className="relative mb-4">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input
-              type="text"
-              placeholder="Cerca tra le carte disponibili..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
-
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 size={28} className="animate-spin text-primary" />
-            </div>
-          ) : filteredCards.length === 0 ? (
-            <EmptyState
-              icon={Compass}
-              title="Nessuna carta disponibile"
-              description={useLocation
-                ? `Nessuna carta trovata entro ${radiusKm} km`
-                : 'Non ci sono carte disponibili per lo scambio al momento'}
-            />
-          ) : (
-            <div className="space-y-2">
-              <p className="text-xs text-text-muted mb-2">
-                {filteredCards.length} carte disponibili
-                {isLocationActive && ` entro ${radiusKm} km`}
-              </p>
-              {filteredCards.map((card) => (
-                <CardItem key={card.id} card={card} showUser onClick={handleCardClick} />
-              ))}
-            </div>
+              {isLoading ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 size={28} className="animate-spin text-primary" />
+                </div>
+              ) : filteredCards.length === 0 ? (
+                <EmptyState
+                  icon={Compass}
+                  title="Nessuna carta trovata"
+                  description={
+                    searchTerm
+                      ? `Nessuna carta "${searchTerm}" trovata entro ${effectiveRadius} km`
+                      : `Nessuna carta disponibile entro ${effectiveRadius} km. Prova ad aumentare il raggio.`
+                  }
+                />
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs text-text-muted mb-2">
+                    {filteredCards.length} carte disponibili entro {effectiveRadius} km
+                  </p>
+                  {filteredCards.map((card) => (
+                    <CardItem key={card.id} card={card} showUser onClick={handleCardClick} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </>
       )}
@@ -319,7 +308,7 @@ export default function ExplorePage() {
       {tab === 'zone' && (
         <><div>
           <div className="bg-white rounded-2xl max-w-3xl mx-auto p-4 mb-4 border border-border/50">
-           
+
             <Suspense fallback={
               <div className="flex justify-center py-12">
                 <Loader2 size={28} className="animate-spin text-primary" />
@@ -392,18 +381,7 @@ export default function ExplorePage() {
       {/* ============ USERS TAB ============ */}
       {tab === 'users' && (
         <>
-          {!position ? (
-            <EmptyState
-              icon={MapPin}
-              title="Attiva la geolocalizzazione"
-              description="Per trovare collezionisti vicino a te, attiva la posizione"
-              action={
-                <Button onClick={handleEnableLocation} size="sm" isLoading={geoLoading}>
-                  <MapPin size={14} /> Attiva posizione
-                </Button>
-              }
-            />
-          ) : isLoading ? (
+          {!hasLocation ? locationPrompt : isLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 size={28} className="animate-spin text-primary" />
             </div>
@@ -411,12 +389,12 @@ export default function ExplorePage() {
             <EmptyState
               icon={MapPin}
               title="Nessun utente trovato"
-              description={`Nessun collezionista trovato entro ${radiusKm} km. Prova ad aumentare il raggio.`}
+              description={`Nessun collezionista trovato entro ${effectiveRadius} km. Prova ad aumentare il raggio.`}
             />
           ) : (
             <div className="space-y-2">
               <p className="text-xs text-text-muted mb-2">
-                {nearbyUsers.length} utenti entro {radiusKm} km
+                {nearbyUsers.length} utenti entro {effectiveRadius} km
               </p>
               {nearbyUsers.map((user) => (
                 <div key={user.id} className="bg-white rounded-2xl p-4 shadow-sm border border-border/50">
@@ -451,27 +429,6 @@ export default function ExplorePage() {
           )}
         </>
       )}
-
-      {/* Location choice bottom sheet */}
-      <BottomSheet
-        open={showLocationDialog}
-        onClose={() => setShowLocationDialog(false)}
-        title="Posizione non impostata"
-      >
-        <p className="text-sm text-text-secondary mb-5">
-          Non hai una posizione salvata nel profilo. Come vuoi procedere?
-        </p>
-        <div className="space-y-2.5">
-          <Button onClick={handleDialogSaveProfile} variant="outline" className="w-full">
-            <MapPin size={14} />
-            Salva posizione nel profilo
-          </Button>
-          <Button onClick={handleDialogUseCurrent} className="w-full">
-            <Navigation size={14} />
-            Usa posizione attuale
-          </Button>
-        </div>
-      </BottomSheet>
     </div>
   );
 }
