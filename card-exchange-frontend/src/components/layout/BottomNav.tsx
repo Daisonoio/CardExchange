@@ -1,9 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, Compass, Library, Heart, UserCircle } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { useNotifications } from '../../hooks/useNotifications';
-import { messages } from '../../api';
+import { useRealtime } from '../../context/RealtimeContext';
 import NotificationCenter from '../notifications/NotificationCenter';
 
 const NAV_ITEMS = [
@@ -15,8 +13,7 @@ const NAV_ITEMS = [
 ];
 
 export default function BottomNav() {
-  const { user } = useAuth();
-  const { setUnreadCount } = useNotifications(!!user);
+  const { setNotifUnread } = useRealtime();
   const [showNotifications, setShowNotifications] = useState(false);
 
   return (
@@ -44,35 +41,11 @@ export default function BottomNav() {
         </div>
       </nav>
 
-      {/* Notification center triggered from sidebar/header */}
       <NotificationCenter
         open={showNotifications}
         onClose={() => setShowNotifications(false)}
-        onUnreadCountChange={setUnreadCount}
+        onUnreadCountChange={setNotifUnread}
       />
     </>
   );
-}
-
-/** Exported badge counts for the mobile header to consume */
-export function useNavBadges() {
-  const { user } = useAuth();
-  const { unreadCount } = useNotifications(!!user);
-  const [chatUnread, setChatUnread] = useState(0);
-
-  const fetch = useCallback(async () => {
-    if (!user) return;
-    try {
-      const { data } = await messages.getUnreadCount();
-      setChatUnread(data?.unreadCount ?? 0);
-    } catch {}
-  }, [user]);
-
-  useEffect(() => {
-    fetch();
-    const id = setInterval(fetch, 30_000);
-    return () => clearInterval(id);
-  }, [fetch]);
-
-  return { chatUnread, notifUnread: unreadCount };
 }

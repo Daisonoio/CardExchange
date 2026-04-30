@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { GameProvider } from './context/GameContext';
+import { RealtimeProvider } from './context/RealtimeContext';
 import Layout from './components/layout/Layout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -29,6 +30,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
+          <RealtimeProvider>
           <GameProvider>
           <Routes>
             {/* Public routes */}
@@ -55,6 +57,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>
           </GameProvider>
+          </RealtimeProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

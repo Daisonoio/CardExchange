@@ -1,12 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, NavLink, useNavigate } from 'react-router-dom';
 import {
   Menu, X, Layers, Bell, MessageSquare, Sparkles,
   ArrowLeftRight, LogOut,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useNotifications } from '../../hooks/useNotifications';
-import { messages } from '../../api';
+import { useRealtime } from '../../context/RealtimeContext';
 import NotificationCenter from '../notifications/NotificationCenter';
 
 const PAGE_TITLES: Record<string, string> = {
@@ -29,26 +28,11 @@ const SIDEBAR_LINKS = [
 
 export default function MobileHeader() {
   const { user, logout } = useAuth();
-  const { unreadCount, setUnreadCount } = useNotifications(!!user);
+  const { chatUnread, notifUnread, setNotifUnread } = useRealtime();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
-  const [chatUnread, setChatUnread] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
-
-  const fetchChat = useCallback(async () => {
-    if (!user) return;
-    try {
-      const { data } = await messages.getUnreadCount();
-      setChatUnread(data?.unreadCount ?? 0);
-    } catch {}
-  }, [user]);
-
-  useEffect(() => {
-    fetchChat();
-    const id = setInterval(fetchChat, 30_000);
-    return () => clearInterval(id);
-  }, [fetchChat]);
 
   useEffect(() => {
     setDrawerOpen(false);
@@ -96,12 +80,12 @@ export default function MobileHeader() {
           aria-label="Notifiche"
         >
           <Bell size={20} />
-          {unreadCount > 0 && (
+          {notifUnread > 0 && (
             <span
               className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1"
               style={{ background: '#ef4444' }}
             >
-              {unreadCount > 99 ? '99+' : unreadCount}
+              {notifUnread > 99 ? '99+' : notifUnread}
             </span>
           )}
         </button>
@@ -188,7 +172,7 @@ export default function MobileHeader() {
       <NotificationCenter
         open={showNotif}
         onClose={() => setShowNotif(false)}
-        onUnreadCountChange={setUnreadCount}
+        onUnreadCountChange={setNotifUnread}
       />
     </>
   );

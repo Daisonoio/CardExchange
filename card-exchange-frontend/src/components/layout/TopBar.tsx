@@ -1,12 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Compass, Library, Heart, Sparkles, ArrowLeftRight,
   UserCircle, LogOut, Layers, Bell, MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useNotifications } from '../../hooks/useNotifications';
-import { messages } from '../../api';
+import { useRealtime } from '../../context/RealtimeContext';
 import NotificationCenter from '../notifications/NotificationCenter';
 
 const NAV_ITEMS = [
@@ -20,24 +19,9 @@ const NAV_ITEMS = [
 
 export default function TopBar() {
   const { user, logout } = useAuth();
+  const { chatUnread, notifUnread, setNotifUnread } = useRealtime();
   const navigate = useNavigate();
-  const { unreadCount, setUnreadCount } = useNotifications(!!user);
   const [showNotif, setShowNotif] = useState(false);
-  const [chatUnread, setChatUnread] = useState(0);
-
-  const fetchChatUnread = useCallback(async () => {
-    if (!user) return;
-    try {
-      const { data } = await messages.getUnreadCount();
-      setChatUnread(data?.unreadCount ?? 0);
-    } catch {}
-  }, [user]);
-
-  useEffect(() => {
-    fetchChatUnread();
-    const id = setInterval(fetchChatUnread, 30_000);
-    return () => clearInterval(id);
-  }, [fetchChatUnread]);
 
   const handleLogout = () => {
     logout();
@@ -100,9 +84,9 @@ export default function TopBar() {
               title="Notifiche"
             >
               <Bell size={20} />
-              {unreadCount > 0 && (
+              {notifUnread > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1">
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                  {notifUnread > 99 ? '99+' : notifUnread}
                 </span>
               )}
             </button>
@@ -128,7 +112,7 @@ export default function TopBar() {
       <NotificationCenter
         open={showNotif}
         onClose={() => setShowNotif(false)}
-        onUnreadCountChange={setUnreadCount}
+        onUnreadCountChange={setNotifUnread}
         variant="panel"
       />
     </>
