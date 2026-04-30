@@ -71,46 +71,59 @@ namespace CardExchange.API.Hubs
             content = content.Trim();
             if (content.Length > 2000) content = content[..2000];
 
-            // Trova o crea conversazione
-            var minId = Math.Min(userId, recipientId);
-            var maxId = Math.Max(userId, recipientId);
+            Conversation conversation = null!;
+            Message message = null!;
 
-            var conversation = await _context.Conversations
-                .FirstOrDefaultAsync(c => c.User1Id == minId && c.User2Id == maxId);
-
-            if (conversation == null)
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                conversation = new Conversation
+                var minId = Math.Min(userId, recipientId);
+                var maxId = Math.Max(userId, recipientId);
+
+                conversation = await _context.Conversations
+                    .FirstOrDefaultAsync(c => c.User1Id == minId && c.User2Id == maxId);
+
+                if (conversation == null)
                 {
-                    User1Id = minId,
-                    User2Id = maxId,
-                    TradeOfferId = tradeOfferId
+                    conversation = new Conversation
+                    {
+                        User1Id = minId,
+                        User2Id = maxId,
+                        TradeOfferId = tradeOfferId
+                    };
+                    _context.Conversations.Add(conversation);
+                    await _context.SaveChangesAsync();
+                }
+
+                conversation.LastMessageAt = DateTime.UtcNow;
+
+                message = new Message
+                {
+                    ConversationId = conversation.Id,
+                    SenderId = userId,
+                    Content = content
                 };
-                _context.Conversations.Add(conversation);
+                _context.Messages.Add(message);
+
+                _context.Notifications.Add(new Notification
+                {
+                    UserId = recipientId,
+                    Type = NotificationType.NewMessage,
+                    Title = "Nuovo messaggio",
+                    Body = content.Length > 80 ? content[..80] + "..." : content,
+                    ReferenceId = conversation.Id,
+                    ReferenceType = "Conversation"
+                });
+
                 await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
             }
-
-            var message = new Message
+            catch (Exception ex)
             {
-                ConversationId = conversation.Id,
-                SenderId = userId,
-                Content = content
-            };
-            _context.Messages.Add(message);
-            conversation.LastMessageAt = DateTime.UtcNow;
-
-            // Notifica
-            _context.Notifications.Add(new Notification
-            {
-                UserId = recipientId,
-                Type = NotificationType.NewMessage,
-                Title = "Nuovo messaggio",
-                Body = content.Length > 80 ? content[..80] + "..." : content,
-                ReferenceId = conversation.Id,
-                ReferenceType = "Conversation"
-            });
-
-            await _context.SaveChangesAsync();
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Errore durante l'invio del messaggio da {SenderId} a {RecipientId}", userId, recipientId);
+                return;
+            }
 
             var senderUser = await _context.Users.AsNoTracking()
                 .Where(u => u.Id == userId)
@@ -128,10 +141,8 @@ namespace CardExchange.API.Hubs
                 isRead = false
             };
 
-            // Push al gruppo conversazione (entrambi gli utenti se sono nella chat)
             await Clients.Group($"conversation_{conversation.Id}").SendAsync("ReceiveMessage", msgPayload);
 
-            // Push anche al gruppo utente del destinatario (per aggiornare badge/lista)
             await Clients.Group($"chat_user_{recipientId}").SendAsync("NewMessageAlert", new
             {
                 conversationId = conversation.Id,

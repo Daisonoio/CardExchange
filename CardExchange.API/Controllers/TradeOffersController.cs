@@ -5,8 +5,10 @@ using CardExchange.API.Services;
 using CardExchange.Core.Constants;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
+using CardExchange.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace CardExchange.API.Controllers
@@ -21,6 +23,7 @@ namespace CardExchange.API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly ISubscriptionService _subscriptionService;
         private readonly INotificationService _notificationService;
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<TradeOffersController> _logger;
 
         public TradeOffersController(
@@ -29,6 +32,7 @@ namespace CardExchange.API.Controllers
             IUserRepository userRepository,
             ISubscriptionService subscriptionService,
             INotificationService notificationService,
+            ApplicationDbContext context,
             ILogger<TradeOffersController> logger)
         {
             _tradeOfferRepository = tradeOfferRepository;
@@ -36,6 +40,7 @@ namespace CardExchange.API.Controllers
             _userRepository = userRepository;
             _subscriptionService = subscriptionService;
             _notificationService = notificationService;
+            _context = context;
             _logger = logger;
         }
 
@@ -381,23 +386,39 @@ namespace CardExchange.API.Controllers
             if (!availabilityCheck.IsValid)
                 return BadRequest(new { message = availabilityCheck.ErrorMessage });
 
-            var transferResult = await ExecuteTradeTransferAsync(offer);
-            if (!transferResult.IsSuccess)
-                return BadRequest(new { message = transferResult.ErrorMessage });
+            User? sender;
+            User? receiver;
 
-            offer.Status = TradeOfferStatus.Completed;
-            offer.CompletedDate = DateTime.UtcNow;
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var transferResult = await ExecuteTradeTransferAsync(offer);
+                if (!transferResult.IsSuccess)
+                {
+                    await transaction.RollbackAsync();
+                    return BadRequest(new { message = transferResult.ErrorMessage });
+                }
 
-            // Aggiorna i contatori degli utenti
-            var sender = await _userRepository.GetByIdAsync(offer.SenderId);
-            var receiver = await _userRepository.GetByIdAsync(offer.ReceiverId);
-            if (sender != null) sender.TotalTradesCompleted++;
-            if (receiver != null) receiver.TotalTradesCompleted++;
+                offer.Status = TradeOfferStatus.Completed;
+                offer.CompletedDate = DateTime.UtcNow;
 
-            _tradeOfferRepository.Update(offer);
-            await _tradeOfferRepository.SaveChangesAsync();
+                sender = await _userRepository.GetByIdAsync(offer.SenderId);
+                receiver = await _userRepository.GetByIdAsync(offer.ReceiverId);
+                if (sender != null) sender.TotalTradesCompleted++;
+                if (receiver != null) receiver.TotalTradesCompleted++;
 
-            // Notifica entrambi
+                _tradeOfferRepository.Update(offer);
+                await _tradeOfferRepository.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Errore durante il completamento dello scambio {OfferId}", id);
+                return StatusCode(500, new { message = "Errore durante il completamento dello scambio" });
+            }
+
             var otherUserId = userId == offer.SenderId ? offer.ReceiverId : offer.SenderId;
             var currentUser = userId == offer.SenderId ? sender : receiver;
             await _notificationService.SendTradeOfferNotificationAsync(
@@ -445,20 +466,31 @@ namespace CardExchange.API.Controllers
                 GoodCommunication = request.GoodCommunication
             };
 
-            offer.Reviews.Add(review);
+            User? reviewedUser;
 
-            // Aggiorna reputazione utente recensito
-            var reviewedUser = await _userRepository.GetByIdAsync(reviewedUserId);
-            if (reviewedUser != null)
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                reviewedUser.TotalReviewsReceived++;
-                var totalRating = reviewedUser.ReputationScore * (reviewedUser.TotalReviewsReceived - 1) + request.Rating;
-                reviewedUser.ReputationScore = totalRating / reviewedUser.TotalReviewsReceived;
+                offer.Reviews.Add(review);
+
+                reviewedUser = await _userRepository.GetByIdAsync(reviewedUserId);
+                if (reviewedUser != null)
+                {
+                    reviewedUser.TotalReviewsReceived++;
+                    var totalRating = reviewedUser.ReputationScore * (reviewedUser.TotalReviewsReceived - 1) + request.Rating;
+                    reviewedUser.ReputationScore = totalRating / reviewedUser.TotalReviewsReceived;
+                }
+
+                await _tradeOfferRepository.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Errore durante l'aggiunta della recensione per lo scambio {OfferId}", id);
+                return StatusCode(500, new { message = "Errore durante il salvataggio della recensione" });
             }
 
-            await _tradeOfferRepository.SaveChangesAsync();
-
-            // Notifica l'utente recensito
             var reviewer = await _userRepository.GetByIdAsync(userId);
             await _notificationService.SendAsync(
                 reviewedUserId,

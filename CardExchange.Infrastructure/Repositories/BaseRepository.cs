@@ -115,5 +115,26 @@ namespace CardExchange.Infrastructure.Repositories
         {
             return await _context.SaveChangesAsync() > 0;
         }
+
+        public virtual async Task ExecuteInTransactionAsync(Func<Task> action)
+        {
+            if (_context.Database.CurrentTransaction != null)
+            {
+                await action();
+                return;
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await action();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
     }
 }

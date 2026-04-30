@@ -21,5 +21,6 @@ namespace CardExchange.Core.Interfaces
         void Delete(T entity);
         void DeleteRange(IEnumerable<T> entities);
         Task<bool> SaveChangesAsync();
+        Task ExecuteInTransactionAsync(Func<Task> action);
     }
 }
