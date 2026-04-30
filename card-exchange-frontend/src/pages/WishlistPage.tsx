@@ -4,6 +4,7 @@ import { wishlist, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import type { WishlistItem, ScryfallCard, GameCard, CardCondition } from '../types';
+import { CONDITION_LABELS } from '../types';
 import GameCardSearch, { importGameCard } from '../components/cards/GameCardSearch';
 import WishlistGridItem from '../components/cards/WishlistGridItem';
 import EditWishlistSheet from '../components/cards/EditWishlistSheet';
@@ -356,6 +357,36 @@ export default function WishlistPage() {
                       }`}
                     >
                       {PRIORITY_LABELS[p]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Preferred condition */}
+              <div>
+                <label className="text-xs font-semibold text-text-secondary block mb-1.5">Condizione minima (opzionale)</label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    onClick={() => setAddForm({ ...addForm, preferredCondition: undefined })}
+                    className={`px-3 py-2 rounded-xl text-xs font-medium border transition-colors ${
+                      addForm.preferredCondition === undefined
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border text-text-secondary hover:bg-surface-dark'
+                    }`}
+                  >
+                    Qualsiasi
+                  </button>
+                  {([1,2,3,4,5,6,7,8] as CardCondition[]).map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setAddForm({ ...addForm, preferredCondition: c })}
+                      className={`px-3 py-2 rounded-xl text-xs font-medium border transition-colors ${
+                        addForm.preferredCondition === c
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border text-text-secondary hover:bg-surface-dark'
+                      }`}
+                    >
+                      {CONDITION_LABELS[c]}
                     </button>
                   ))}
                 </div>
