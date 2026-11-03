@@ -19,6 +19,7 @@ namespace CardExchange.API.Controllers
     {
         private readonly IYuGiOhService _yugioh;
         private readonly ApplicationDbContext _context;
+        private readonly CardExchange.API.Services.Prices.ICatalogPriceRefresher _priceRefresher;
         private readonly ILogger<YuGiOhController> _logger;
 
         private const int StalenessHours = 24;
@@ -27,10 +28,12 @@ namespace CardExchange.API.Controllers
         public YuGiOhController(
             IYuGiOhService yugioh,
             ApplicationDbContext context,
+            CardExchange.API.Services.Prices.ICatalogPriceRefresher priceRefresher,
             ILogger<YuGiOhController> logger)
         {
             _yugioh = yugioh;
             _context = context;
+            _priceRefresher = priceRefresher;
             _logger = logger;
         }
 
@@ -271,36 +274,7 @@ namespace CardExchange.API.Controllers
             if (cardInfos.Count == 0)
                 return Ok(new { message = "Nessuna carta Yu-Gi-Oh! da aggiornare (prezzi ancora freschi)", updated = 0 });
 
-            int totalUpdated = 0;
-
-            foreach (var cardInfo in cardInfos)
-            {
-                var apiCard = await _yugioh.GetCardByIdAsync(cardInfo.YuGiOhId!.Value);
-                if (apiCard == null) continue;
-
-                // Aggiorna solo prezzi e immagini
-                var prices = apiCard.CardPrices?.FirstOrDefault();
-                if (prices != null)
-                {
-                    cardInfo.PriceYuGiOhTcgPlayer = ParseDecimal(prices.TcgPlayerPrice);
-                    cardInfo.PriceYuGiOhCardmarket = ParseDecimal(prices.CardmarketPrice);
-                    cardInfo.PriceYuGiOhEbay = ParseDecimal(prices.EbayPrice);
-                    cardInfo.PriceYuGiOhAmazon = ParseDecimal(prices.AmazonPrice);
-                    cardInfo.PriceYuGiOhCoolstuffinc = ParseDecimal(prices.CoolStuffIncPrice);
-                    cardInfo.PriceUsd = ParseDecimal(prices.TcgPlayerPrice);
-                    cardInfo.PriceEur = ParseDecimal(prices.CardmarketPrice);
-                }
-
-                var image = apiCard.CardImages?.FirstOrDefault();
-                if (image != null)
-                {
-                    cardInfo.YuGiOhImageUrl = image.ImageUrl;
-                    cardInfo.YuGiOhImageSmall = image.ImageUrlSmall;
-                }
-
-                cardInfo.YuGiOhUpdatedAt = DateTime.UtcNow;
-                totalUpdated++;
-            }
+            int totalUpdated = await _priceRefresher.RefreshYuGiOhAsync(cardInfos);
 
             await _context.SaveChangesAsync();
 

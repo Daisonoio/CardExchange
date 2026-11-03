@@ -19,6 +19,7 @@ namespace CardExchange.API.Controllers
     {
         private readonly IPokemonTcgService _pokemonTcg;
         private readonly ApplicationDbContext _context;
+        private readonly CardExchange.API.Services.Prices.ICatalogPriceRefresher _priceRefresher;
         private readonly ILogger<PokemonTcgController> _logger;
 
         // Soglia di aggiornamento: se i dati in DB sono più vecchi di N ore, li aggiorna dall'API
@@ -28,10 +29,12 @@ namespace CardExchange.API.Controllers
         public PokemonTcgController(
             IPokemonTcgService pokemonTcg,
             ApplicationDbContext context,
+            CardExchange.API.Services.Prices.ICatalogPriceRefresher priceRefresher,
             ILogger<PokemonTcgController> logger)
         {
             _pokemonTcg = pokemonTcg;
             _context = context;
+            _priceRefresher = priceRefresher;
             _logger = logger;
         }
 
@@ -339,42 +342,7 @@ namespace CardExchange.API.Controllers
             if (cardInfos.Count == 0)
                 return Ok(new { message = "Nessuna carta Pokémon da aggiornare (prezzi ancora freschi)", updated = 0 });
 
-            int totalUpdated = 0;
-
-            // Aggiorna una alla volta (API non ha endpoint batch)
-            foreach (var cardInfo in cardInfos)
-            {
-                var apiCard = await _pokemonTcg.GetCardByIdAsync(cardInfo.PokemonTcgId!);
-                if (apiCard == null) continue;
-
-                // Aggiorna solo prezzi e immagini
-                if (apiCard.TcgPlayer?.Prices != null)
-                {
-                    cardInfo.PriceTcgNormal = apiCard.TcgPlayer.Prices.Normal?.Market;
-                    cardInfo.PriceTcgHolofoil = apiCard.TcgPlayer.Prices.Holofoil?.Market;
-                    cardInfo.PriceTcgReverseHolofoil = apiCard.TcgPlayer.Prices.ReverseHolofoil?.Market;
-                    cardInfo.PriceUsd = apiCard.TcgPlayer.Prices.Normal?.Market
-                        ?? apiCard.TcgPlayer.Prices.Holofoil?.Market
-                        ?? apiCard.TcgPlayer.Prices.ReverseHolofoil?.Market;
-                }
-
-                if (apiCard.Cardmarket?.Prices != null)
-                {
-                    cardInfo.PriceCardmarketAvg = apiCard.Cardmarket.Prices.AverageSellPrice;
-                    cardInfo.PriceCardmarketTrend = apiCard.Cardmarket.Prices.TrendPrice;
-                    cardInfo.PriceEur = apiCard.Cardmarket.Prices.AverageSellPrice
-                        ?? apiCard.Cardmarket.Prices.TrendPrice;
-                }
-
-                if (apiCard.Images != null)
-                {
-                    cardInfo.PokemonImageSmall = apiCard.Images.Small;
-                    cardInfo.PokemonImageLarge = apiCard.Images.Large;
-                }
-
-                cardInfo.PokemonTcgUpdatedAt = DateTime.UtcNow;
-                totalUpdated++;
-            }
+            int totalUpdated = await _priceRefresher.RefreshPokemonAsync(cardInfos);
 
             await _context.SaveChangesAsync();
 

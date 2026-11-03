@@ -343,7 +343,7 @@ export interface CardEvent {
 }
 
 // === Trade Offers ===
-export type TradeOfferStatus = 'Pending' | 'Accepted' | 'Rejected' | 'Cancelled' | 'Completed' | 'CounterOffer';
+export type TradeOfferStatus = 'Pending' | 'Accepted' | 'Rejected' | 'Cancelled' | 'Completed' | 'CounterOffer' | 'Expired';
 
 export interface TradeOfferItem {
   id: number;

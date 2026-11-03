@@ -23,6 +23,7 @@ namespace CardExchange.API.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IBaseRepository<Game> _gameRepository;
         private readonly IMagicCatalogService _catalog;
+        private readonly CardExchange.API.Services.Prices.ICatalogPriceRefresher _priceRefresher;
         private readonly ILogger<ScryfallController> _logger;
 
         public ScryfallController(
@@ -30,12 +31,14 @@ namespace CardExchange.API.Controllers
             ApplicationDbContext context,
             IBaseRepository<Game> gameRepository,
             IMagicCatalogService catalog,
+            CardExchange.API.Services.Prices.ICatalogPriceRefresher priceRefresher,
             ILogger<ScryfallController> logger)
         {
             _scryfall = scryfall;
             _catalog = catalog;
             _context = context;
             _gameRepository = gameRepository;
+            _priceRefresher = priceRefresher;
             _logger = logger;
         }
 
@@ -300,46 +303,7 @@ namespace CardExchange.API.Controllers
             if (cardInfos.Count == 0)
                 return Ok(new { message = "Nessuna carta con dati Scryfall da aggiornare", updated = 0 });
 
-            // Batch da 75 (limite Scryfall collection endpoint)
-            int totalUpdated = 0;
-            var batches = cardInfos.Chunk(75);
-
-            foreach (var batch in batches)
-            {
-                var identifiers = batch
-                    .Select(ci => new ScryfallIdentifier { Id = ci.ScryfallId })
-                    .ToList();
-
-                var result = await _scryfall.ValidateCollectionAsync(identifiers);
-                if (result == null) continue;
-
-                foreach (var scryfallCard in result.Data)
-                {
-                    var cardInfo = batch.FirstOrDefault(ci => ci.ScryfallId == scryfallCard.Id);
-                    if (cardInfo == null) continue;
-
-                    // Aggiorna solo prezzi e immagini
-                    if (scryfallCard.Prices != null)
-                    {
-                        cardInfo.PriceUsd = ParseDecimal(scryfallCard.Prices.Usd);
-                        cardInfo.PriceUsdFoil = ParseDecimal(scryfallCard.Prices.UsdFoil);
-                        cardInfo.PriceEur = ParseDecimal(scryfallCard.Prices.Eur);
-                        cardInfo.PriceEurFoil = ParseDecimal(scryfallCard.Prices.EurFoil);
-                    }
-
-                    var images = scryfallCard.ImageUris ?? scryfallCard.CardFaces?.FirstOrDefault()?.ImageUris;
-                    if (images != null)
-                    {
-                        cardInfo.ImageUrl = images.Normal;
-                        cardInfo.ImageSmall = images.Small;
-                        cardInfo.ImageNormal = images.Normal;
-                        cardInfo.ImageLarge = images.Large;
-                    }
-
-                    cardInfo.ScryfallUpdatedAt = DateTime.UtcNow;
-                    totalUpdated++;
-                }
-            }
+            int totalUpdated = await _priceRefresher.RefreshMagicAsync(cardInfos);
 
             await _context.SaveChangesAsync();
 
@@ -408,11 +372,6 @@ namespace CardExchange.API.Controllers
             return claim != null && int.TryParse(claim.Value, out var id) ? id : 0;
         }
 
-        private static decimal? ParseDecimal(string? value)
-        {
-            if (string.IsNullOrEmpty(value)) return null;
-            return decimal.TryParse(value, System.Globalization.CultureInfo.InvariantCulture, out var result) ? result : null;
-        }
     }
 
     // ================================================================

@@ -10,7 +10,9 @@ namespace CardExchange.Core.Entities
         Rejected = 3,
         Cancelled = 4,
         Completed = 5,
-        CounterOffer = 6
+        CounterOffer = 6,
+        /// <summary>Offerta in attesa non accettata entro ExpiresAt (chiusa dal job notturno).</summary>
+        Expired = 7
     }
 
     public class TradeOffer : BaseEntity

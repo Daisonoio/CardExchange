@@ -130,12 +130,12 @@ namespace CardExchange.API.Controllers
         }
 
         /// <summary>
-        /// Ottiene lo storico prezzi di una carta (default: 90 giorni)
+        /// Ottiene lo storico prezzi di una carta (default: 90 giorni, massimo 365). Disponibile per tutti.
         /// </summary>
         [HttpGet("history/{cardInfoId}")]
-        [RequirePremium]
         public async Task<ActionResult<PriceHistoryDto>> GetPriceHistory(int cardInfoId, [FromQuery] int days = 90)
         {
+            days = Math.Clamp(days, 1, 365);
             try
             {
                 days = Math.Clamp(days, 7, 365);

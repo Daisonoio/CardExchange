@@ -1,0 +1,253 @@
+using CardExchange.Core.Entities;
+using CardExchange.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+
+namespace CardExchange.API.Services.Prices
+{
+    public class DailyMaintenanceOptions
+    {
+        public bool Enabled { get; set; } = true;
+        /// <summary>Ora di esecuzione (UTC), formato HH:mm.</summary>
+        public string RunAtUtc { get; set; } = "02:30";
+        /// <summary>Esegue anche all'avvio dell'applicazione (utile in sviluppo).</summary>
+        public bool RunOnStartup { get; set; }
+        /// <summary>Limite di carte Pokémon aggiornate per notte (l'API pubblica ha una quota giornaliera).</summary>
+        public int MaxPokemonPerRun { get; set; } = 500;
+        /// <summary>Limite di carte Yu-Gi-Oh! aggiornate per notte.</summary>
+        public int MaxYuGiOhPerRun { get; set; } = 1000;
+    }
+
+    public record DailyMaintenanceReport(int ExpiredOffers, int MagicUpdated, int PokemonUpdated, int YuGiOhUpdated, int Snapshots, int UsersWithAlertsChecked);
+
+    /// <summary>
+    /// Lavori notturni: chiude le offerte scadute, aggiorna i prezzi delle carte presenti in collezioni
+    /// o wishlist, registra lo storico prezzi giornaliero e valuta gli allarmi prezzo.
+    /// Ogni passo è idempotente: rieseguirlo nello stesso giorno non crea duplicati.
+    /// </summary>
+    public class DailyMaintenance
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly ICatalogPriceRefresher _refresher;
+        private readonly IPriceTrackingService _priceTracking;
+        private readonly ILogger<DailyMaintenance> _logger;
+
+        public DailyMaintenance(ApplicationDbContext context, ICatalogPriceRefresher refresher,
+            IPriceTrackingService priceTracking, ILogger<DailyMaintenance> logger)
+        {
+            _context = context;
+            _refresher = refresher;
+            _priceTracking = priceTracking;
+            _logger = logger;
+        }
+
+        public async Task<DailyMaintenanceReport> RunAsync(DailyMaintenanceOptions options, CancellationToken ct = default)
+        {
+            var expired = await ExpireOffersAsync(ct);
+            var (magic, pokemon, yugioh) = await RefreshPricesAsync(options, ct);
+            var snapshots = await SnapshotPricesAsync(ct);
+            var alertUsers = await CheckPriceAlertsAsync(ct);
+
+            var report = new DailyMaintenanceReport(expired, magic, pokemon, yugioh, snapshots, alertUsers);
+            _logger.LogInformation("Manutenzione notturna completata: {@Report}", report);
+            return report;
+        }
+
+        public async Task<int> ExpireOffersAsync(CancellationToken ct = default)
+        {
+            var now = DateTime.UtcNow;
+            var offers = await _context.TradeOffers
+                .Where(o => o.Status == TradeOfferStatus.Pending && o.ExpiresAt != null && o.ExpiresAt < now)
+                .ToListAsync(ct);
+            foreach (var offer in offers)
+            {
+                offer.Status = TradeOfferStatus.Expired;
+                offer.ResponseDate = now;
+            }
+            await _context.SaveChangesAsync(ct);
+            return offers.Count;
+        }
+
+        /// <summary>CardInfo in uso: almeno una copia in collezione o una voce di wishlist.</summary>
+        private IQueryable<CardInfo> CardInfosInUse() =>
+            _context.CardInfos.Where(ci =>
+                _context.Cards.Any(c => c.CardInfoId == ci.Id) ||
+                _context.WishlistItems.Any(w => w.CardInfoId == ci.Id));
+
+        public async Task<(int Magic, int Pokemon, int YuGiOh)> RefreshPricesAsync(DailyMaintenanceOptions options, CancellationToken ct = default)
+        {
+            int magic = 0, pokemon = 0, yugioh = 0;
+
+            try
+            {
+                var magicInfos = await CardInfosInUse().Where(ci => ci.ScryfallId != null).ToListAsync(ct);
+                magic = await _refresher.RefreshMagicAsync(magicInfos, ct);
+                await _context.SaveChangesAsync(ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(ex, "Aggiornamento prezzi Magic non riuscito");
+            }
+
+            try
+            {
+                // Prima le più vecchie, così con la quota giornaliera si ruota su tutto il catalogo
+                var pokemonInfos = await CardInfosInUse().Where(ci => ci.PokemonTcgId != null)
+                    .OrderBy(ci => ci.PokemonTcgUpdatedAt).Take(options.MaxPokemonPerRun).ToListAsync(ct);
+                pokemon = await _refresher.RefreshPokemonAsync(pokemonInfos, ct);
+                await _context.SaveChangesAsync(ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(ex, "Aggiornamento prezzi Pokémon non riuscito");
+            }
+
+            try
+            {
+                var yugiohInfos = await CardInfosInUse().Where(ci => ci.YuGiOhId != null)
+                    .OrderBy(ci => ci.YuGiOhUpdatedAt).Take(options.MaxYuGiOhPerRun).ToListAsync(ct);
+                yugioh = await _refresher.RefreshYuGiOhAsync(yugiohInfos, ct);
+                await _context.SaveChangesAsync(ct);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _logger.LogError(ex, "Aggiornamento prezzi Yu-Gi-Oh! non riuscito");
+            }
+
+            return (magic, pokemon, yugioh);
+        }
+
+        /// <summary>Una riga di storico per carta in uso e per giorno (aggiornata se già presente).</summary>
+        public async Task<int> SnapshotPricesAsync(CancellationToken ct = default)
+        {
+            var today = DateTime.UtcNow.Date;
+            var infos = await CardInfosInUse()
+                .Where(ci => ci.PriceEur != null || ci.PriceUsd != null || ci.PriceEurFoil != null || ci.PriceUsdFoil != null)
+                .Select(ci => new { ci.Id, ci.PriceUsd, ci.PriceUsdFoil, ci.PriceEur, ci.PriceEurFoil })
+                .ToListAsync(ct);
+
+            var existing = await _context.PriceHistories
+                .Where(ph => ph.SnapshotDate == today)
+                .ToDictionaryAsync(ph => ph.CardInfoId, ct);
+
+            foreach (var info in infos)
+            {
+                if (existing.TryGetValue(info.Id, out var snap))
+                {
+                    snap.PriceUsd = info.PriceUsd;
+                    snap.PriceUsdFoil = info.PriceUsdFoil;
+                    snap.PriceEur = info.PriceEur;
+                    snap.PriceEurFoil = info.PriceEurFoil;
+                }
+                else
+                {
+                    _context.PriceHistories.Add(new PriceHistory
+                    {
+                        CardInfoId = info.Id,
+                        SnapshotDate = today,
+                        PriceUsd = info.PriceUsd,
+                        PriceUsdFoil = info.PriceUsdFoil,
+                        PriceEur = info.PriceEur,
+                        PriceEurFoil = info.PriceEurFoil
+                    });
+                }
+            }
+            await _context.SaveChangesAsync(ct);
+            return infos.Count;
+        }
+
+        public async Task<int> CheckPriceAlertsAsync(CancellationToken ct = default)
+        {
+            var userIds = await _context.PriceAlerts
+                .Where(a => a.IsActive && !a.IsTriggered)
+                .Select(a => a.UserId).Distinct().ToListAsync(ct);
+            foreach (var userId in userIds)
+            {
+                ct.ThrowIfCancellationRequested();
+                try
+                {
+                    await _priceTracking.CheckAndTriggerAlertsAsync(userId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Verifica allarmi prezzo non riuscita per utente {UserId}", userId);
+                }
+            }
+            return userIds.Count;
+        }
+    }
+
+    /// <summary>
+    /// Pianifica <see cref="DailyMaintenance"/> una volta al giorno all'ora configurata (sezione Jobs:DailyMaintenance).
+    /// Con più istanze dell'API il lavoro viene ripetuto su ciascuna, ma resta corretto perché idempotente.
+    /// </summary>
+    public class DailyMaintenanceHostedService : BackgroundService
+    {
+        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<DailyMaintenanceHostedService> _logger;
+
+        public DailyMaintenanceHostedService(IServiceScopeFactory scopeFactory, IConfiguration configuration, ILogger<DailyMaintenanceHostedService> logger)
+        {
+            _scopeFactory = scopeFactory;
+            _configuration = configuration;
+            _logger = logger;
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            var options = _configuration.GetSection("Jobs:DailyMaintenance").Get<DailyMaintenanceOptions>() ?? new DailyMaintenanceOptions();
+            if (!options.Enabled)
+            {
+                _logger.LogInformation("Manutenzione notturna disattivata da configurazione");
+                return;
+            }
+
+            if (options.RunOnStartup)
+                await RunOnceAsync(options, stoppingToken);
+
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                var delay = DelayUntilNextRun(options.RunAtUtc, DateTime.UtcNow);
+                _logger.LogInformation("Prossima manutenzione notturna tra {Delay}", delay);
+                try
+                {
+                    await Task.Delay(delay, stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    return;
+                }
+                await RunOnceAsync(options, stoppingToken);
+            }
+        }
+
+        private async Task RunOnceAsync(DailyMaintenanceOptions options, CancellationToken ct)
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                await scope.ServiceProvider.GetRequiredService<DailyMaintenance>().RunAsync(options, ct);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                // arresto dell'applicazione
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Manutenzione notturna fallita");
+            }
+        }
+
+        public static TimeSpan DelayUntilNextRun(string runAtUtc, DateTime nowUtc)
+        {
+            if (!TimeSpan.TryParse(runAtUtc, System.Globalization.CultureInfo.InvariantCulture, out var timeOfDay) ||
+                timeOfDay < TimeSpan.Zero || timeOfDay >= TimeSpan.FromDays(1))
+            {
+                timeOfDay = new TimeSpan(2, 30, 0);
+            }
+            var next = nowUtc.Date + timeOfDay;
+            if (next <= nowUtc) next = next.AddDays(1);
+            return next - nowUtc;
+        }
+    }
+}

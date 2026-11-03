@@ -168,6 +168,10 @@ builder.Services.AddScoped<IPriceTrackingService, PriceTrackingService>();
 builder.Services.AddScoped<IMatchmakingService, MatchmakingService>();
 builder.Services.AddScoped<CardExchange.API.Services.Import.IMagicCatalogService, CardExchange.API.Services.Import.MagicCatalogService>();
 builder.Services.AddScoped<CardExchange.API.Services.Import.ICollectionImportService, CardExchange.API.Services.Import.CollectionImportService>();
+builder.Services.AddScoped<CardExchange.API.Services.Prices.ICatalogPriceRefresher, CardExchange.API.Services.Prices.CatalogPriceRefresher>();
+// Lavori notturni: scadenza offerte, prezzi, storico, allarmi (sezione Jobs:DailyMaintenance)
+builder.Services.AddScoped<CardExchange.API.Services.Prices.DailyMaintenance>();
+builder.Services.AddHostedService<CardExchange.API.Services.Prices.DailyMaintenanceHostedService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<IScryfallService, ScryfallService>(client =>
 {

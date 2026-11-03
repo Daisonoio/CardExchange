@@ -19,6 +19,7 @@ const STATUS_CONFIG: Record<TradeOfferStatus, { label: string; color: string; ic
   Cancelled: { label: 'Annullata', color: 'bg-gray-100 text-gray-500', icon: X },
   Completed: { label: 'Completata', color: 'bg-blue-50 text-blue-600', icon: Check },
   CounterOffer: { label: 'Controproposta', color: 'bg-purple-50 text-purple-600', icon: RotateCcw },
+  Expired: { label: 'Scaduta', color: 'bg-gray-100 text-gray-500', icon: Clock },
 };
 
 type TabFilter = 'all' | 'received' | 'sent';
