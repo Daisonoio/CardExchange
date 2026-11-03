@@ -14,6 +14,13 @@ namespace CardExchange.API.DTOs.Requests
         [Range(1, int.MaxValue, ErrorMessage = "La quantità deve essere almeno 1")]
         public int Quantity { get; set; } = 1;
 
+        /// <summary>Codice lingua (en, it, ja, ...). Null = non specificata.</summary>
+        [MaxLength(5)]
+        public string? Language { get; set; }
+
+        /// <summary>1=Normale, 2=Foil, 3=Reverse Holo, 4=Etched.</summary>
+        public int Finish { get; set; } = 1;
+
         [MaxLength(500)]
         public string? Notes { get; set; }
 
@@ -30,6 +37,12 @@ namespace CardExchange.API.DTOs.Requests
 
         [Range(1, int.MaxValue, ErrorMessage = "La quantità deve essere almeno 1")]
         public int? Quantity { get; set; }
+
+        /// <summary>Codice lingua. Stringa vuota = rimuovi la lingua; null = non modificare.</summary>
+        [MaxLength(5)]
+        public string? Language { get; set; }
+
+        public int? Finish { get; set; }
 
         [MaxLength(500)]
         public string? Notes { get; set; }

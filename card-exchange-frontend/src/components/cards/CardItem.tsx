@@ -1,6 +1,7 @@
 import { MoreHorizontal, ArrowLeftRight } from 'lucide-react';
 import type { Card, CardCondition } from '../../types';
 import { CONDITION_LABELS } from '../../types';
+import CardVariantBadges from './CardVariantBadges';
 
 interface CardItemProps {
   card: Card;
@@ -100,6 +101,7 @@ export default function CardItem({ card, onEdit, onDelete, onClick, showUser }: 
             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${conditionColor}`}>
               {conditionLabel}
             </span>
+            <CardVariantBadges language={card.language} finish={card.finish} />
             {card.quantity > 1 && (
               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600">
                 x{card.quantity}

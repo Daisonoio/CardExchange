@@ -43,7 +43,7 @@ namespace CardExchange.API.Controllers
                 .ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("Gioco,Set,Codice Set,Nome Carta,Numero,Rarità,Tipo,Condizione,Quantità,Disponibile Scambio,Valore Stimato,Note");
+            sb.AppendLine("Gioco,Set,Codice Set,Nome Carta,Numero,Rarità,Tipo,Condizione,Lingua,Finitura,Quantità,Disponibile Scambio,Valore Stimato,Note");
 
             foreach (var card in cards)
             {
@@ -57,6 +57,8 @@ namespace CardExchange.API.Controllers
                     EscapeCsv(card.CardInfo.Rarity ?? ""),
                     EscapeCsv(card.CardInfo.Type ?? ""),
                     card.Condition.ToString(),
+                    card.Language ?? "",
+                    card.Finish.ToString(),
                     card.Quantity.ToString(),
                     card.IsAvailableForTrade ? "Sì" : "No",
                     card.EstimatedValue?.ToString("F2") ?? "",
@@ -102,6 +104,8 @@ namespace CardExchange.API.Controllers
                     rarity = c.CardInfo.Rarity,
                     type = c.CardInfo.Type,
                     condition = c.Condition.ToString(),
+                    language = c.Language,
+                    finish = c.Finish.ToString(),
                     quantity = c.Quantity,
                     isAvailableForTrade = c.IsAvailableForTrade,
                     estimatedValue = c.EstimatedValue,

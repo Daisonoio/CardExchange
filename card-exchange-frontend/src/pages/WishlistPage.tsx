@@ -3,11 +3,12 @@ import { Plus, Heart, ChevronDown, Loader2 } from 'lucide-react';
 import { wishlist, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
-import type { WishlistItem, ScryfallCard, GameCard, CardCondition } from '../types';
+import type { WishlistItem, ScryfallCard, GameCard, CardCondition, CardFinish } from '../types';
 import { CONDITION_LABELS } from '../types';
 import GameCardSearch, { importGameCard } from '../components/cards/GameCardSearch';
 import WishlistGridItem from '../components/cards/WishlistGridItem';
 import EditWishlistSheet from '../components/cards/EditWishlistSheet';
+import LanguageFinishPicker from '../components/cards/LanguageFinishPicker';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import BottomSheet from '../components/ui/BottomSheet';
@@ -34,6 +35,8 @@ export default function WishlistPage() {
   const [addForm, setAddForm] = useState({
     priority: 2 as 1 | 2 | 3,
     preferredCondition: undefined as CardCondition | undefined,
+    preferredLanguage: '',
+    preferredFinish: undefined as CardFinish | undefined,
     maxPrice: undefined as number | undefined,
     notes: '',
   });
@@ -125,6 +128,8 @@ export default function WishlistPage() {
         cardInfoId,
         priority: addForm.priority,
         preferredCondition: addForm.preferredCondition,
+        preferredLanguage: addForm.preferredLanguage || undefined,
+        preferredFinish: addForm.preferredFinish,
         maxPrice: addForm.maxPrice,
         notes: addForm.notes || undefined,
       });
@@ -132,7 +137,7 @@ export default function WishlistPage() {
       setShowAddModal(false);
       setSelectedCard(null);
       setPrintings([]);
-      setAddForm({ priority: 2, preferredCondition: undefined, maxPrice: undefined, notes: '' });
+      setAddForm({ priority: 2, preferredCondition: undefined, preferredLanguage: '', preferredFinish: undefined, maxPrice: undefined, notes: '' });
       loadItems();
     } catch (err: any) {
       const msg = err?.response?.data?.message;
@@ -391,6 +396,14 @@ export default function WishlistPage() {
                   ))}
                 </div>
               </div>
+
+              <LanguageFinishPicker
+                anyOption
+                language={addForm.preferredLanguage}
+                onLanguageChange={(preferredLanguage) => setAddForm({ ...addForm, preferredLanguage })}
+                finish={addForm.preferredFinish}
+                onFinishChange={(preferredFinish) => setAddForm({ ...addForm, preferredFinish })}
+              />
 
               {/* Max price */}
               <div>

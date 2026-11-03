@@ -1,3 +1,4 @@
+using CardExchange.Core.Rules;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
 
@@ -81,11 +82,7 @@ namespace CardExchange.API.Services
                 var availableCards = await _cardRepository.GetCardsByCardInfoAsync(wish.CardInfoId);
                 foreach (var card in availableCards.Where(c => c.UserId != userId))
                 {
-                    // Condition filter (Mint=1 ... Damaged=8): scarta solo carte in condizione peggiore di quella richiesta
-                    if (wish.PreferredCondition.HasValue && card.Condition > wish.PreferredCondition.Value)
-                        continue;
-                    // Price filter
-                    if (wish.MaxPrice.HasValue && card.EstimatedValue.HasValue && card.EstimatedValue > wish.MaxPrice)
+                    if (!WishlistMatchRules.Satisfies(card, wish))
                         continue;
 
                     if (!theyHaveIWant.ContainsKey(card.UserId))
@@ -101,8 +98,7 @@ namespace CardExchange.API.Services
                 var wishlists = await _wishlistRepository.GetWishlistByCardInfoAsync(myCard.CardInfoId);
                 foreach (var wish in wishlists.Where(w => w.UserId != userId))
                 {
-                    // Condition filter (Mint=1 ... Damaged=8): scarta solo carte in condizione peggiore di quella richiesta
-                    if (wish.PreferredCondition.HasValue && myCard.Condition > wish.PreferredCondition.Value)
+                    if (!WishlistMatchRules.Satisfies(myCard, wish))
                         continue;
 
                     if (!iHaveTheyWant.ContainsKey(wish.UserId))
@@ -150,8 +146,10 @@ namespace CardExchange.API.Services
                             SetName = info?.CardSet?.Name,
                             ImageSmall = info?.ImageSmall,
                             Condition = card.Condition.ToString(),
+                            Language = card.Language,
+                            Finish = card.Finish.ToString(),
                             Quantity = card.Quantity,
-                            PriceEur = info?.PriceEur ?? card.EstimatedValue,
+                            PriceEur = CardPricing.ReferencePriceEur(info, card.Finish, card.EstimatedValue),
                             WishlistPriority = wish.Priority
                         });
                     }
@@ -172,8 +170,10 @@ namespace CardExchange.API.Services
                             SetName = info?.CardSet?.Name,
                             ImageSmall = info?.ImageSmall,
                             Condition = card.Condition.ToString(),
+                            Language = card.Language,
+                            Finish = card.Finish.ToString(),
                             Quantity = card.Quantity,
-                            PriceEur = info?.PriceEur ?? card.EstimatedValue,
+                            PriceEur = CardPricing.ReferencePriceEur(info, card.Finish, card.EstimatedValue),
                             WishlistPriority = wish.Priority
                         });
                     }

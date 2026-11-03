@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { wishlist } from '../../api';
-import type { CardCondition, WishlistItem } from '../../types';
-import { CONDITION_LABELS } from '../../types';
+import type { CardCondition, CardFinish, WishlistItem } from '../../types';
+import { CONDITION_LABELS, finishValue } from '../../types';
+import LanguageFinishPicker from './LanguageFinishPicker';
 import Button from '../ui/Button';
 import BottomSheet from '../ui/BottomSheet';
 
@@ -22,6 +23,8 @@ const CONDITION_MAP: Record<string, number> = {
 export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted }: EditWishlistSheetProps) {
   const [priority, setPriority] = useState<1 | 2 | 3>(2);
   const [preferredCondition, setPreferredCondition] = useState<CardCondition | undefined>(undefined);
+  const [preferredLanguage, setPreferredLanguage] = useState('');
+  const [preferredFinish, setPreferredFinish] = useState<CardFinish | undefined>(undefined);
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -39,6 +42,8 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
 
     setPriority(p);
     setPreferredCondition(condNum as CardCondition | undefined);
+    setPreferredLanguage(item.preferredLanguage ?? '');
+    setPreferredFinish(finishValue(item.preferredFinish));
     setMaxPrice(item.maxPrice);
     setNotes(item.notes || '');
     setError(null);
@@ -51,7 +56,10 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
     try {
       await wishlist.update(item.id, {
         priority,
-        preferredCondition,
+        // 0 / '' = "qualsiasi": senza questo il backend lascerebbe invariata la preferenza
+        preferredCondition: preferredCondition ?? 0,
+        preferredLanguage,
+        preferredFinish: preferredFinish ?? 0,
         maxPrice,
         notes: notes || undefined,
       });
@@ -161,6 +169,13 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
           </div>
         </div>
 
+        <LanguageFinishPicker
+          anyOption
+          language={preferredLanguage}
+          onLanguageChange={setPreferredLanguage}
+          finish={preferredFinish}
+          onFinishChange={setPreferredFinish}
+        />
         <div>
           <label className="text-xs font-semibold text-text-secondary block mb-1.5">Prezzo massimo (opzionale)</label>
           <input

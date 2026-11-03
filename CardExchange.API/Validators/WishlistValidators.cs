@@ -1,4 +1,6 @@
 using CardExchange.API.DTOs.Requests;
+using CardExchange.Core.Constants;
+using CardExchange.Core.Entities;
 using FluentValidation;
 
 namespace CardExchange.API.Validators
@@ -23,6 +25,30 @@ namespace CardExchange.API.Validators
 
             RuleFor(x => x.Priority)
                 .InclusiveBetween(1, 3).WithMessage("La priorità deve essere 1 (alta), 2 (media) o 3 (bassa)");
+
+            RuleFor(x => x.PreferredLanguage)
+                .Must(l => CardLanguages.IsValid(l?.Trim().ToLowerInvariant()))
+                .When(x => !string.IsNullOrWhiteSpace(x.PreferredLanguage))
+                .WithMessage("Lingua non supportata");
+
+            RuleFor(x => x.PreferredFinish)
+                .Must(f => Enum.IsDefined(typeof(CardFinish), f!.Value)).When(x => x.PreferredFinish.HasValue)
+                .WithMessage("Finitura non valida (1-4)");
+        }
+    }
+
+    public class UpdateWishlistItemRequestValidator : AbstractValidator<UpdateWishlistItemRequest>
+    {
+        public UpdateWishlistItemRequestValidator()
+        {
+            RuleFor(x => x.PreferredLanguage)
+                .Must(l => CardLanguages.IsValid(l?.Trim().ToLowerInvariant()))
+                .When(x => !string.IsNullOrWhiteSpace(x.PreferredLanguage))
+                .WithMessage("Lingua non supportata");
+
+            RuleFor(x => x.PreferredFinish)
+                .Must(f => f == 0 || Enum.IsDefined(typeof(CardFinish), f!.Value)).When(x => x.PreferredFinish.HasValue)
+                .WithMessage("Finitura non valida (0 = qualsiasi, 1-4)");
         }
     }
 }

@@ -111,6 +111,38 @@ export const CONDITION_LABELS: Record<CardCondition, string> = {
   8: 'Damaged',
 };
 
+// Lingue di stampa (stessi codici del backend / Scryfall). Vuoto = non specificata.
+export const CARD_LANGUAGES: { code: string; label: string; short: string }[] = [
+  { code: 'en', label: 'Inglese', short: 'EN' },
+  { code: 'it', label: 'Italiano', short: 'IT' },
+  { code: 'fr', label: 'Francese', short: 'FR' },
+  { code: 'de', label: 'Tedesco', short: 'DE' },
+  { code: 'es', label: 'Spagnolo', short: 'ES' },
+  { code: 'pt', label: 'Portoghese', short: 'PT' },
+  { code: 'ja', label: 'Giapponese', short: 'JP' },
+  { code: 'ko', label: 'Coreano', short: 'KO' },
+  { code: 'zhs', label: 'Cinese semplificato', short: 'CS' },
+  { code: 'zht', label: 'Cinese tradizionale', short: 'CT' },
+  { code: 'ru', label: 'Russo', short: 'RU' },
+];
+
+export const languageLabel = (code?: string | null) =>
+  CARD_LANGUAGES.find((l) => l.code === code)?.label;
+export const languageShort = (code?: string | null) =>
+  CARD_LANGUAGES.find((l) => l.code === code)?.short;
+
+// Finitura: 1=Normale, 2=Foil, 3=Reverse Holo, 4=Etched. Il backend restituisce il nome ("Foil").
+export type CardFinish = 1 | 2 | 3 | 4;
+export const FINISH_LABELS: Record<CardFinish, string> = {
+  1: 'Normale',
+  2: 'Foil',
+  3: 'Reverse Holo',
+  4: 'Etched',
+};
+const FINISH_BY_NAME: Record<string, CardFinish> = { Normal: 1, Foil: 2, ReverseHolo: 3, Etched: 4 };
+export const finishValue = (finish?: CardFinish | string | null): CardFinish | undefined =>
+  finish == null ? undefined : typeof finish === 'number' ? finish : FINISH_BY_NAME[finish];
+
 export interface Card {
   id: number;
   userId: number;
@@ -123,6 +155,8 @@ export interface Card {
   cardNumber?: string;
   rarity?: string;
   condition: CardCondition | string;
+  language?: string | null;
+  finish?: CardFinish | string;
   quantity: number;
   notes?: string;
   isAvailableForTrade: boolean;
@@ -143,6 +177,9 @@ export interface CreateCardRequest {
   cardInfoId: number;
   condition: CardCondition;
   quantity: number;
+  /** Codice lingua; nell'aggiornamento '' rimuove la lingua. */
+  language?: string;
+  finish?: CardFinish;
   notes?: string;
   isAvailableForTrade: boolean;
   estimatedValue?: number;
@@ -160,6 +197,8 @@ export interface WishlistItem {
   cardNumber?: string;
   rarity?: string;
   preferredCondition?: CardCondition | string;
+  preferredLanguage?: string | null;
+  preferredFinish?: CardFinish | string | null;
   maxPrice?: number;
   priority: number;
   priorityLabel?: string;
@@ -175,7 +214,12 @@ export interface WishlistItem {
 
 export interface CreateWishlistRequest {
   cardInfoId: number;
-  preferredCondition?: CardCondition;
+  /** Nell'aggiornamento 0 = qualsiasi condizione. */
+  preferredCondition?: CardCondition | 0;
+  /** Codice lingua; nell'aggiornamento '' = qualsiasi. */
+  preferredLanguage?: string;
+  /** Nell'aggiornamento 0 = qualsiasi finitura. */
+  preferredFinish?: CardFinish | 0;
   maxPrice?: number;
   priority: 1 | 2 | 3;
   notes?: string;

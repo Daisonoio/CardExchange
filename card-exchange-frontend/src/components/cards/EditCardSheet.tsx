@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Trash2, Camera, Upload, TrendingUp } from 'lucide-react';
-import type { Card, CardCondition, PriceSpike } from '../../types';
-import { CONDITION_LABELS } from '../../types';
+import type { Card, CardCondition, CardFinish, PriceSpike } from '../../types';
+import { CONDITION_LABELS, FINISH_LABELS, finishValue, languageLabel } from '../../types';
+import LanguageFinishPicker from './LanguageFinishPicker';
 import { cards, cardPhotos } from '../../api';
 import Button from '../ui/Button';
 import BottomSheet from '../ui/BottomSheet';
@@ -24,6 +25,8 @@ const CONDITION_MAP: Record<string, number> = {
 export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, readOnly, spikeInfo }: EditCardSheetProps) {
   const [condition, setCondition] = useState<CardCondition>(2);
   const [quantity, setQuantity] = useState(1);
+  const [language, setLanguage] = useState('');
+  const [finish, setFinish] = useState<CardFinish>(1);
   const [isAvailableForTrade, setIsAvailableForTrade] = useState(true);
   const [notes, setNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -46,6 +49,8 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
       : (CONDITION_MAP[card.condition] || 2);
     setCondition(condNum as CardCondition);
     setQuantity(card.quantity || 1);
+    setLanguage(card.language ?? '');
+    setFinish(finishValue(card.finish) ?? 1);
     setIsAvailableForTrade(card.isAvailableForTrade ?? true);
     setNotes(card.notes || '');
     setError(null);
@@ -81,6 +86,8 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
       await cards.update(card.id, {
         condition,
         quantity,
+        language, // '' rimuove la lingua
+        finish,
         isAvailableForTrade,
         notes: notes || undefined,
       });
@@ -272,6 +279,14 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
               <p className="text-text-muted">Quantità</p>
               <p className="font-semibold text-text">{quantity}</p>
             </div>
+            <div className="rounded-xl bg-white border border-border/60 p-2.5">
+              <p className="text-text-muted">Lingua</p>
+              <p className="font-semibold text-text">{languageLabel(language) ?? 'Non specificata'}</p>
+            </div>
+            <div className="rounded-xl bg-white border border-border/60 p-2.5">
+              <p className="text-text-muted">Finitura</p>
+              <p className="font-semibold text-text">{FINISH_LABELS[finish]}</p>
+            </div>
           </div>
         ) : (
           <>
@@ -294,6 +309,13 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
                 ))}
               </div>
             </div>
+
+            <LanguageFinishPicker
+              language={language}
+              onLanguageChange={setLanguage}
+              finish={finish}
+              onFinishChange={(f) => setFinish(f ?? 1)}
+            />
 
             {/* Quantity */}
             <div>

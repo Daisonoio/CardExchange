@@ -12,6 +12,10 @@
         public string? CardNumber { get; set; }
         public string? Rarity { get; set; }
         public string Condition { get; set; } = string.Empty;
+        /// <summary>Codice lingua (en, it, ...) o null se non specificata.</summary>
+        public string? Language { get; set; }
+        /// <summary>Normal, Foil, ReverseHolo, Etched.</summary>
+        public string Finish { get; set; } = nameof(CardExchange.Core.Entities.CardFinish.Normal);
         public int Quantity { get; set; }
         public string? Notes { get; set; }
         public bool IsAvailableForTrade { get; set; }

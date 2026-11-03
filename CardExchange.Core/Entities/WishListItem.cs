@@ -13,6 +13,13 @@ namespace CardExchange.Core.Entities
 
         public CardCondition? PreferredCondition { get; set; }
 
+        /// <summary>Lingua richiesta. Null = qualsiasi lingua.</summary>
+        [MaxLength(5)]
+        public string? PreferredLanguage { get; set; }
+
+        /// <summary>Finitura richiesta. Null = qualsiasi finitura.</summary>
+        public CardFinish? PreferredFinish { get; set; }
+
         public decimal? MaxPrice { get; set; }
 
         [MaxLength(500)]

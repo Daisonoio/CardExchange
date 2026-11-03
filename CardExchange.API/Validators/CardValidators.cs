@@ -1,4 +1,6 @@
 using CardExchange.API.DTOs.Requests;
+using CardExchange.Core.Constants;
+using CardExchange.Core.Entities;
 using FluentValidation;
 
 namespace CardExchange.API.Validators
@@ -15,6 +17,15 @@ namespace CardExchange.API.Validators
 
             RuleFor(x => x.Quantity)
                 .GreaterThanOrEqualTo(1).WithMessage("La quantità deve essere almeno 1");
+
+            RuleFor(x => x.Language)
+                .Must(l => CardLanguages.IsValid(l?.Trim().ToLowerInvariant()))
+                .When(x => !string.IsNullOrWhiteSpace(x.Language))
+                .WithMessage("Lingua non supportata");
+
+            RuleFor(x => x.Finish)
+                .Must(f => Enum.IsDefined(typeof(CardFinish), f))
+                .WithMessage("Finitura non valida (1-4)");
 
             RuleFor(x => x.Notes)
                 .MaximumLength(500).When(x => x.Notes != null);
@@ -36,6 +47,15 @@ namespace CardExchange.API.Validators
             RuleFor(x => x.Quantity)
                 .GreaterThanOrEqualTo(1).When(x => x.Quantity.HasValue)
                 .WithMessage("La quantità deve essere almeno 1");
+
+            RuleFor(x => x.Language)
+                .Must(l => CardLanguages.IsValid(l?.Trim().ToLowerInvariant()))
+                .When(x => !string.IsNullOrWhiteSpace(x.Language))
+                .WithMessage("Lingua non supportata");
+
+            RuleFor(x => x.Finish)
+                .Must(f => Enum.IsDefined(typeof(CardFinish), f!.Value)).When(x => x.Finish.HasValue)
+                .WithMessage("Finitura non valida (1-4)");
 
             RuleFor(x => x.Notes)
                 .MaximumLength(500).When(x => x.Notes != null);

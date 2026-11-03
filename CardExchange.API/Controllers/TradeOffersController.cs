@@ -641,6 +641,8 @@ namespace CardExchange.API.Controllers
                 CardName = item.Card?.CardInfo?.Name ?? string.Empty,
                 CardSetName = item.Card?.CardInfo?.CardSet?.Name ?? string.Empty,
                 Condition = item.Card?.Condition.ToString() ?? string.Empty,
+                Language = item.Card?.Language,
+                Finish = item.Card?.Finish.ToString() ?? "Normal",
                 Quantity = item.Quantity,
                 OwnerUsername = item.Card?.User?.Username ?? string.Empty
             };
@@ -697,6 +699,8 @@ namespace CardExchange.API.Controllers
                         !c.IsDeleted &&
                         c.CardInfoId == sourceCard.CardInfoId &&
                         c.Condition == sourceCard.Condition &&
+                        c.Language == sourceCard.Language &&
+                        c.Finish == sourceCard.Finish &&
                         (c.Notes ?? string.Empty) == (sourceCard.Notes ?? string.Empty));
 
                 if (destinationCard != null)
@@ -712,6 +716,8 @@ namespace CardExchange.API.Controllers
                         UserId = destinationOwnerId,
                         CardInfoId = sourceCard.CardInfoId,
                         Condition = sourceCard.Condition,
+                        Language = sourceCard.Language,
+                        Finish = sourceCard.Finish,
                         Quantity = item.Quantity,
                         Notes = sourceCard.Notes,
                         IsAvailableForTrade = true,

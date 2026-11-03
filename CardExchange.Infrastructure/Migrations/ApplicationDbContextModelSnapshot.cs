@@ -148,11 +148,18 @@ namespace CardExchange.Infrastructure.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<int>("Finish")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsAvailableForTrade")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Language")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
@@ -1835,6 +1842,13 @@ namespace CardExchange.Infrastructure.Migrations
 
                     b.Property<int?>("PreferredCondition")
                         .HasColumnType("int");
+
+                    b.Property<int?>("PreferredFinish")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PreferredLanguage")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<int>("Priority")
                         .HasColumnType("int");

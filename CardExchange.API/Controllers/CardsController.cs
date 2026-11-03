@@ -1,3 +1,4 @@
+using CardExchange.Core.Constants;
 ﻿using CardExchange.API.Authorization;
 using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
@@ -325,7 +326,9 @@ namespace CardExchange.API.Controllers
                     UserId = userId,
                     CardInfoId = request.CardInfoId,
                     Condition = (CardCondition)request.Condition,
-                    Quantity = request.Quantity,  // ← AGGIUNTO
+                    Quantity = request.Quantity,
+                    Language = CardLanguages.Normalize(request.Language),
+                    Finish = (CardFinish)request.Finish,
                     Notes = request.Notes,
                     IsAvailableForTrade = request.IsAvailableForTrade,
                     EstimatedValue = request.EstimatedValue
@@ -381,6 +384,12 @@ namespace CardExchange.API.Controllers
                     }
                     card.Quantity = request.Quantity.Value;
                 }
+
+                if (request.Language != null)
+                    card.Language = CardLanguages.Normalize(request.Language);
+
+                if (request.Finish.HasValue)
+                    card.Finish = (CardFinish)request.Finish.Value;
 
                 if (request.Notes != null)
                     card.Notes = request.Notes;
@@ -760,6 +769,8 @@ namespace CardExchange.API.Controllers
                 CardNumber = card.CardInfo?.CardNumber,
                 Rarity = card.CardInfo?.Rarity,
                 Condition = card.Condition.ToString(),
+                Language = card.Language,
+                Finish = card.Finish.ToString(),
                 Notes = card.Notes,
                 IsAvailableForTrade = card.IsAvailableForTrade,
                 EstimatedValue = card.EstimatedValue,
@@ -816,6 +827,8 @@ namespace CardExchange.API.Controllers
                 CardDescription = ci?.Description,
                 ImageUrl = ci?.ImageUrl,
                 Condition = card.Condition.ToString(),
+                Language = card.Language,
+                Finish = card.Finish.ToString(),
                 Quantity = card.Quantity,
                 Notes = card.Notes,
                 IsAvailableForTrade = card.IsAvailableForTrade,

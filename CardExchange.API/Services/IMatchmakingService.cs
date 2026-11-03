@@ -39,6 +39,8 @@ namespace CardExchange.API.Services
         public string? SetName { get; set; }
         public string? ImageSmall { get; set; }
         public string Condition { get; set; } = string.Empty;
+        public string? Language { get; set; }
+        public string Finish { get; set; } = "Normal";
         public int Quantity { get; set; }
         public decimal? PriceEur { get; set; }
         public int WishlistPriority { get; set; }

@@ -27,6 +27,8 @@ namespace CardExchange.API.DTOs.Responses
         public string CardName { get; set; } = string.Empty;
         public string CardSetName { get; set; } = string.Empty;
         public string Condition { get; set; } = string.Empty;
+        public string? Language { get; set; }
+        public string Finish { get; set; } = "Normal";
         public int Quantity { get; set; }
         public string OwnerUsername { get; set; } = string.Empty;
     }

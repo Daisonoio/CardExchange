@@ -3,10 +3,12 @@ import { Plus, Library, Search, TrendingUp, ChevronDown, Loader2 } from 'lucide-
 import { cards, priceTracking, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
-import type { Card, GameCard, CardCondition, PriceSpike, ScryfallCard } from '../types';
+import type { Card, GameCard, CardCondition, CardFinish, PriceSpike, ScryfallCard } from '../types';
 import { CONDITION_LABELS } from '../types';
 import CardGridItem from '../components/cards/CardGridItem';
 import EditCardSheet from '../components/cards/EditCardSheet';
+import LanguageFinishPicker from '../components/cards/LanguageFinishPicker';
+import { readLastLanguage, saveLastLanguage } from '../utils/lastLanguage';
 import GameCardSearch, { importGameCard } from '../components/cards/GameCardSearch';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
@@ -25,6 +27,8 @@ export default function CollectionPage() {
     quantity: 1,
     isAvailableForTrade: true,
     notes: '',
+    language: readLastLanguage(),
+    finish: 1 as CardFinish,
   });
   const [printings, setPrintings] = useState<ScryfallCard[]>([]);
   const [loadingPrintings, setLoadingPrintings] = useState(false);
@@ -112,15 +116,19 @@ export default function CollectionPage() {
         cardInfoId,
         condition: addForm.condition,
         quantity: addForm.quantity,
+        language: addForm.language || undefined,
+        finish: addForm.finish,
         isAvailableForTrade: addForm.isAvailableForTrade,
         notes: addForm.notes || undefined,
       });
+      saveLastLanguage(addForm.language);
 
       setShowAddModal(false);
       setSelectedCard(null);
       setPrintings([]);
       setShowPrintings(false);
-      setAddForm({ condition: 2, quantity: 1, isAvailableForTrade: true, notes: '' });
+      // Mantiene la lingua scelta: di solito si inseriscono più carte nella stessa lingua
+      setAddForm((f) => ({ condition: 2, quantity: 1, isAvailableForTrade: true, notes: '', language: f.language, finish: 1 }));
       loadCards();
     } catch (err) {
       console.error('Errore aggiunta carta:', err);
@@ -374,6 +382,13 @@ export default function CollectionPage() {
                 ))}
               </div>
             </div>
+
+            <LanguageFinishPicker
+              language={addForm.language}
+              onLanguageChange={(language) => setAddForm({ ...addForm, language })}
+              finish={addForm.finish}
+              onFinishChange={(finish) => setAddForm({ ...addForm, finish: finish ?? 1 })}
+            />
 
             {/* Quantity */}
             <div>

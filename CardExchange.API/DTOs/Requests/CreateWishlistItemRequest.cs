@@ -10,6 +10,13 @@ namespace CardExchange.API.DTOs.Requests
         [Range(1, 8, ErrorMessage = "Condizione non valida")]
         public int? PreferredCondition { get; set; }
 
+        /// <summary>Codice lingua richiesto. Null = qualsiasi.</summary>
+        [MaxLength(5)]
+        public string? PreferredLanguage { get; set; }
+
+        /// <summary>Finitura richiesta (1-4). Null = qualsiasi.</summary>
+        public int? PreferredFinish { get; set; }
+
         [Range(0, 999999.99, ErrorMessage = "Il prezzo deve essere tra 0 e 999999.99")]
         public decimal? MaxPrice { get; set; }
 

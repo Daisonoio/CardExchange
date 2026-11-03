@@ -12,6 +12,8 @@
         public string? CardNumber { get; set; }
         public string? Rarity { get; set; }
         public string? PreferredCondition { get; set; }
+        public string? PreferredLanguage { get; set; }
+        public string? PreferredFinish { get; set; }
         public decimal? MaxPrice { get; set; }
         public string? Notes { get; set; }
         public string? ImageSmall { get; set; }
@@ -36,6 +38,8 @@
         public int UserId { get; set; }
         public string Username { get; set; } = string.Empty;
         public string Condition { get; set; } = string.Empty;
+        public string? Language { get; set; }
+        public string Finish { get; set; } = "Normal";
         public int Quantity { get; set; }
         public decimal? EstimatedValue { get; set; }
         public UserLocationDto? UserLocation { get; set; }

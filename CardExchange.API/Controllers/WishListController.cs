@@ -1,3 +1,5 @@
+using CardExchange.Core.Constants;
+using CardExchange.Core.Rules;
 ﻿using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
 using CardExchange.Core.Entities;
@@ -318,6 +320,10 @@ namespace CardExchange.API.Controllers
                     PreferredCondition = request.PreferredCondition.HasValue
                         ? (CardCondition)request.PreferredCondition.Value
                         : null,
+                    PreferredLanguage = CardLanguages.Normalize(request.PreferredLanguage),
+                    PreferredFinish = request.PreferredFinish.HasValue
+                        ? (CardFinish)request.PreferredFinish.Value
+                        : null,
                     MaxPrice = request.MaxPrice,
                     Notes = request.Notes,
                     Priority = request.Priority
@@ -372,13 +378,33 @@ namespace CardExchange.API.Controllers
                 }
 
                 // Aggiorna solo i campi forniti
+                // 0 (o stringa vuota per la lingua) = qualsiasi; null = non modificare
                 if (request.PreferredCondition.HasValue)
                 {
-                    if (!Enum.IsDefined(typeof(CardCondition), request.PreferredCondition.Value))
+                    if (request.PreferredCondition.Value == 0)
+                    {
+                        wishlistItem.PreferredCondition = null;
+                    }
+                    else if (!Enum.IsDefined(typeof(CardCondition), request.PreferredCondition.Value))
                     {
                         return BadRequest(new { message = "Condizione non valida" });
                     }
-                    wishlistItem.PreferredCondition = (CardCondition)request.PreferredCondition.Value;
+                    else
+                    {
+                        wishlistItem.PreferredCondition = (CardCondition)request.PreferredCondition.Value;
+                    }
+                }
+
+                if (request.PreferredLanguage != null)
+                {
+                    wishlistItem.PreferredLanguage = CardLanguages.Normalize(request.PreferredLanguage);
+                }
+
+                if (request.PreferredFinish.HasValue)
+                {
+                    wishlistItem.PreferredFinish = request.PreferredFinish.Value == 0
+                        ? null
+                        : (CardFinish)request.PreferredFinish.Value;
                 }
 
                 if (request.MaxPrice.HasValue)
@@ -519,6 +545,8 @@ namespace CardExchange.API.Controllers
                     CardDescription = cardInfo.Description,
                     CardImageUrl = cardInfo.ImageUrl,
                     PreferredCondition = wishlistItem.PreferredCondition?.ToString(),
+                    PreferredLanguage = wishlistItem.PreferredLanguage,
+                    PreferredFinish = wishlistItem.PreferredFinish?.ToString(),
                     MaxPrice = wishlistItem.MaxPrice,
                     Notes = wishlistItem.Notes,
                     Priority = wishlistItem.Priority,
@@ -712,6 +740,8 @@ namespace CardExchange.API.Controllers
                                 {
                                     cardId = x.card.Id,
                                     condition = x.card.Condition.ToString(),
+                                    language = x.card.Language,
+                                    finish = x.card.Finish.ToString(),
                                     quantity = x.card.Quantity,
                                     estimatedValue = x.card.EstimatedValue
                                 })
@@ -727,6 +757,8 @@ namespace CardExchange.API.Controllers
                             priority = wishlistItem.Priority,
                             priorityLabel = GetPriorityLabel(wishlistItem.Priority),
                             preferredCondition = wishlistItem.PreferredCondition?.ToString(),
+                            preferredLanguage = wishlistItem.PreferredLanguage,
+                            preferredFinish = wishlistItem.PreferredFinish?.ToString(),
                             maxPrice = wishlistItem.MaxPrice,
                             matchesCount = owners.Count,
                             totalQuantityAvailable = cardsInRadius.Sum(x => x.card.Quantity),
@@ -769,17 +801,8 @@ namespace CardExchange.API.Controllers
         {
             var availableCards = await _cardRepository.GetCardsByCardInfoAsync(wishlistItem.CardInfoId);
 
-            // Filtra per condizione se specificata
-            if (wishlistItem.PreferredCondition.HasValue)
-            {
-                availableCards = availableCards.Where(c => c.Condition <= wishlistItem.PreferredCondition.Value);
-            }
-
-            // Filtra per prezzo se specificato
-            if (wishlistItem.MaxPrice.HasValue)
-            {
-                availableCards = availableCards.Where(c => !c.EstimatedValue.HasValue || c.EstimatedValue <= wishlistItem.MaxPrice);
-            }
+            // Condizione, lingua, finitura e prezzo massimo
+            availableCards = availableCards.Where(c => WishlistMatchRules.Satisfies(c, wishlistItem));
 
             // Non includere le proprie carte
             availableCards = availableCards.Where(c => c.UserId != wishlistItem.UserId);
@@ -813,6 +836,8 @@ namespace CardExchange.API.Controllers
                 UserId = card.UserId,
                 Username = cardOwner?.Username ?? "Unknown",
                 Condition = card.Condition.ToString(),
+                Language = card.Language,
+                Finish = card.Finish.ToString(),
                 Quantity = card.Quantity,
                 EstimatedValue = card.EstimatedValue,
                 DistanceKm = distanceKm,
@@ -984,6 +1009,8 @@ namespace CardExchange.API.Controllers
                 CardNumber = cardInfo?.CardNumber,
                 Rarity = cardInfo?.Rarity,
                 PreferredCondition = wishlistItem.PreferredCondition?.ToString(),
+                PreferredLanguage = wishlistItem.PreferredLanguage,
+                PreferredFinish = wishlistItem.PreferredFinish?.ToString(),
                 MaxPrice = wishlistItem.MaxPrice,
                 Notes = wishlistItem.Notes,
                 ImageSmall = cardInfo?.ImageSmall,
@@ -999,17 +1026,8 @@ namespace CardExchange.API.Controllers
         {
             var availableCards = await _cardRepository.GetCardsByCardInfoAsync(wishlistItem.CardInfoId);
 
-            // Filtra per condizione se specificata
-            if (wishlistItem.PreferredCondition.HasValue)
-            {
-                availableCards = availableCards.Where(c => c.Condition <= wishlistItem.PreferredCondition.Value);
-            }
-
-            // Filtra per prezzo se specificato
-            if (wishlistItem.MaxPrice.HasValue)
-            {
-                availableCards = availableCards.Where(c => !c.EstimatedValue.HasValue || c.EstimatedValue <= wishlistItem.MaxPrice);
-            }
+            // Condizione, lingua, finitura e prezzo massimo
+            availableCards = availableCards.Where(c => WishlistMatchRules.Satisfies(c, wishlistItem));
 
             // Non contare le proprie carte
             availableCards = availableCards.Where(c => c.UserId != wishlistItem.UserId);

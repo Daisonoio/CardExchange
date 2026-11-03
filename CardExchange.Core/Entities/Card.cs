@@ -15,6 +15,15 @@ namespace CardExchange.Core.Entities
         Damaged = 8
     }
 
+    /// <summary>Finitura della copia fisica. Reverse Holo è tipica di Pokémon, Etched di Magic.</summary>
+    public enum CardFinish
+    {
+        Normal = 1,
+        Foil = 2,
+        ReverseHolo = 3,
+        Etched = 4
+    }
+
     public class Card : BaseEntity
     {
         [Required]
@@ -29,6 +38,12 @@ namespace CardExchange.Core.Entities
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "La quantità deve essere almeno 1")]
         public int Quantity { get; set; } = 1;
+
+        /// <summary>Codice lingua (vedi <see cref="Constants.CardLanguages"/>). Null = non specificata.</summary>
+        [MaxLength(5)]
+        public string? Language { get; set; }
+
+        public CardFinish Finish { get; set; } = CardFinish.Normal;
 
         [MaxLength(500)]
         public string? Notes { get; set; }

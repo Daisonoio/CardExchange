@@ -65,6 +65,8 @@ namespace CardExchange.API.Controllers
                             c.SetName,
                             c.ImageSmall,
                             c.Condition,
+                            c.Language,
+                            c.Finish,
                             c.Quantity,
                             c.PriceEur,
                             c.WishlistPriority
@@ -77,6 +79,8 @@ namespace CardExchange.API.Controllers
                             c.SetName,
                             c.ImageSmall,
                             c.Condition,
+                            c.Language,
+                            c.Finish,
                             c.Quantity,
                             c.PriceEur,
                             c.WishlistPriority

@@ -1,5 +1,6 @@
 import { Heart, X } from 'lucide-react';
 import type { WishlistItem } from '../../types';
+import CardVariantBadges from './CardVariantBadges';
 
 interface WishlistGridItemProps {
   item: WishlistItem;
@@ -61,6 +62,7 @@ export default function WishlistGridItem({ item, onClick, onDelete }: WishlistGr
       <div className="p-1.5">
         <p className="text-[11px] font-semibold text-text truncate leading-tight">{cardName}</p>
         <p className="text-[10px] text-text-muted truncate">{item.cardSetName || item.cardInfo?.cardSet?.name || ''}</p>
+        <CardVariantBadges language={item.preferredLanguage} finish={item.preferredFinish} className="mt-0.5" />
       </div>
     </button>
   );
