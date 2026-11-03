@@ -48,4 +48,34 @@ namespace CardExchange.API.DTOs.Responses
         public bool GoodCommunication { get; set; }
         public DateTime CreatedAt { get; set; }
     }
+
+    public class TradeEvaluationDto
+    {
+        public decimal OfferedTotal { get; set; }
+        public decimal RequestedTotal { get; set; }
+        /// <summary>Offerto meno richiesto: positivo = chi propone dà di più.</summary>
+        public decimal Difference { get; set; }
+        public decimal Tolerance { get; set; }
+        /// <summary>fair, favorsReceiver, favorsProposer.</summary>
+        public string Verdict { get; set; } = "fair";
+        /// <summary>Carte senza alcun prezzo (escluse dal totale).</summary>
+        public int MissingPriceCount { get; set; }
+        public List<TradeItemValueDto> Items { get; set; } = new();
+    }
+
+    public class TradeItemValueDto
+    {
+        public int CardId { get; set; }
+        public int Quantity { get; set; }
+        public decimal? UnitValue { get; set; }
+    }
+
+    public class TradeSuggestionDto
+    {
+        public List<TradeItemValueDto> OfferedCards { get; set; } = new();
+        public TradeEvaluationDto Evaluation { get; set; } = new();
+        /// <summary>Quante tue carte disponibili l'altro utente cerca.</summary>
+        public int CandidatesCount { get; set; }
+        public string? Message { get; set; }
+    }
 }

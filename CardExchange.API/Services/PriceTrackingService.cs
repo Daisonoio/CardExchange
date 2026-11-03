@@ -1,3 +1,4 @@
+using CardExchange.Core.Rules;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
 
@@ -258,13 +259,15 @@ namespace CardExchange.API.Services
                 var info = await _cardInfoRepository.GetByIdAsync(card.CardInfoId);
                 if (info == null) continue;
 
-                offeredEur += info.PriceEur ?? 0;
+                card.CardInfo = info;
+                var valueEur = CardPricing.CopyValueEur(card);
+                offeredEur += valueEur ?? 0;
                 offeredUsd += info.PriceUsd ?? 0;
                 offeredCards.Add(new TradeCardValue
                 {
                     CardId = card.Id,
                     Name = info.Name,
-                    PriceEur = info.PriceEur,
+                    PriceEur = valueEur,
                     PriceUsd = info.PriceUsd,
                     ImageSmall = info.ImageSmall
                 });
@@ -278,28 +281,29 @@ namespace CardExchange.API.Services
                 var info = await _cardInfoRepository.GetByIdAsync(card.CardInfoId);
                 if (info == null) continue;
 
-                requestedEur += info.PriceEur ?? 0;
+                card.CardInfo = info;
+                var valueEur = CardPricing.CopyValueEur(card);
+                requestedEur += valueEur ?? 0;
                 requestedUsd += info.PriceUsd ?? 0;
                 requestedCards.Add(new TradeCardValue
                 {
                     CardId = card.Id,
                     Name = info.Name,
-                    PriceEur = info.PriceEur,
+                    PriceEur = valueEur,
                     PriceUsd = info.PriceUsd,
                     ImageSmall = info.ImageSmall
                 });
             }
 
             var differenceEur = offeredEur - requestedEur;
-            var threshold = Math.Max(offeredEur, requestedEur) * 0.10m; // 10% soglia
 
-            string verdict;
-            if (Math.Abs(differenceEur) <= threshold)
-                verdict = "fair";
-            else if (differenceEur > 0)
-                verdict = "against_you";
-            else
-                verdict = "in_your_favor";
+            // Stessa valutazione di POST /api/tradeoffers/evaluate
+            var verdict = TradeBalance.Evaluate(offeredEur, requestedEur).Verdict switch
+            {
+                TradeVerdict.FavorsReceiver => "against_you",
+                TradeVerdict.FavorsProposer => "in_your_favor",
+                _ => "fair"
+            };
 
             return new TradeAnalysis
             {

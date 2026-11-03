@@ -336,7 +336,7 @@ namespace CardExchange.API.Controllers
 
                 var verdictDesc = analysis.Verdict switch
                 {
-                    "fair" => "Lo scambio è equo (differenza entro il 10%)",
+                    "fair" => "Lo scambio è equo (differenza entro il 10% o 1 €)",
                     "in_your_favor" => "Lo scambio è a tuo favore",
                     "against_you" => "Lo scambio è a tuo sfavore",
                     _ => "Non determinabile"

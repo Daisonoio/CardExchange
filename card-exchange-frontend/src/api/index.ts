@@ -215,6 +215,10 @@ export const tradeOffers = {
     client.post<TradeOffer>(`/tradeoffers/${id}/complete`),
   review: (id: number, data: { rating: number; comment?: string; cardAsDescribed: boolean; timelyShipping: boolean; goodCommunication: boolean }) =>
     client.post(`/tradeoffers/${id}/review`, data),
+  evaluate: (offeredCards: { cardId: number; quantity: number }[], requestedCards: { cardId: number; quantity: number }[]) =>
+    client.post<import('../types').TradeEvaluation>('/tradeoffers/evaluate', { offeredCards, requestedCards }),
+  suggest: (receiverId: number, requestedCards: { cardId: number; quantity: number }[]) =>
+    client.post<import('../types').TradeSuggestion>('/tradeoffers/suggest', { receiverId, requestedCards }),
 };
 
 // === Messages / Chat ===

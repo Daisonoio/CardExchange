@@ -55,4 +55,19 @@ namespace CardExchange.API.DTOs.Requests
         public bool TimelyShipping { get; set; } = true;
         public bool GoodCommunication { get; set; } = true;
     }
+
+    public class TradeEvaluateRequest
+    {
+        public List<TradeOfferItemRequest> OfferedCards { get; set; } = new();
+        public List<TradeOfferItemRequest> RequestedCards { get; set; } = new();
+    }
+
+    public class TradeSuggestRequest
+    {
+        [Required]
+        public int ReceiverId { get; set; }
+
+        [MinLength(1, ErrorMessage = "Indica almeno una carta richiesta")]
+        public List<TradeOfferItemRequest> RequestedCards { get; set; } = new();
+    }
 }

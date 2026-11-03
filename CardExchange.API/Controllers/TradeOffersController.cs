@@ -5,6 +5,7 @@ using CardExchange.API.Services;
 using CardExchange.Core.Constants;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
+using CardExchange.Core.Rules;
 using CardExchange.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -182,6 +183,106 @@ namespace CardExchange.API.Controllers
 
             var createdOffer = await _tradeOfferRepository.GetWithDetailsAsync(offer.Id);
             return CreatedAtAction(nameof(GetOffer), new { id = offer.Id }, MapToDto(createdOffer!));
+        }
+
+        /// <summary>
+        /// Valuta l'equilibrio di uno scambio con i prezzi di mercato, la finitura e la condizione delle copie.
+        /// </summary>
+        [HttpPost("evaluate")]
+        public async Task<ActionResult<TradeEvaluationDto>> Evaluate([FromBody] TradeEvaluateRequest request)
+        {
+            if (GetCurrentUserId() == 0) return Unauthorized();
+            if (request.OfferedCards.Count + request.RequestedCards.Count > 200)
+                return BadRequest(new { message = "Troppe carte da valutare" });
+
+            return Ok(await EvaluateAsync(request.OfferedCards, request.RequestedCards));
+        }
+
+        /// <summary>
+        /// Propone quali delle proprie carte offrire: solo quelle disponibili allo scambio che il destinatario
+        /// cerca (rispettando le preferenze della sua wishlist), per un valore vicino a quello delle carte richieste.
+        /// </summary>
+        [HttpPost("suggest")]
+        public async Task<ActionResult<TradeSuggestionDto>> Suggest([FromBody] TradeSuggestRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized();
+            if (request.ReceiverId == userId)
+                return BadRequest(new { message = ErrorMessages.CannotTradeWithSelf });
+
+            var requestedEval = await EvaluateAsync(new List<TradeOfferItemRequest>(), request.RequestedCards);
+
+            var wishlist = await _context.WishlistItems
+                .Where(w => w.UserId == request.ReceiverId)
+                .ToListAsync();
+            var wishByCardInfo = wishlist.GroupBy(w => w.CardInfoId).ToDictionary(g => g.Key, g => g.ToList());
+            var wantedCardInfoIds = wishByCardInfo.Keys.ToList();
+
+            var myCards = await _context.Cards
+                .Include(c => c.CardInfo)
+                .Where(c => c.UserId == userId && c.IsAvailableForTrade && wantedCardInfoIds.Contains(c.CardInfoId))
+                .ToListAsync();
+
+            var candidates = new List<OfferCandidate>();
+            foreach (var card in myCards)
+            {
+                var wish = wishByCardInfo[card.CardInfoId].FirstOrDefault(w => WishlistMatchRules.Satisfies(card, w));
+                var value = CardPricing.CopyValueEur(card);
+                if (wish == null || value == null) continue;
+                candidates.Add(new OfferCandidate(card.Id, value.Value, card.Quantity, wish.Priority));
+            }
+
+            var picks = TradeBalance.SuggestOffer(candidates, requestedEval.RequestedTotal);
+            var offered = picks.Select(p => new TradeOfferItemRequest { CardId = p.CardId, Quantity = p.Quantity }).ToList();
+            var evaluation = await EvaluateAsync(offered, request.RequestedCards);
+
+            return Ok(new TradeSuggestionDto
+            {
+                OfferedCards = evaluation.Items.Where(i => offered.Any(o => o.CardId == i.CardId)).ToList(),
+                Evaluation = evaluation,
+                CandidatesCount = candidates.Count,
+                Message = candidates.Count == 0
+                    ? "Questo utente non cerca nessuna delle tue carte disponibili allo scambio."
+                    : picks.Count == 0 ? "Nessuna combinazione utile trovata." : null
+            });
+        }
+
+        private async Task<TradeEvaluationDto> EvaluateAsync(List<TradeOfferItemRequest> offered, List<TradeOfferItemRequest> requested)
+        {
+            var ids = offered.Concat(requested).Select(i => i.CardId).Distinct().ToList();
+            var cards = await _context.Cards
+                .AsNoTracking()
+                .Include(c => c.CardInfo)
+                .Where(c => ids.Contains(c.Id))
+                .ToDictionaryAsync(c => c.Id);
+
+            var dto = new TradeEvaluationDto();
+            decimal SumSide(List<TradeOfferItemRequest> side)
+            {
+                decimal total = 0;
+                foreach (var item in side)
+                {
+                    var unit = cards.TryGetValue(item.CardId, out var card) ? CardPricing.CopyValueEur(card) : null;
+                    var quantity = Math.Max(1, item.Quantity);
+                    if (unit == null) dto.MissingPriceCount++;
+                    else total += unit.Value * quantity;
+                    dto.Items.Add(new TradeItemValueDto { CardId = item.CardId, Quantity = quantity, UnitValue = unit });
+                }
+                return total;
+            }
+
+            var balance = TradeBalance.Evaluate(SumSide(offered), SumSide(requested));
+            dto.OfferedTotal = balance.OfferedTotal;
+            dto.RequestedTotal = balance.RequestedTotal;
+            dto.Difference = balance.Difference;
+            dto.Tolerance = Math.Round(balance.Tolerance, 2);
+            dto.Verdict = balance.Verdict switch
+            {
+                TradeVerdict.FavorsReceiver => "favorsReceiver",
+                TradeVerdict.FavorsProposer => "favorsProposer",
+                _ => "fair"
+            };
+            return dto;
         }
 
         /// <summary>

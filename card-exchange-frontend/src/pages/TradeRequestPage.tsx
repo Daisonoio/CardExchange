@@ -5,8 +5,9 @@ import {
 } from 'lucide-react';
 import { cards, wishlist, tradeOffers } from '../api';
 import { useAuth } from '../context/AuthContext';
-import type { Card, WishlistItem } from '../types';
+import type { Card, TradeEvaluation, WishlistItem } from '../types';
 import Button from '../components/ui/Button';
+import TradeBalanceMeter from '../components/trades/TradeBalanceMeter';
 
 type ProposalMode = 'trade' | 'buy' | 'request';
 
@@ -31,6 +32,15 @@ export default function TradeRequestPage() {
   // My cards (for offering in trade)
   const [myCards, setMyCards] = useState<Card[]>([]);
   const [offeredCards, setOfferedCards] = useState<Card[]>([]);
+  // Quantità offerta per carta (default 1)
+  const [offeredQty, setOfferedQty] = useState<Record<number, number>>({});
+  const qtyOf = (cardId: number) => offeredQty[cardId] ?? 1;
+
+  // Equilibrio dello scambio (calcolato dal backend con prezzi di mercato)
+  const [evaluation, setEvaluation] = useState<TradeEvaluation | null>(null);
+  const [evaluating, setEvaluating] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestMessage, setSuggestMessage] = useState<string | null>(null);
 
   // Wishlist matching: cards I own that the other user is searching
   const [matchingCards, setMatchingCards] = useState<Card[]>([]);
@@ -55,9 +65,8 @@ export default function TradeRequestPage() {
         const { data: otherData } = await cards.getByUser(receiverId);
         const otherCards = Array.isArray(otherData) ? otherData : (otherData as any).cards ?? [];
         setOtherUserCards(otherCards.filter((c: Card) => c.isAvailableForTrade));
-        if (otherCards.length > 0) {
-          setOtherUsername(otherCards[0].userUsername || '');
-        }
+        // L'API restituisce { username, cards }: userUsername sulle singole carte può essere vuoto
+        setOtherUsername((otherData as any)?.username || otherCards[0]?.userUsername || '');
 
         // Load my cards
         const { data: myData } = await cards.getByUser(currentUser.id);
@@ -116,6 +125,55 @@ export default function TradeRequestPage() {
     );
   }, []);
 
+  useEffect(() => {
+    if (requestedCards.length === 0 && offeredCards.length === 0) {
+      setEvaluation(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setEvaluating(true);
+      try {
+        const { data } = await tradeOffers.evaluate(
+          mode === 'trade' ? offeredCards.map((c) => ({ cardId: c.id, quantity: offeredQty[c.id] ?? 1 })) : [],
+          requestedCards.map((c) => ({ cardId: c.id, quantity: 1 })),
+        );
+        if (!cancelled) setEvaluation(data);
+      } catch {
+        if (!cancelled) setEvaluation(null);
+      } finally {
+        if (!cancelled) setEvaluating(false);
+      }
+    }, 350);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [requestedCards, offeredCards, offeredQty, mode]);
+
+  const unitValue = (cardId: number) => evaluation?.items.find((i) => i.cardId === cardId)?.unitValue ?? undefined;
+
+  const handleSuggest = async () => {
+    if (requestedCards.length === 0) {
+      setSuggestMessage('Scegli prima le carte che vuoi ricevere.');
+      return;
+    }
+    setSuggesting(true);
+    setSuggestMessage(null);
+    try {
+      const { data } = await tradeOffers.suggest(receiverId, requestedCards.map((c) => ({ cardId: c.id, quantity: 1 })));
+      if (data.offeredCards.length > 0) {
+        const byId = new Map(myCards.map((c) => [c.id, c]));
+        setOfferedCards(data.offeredCards.map((o) => byId.get(o.cardId)).filter((c): c is Card => !!c));
+        setOfferedQty(Object.fromEntries(data.offeredCards.map((o) => [o.cardId, o.quantity])));
+        setSuggestMessage(`Proposta composta con ${data.offeredCards.length} ${data.offeredCards.length === 1 ? 'carta' : 'carte'} che @${otherUsername || 'l\'utente'} sta cercando. Puoi modificarla.`);
+      } else {
+        setSuggestMessage(data.message ?? 'Nessuna proposta disponibile.');
+      }
+    } catch {
+      setSuggestMessage('Impossibile calcolare una proposta, riprova.');
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
   // Send the trade request
   const handleSubmit = async () => {
     if (!currentUser || requestedCards.length === 0) return;
@@ -154,7 +212,7 @@ export default function TradeRequestPage() {
         receiverId,
         message: finalMessage || undefined,
         offeredCards: mode === 'trade'
-          ? offeredCards.map((c) => ({ cardId: c.id, quantity: 1 }))
+          ? offeredCards.map((c) => ({ cardId: c.id, quantity: qtyOf(c.id) }))
           : myCards.length > 0
             ? [{ cardId: myCards[0].id, quantity: 0 }]
             : [],
@@ -165,7 +223,7 @@ export default function TradeRequestPage() {
       // we include the offered cards the user may have selected optionally
       if (mode !== 'trade') {
         payload.offeredCards = offeredCards.length > 0
-          ? offeredCards.map((c) => ({ cardId: c.id, quantity: 1 }))
+          ? offeredCards.map((c) => ({ cardId: c.id, quantity: qtyOf(c.id) }))
           : [];
       }
 
@@ -194,8 +252,6 @@ export default function TradeRequestPage() {
       )
     : myCards;
 
-  const totalRequestedValue = requestedCards.reduce((sum, c) => sum + (c.estimatedValue || 0), 0);
-  const totalOfferedValue = offeredCards.reduce((sum, c) => sum + (c.estimatedValue || 0), 0);
 
   if (success) {
     const chatUrl = `/chat?userId=${receiverId}${createdOfferId ? `&tradeOfferId=${createdOfferId}` : ''}`;
@@ -256,18 +312,11 @@ export default function TradeRequestPage() {
         ) : (
           <div className="space-y-1.5">
             {requestedCards.map((card) => (
-              <MiniCard key={card.id} card={card} onRemove={() => toggleRequested(card)} />
+              <MiniCard key={card.id} card={card} value={unitValue(card.id)} onRemove={() => toggleRequested(card)} />
             ))}
           </div>
         )}
-        {totalRequestedValue > 0 && (
-          <p className="text-xs text-text-muted mt-1 text-right">
-            Valore stimato: €{totalRequestedValue.toFixed(2)}
-          </p>
-        )}
       </section>
-
-    
 
       {/* Proposal mode */}
       <section className="mb-5">
@@ -295,6 +344,16 @@ export default function TradeRequestPage() {
           ))}
         </div>
       </section>
+
+      {mode === 'trade' && (
+        <TradeBalanceMeter
+          evaluation={evaluation}
+          loading={evaluating}
+          onSuggest={handleSuggest}
+          suggesting={suggesting}
+          suggestMessage={suggestMessage}
+        />
+      )}
 
       {/* Trade mode: select cards to offer */}
       {mode === 'trade' && (
@@ -359,13 +418,18 @@ export default function TradeRequestPage() {
           {offeredCards.length > 0 && (
             <div className="mt-2 space-y-1">
               {offeredCards.map((card) => (
-                <MiniCard key={card.id} card={card} onRemove={() => toggleOffered(card)} offered />
+                <MiniCard
+                  key={card.id}
+                  card={card}
+                  value={unitValue(card.id)}
+                  onRemove={() => toggleOffered(card)}
+                  offered
+                  quantity={qtyOf(card.id)}
+                  onQuantityChange={card.quantity > 1
+                    ? (q) => setOfferedQty((prev) => ({ ...prev, [card.id]: Math.min(Math.max(1, q), card.quantity) }))
+                    : undefined}
+                />
               ))}
-              {totalOfferedValue > 0 && (
-                <p className="text-xs text-text-muted text-right">
-                  Valore offerto: €{totalOfferedValue.toFixed(2)}
-                </p>
-              )}
             </div>
           )}
         </section>
@@ -389,9 +453,9 @@ export default function TradeRequestPage() {
               className="w-full pl-8 pr-4 py-3 rounded-xl border border-border text-lg font-bold focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
-          {totalRequestedValue > 0 && (
+          {evaluation && evaluation.requestedTotal > 0 && (
             <p className="text-xs text-text-muted mt-1">
-              Valore di mercato stimato: €{totalRequestedValue.toFixed(2)}
+              Valore di mercato stimato: €{evaluation.requestedTotal.toFixed(2)}
             </p>
           )}
         </section>
@@ -449,7 +513,16 @@ export default function TradeRequestPage() {
 
 /* ---- Mini Card Components ---- */
 
-function MiniCard({ card, onRemove, offered }: { card: Card; onRemove: () => void; offered?: boolean }) {
+function MiniCard({ card, onRemove, offered, value, quantity, onQuantityChange }: {
+  card: Card;
+  onRemove: () => void;
+  offered?: boolean;
+  /** Valore unitario calcolato dal backend; se assente si usa il valore stimato della carta. */
+  value?: number | null;
+  quantity?: number;
+  onQuantityChange?: (q: number) => void;
+}) {
+  const shownValue = value ?? card.estimatedValue;
   return (
     <div className={`flex items-center gap-2.5 p-2 rounded-xl border ${offered ? 'border-amber-200 bg-amber-50/50' : 'border-border/50 bg-white'}`}>
       {/* {image ? (
@@ -460,10 +533,17 @@ function MiniCard({ card, onRemove, offered }: { card: Card; onRemove: () => voi
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold truncate">{card.cardName || 'Carta'}</p>
         <p className="text-xs text-text-secondary truncate">{card.cardSetName}</p>
-        {card.estimatedValue != null && card.estimatedValue > 0 && (
-          <span className="text-xs font-medium text-accent">€{card.estimatedValue.toFixed(2)}</span>
+        {shownValue != null && shownValue > 0 && (
+          <span className="text-xs font-medium text-accent">€{shownValue.toFixed(2)}{quantity && quantity > 1 ? ' cad.' : ''}</span>
         )}
       </div>
+      {onQuantityChange && quantity != null && (
+        <div className="flex items-center gap-1 shrink-0" aria-label="Quantità offerta">
+          <button type="button" onClick={() => onQuantityChange(quantity - 1)} className="w-6 h-6 rounded-lg border border-border text-xs">-</button>
+          <span className="w-5 text-center text-xs font-semibold">{quantity}</span>
+          <button type="button" onClick={() => onQuantityChange(quantity + 1)} className="w-6 h-6 rounded-lg border border-border text-xs">+</button>
+        </div>
+      )}
       <button onClick={onRemove} className="p-1 rounded-lg hover:bg-red-50 text-text-muted hover:text-red-500 shrink-0">
         <X size={16} />
       </button>

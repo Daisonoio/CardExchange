@@ -569,3 +569,28 @@ export interface ImportCommitResult {
   failed: string[];
 }
 
+// === Equilibrio scambio ===
+export interface TradeItemValue {
+  cardId: number;
+  quantity: number;
+  unitValue?: number | null;
+}
+
+export interface TradeEvaluation {
+  offeredTotal: number;
+  requestedTotal: number;
+  /** Offerto meno richiesto (positivo = dai di più). */
+  difference: number;
+  tolerance: number;
+  verdict: 'fair' | 'favorsReceiver' | 'favorsProposer';
+  missingPriceCount: number;
+  items: TradeItemValue[];
+}
+
+export interface TradeSuggestion {
+  offeredCards: TradeItemValue[];
+  evaluation: TradeEvaluation;
+  candidatesCount: number;
+  message?: string;
+}
+
