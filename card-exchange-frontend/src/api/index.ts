@@ -215,6 +215,8 @@ export const tradeOffers = {
     client.post<TradeOffer>(`/tradeoffers/${id}/complete`),
   review: (id: number, data: { rating: number; comment?: string; cardAsDescribed: boolean; timelyShipping: boolean; goodCommunication: boolean }) =>
     client.post(`/tradeoffers/${id}/review`, data),
+  reviewsByUser: (userId: number, page = 1) =>
+    client.get<import('../types').UserReviewsPage>(`/tradeoffers/reviews/user/${userId}`, { params: { page, pageSize: 20 } }),
   evaluate: (offeredCards: { cardId: number; quantity: number }[], requestedCards: { cardId: number; quantity: number }[]) =>
     client.post<import('../types').TradeEvaluation>('/tradeoffers/evaluate', { offeredCards, requestedCards }),
   suggest: (receiverId: number, requestedCards: { cardId: number; quantity: number }[]) =>
@@ -311,3 +313,21 @@ export const collectionImport = {
   commit: (rows: import('../types').ImportCommitRow[], isAvailableForTrade: boolean) =>
     client.post<import('../types').ImportCommitResult>('/import/collection/commit', { rows, isAvailableForTrade }, { timeout: 300_000 }),
 };
+
+// === Sicurezza: blocchi, segnalazioni, moderazione ===
+export const safety = {
+  block: (userId: number) => client.post<{ message: string }>(`/users/${userId}/block`),
+  unblock: (userId: number) => client.delete<{ message: string }>(`/users/${userId}/block`),
+  blocked: () => client.get<{ userId: number; username: string; blockedAt: string }[]>('/users/blocked'),
+  report: (data: { reportedUserId: number; reason: number; details?: string; tradeOfferId?: number }) =>
+    client.post<{ message: string }>('/reports', data),
+};
+
+export const moderation = {
+  reports: (status: 'open' | 'closed' | 'all' = 'open', page = 1) =>
+    client.get<{ total: number; page: number; pageSize: number; items: import('../types').ModerationReport[] }>(
+      '/moderation/reports', { params: { status, page } }),
+  resolve: (id: number, data: { outcome: 'resolved' | 'dismissed'; note?: string; suspendUser?: boolean }) =>
+    client.post<{ message: string }>(`/moderation/reports/${id}/resolve`, data),
+};
+

@@ -16,15 +16,17 @@ namespace CardExchange.API.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
         private readonly ILogger<MessagesController> _logger;
 
         public MessagesController(
             ApplicationDbContext context,
             ISubscriptionService subscriptionService,
-            ILogger<MessagesController> logger)
+            CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<MessagesController> logger)
         {
             _context = context;
             _subscriptionService = subscriptionService;
+            _blocks = blocks;
             _logger = logger;
         }
 
@@ -146,6 +148,9 @@ namespace CardExchange.API.Controllers
 
             if (request.RecipientId == userId)
                 return BadRequest(new { message = "Non puoi inviare un messaggio a te stesso" });
+
+            if (await _blocks.IsBlockedAsync(userId, request.RecipientId))
+                return StatusCode(403, new { message = "Non puoi inviare messaggi a questo utente." });
 
             // Check limite messaggi giornalieri
             var plan = await _subscriptionService.GetUserActivePlanAsync(userId);

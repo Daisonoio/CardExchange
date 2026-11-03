@@ -370,6 +370,8 @@ export interface TradeOffer {
   completedDate?: string;
   expiresAt?: string;
   parentOfferId?: number;
+  /** Utenti che hanno già recensito questo scambio. */
+  reviewerIds?: number[];
   senderConfirmedAt?: string;
   receiverConfirmedAt?: string;
   offeredCards: TradeOfferItem[];
@@ -592,5 +594,57 @@ export interface TradeSuggestion {
   evaluation: TradeEvaluation;
   candidatesCount: number;
   message?: string;
+}
+
+// === Recensioni ===
+export interface TradeReview {
+  id: number;
+  tradeOfferId: number;
+  reviewerId: number;
+  reviewerUsername: string;
+  reviewedUserId: number;
+  rating: number;
+  comment?: string;
+  cardAsDescribed: boolean;
+  timelyShipping: boolean;
+  goodCommunication: boolean;
+  createdAt: string;
+}
+
+export interface UserReviewsPage {
+  userId: number;
+  username: string;
+  reputationScore: number;
+  totalReviews: number;
+  reviews: { items: TradeReview[]; totalCount: number; page: number; pageSize: number };
+}
+
+// === Segnalazioni ===
+export const REPORT_REASONS: { value: number; label: string }[] = [
+  { value: 1, label: 'Truffa o tentata truffa' },
+  { value: 2, label: "Non si è presentato all'appuntamento" },
+  { value: 3, label: 'Comportamento offensivo o molesto' },
+  { value: 4, label: 'Carte false o non come descritte' },
+  { value: 5, label: 'Spam' },
+  { value: 6, label: 'Altro' },
+];
+
+export const REPORT_REASON_LABELS: Record<string, string> = {
+  Scam: 'Truffa', NoShow: 'Non presentato', Harassment: 'Comportamento offensivo',
+  CardsNotAsDescribed: 'Carte non conformi', Spam: 'Spam', Other: 'Altro',
+};
+
+export interface ModerationReport {
+  id: number;
+  reason: string;
+  details?: string;
+  status: 'Open' | 'Resolved' | 'Dismissed';
+  tradeOfferId?: number;
+  createdAt: string;
+  resolvedAt?: string;
+  resolutionNote?: string;
+  userSuspended: boolean;
+  reporter: { id: number; username: string };
+  reportedUser: { id: number; username: string; isActive: boolean; reputationScore: number; totalTradesCompleted: number; openReports: number };
 }
 

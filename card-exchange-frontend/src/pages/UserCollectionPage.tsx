@@ -6,6 +6,9 @@ import { useAuth } from '../context/AuthContext';
 import type { Card, User } from '../types';
 import CardGridItem from '../components/cards/CardGridItem';
 import EditCardSheet from '../components/cards/EditCardSheet';
+import ReviewsSheet from '../components/users/ReviewsSheet';
+import UserSafetyMenu from '../components/users/UserSafetyMenu';
+import StarRating from '../components/users/StarRating';
 import EmptyState from '../components/ui/EmptyState';
 import Button from '../components/ui/Button';
 
@@ -16,6 +19,7 @@ export default function UserCollectionPage() {
   const location = useLocation();
 
   const [owner, setOwner] = useState<User | null>(null);
+  const [showReviews, setShowReviews] = useState(false);
   const [userCards, setUserCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterText, setFilterText] = useState('');
@@ -155,7 +159,18 @@ export default function UserCollectionPage() {
             {userCards.length} carte disponibili per lo scambio
             {totalValue > 0 && <> &middot; Valore: €{totalValue.toFixed(2)}</>}
           </p>
+          {owner && (
+            <button type="button" onClick={() => setShowReviews(true)} className="mt-0.5 inline-flex items-center gap-1 text-xs text-text-secondary hover:underline">
+              <StarRating value={owner.reputationScore ?? 0} size={12} />
+              {(owner.totalReviewsReceived ?? 0) > 0
+                ? `${(owner.reputationScore ?? 0).toFixed(1)} · ${owner.totalReviewsReceived} recensioni`
+                : 'Nessuna recensione'}
+            </button>
+          )}
         </div>
+        {owner && owner.id !== currentUser?.id && (
+          <UserSafetyMenu userId={owner.id} username={owner.username} onBlockedChange={(b) => b && navigate(-1)} />
+        )}
         {userCards.length > 0 && (
           <button
             onClick={() => {  if (selectionMode) setSelectedCards([]); }}
@@ -273,6 +288,7 @@ export default function UserCollectionPage() {
           </Button>
         </div>
       )}
+      <ReviewsSheet userId={owner?.id ?? null} open={showReviews} onClose={() => setShowReviews(false)} />
     </div>
   );
 }

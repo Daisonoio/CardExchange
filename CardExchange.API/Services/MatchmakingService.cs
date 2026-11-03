@@ -10,6 +10,7 @@ namespace CardExchange.API.Services
         private readonly ICardInfoRepository _cardInfoRepository;
         private readonly IWishlistRepository _wishlistRepository;
         private readonly IUserRepository _userRepository;
+        private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
         private readonly ILogger<MatchmakingService> _logger;
 
         public MatchmakingService(
@@ -17,12 +18,13 @@ namespace CardExchange.API.Services
             ICardInfoRepository cardInfoRepository,
             IWishlistRepository wishlistRepository,
             IUserRepository userRepository,
-            ILogger<MatchmakingService> logger)
+            CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<MatchmakingService> logger)
         {
             _cardRepository = cardRepository;
             _cardInfoRepository = cardInfoRepository;
             _wishlistRepository = wishlistRepository;
             _userRepository = userRepository;
+            _blocks = blocks;
             _logger = logger;
         }
 
@@ -75,12 +77,15 @@ namespace CardExchange.API.Services
             if (!myWishlistCardInfoIds.Any() && !myCardInfoIds.Any())
                 return Enumerable.Empty<MatchResult>();
 
+            // Utenti bloccati (in entrambe le direzioni) esclusi dai match
+            var blocked = await _blocks.GetBlockedUserIdsAsync(userId);
+
             // 3. Find all users who have cards I want (theyHaveIWant)
             var theyHaveIWant = new Dictionary<int, List<(Card card, WishlistItem wishlistItem)>>();
             foreach (var wish in myWishlist)
             {
                 var availableCards = await _cardRepository.GetCardsByCardInfoAsync(wish.CardInfoId);
-                foreach (var card in availableCards.Where(c => c.UserId != userId))
+                foreach (var card in availableCards.Where(c => c.UserId != userId && !blocked.Contains(c.UserId)))
                 {
                     if (!WishlistMatchRules.Satisfies(card, wish))
                         continue;
@@ -96,7 +101,7 @@ namespace CardExchange.API.Services
             foreach (var myCard in myCards)
             {
                 var wishlists = await _wishlistRepository.GetWishlistByCardInfoAsync(myCard.CardInfoId);
-                foreach (var wish in wishlists.Where(w => w.UserId != userId))
+                foreach (var wish in wishlists.Where(w => w.UserId != userId && !blocked.Contains(w.UserId)))
                 {
                     if (!WishlistMatchRules.Satisfies(myCard, wish))
                         continue;

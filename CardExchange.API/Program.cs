@@ -166,6 +166,7 @@ builder.Services.AddScoped<INotificationHandler, SystemNotificationHandler>();
 
 builder.Services.AddScoped<IPriceTrackingService, PriceTrackingService>();
 builder.Services.AddScoped<IMatchmakingService, MatchmakingService>();
+builder.Services.AddScoped<CardExchange.API.Services.Moderation.IUserBlockService, CardExchange.API.Services.Moderation.UserBlockService>();
 builder.Services.AddScoped<CardExchange.API.Services.Import.IMagicCatalogService, CardExchange.API.Services.Import.MagicCatalogService>();
 builder.Services.AddScoped<CardExchange.API.Services.Import.ICollectionImportService, CardExchange.API.Services.Import.CollectionImportService>();
 builder.Services.AddScoped<CardExchange.API.Services.Prices.ICatalogPriceRefresher, CardExchange.API.Services.Prices.CatalogPriceRefresher>();
@@ -227,23 +228,26 @@ builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
+    // I limiti sono per indirizzo IP: AddFixedWindowLimiter creerebbe un unico contatore condiviso da
+    // tutti gli utenti (con 20 login in 15 minuti in tutta l'app, gli altri resterebbero bloccati).
+    // Dietro un reverse proxy configurare ForwardedHeaders, altrimenti l'IP è quello del proxy.
+    static string ClientIp(HttpContext ctx) => ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
     // Policy globale: 100 richieste/minuto per IP
-    options.AddFixedWindowLimiter("GlobalPolicy", opt =>
+    options.AddPolicy("GlobalPolicy", ctx => RateLimitPartition.GetFixedWindowLimiter(ClientIp(ctx), _ => new FixedWindowRateLimiterOptions
     {
-        opt.PermitLimit = 100;
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 5;
-    });
+        PermitLimit = 100,
+        Window = TimeSpan.FromMinutes(1),
+        QueueLimit = 0
+    }));
 
     // Policy per autenticazione: 20 richieste/15 minuti per IP
-    options.AddFixedWindowLimiter("AuthPolicy", opt =>
+    options.AddPolicy("AuthPolicy", ctx => RateLimitPartition.GetFixedWindowLimiter(ClientIp(ctx), _ => new FixedWindowRateLimiterOptions
     {
-        opt.PermitLimit = 20;
-        opt.Window = TimeSpan.FromMinutes(15);
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 2;
-    });
+        PermitLimit = 20,
+        Window = TimeSpan.FromMinutes(15),
+        QueueLimit = 0
+    }));
 
     options.OnRejected = async (context, cancellationToken) =>
     {

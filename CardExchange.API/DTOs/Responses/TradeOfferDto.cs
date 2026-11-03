@@ -14,6 +14,8 @@ namespace CardExchange.API.DTOs.Responses
         public DateTime? CompletedDate { get; set; }
         public DateTime? ExpiresAt { get; set; }
         public int? ParentOfferId { get; set; }
+        /// <summary>Utenti che hanno già lasciato una recensione per questo scambio.</summary>
+        public List<int> ReviewerIds { get; set; } = new();
         public DateTime? SenderConfirmedAt { get; set; }
         public DateTime? ReceiverConfirmedAt { get; set; }
         public List<TradeOfferItemDto> OfferedCards { get; set; } = new();

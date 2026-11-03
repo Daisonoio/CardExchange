@@ -22,6 +22,7 @@ import TradesPage from './pages/TradesPage';
 import TradeRequestPage from './pages/TradeRequestPage';
 import ChatPage from './pages/ChatPage';
 import MatchmakingPage from './pages/MatchmakingPage';
+import ModerationPage from './pages/ModerationPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,6 +60,7 @@ export default function App() {
               <Route path="/events" element={<EventsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />
+              <Route path="/moderation" element={<ModerationPage />} />
             </Route>
 
             {/* Default redirect */}

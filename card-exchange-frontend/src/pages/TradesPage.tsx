@@ -11,6 +11,8 @@ import type { TradeOffer, TradeOfferStatus, User } from '../types';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import BottomSheet from '../components/ui/BottomSheet';
+import ReviewFormSheet from '../components/users/ReviewFormSheet';
+import UserSafetyMenu from '../components/users/UserSafetyMenu';
 
 const STATUS_CONFIG: Record<TradeOfferStatus, { label: string; color: string; icon: typeof Check }> = {
   Pending: { label: 'In attesa', color: 'bg-amber-50 text-amber-600', icon: Clock },
@@ -219,6 +221,12 @@ function OfferDetail({
   const isReceiver = offer.receiverId === userId;
   const isPending = offer.status === 'Pending';
   const isAccepted = offer.status === 'Accepted';
+  const isCompleted = offer.status === 'Completed';
+  const [showReview, setShowReview] = useState(false);
+  const [reviewDone, setReviewDone] = useState(false);
+  const alreadyReviewed = reviewDone || (offer.reviewerIds ?? []).includes(userId);
+  const otherId = isSender ? offer.receiverId : offer.senderId;
+  const otherName = isSender ? offer.receiverUsername : offer.senderUsername;
   const loading = actionLoading === offer.id;
 
   useEffect(() => {
@@ -409,6 +417,28 @@ function OfferDetail({
           </div>
         );
       })()}
+
+      {isCompleted && (
+        alreadyReviewed ? (
+          <p className="text-xs text-center text-text-muted">Hai già recensito questo scambio. Grazie!</p>
+        ) : (
+          <Button onClick={() => setShowReview(true)} className="w-full">
+            Lascia una recensione a @{otherName}
+          </Button>
+        )
+      )}
+
+      <ReviewFormSheet
+        offerId={offer.id}
+        otherUsername={otherName}
+        open={showReview}
+        onClose={() => setShowReview(false)}
+        onSubmitted={() => setReviewDone(true)}
+      />
+
+      <div className="flex justify-end">
+        <UserSafetyMenu userId={otherId} username={otherName} tradeOfferId={offer.id} />
+      </div>
 
       {/* Chat button — always visible */}
       <button

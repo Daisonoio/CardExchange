@@ -1,13 +1,19 @@
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Star, ArrowLeftRight, MessageCircle, MapPin, LogOut,
-  ChevronRight, Pencil, Library, Heart, Trophy,
+  ChevronRight, Pencil, Library, Heart, Trophy, Ban, ShieldCheck,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ReviewsSheet from '../components/users/ReviewsSheet';
+import BlockedUsersSheet from '../components/users/BlockedUsersSheet';
+import { hasPermission } from '../utils/permissions';
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [showReviews, setShowReviews] = useState(false);
+  const [showBlocked, setShowBlocked] = useState(false);
 
   if (!user) return null;
 
@@ -23,8 +29,10 @@ export default function ProfilePage() {
     { label: 'Le mie Carte', icon: Library, to: '/collection' },
     { label: 'Wishlist', icon: Heart, to: '/wishlist' },
     { label: 'I miei Scambi', icon: ArrowLeftRight, to: '/trades' },
-    { label: 'Recensioni ricevute', icon: Trophy, to: null },
-  ];
+    { label: 'Recensioni ricevute', icon: Trophy, to: null, action: () => setShowReviews(true) },
+    { label: 'Utenti bloccati', icon: Ban, to: null, action: () => setShowBlocked(true) },
+    ...(hasPermission('ADMIN.REPORTS.MANAGE') ? [{ label: 'Moderazione', icon: ShieldCheck, to: '/moderation' }] : []),
+  ] as { label: string; icon: typeof Star; to: string | null; action?: () => void }[];
 
   return (
     <div className="max-w-lg mx-auto">
@@ -71,14 +79,13 @@ export default function ProfilePage() {
 
       {/* Menu list */}
       <div className="bg-white rounded-2xl shadow-sm border border-border/50 overflow-hidden mb-4">
-        {menuItems.map(({ label, icon: Icon, to }, idx) => (
+        {menuItems.map(({ label, icon: Icon, to, action }, idx) => (
           <button
             key={label}
-            onClick={() => to && navigate(to)}
-            disabled={!to}
-            className={`w-full flex items-center gap-3 px-4 py-4 transition-colors text-left ${
+            onClick={() => (action ? action() : to && navigate(to))}
+            className={`w-full flex items-center gap-3 px-4 py-4 transition-colors text-left hover:bg-surface-dark ${
               idx < menuItems.length - 1 ? 'border-b border-border/50' : ''
-            } ${to ? 'hover:bg-surface-dark' : 'cursor-default opacity-50'}`}
+            }`}
           >
             <span
               className="w-9 h-9 rounded-full border-2 border-border flex items-center justify-center shrink-0"
@@ -87,7 +94,7 @@ export default function ProfilePage() {
               <Icon size={16} />
             </span>
             <span className="flex-1 text-sm font-medium text-text">{label}</span>
-            {to && <ChevronRight size={16} className="text-text-muted" />}
+            <ChevronRight size={16} className="text-text-muted" />
           </button>
         ))}
       </div>
@@ -105,6 +112,8 @@ export default function ProfilePage() {
           <ChevronRight size={16} className="text-danger/40" />
         </button>
       </div>
+      <ReviewsSheet userId={user.id} open={showReviews} onClose={() => setShowReviews(false)} />
+      <BlockedUsersSheet open={showBlocked} onClose={() => setShowBlocked(false)} />
     </div>
   );
 }

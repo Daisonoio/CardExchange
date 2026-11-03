@@ -15,11 +15,13 @@ namespace CardExchange.API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
         private readonly ILogger<UsersController> _logger;
 
-        public UsersController(IUserRepository userRepository, ILogger<UsersController> logger)
+        public UsersController(IUserRepository userRepository, CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<UsersController> logger)
         {
             _userRepository = userRepository;
+            _blocks = blocks;
             _logger = logger;
         }
 
@@ -163,7 +165,8 @@ namespace CardExchange.API.Controllers
                 }
                 var userIdClaim = int.TryParse(User.FindFirst("UserId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var userId) ? userId : 0;
                 var users = await _userRepository.GetUsersInRadiusAsync(latitude, longitude, radiusKm);
-                users = users.Where(x => x.Id != userIdClaim);
+                var blocked = await _blocks.GetBlockedUserIdsAsync(userIdClaim);
+                users = users.Where(x => x.Id != userIdClaim && !blocked.Contains(x.Id));
                 var userDtos = users.Select(MapToDto);
 
                 return Ok(new
@@ -380,6 +383,9 @@ namespace CardExchange.API.Controllers
                 PaypalUsername = user.PaypalUsername,
                 SatispayUsername = user.SatispayUsername,
                 PaymentQrCodeUrl = user.PaymentQrCodeUrl,
+                ReputationScore = user.ReputationScore,
+                TotalTradesCompleted = user.TotalTradesCompleted,
+                TotalReviewsReceived = user.TotalReviewsReceived,
                 IsActive = user.IsActive,
                 CreatedAt = user.CreatedAt,
                 Location = user.Location != null ? new UserLocationDto

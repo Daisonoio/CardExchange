@@ -24,6 +24,7 @@ namespace CardExchange.API.Controllers
         private readonly IScryfallService _scryfallService;
         private readonly INotificationService _notificationService;
         private readonly ApplicationDbContext _context;
+        private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
         private readonly ILogger<CardsController> _logger;
 
         public CardsController(
@@ -34,7 +35,7 @@ namespace CardExchange.API.Controllers
             IScryfallService scryfallService,
             INotificationService notificationService,
             ApplicationDbContext context,
-            ILogger<CardsController> logger)
+            CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<CardsController> logger)
         {
             _cardRepository = cardRepository;
             _userRepository = userRepository;
@@ -43,6 +44,7 @@ namespace CardExchange.API.Controllers
             _scryfallService = scryfallService;
             _notificationService = notificationService;
             _context = context;
+            _blocks = blocks;
             _logger = logger;
         }
 
@@ -702,7 +704,8 @@ namespace CardExchange.API.Controllers
                 var allCards = await _cardRepository.GetAvailableCardsAsync();
 
                 // Escludi le proprie carte
-                allCards = allCards.Where(c => c.UserId != userId);
+                var blocked = await _blocks.GetBlockedUserIdsAsync(GetCurrentUserId());
+                allCards = allCards.Where(c => c.UserId != userId && !blocked.Contains(c.UserId));
 
                 // Filtra per termine di ricerca se fornito
                 if (!string.IsNullOrWhiteSpace(searchTerm))

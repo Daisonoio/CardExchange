@@ -25,6 +25,7 @@ namespace CardExchange.API.Controllers
         private readonly ISubscriptionService _subscriptionService;
         private readonly INotificationService _notificationService;
         private readonly ApplicationDbContext _context;
+        private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
         private readonly ILogger<TradeOffersController> _logger;
 
         public TradeOffersController(
@@ -34,7 +35,7 @@ namespace CardExchange.API.Controllers
             ISubscriptionService subscriptionService,
             INotificationService notificationService,
             ApplicationDbContext context,
-            ILogger<TradeOffersController> logger)
+            CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<TradeOffersController> logger)
         {
             _tradeOfferRepository = tradeOfferRepository;
             _cardRepository = cardRepository;
@@ -42,6 +43,7 @@ namespace CardExchange.API.Controllers
             _subscriptionService = subscriptionService;
             _notificationService = notificationService;
             _context = context;
+            _blocks = blocks;
             _logger = logger;
         }
 
@@ -115,6 +117,9 @@ namespace CardExchange.API.Controllers
             var receiver = await _userRepository.GetByIdAsync(request.ReceiverId);
             if (receiver == null)
                 return NotFound(new { message = "Destinatario non trovato" });
+
+            if (await _blocks.IsBlockedAsync(userId, request.ReceiverId))
+                return StatusCode(403, new { message = BlockedMessage });
 
             // Verifica che le carte offerte appartengano al mittente e siano disponibili
             foreach (var item in request.OfferedCards)
@@ -209,6 +214,8 @@ namespace CardExchange.API.Controllers
             if (userId == 0) return Unauthorized();
             if (request.ReceiverId == userId)
                 return BadRequest(new { message = ErrorMessages.CannotTradeWithSelf });
+            if (await _blocks.IsBlockedAsync(userId, request.ReceiverId))
+                return StatusCode(403, new { message = BlockedMessage });
 
             var requestedEval = await EvaluateAsync(new List<TradeOfferItemRequest>(), request.RequestedCards);
 
@@ -406,6 +413,9 @@ namespace CardExchange.API.Controllers
 
             if (originalOffer.Status != TradeOfferStatus.Pending)
                 return BadRequest(new { message = "Puoi contro-offrire solo su offerte in attesa" });
+
+            if (await _blocks.IsBlockedAsync(userId, originalOffer.SenderId))
+                return StatusCode(403, new { message = BlockedMessage });
 
             // Segna l'offerta originale come counter-offer
             originalOffer.Status = TradeOfferStatus.CounterOffer;
@@ -666,15 +676,18 @@ namespace CardExchange.API.Controllers
             if (user == null)
                 return NotFound(new { message = ErrorMessages.UserNotFound });
 
-            var offers = await _tradeOfferRepository.GetUserOffersAsync(userId, TradeOfferStatus.Completed);
-            var reviews = offers
-                .SelectMany(o => o.Reviews)
-                .Where(r => r.ReviewedUserId == userId)
-                .OrderByDescending(r => r.CreatedAt)
-                .ToList();
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 1, 50);
 
-            var totalCount = reviews.Count;
-            var pagedReviews = reviews.Skip((page - 1) * pageSize).Take(pageSize);
+            // Lettura diretta delle recensioni: prima passava dalle offerte senza caricarle e risultava sempre vuota
+            var query = _context.TradeReviews.AsNoTracking().Where(r => r.ReviewedUserId == userId);
+            var totalCount = await query.CountAsync();
+            var reviews = await query
+                .Include(r => r.Reviewer)
+                .OrderByDescending(r => r.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
             return Ok(new
             {
@@ -684,7 +697,7 @@ namespace CardExchange.API.Controllers
                 totalReviews = totalCount,
                 reviews = new PagedResult<TradeReviewDto>
                 {
-                    Items = pagedReviews.Select(r => new TradeReviewDto
+                    Items = reviews.Select(r => new TradeReviewDto
                     {
                         Id = r.Id,
                         TradeOfferId = r.TradeOfferId,
@@ -722,6 +735,7 @@ namespace CardExchange.API.Controllers
                 CompletedDate = offer.CompletedDate,
                 ExpiresAt = offer.ExpiresAt,
                 ParentOfferId = offer.ParentOfferId,
+                ReviewerIds = offer.Reviews?.Select(r => r.ReviewerId).ToList() ?? new List<int>(),
                 SenderConfirmedAt = offer.SenderConfirmedAt,
                 ReceiverConfirmedAt = offer.ReceiverConfirmedAt,
                 OfferedCards = offer.Items
@@ -829,6 +843,8 @@ namespace CardExchange.API.Controllers
 
             return (true, string.Empty);
         }
+
+        private const string BlockedMessage = "Non puoi proporre scambi a questo utente.";
 
         private int GetCurrentUserId()
         {

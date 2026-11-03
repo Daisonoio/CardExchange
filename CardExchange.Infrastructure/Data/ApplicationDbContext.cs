@@ -33,6 +33,8 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<NotificationPreference> NotificationPreferences { get; set; }
         public DbSet<TradeOfferItem> TradeOfferItems { get; set; }
         public DbSet<TradeReview> TradeReviews { get; set; }
+        public DbSet<UserBlock> UserBlocks { get; set; }
+        public DbSet<UserReport> UserReports { get; set; }
         public DbSet<SavedSearch> SavedSearches { get; set; }
 
         public DbSet<FavoriteCard> FavoriteCards { get; set; }
@@ -251,6 +253,24 @@ namespace CardExchange.Infrastructure.Data
             });
 
             // ============================================================
+            // Blocchi tra utenti: una sola riga per coppia, nessuna cancellazione a cascata dagli utenti
+            modelBuilder.Entity<UserBlock>(entity =>
+            {
+                entity.HasIndex(b => new { b.BlockerId, b.BlockedUserId }).IsUnique();
+                entity.HasIndex(b => b.BlockedUserId);
+                entity.HasOne(b => b.Blocker).WithMany().HasForeignKey(b => b.BlockerId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(b => b.BlockedUser).WithMany().HasForeignKey(b => b.BlockedUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Segnalazioni utenti
+            modelBuilder.Entity<UserReport>(entity =>
+            {
+                entity.HasIndex(r => new { r.Status, r.CreatedAt });
+                entity.HasIndex(r => r.ReportedUserId);
+                entity.HasOne(r => r.Reporter).WithMany().HasForeignKey(r => r.ReporterId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(r => r.ReportedUser).WithMany().HasForeignKey(r => r.ReportedUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
             // TradeReview (NUOVO - feedback post-trade)
             // ============================================================
             modelBuilder.Entity<TradeReview>(entity =>

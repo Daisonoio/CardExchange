@@ -45,6 +45,7 @@ namespace CardExchange.Infrastructure.Repositories
             var query = _dbSet
                 .Include(t => t.Sender)
                 .Include(t => t.Receiver)
+                .Include(t => t.Reviews)
                 .Include(t => t.Items)
                     .ThenInclude(i => i.Card)
                         .ThenInclude(c => c.CardInfo)

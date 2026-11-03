@@ -23,6 +23,7 @@ namespace CardExchange.API.Controllers
         private readonly IBaseRepository<CardSet> _cardSetRepository;
         private readonly IBaseRepository<Game> _gameRepository;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
         private readonly ILogger<WishlistController> _logger;
 
         public WishlistController(
@@ -33,7 +34,7 @@ namespace CardExchange.API.Controllers
             IBaseRepository<CardSet> cardSetRepository,
             IBaseRepository<Game> gameRepository,
             ISubscriptionService subscriptionService,
-            ILogger<WishlistController> logger)
+            CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<WishlistController> logger)
         {
             _wishlistRepository = wishlistRepository;
             _userRepository = userRepository;
@@ -42,6 +43,7 @@ namespace CardExchange.API.Controllers
             _cardSetRepository = cardSetRepository;
             _gameRepository = gameRepository;
             _subscriptionService = subscriptionService;
+            _blocks = blocks;
             _logger = logger;
         }
 
@@ -814,7 +816,8 @@ namespace CardExchange.API.Controllers
             availableCards = availableCards.Where(c => WishlistMatchRules.Satisfies(c, wishlistItem));
 
             // Non includere le proprie carte
-            availableCards = availableCards.Where(c => c.UserId != wishlistItem.UserId);
+            var blocked = await _blocks.GetBlockedUserIdsAsync(wishlistItem.UserId);
+            availableCards = availableCards.Where(c => c.UserId != wishlistItem.UserId && !blocked.Contains(c.UserId));
 
             return availableCards.ToList();
         }
@@ -1039,7 +1042,8 @@ namespace CardExchange.API.Controllers
             availableCards = availableCards.Where(c => WishlistMatchRules.Satisfies(c, wishlistItem));
 
             // Non contare le proprie carte
-            availableCards = availableCards.Where(c => c.UserId != wishlistItem.UserId);
+            var blocked = await _blocks.GetBlockedUserIdsAsync(wishlistItem.UserId);
+            availableCards = availableCards.Where(c => c.UserId != wishlistItem.UserId && !blocked.Contains(c.UserId));
 
             return availableCards.Count();
         }

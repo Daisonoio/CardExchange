@@ -21,7 +21,7 @@ namespace CardExchange.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [EnableRateLimiting("AuthPolicy")]
+    // Limite rigido solo sulle azioni sensibili (vedi sotto): /me e logout vengono chiamati a ogni pagina
     public class AuthController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
@@ -65,6 +65,7 @@ namespace CardExchange.API.Controllers
         //}
         /// </summary>
         [HttpPost("register")]
+        [EnableRateLimiting("AuthPolicy")]
         [AllowAnonymous]
         public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
         {
@@ -156,6 +157,7 @@ namespace CardExchange.API.Controllers
         /// Login utente esistente
         /// </summary>
         [HttpPost("login")]
+        [EnableRateLimiting("AuthPolicy")]
         [AllowAnonymous]
         public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
@@ -175,6 +177,13 @@ namespace CardExchange.API.Controllers
 
                 if (user == null)
                 {
+                    // Gli account sospesi sono esclusi dal filtro globale: lo si dice solo a chi conosce la password
+                    var suspended = await _context.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u =>
+                        !u.IsActive && (u.Username == request.UsernameOrEmail || u.Email == request.UsernameOrEmail));
+                    if (suspended != null && BCrypt.Net.BCrypt.Verify(request.Password, suspended.PasswordHash))
+                    {
+                        return Unauthorized(new { message = "Account sospeso. Contatta il supporto se pensi sia un errore." });
+                    }
                     return Unauthorized(new { message = "Credenziali non valide" });
                 }
 
@@ -231,7 +240,6 @@ namespace CardExchange.API.Controllers
         /// </summary>
         [HttpPost("refresh-token")]
         [AllowAnonymous]
-        [DisableRateLimiting]
         public async Task<ActionResult<AuthResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
         {
             try
@@ -376,6 +384,7 @@ namespace CardExchange.API.Controllers
         /// Cambia la password dell'utente autenticato
         /// </summary>
         [HttpPost("change-password")]
+        [EnableRateLimiting("AuthPolicy")]
         [Authorize]
         public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
@@ -426,6 +435,7 @@ namespace CardExchange.API.Controllers
         /// Verifica l'email dell'utente tramite token
         /// </summary>
         [HttpGet("verify-email")]
+        [EnableRateLimiting("AuthPolicy")]
         [AllowAnonymous]
         public async Task<ActionResult> VerifyEmail([FromQuery] string token)
         {
@@ -471,6 +481,7 @@ namespace CardExchange.API.Controllers
         /// Rigenera il token di verifica email
         /// </summary>
         [HttpPost("resend-verification")]
+        [EnableRateLimiting("AuthPolicy")]
         [Authorize]
         public async Task<ActionResult> ResendVerificationEmail()
         {
@@ -519,6 +530,7 @@ namespace CardExchange.API.Controllers
         /// Avvia il recupero password. Risponde sempre allo stesso modo per non rivelare quali email sono registrate.
         /// </summary>
         [HttpPost("forgot-password")]
+        [EnableRateLimiting("AuthPolicy")]
         [AllowAnonymous]
         public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
@@ -555,6 +567,7 @@ namespace CardExchange.API.Controllers
         /// Imposta una nuova password usando il token ricevuto via email (monouso, valido 1 ora).
         /// </summary>
         [HttpPost("reset-password")]
+        [EnableRateLimiting("AuthPolicy")]
         [AllowAnonymous]
         public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
         {
@@ -640,6 +653,9 @@ namespace CardExchange.API.Controllers
                 Bio = user.Bio,
                 IsActive = user.IsActive,
                 EmailConfirmed = user.EmailConfirmed,
+                ReputationScore = user.ReputationScore,
+                TotalTradesCompleted = user.TotalTradesCompleted,
+                TotalReviewsReceived = user.TotalReviewsReceived,
                 CreatedAt = user.CreatedAt,
                 Location = user.Location != null ? new UserLocationDto
                 {

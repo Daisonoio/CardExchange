@@ -13,12 +13,14 @@ namespace CardExchange.API.Hubs
     {
         private readonly ApplicationDbContext _context;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
         private readonly ILogger<ChatHub> _logger;
 
-        public ChatHub(ApplicationDbContext context, ISubscriptionService subscriptionService, ILogger<ChatHub> logger)
+        public ChatHub(ApplicationDbContext context, ISubscriptionService subscriptionService, CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<ChatHub> logger)
         {
             _context = context;
             _subscriptionService = subscriptionService;
+            _blocks = blocks;
             _logger = logger;
         }
 
@@ -73,6 +75,9 @@ namespace CardExchange.API.Hubs
 
             content = content.Trim();
             if (content.Length > 2000) content = content[..2000];
+
+            if (await _blocks.IsBlockedAsync(userId, recipientId))
+                throw new HubException("Non puoi inviare messaggi a questo utente.");
 
             // Stesso limite giornaliero dell'endpoint REST
             var plan = await _subscriptionService.GetUserActivePlanAsync(userId);
