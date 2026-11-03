@@ -52,4 +52,13 @@ namespace CardExchange.API.DTOs.Requests
         [Range(0, 999999.99, ErrorMessage = "Il valore deve essere tra 0 e 999999.99")]
         public decimal? EstimatedValue { get; set; }
     }
+
+    public class BulkCardActionRequest
+    {
+        public List<int> CardIds { get; set; } = new();
+        /// <summary>Se valorizzato imposta la disponibilità allo scambio.</summary>
+        public bool? IsAvailableForTrade { get; set; }
+        /// <summary>Se true elimina le carte (ha la precedenza sulla disponibilità).</summary>
+        public bool? Delete { get; set; }
+    }
 }

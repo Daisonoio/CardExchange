@@ -166,6 +166,8 @@ builder.Services.AddScoped<INotificationHandler, SystemNotificationHandler>();
 
 builder.Services.AddScoped<IPriceTrackingService, PriceTrackingService>();
 builder.Services.AddScoped<IMatchmakingService, MatchmakingService>();
+builder.Services.AddScoped<CardExchange.API.Services.Import.IMagicCatalogService, CardExchange.API.Services.Import.MagicCatalogService>();
+builder.Services.AddScoped<CardExchange.API.Services.Import.ICollectionImportService, CardExchange.API.Services.Import.CollectionImportService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<IScryfallService, ScryfallService>(client =>
 {

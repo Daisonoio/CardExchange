@@ -281,6 +281,9 @@ namespace CardExchange.API.Controllers
         [RequirePermission("CARDS.CREATE.OWN")]
         public async Task<ActionResult<CardDto>> CreateCard(int userId, [FromBody] CreateCardRequest request)
         {
+            if (!CanManageCardsOf(userId, "CARDS.CREATE.ANY"))
+                return Forbid();
+
             try
             {
                 // Verifica che l'utente esista
@@ -366,6 +369,9 @@ namespace CardExchange.API.Controllers
                     return NotFound(new { message = $"Carta con ID {id} non trovata" });
                 }
 
+                if (!CanManageCardsOf(card.UserId, "CARDS.UPDATE.ANY"))
+                    return Forbid();
+
                 // Aggiorna solo i campi forniti
                 if (request.Condition.HasValue)
                 {
@@ -440,6 +446,44 @@ namespace CardExchange.API.Controllers
         /// <summary>
         /// Elimina una carta dalla collezione (soft delete)
         /// </summary>
+        /// <summary>
+        /// Azioni di massa sulle proprie carte: disponibilità allo scambio o eliminazione.
+        /// Le carte di altri utenti presenti nella lista vengono ignorate.
+        /// </summary>
+        [HttpPost("bulk")]
+        [RequirePermission("CARDS.UPDATE.OWN")]
+        public async Task<ActionResult<BulkCardActionResponse>> BulkAction([FromBody] BulkCardActionRequest request)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized();
+
+            if (request.CardIds.Count == 0 || request.CardIds.Count > 5000)
+                return BadRequest(new { message = "Seleziona da 1 a 5000 carte" });
+            if (request.Delete != true && request.IsAvailableForTrade == null)
+                return BadRequest(new { message = "Nessuna azione indicata" });
+
+            var ids = request.CardIds.Distinct().ToList();
+            var cards = await _context.Cards.Where(c => c.UserId == userId && ids.Contains(c.Id)).ToListAsync();
+
+            foreach (var card in cards)
+            {
+                if (request.Delete == true)
+                {
+                    card.IsDeleted = true;
+                }
+                else
+                {
+                    card.IsAvailableForTrade = request.IsAvailableForTrade!.Value;
+                }
+            }
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Azione di massa su {Count} carte dell'utente {UserId} (delete={Delete}, trade={Trade})",
+                cards.Count, userId, request.Delete, request.IsAvailableForTrade);
+
+            return Ok(new BulkCardActionResponse { Updated = cards.Count, Ignored = ids.Count - cards.Count });
+        }
+
         [HttpDelete("{id}")]
         [RequirePermission("CARDS.DELETE.OWN", "CARDS.DELETE.ANY")]
         public async Task<IActionResult> DeleteCard(int id)
@@ -452,6 +496,9 @@ namespace CardExchange.API.Controllers
                 {
                     return NotFound(new { message = $"Carta con ID {id} non trovata" });
                 }
+
+                if (!CanManageCardsOf(card.UserId, "CARDS.DELETE.ANY"))
+                    return Forbid();
 
                 // Notify favorite holders before deletion
                 try
@@ -883,6 +930,15 @@ namespace CardExchange.API.Controllers
         {
             var userIdClaim = User.FindFirst("UserId")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             return int.TryParse(userIdClaim, out var userId) ? userId : 0;
+        }
+
+        /// <summary>
+        /// I permessi "*.OWN" consentono di agire solo sulle proprie carte; serve il permesso "*.ANY" per le altrui.
+        /// </summary>
+        private bool CanManageCardsOf(int ownerId, string anyPermission)
+        {
+            var currentUserId = GetCurrentUserId();
+            return currentUserId != 0 && (ownerId == currentUserId || User.HasClaim("Permission", anyPermission));
         }
     }
 }

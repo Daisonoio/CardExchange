@@ -224,17 +224,22 @@ namespace CardExchange.API.DTOs.Scryfall
         public List<ScryfallIdentifier> Identifiers { get; set; } = new();
     }
 
+    /// <summary>Scryfall rifiuta campi null: si serializzano solo quelli valorizzati.</summary>
     public class ScryfallIdentifier
     {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("id")]
         public string? Id { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("name")]
         public string? Name { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("set")]
         public string? Set { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("collector_number")]
         public string? CollectorNumber { get; set; }
     }

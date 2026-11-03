@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Import;
 using CardExchange.API.Authorization;
 using CardExchange.API.DTOs.Scryfall;
 using CardExchange.API.Services;
@@ -21,15 +22,18 @@ namespace CardExchange.API.Controllers
         private readonly IScryfallService _scryfall;
         private readonly ApplicationDbContext _context;
         private readonly IBaseRepository<Game> _gameRepository;
+        private readonly IMagicCatalogService _catalog;
         private readonly ILogger<ScryfallController> _logger;
 
         public ScryfallController(
             IScryfallService scryfall,
             ApplicationDbContext context,
             IBaseRepository<Game> gameRepository,
+            IMagicCatalogService catalog,
             ILogger<ScryfallController> logger)
         {
             _scryfall = scryfall;
+            _catalog = catalog;
             _context = context;
             _gameRepository = gameRepository;
             _logger = logger;
@@ -181,70 +185,16 @@ namespace CardExchange.API.Controllers
             if (scryfallCard == null)
                 return NotFound(new { message = "Carta non trovata su Scryfall. Verificare nome, set code o Scryfall ID." });
 
-            // Verifica se esiste già nel nostro DB
-            var existingCardInfo = await _context.CardInfos
-                .FirstOrDefaultAsync(ci => ci.ScryfallId == scryfallCard.Id);
-
-            if (existingCardInfo != null)
+            var (cardInfo, isNew) = await _catalog.GetOrCreateCardInfoAsync(scryfallCard);
+            if (!isNew)
             {
-                // Aggiorna i dati (prezzi, immagini possono cambiare)
-                _scryfall.MapScryfallToCardInfo(scryfallCard, existingCardInfo);
-                await _context.SaveChangesAsync();
-
                 return Ok(new
                 {
                     message = "Carta già presente, dati aggiornati",
-                    cardInfoId = existingCardInfo.Id,
+                    cardInfoId = cardInfo.Id,
                     isNew = false
                 });
             }
-
-            // Trova o crea il Game "Magic: The Gathering"
-            var mtgGame = await _context.Games
-                .FirstOrDefaultAsync(g => g.Name == "Magic: The Gathering");
-
-            if (mtgGame == null)
-            {
-                mtgGame = new Game
-                {
-                    Name = "Magic: The Gathering",
-                    Publisher = "Wizards of the Coast",
-                    Description = "Il gioco di carte collezionabili più famoso al mondo"
-                };
-                _context.Games.Add(mtgGame);
-                await _context.SaveChangesAsync();
-            }
-
-            // Trova o crea il CardSet
-            var setCode = scryfallCard.SetCode.ToUpperInvariant();
-            var cardSet = await _context.CardSets
-                .FirstOrDefaultAsync(cs => cs.Code == setCode && cs.GameId == mtgGame.Id);
-
-            if (cardSet == null)
-            {
-                var scryfallSet = await _scryfall.GetSetByCodeAsync(scryfallCard.SetCode);
-                cardSet = new CardSet { GameId = mtgGame.Id };
-
-                if (scryfallSet != null)
-                    _scryfall.MapScryfallToCardSet(scryfallSet, cardSet);
-                else
-                {
-                    cardSet.Code = setCode;
-                    cardSet.Name = scryfallCard.SetName;
-                }
-
-                _context.CardSets.Add(cardSet);
-                await _context.SaveChangesAsync();
-            }
-
-            // Crea CardInfo
-            var cardInfo = new CardInfo { CardSetId = cardSet.Id };
-            _scryfall.MapScryfallToCardInfo(scryfallCard, cardInfo);
-            _context.CardInfos.Add(cardInfo);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Carta importata da Scryfall: {CardName} ({SetCode} #{Number}) -> CardInfo ID {CardInfoId}",
-                scryfallCard.Name, scryfallCard.SetCode, scryfallCard.CollectorNumber, cardInfo.Id);
 
             return CreatedAtAction(nameof(GetCardByScryfallId), new { scryfallId = scryfallCard.Id }, new
             {

@@ -49,6 +49,8 @@ export const cards = {
   update: (id: number, data: Partial<CreateCardRequest>) =>
     client.put<Card>(`/cards/${id}`, data),
   delete: (id: number) => client.delete(`/cards/${id}`),
+  bulk: (data: { cardIds: number[]; isAvailableForTrade?: boolean; delete?: boolean }) =>
+    client.post<{ updated: number; ignored: number }>('/cards/bulk', data),
   search: (term: string) =>
     client.get<Card[]>('/cards/search', { params: { term } }),
   nearby: (userId: number, radiusKm: number, coords?: { latitude: number; longitude: number }, gameId?: number | null, searchTerm?: string) =>
@@ -296,4 +298,12 @@ export const priceTracking = {
     client.get<import('../types').SpikeSettings>('/pricetracking/spike-settings'),
   updateSpikeSettings: (thresholdPercentage: number) =>
     client.put('/pricetracking/spike-settings', { thresholdPercentage }),
+};
+
+// === Import collezione (CSV, Magic) ===
+export const collectionImport = {
+  preview: (csv: string) =>
+    client.post<import('../types').ImportPreview>('/import/collection/preview', { csv }, { timeout: 180_000 }),
+  commit: (rows: import('../types').ImportCommitRow[], isAvailableForTrade: boolean) =>
+    client.post<import('../types').ImportCommitResult>('/import/collection/commit', { rows, isAvailableForTrade }, { timeout: 300_000 }),
 };

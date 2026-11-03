@@ -70,4 +70,11 @@
         public decimal? Eur { get; set; }
         public decimal? EurFoil { get; set; }
     }
+
+    public class BulkCardActionResponse
+    {
+        public int Updated { get; set; }
+        /// <summary>Carte non trovate o di altri utenti.</summary>
+        public int Ignored { get; set; }
+    }
 }

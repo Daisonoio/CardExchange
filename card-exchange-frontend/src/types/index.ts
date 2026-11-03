@@ -516,3 +516,56 @@ export interface TradeReview {
   goodCommunication: boolean;
   createdAt: string;
 }
+
+// === Import collezione ===
+export interface ImportPreviewRow {
+  lineNumber: number;
+  inputName?: string;
+  inputSet?: string;
+  inputNumber?: string;
+  quantity: number;
+  condition: CardCondition;
+  language?: string;
+  finish: CardFinish;
+  status: 'ready' | 'error';
+  error?: string;
+  warnings: string[];
+  match?: {
+    scryfallId: string;
+    name: string;
+    setCode: string;
+    setName: string;
+    collectorNumber?: string;
+    imageSmall?: string;
+    priceEur?: number;
+  };
+}
+
+export interface ImportPreview {
+  detectedFormat: string;
+  mapping: Record<string, string>;
+  ignoredColumns: string[];
+  totalRows: number;
+  readyCount: number;
+  errorCount: number;
+  totalQuantity: number;
+  rows: ImportPreviewRow[];
+}
+
+export interface ImportCommitRow {
+  scryfallId: string;
+  quantity: number;
+  condition: CardCondition;
+  language?: string;
+  finish: CardFinish;
+}
+
+export interface ImportCommitResult {
+  createdCopies: number;
+  mergedIntoExisting: number;
+  totalQuantity: number;
+  skippedByPlanLimit: number;
+  planCardLimit?: number;
+  failed: string[];
+}
+

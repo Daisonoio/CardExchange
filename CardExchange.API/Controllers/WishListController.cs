@@ -277,6 +277,9 @@ namespace CardExchange.API.Controllers
         [RequirePermission("WISHLIST.UPDATE.OWN")]
         public async Task<ActionResult<WishlistItemDto>> AddToWishlist(int userId, [FromBody] CreateWishlistItemRequest request)
         {
+            if (!CanManageWishlistOf(userId, "WISHLIST.CREATE.ANY"))
+                return Forbid();
+
             try
             {
                 // Verifica che l'utente esista
@@ -376,6 +379,9 @@ namespace CardExchange.API.Controllers
                 {
                     return NotFound(new { message = $"Item wishlist con ID {id} non trovato" });
                 }
+
+                if (!CanManageWishlistOf(wishlistItem.UserId, "WISHLIST.UPDATE.ANY"))
+                    return Forbid();
 
                 // Aggiorna solo i campi forniti
                 // 0 (o stringa vuota per la lingua) = qualsiasi; null = non modificare
@@ -479,6 +485,9 @@ namespace CardExchange.API.Controllers
                 {
                     return NotFound(new { message = $"Item wishlist con ID {id} non trovato" });
                 }
+
+                if (!CanManageWishlistOf(wishlistItem.UserId, "WISHLIST.DELETE.ANY"))
+                    return Forbid();
 
                 _wishlistRepository.Delete(wishlistItem);
                 await _wishlistRepository.SaveChangesAsync();
@@ -1033,6 +1042,16 @@ namespace CardExchange.API.Controllers
             availableCards = availableCards.Where(c => c.UserId != wishlistItem.UserId);
 
             return availableCards.Count();
+        }
+
+        /// <summary>
+        /// I permessi "*.OWN" consentono di agire solo sulla propria wishlist; serve "*.ANY" per quelle altrui.
+        /// </summary>
+        private bool CanManageWishlistOf(int ownerId, string anyPermission)
+        {
+            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(claim, out var currentUserId)
+                && (ownerId == currentUserId || User.HasClaim("Permission", anyPermission));
         }
 
         private static string GetPriorityLabel(int priority)

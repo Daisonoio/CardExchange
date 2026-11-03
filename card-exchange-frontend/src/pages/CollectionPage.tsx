@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Library, Search, TrendingUp, ChevronDown, Loader2 } from 'lucide-react';
+import { Plus, Library, Search, TrendingUp, ChevronDown, Loader2, FileUp, CheckSquare, X } from 'lucide-react';
 import { cards, priceTracking, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
@@ -8,6 +8,7 @@ import { CONDITION_LABELS } from '../types';
 import CardGridItem from '../components/cards/CardGridItem';
 import EditCardSheet from '../components/cards/EditCardSheet';
 import LanguageFinishPicker from '../components/cards/LanguageFinishPicker';
+import ImportCollectionSheet from '../components/cards/ImportCollectionSheet';
 import { readLastLanguage, saveLastLanguage } from '../utils/lastLanguage';
 import GameCardSearch, { importGameCard } from '../components/cards/GameCardSearch';
 import Button from '../components/ui/Button';
@@ -35,6 +36,12 @@ export default function CollectionPage() {
   const [showPrintings, setShowPrintings] = useState(false);
   const isMagic = !selectedGame || selectedGame.name.toLowerCase().includes('magic');
   const [isSaving, setIsSaving] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  // Modalità selezione per le azioni di massa
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkError, setBulkError] = useState<string | null>(null);
   const [filterText, setFilterText] = useState('');
   const [filterTrade, setFilterTrade] = useState<'all' | 'trade' | 'keep'>('all');
   const [spikeCards, setSpikeCards] = useState<PriceSpike[]>([]);
@@ -151,6 +158,31 @@ export default function CollectionPage() {
     return matchText && matchTrade && matchSpike;
   });
 
+  const exitSelectMode = () => { setSelectMode(false); setSelectedIds(new Set()); setBulkError(null); };
+  const toggleSelected = (card: Card) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(card.id)) next.delete(card.id); else next.add(card.id);
+      return next;
+    });
+  const allFilteredSelected = filtered.length > 0 && filtered.every((c) => selectedIds.has(c.id));
+
+  const runBulk = async (action: { isAvailableForTrade?: boolean; delete?: boolean }) => {
+    if (selectedIds.size === 0) return;
+    if (action.delete && !confirm(`Eliminare ${selectedIds.size} ${selectedIds.size === 1 ? 'carta' : 'carte'} dalla collezione?`)) return;
+    setBulkBusy(true);
+    setBulkError(null);
+    try {
+      await cards.bulk({ cardIds: [...selectedIds], ...action });
+      exitSelectMode();
+      loadCards();
+    } catch {
+      setBulkError("Operazione non riuscita, riprova.");
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
   const totalValue = myCards.reduce(
     (sum, c) => sum + (c.estimatedValue || c.cardInfo?.priceEur || 0) * c.quantity, 0
   );
@@ -165,11 +197,67 @@ export default function CollectionPage() {
             {myCards.length} carte &middot; Valore: €{totalValue.toFixed(2)}
           </p>
         </div>
-        <Button onClick={() => setShowAddModal(true)} size="sm">
-          <Plus size={16} />
-          Aggiungi
-        </Button>
+        <div className="flex items-center gap-1.5">
+          {myCards.length > 0 && !selectMode && (
+            <Button onClick={() => setSelectMode(true)} size="sm" variant="ghost" aria-label="Seleziona più carte">
+              <CheckSquare size={16} />
+              <span className="hidden sm:inline">Seleziona</span>
+            </Button>
+          )}
+          {isMagic && (
+            <Button onClick={() => setShowImport(true)} size="sm" variant="outline">
+              <FileUp size={16} />
+              <span className="hidden sm:inline">Importa</span>
+            </Button>
+          )}
+          <Button onClick={() => setShowAddModal(true)} size="sm">
+            <Plus size={16} />
+            Aggiungi
+          </Button>
+        </div>
       </div>
+
+      {/* Barra azioni di massa */}
+      {selectMode && (
+        <div className="sticky top-14 md:top-16 z-30 mb-3 p-2.5 rounded-xl bg-primary text-white shadow-lg space-y-2">
+          <div className="flex items-center gap-2 text-sm">
+            <button onClick={exitSelectMode} aria-label="Esci dalla selezione" className="p-1 rounded hover:bg-white/10">
+              <X size={16} />
+            </button>
+            <span className="font-semibold flex-1">{selectedIds.size} selezionate</span>
+            <button
+              onClick={() => setSelectedIds(allFilteredSelected ? new Set() : new Set(filtered.map((c) => c.id)))}
+              className="text-xs underline"
+            >
+              {allFilteredSelected ? 'Deseleziona tutte' : 'Seleziona tutte'}
+            </button>
+            <button
+              onClick={() => setSelectedIds(new Set(myCards.filter((c) => c.quantity > 1).map((c) => c.id)))}
+              className="text-xs underline"
+              title="Carte con più di una copia"
+            >
+              Doppioni
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {[
+              { label: 'In scambio', action: { isAvailableForTrade: true } },
+              { label: 'Tengo', action: { isAvailableForTrade: false } },
+              { label: 'Elimina', action: { delete: true } },
+            ].map(({ label, action }) => (
+              <button
+                key={label}
+                disabled={bulkBusy || selectedIds.size === 0}
+                onClick={() => runBulk(action)}
+                className={`py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 ${label === 'Elimina' ? 'bg-red-500/90 hover:bg-red-500' : 'bg-white/15 hover:bg-white/25'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {bulkError && <p className="text-xs text-red-100">{bulkError}</p>}
+        </div>
+      )}
 
       {/* Spike alert banner */}
       {spikeCards.length > 0 && (
@@ -235,9 +323,16 @@ export default function CollectionPage() {
             ? 'Aggiungi la tua prima carta alla collezione'
             : 'Prova a modificare i filtri'}
           action={myCards.length === 0 ? (
-            <Button onClick={() => setShowAddModal(true)} size="sm">
-              <Plus size={16} /> Aggiungi carta
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2 items-center">
+              <Button onClick={() => setShowAddModal(true)} size="sm">
+                <Plus size={16} /> Aggiungi carta
+              </Button>
+              {isMagic && (
+                <Button onClick={() => setShowImport(true)} size="sm" variant="outline">
+                  <FileUp size={16} /> Importa da CSV
+                </Button>
+              )}
+            </div>
           ) : undefined}
         />
       ) : (
@@ -246,12 +341,15 @@ export default function CollectionPage() {
             <CardGridItem
               key={card.id}
               card={card}
-              onClick={setEditCard}
+              onClick={selectMode ? toggleSelected : setEditCard}
+              selected={selectMode && selectedIds.has(card.id)}
               hasPriceSpike={spikeCardIds.has(card.id)}
             />
           ))}
         </div>
       )}
+
+      <ImportCollectionSheet open={showImport} onClose={() => setShowImport(false)} onImported={loadCards} />
 
       {/* Edit Card Sheet */}
       <EditCardSheet
