@@ -1,7 +1,9 @@
 using CardExchange.API.Authorization;
+using CardExchange.API.Configuration;
 using CardExchange.Core.Entities;
 using CardExchange.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace CardExchange.API.Services
 {
@@ -9,11 +11,13 @@ namespace CardExchange.API.Services
     {
         private readonly ApplicationDbContext _context;
 
-        // Piano Free di default (hardcoded per performance)
-        private static readonly SubscriptionPlan FreePlan = new()
+        // Piano Free di default (non salvato a DB). Il limite di carte arriva da PlanLimits:FreeMaxCards
+        private readonly SubscriptionPlan FreePlan;
+
+        private static SubscriptionPlan BuildFreePlan(int maxCards) => new()
         {
             Tier = SubscriptionTier.Free,
-            MaxCards = 50,
+            MaxCards = maxCards,
             MaxWishlistItems = 20,
             MaxActiveTradeOffers = 5,
             MaxDailyMessages = 10,
@@ -27,9 +31,10 @@ namespace CardExchange.API.Services
             HasWishlistAlerts = false
         };
 
-        public SubscriptionService(ApplicationDbContext context)
+        public SubscriptionService(ApplicationDbContext context, IOptions<PlanLimitsOptions>? planLimits = null)
         {
             _context = context;
+            FreePlan = BuildFreePlan((planLimits?.Value ?? new PlanLimitsOptions()).EffectiveFreeMaxCards);
         }
 
         public async Task<bool> HasActiveSubscriptionAsync(int userId)

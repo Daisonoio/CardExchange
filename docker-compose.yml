@@ -23,6 +23,7 @@ services:
       - Email__Smtp__UseStartTls=${SMTP_USE_STARTTLS:-true}
       - Email__FromAddress=${EMAIL_FROM_ADDRESS:-no-reply@example.com}
       - Email__FrontendBaseUrl=${FRONTEND_BASE_URL:-http://localhost:5173}
+      - PlanLimits__FreeMaxCards=${PLAN_FREE_MAX_CARDS:-}
       - WebPush__PublicKey=${WEBPUSH_PUBLIC_KEY:-}
       - WebPush__PrivateKey=${WEBPUSH_PRIVATE_KEY:-}
       - WebPush__Subject=${WEBPUSH_SUBJECT:-mailto:admin@example.com}

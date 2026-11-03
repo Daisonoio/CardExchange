@@ -99,7 +99,8 @@ namespace CardExchange.API.Controllers
             {
                 Tier = plan?.Tier.ToString() ?? "Free",
                 CardsUsed = cardsCount,
-                CardsLimit = plan?.MaxCards ?? 50,
+                // null = nessun limite
+                CardsLimit = plan == null || plan.MaxCards == int.MaxValue ? null : plan.MaxCards,
                 WishlistUsed = wishlistCount,
                 WishlistLimit = plan?.MaxWishlistItems ?? 20,
                 ActiveTradesUsed = activeTradesCount,

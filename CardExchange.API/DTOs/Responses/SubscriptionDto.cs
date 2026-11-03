@@ -45,7 +45,7 @@ namespace CardExchange.API.DTOs.Responses
     {
         public string Tier { get; set; } = "Free";
         public int CardsUsed { get; set; }
-        public int CardsLimit { get; set; }
+        public int? CardsLimit { get; set; }
         public int WishlistUsed { get; set; }
         public int WishlistLimit { get; set; }
         public int ActiveTradesUsed { get; set; }

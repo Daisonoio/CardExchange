@@ -163,6 +163,8 @@ if (!string.IsNullOrWhiteSpace(builder.Configuration["Email:Smtp:Host"]))
     builder.Services.AddScoped<CardExchange.API.Services.Email.IEmailSender, CardExchange.API.Services.Email.SmtpEmailSender>();
 else
     builder.Services.AddScoped<CardExchange.API.Services.Email.IEmailSender, CardExchange.API.Services.Email.LogOnlyEmailSender>();
+// Limiti del piano gratuito (PlanLimits:FreeMaxCards vuoto = collezione illimitata)
+builder.Services.Configure<CardExchange.API.Configuration.PlanLimitsOptions>(builder.Configuration.GetSection("PlanLimits"));
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<INotificationDispatcher, NotificationDispatcher>();

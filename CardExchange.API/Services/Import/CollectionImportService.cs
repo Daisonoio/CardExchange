@@ -231,7 +231,7 @@ namespace CardExchange.API.Services.Import
             }
 
             var plan = await _subscriptions.GetUserActivePlanAsync(userId);
-            var maxCards = plan?.MaxCards ?? FreeTierLimits.MaxCards;
+            var maxCards = plan?.MaxCards ?? int.MaxValue;
             response.PlanCardLimit = maxCards == int.MaxValue ? null : maxCards;
 
             await using var transaction = await _context.Database.BeginTransactionAsync();

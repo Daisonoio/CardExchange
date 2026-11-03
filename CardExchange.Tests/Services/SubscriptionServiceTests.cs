@@ -100,25 +100,35 @@ public class SubscriptionServiceTests : IDisposable
 
         plan.Should().NotBeNull();
         plan!.Tier.Should().Be(SubscriptionTier.Free);
-        plan.MaxCards.Should().Be(50);
+        plan.MaxCards.Should().Be(int.MaxValue, "di default la collezione del piano gratuito è illimitata");
         plan.MaxWishlistItems.Should().Be(20);
         plan.MaxDailyMessages.Should().Be(10);
     }
 
     [Fact]
-    public async Task CheckLimitAsync_BelowLimit_ReturnsTrue()
+    public async Task CheckLimitAsync_FreePlanByDefault_HasNoCardLimit()
     {
-        // No subscription = free plan (50 cards max)
-        var result = await _service.CheckLimitAsync(1, "cards", 10);
-        result.Should().BeTrue();
+        (await _service.CheckLimitAsync(1, "cards", 10)).Should().BeTrue();
+        (await _service.CheckLimitAsync(1, "cards", 100_000)).Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(1000, 999, true)]
+    [InlineData(1000, 1000, false)]
+    [InlineData(0, 100_000, true)] // 0 = nessun limite
+    public async Task CheckLimitAsync_ConfiguredFreeCardLimit_IsEnforced(int configuredLimit, int currentCount, bool expected)
+    {
+        var service = new SubscriptionService(_context,
+            Microsoft.Extensions.Options.Options.Create(new CardExchange.API.Configuration.PlanLimitsOptions { FreeMaxCards = configuredLimit }));
+
+        (await service.CheckLimitAsync(1, "cards", currentCount)).Should().Be(expected);
     }
 
     [Fact]
-    public async Task CheckLimitAsync_AtLimit_ReturnsFalse()
+    public async Task CheckLimitAsync_FreePlanOtherLimits_StillApply()
     {
-        // Free plan: max 50 cards
-        var result = await _service.CheckLimitAsync(1, "cards", 50);
-        result.Should().BeFalse();
+        (await _service.CheckLimitAsync(1, "wishlist", 20)).Should().BeFalse();
+        (await _service.CheckLimitAsync(1, "trades", 4)).Should().BeTrue();
     }
 
     [Fact]

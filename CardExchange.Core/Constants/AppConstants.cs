@@ -2,7 +2,7 @@ namespace CardExchange.Core.Constants
 {
     public static class FreeTierLimits
     {
-        public const int MaxCards = 50;
+        // Il limite di carte del piano gratuito è configurabile: vedi PlanLimits:FreeMaxCards (default nessun limite)
         public const int MaxWishlistItems = 20;
         public const int MaxActiveTradeOffers = 5;
         public const int MaxDailyMessages = 10;
