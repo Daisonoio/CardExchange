@@ -189,8 +189,9 @@ export default function TradesPage() {
             actionError={actionError}
             onClose={() => setSelectedOffer(null)}
             onNavigateToCounter={(offerId) => {
+              const otherUserId = selectedOffer.senderId;
               setSelectedOffer(null);
-              navigate(`/trades/${offerId}/counter`);
+              navigate(`/trades/new/${otherUserId}`, { state: { counterOfferId: offerId } });
             }}
           />
         )}
@@ -380,11 +381,33 @@ function OfferDetail({
         </Button>
       )}
 
-      {isAccepted && (
-        <Button onClick={() => onAction(offer.id, 'complete')} className="w-full" isLoading={loading}>
-          <Check size={16} /> Segna come completato
-        </Button>
-      )}
+      {isAccepted && (() => {
+        const myConfirmed = isSender ? !!offer.senderConfirmedAt : !!offer.receiverConfirmedAt;
+        const otherConfirmed = isSender ? !!offer.receiverConfirmedAt : !!offer.senderConfirmedAt;
+        const otherUsername = isSender ? offer.receiverUsername : offer.senderUsername;
+        if (myConfirmed) {
+          return (
+            <div className="p-3 rounded-xl bg-blue-50 border border-blue-100 text-sm text-blue-700 text-center">
+              Hai confermato lo scambio. In attesa della conferma di @{otherUsername}.
+            </div>
+          );
+        }
+        return (
+          <div className="space-y-1.5">
+            {otherConfirmed && (
+              <p className="text-xs text-center text-text-secondary">
+                @{otherUsername} ha già confermato: conferma anche tu per completare lo scambio.
+              </p>
+            )}
+            <Button onClick={() => onAction(offer.id, 'complete')} className="w-full" isLoading={loading}>
+              <Check size={16} /> Conferma scambio avvenuto
+            </Button>
+            <p className="text-[10px] text-center text-text-muted">
+              Lo scambio si completa quando confermate entrambi; solo allora le carte passano di collezione.
+            </p>
+          </div>
+        );
+      })()}
 
       {/* Chat button — always visible */}
       <button

@@ -35,6 +35,7 @@ export interface User {
   satispayUsername?: string;
   paymentQrCodeUrl?: string;
   isActive: boolean;
+  emailConfirmed?: boolean;
   reputationScore: number;
   totalTradesCompleted: number;
   totalReviewsReceived: number;
@@ -325,6 +326,8 @@ export interface TradeOffer {
   completedDate?: string;
   expiresAt?: string;
   parentOfferId?: number;
+  senderConfirmedAt?: string;
+  receiverConfirmedAt?: string;
   offeredCards: TradeOfferItem[];
   requestedCards: TradeOfferItem[];
 }

@@ -31,6 +31,10 @@ namespace CardExchange.Core.Entities
         public DateTime? CompletedDate { get; set; }
         public DateTime? ExpiresAt { get; set; }
 
+        // Conferma a due parti: lo scambio si completa solo quando entrambi confermano
+        public DateTime? SenderConfirmedAt { get; set; }
+        public DateTime? ReceiverConfirmedAt { get; set; }
+
         // Counter-offer tracking
         public int? ParentOfferId { get; set; }
 

@@ -24,6 +24,7 @@ export default function ChatPage() {
   const [isLoadingConvs, setIsLoadingConvs] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hubRef = useRef<HubConnection | null>(null);
@@ -134,6 +135,14 @@ export default function ChatPage() {
     if (!newMessage.trim() || isSending) return;
     const content = newMessage.trim();
     setNewMessage('');
+    setSendError(null);
+
+    const showError = (err: any) => {
+      // HubException: il messaggio arriva come "... HubException: <testo>"
+      const hubMsg = typeof err?.message === 'string' ? err.message.split('HubException: ').pop() : null;
+      setSendError(err?.response?.data?.message || hubMsg || 'Impossibile inviare il messaggio');
+      setNewMessage(content);
+    };
 
     const hub = hubRef.current;
     const activeConv = conversations.find((c) => c.conversationId === activeConvId);
@@ -143,9 +152,8 @@ export default function ChatPage() {
       setIsSending(true);
       try {
         await hub.invoke('SendMessage', activeConv.otherUser.id, content, null);
-      } catch {
-        // Fallback to REST
-        await messages.send(activeConv.otherUser.id, content);
+      } catch (err: any) {
+        showError(err);
       }
       setIsSending(false);
     } else if (preselectedUserId && !activeConvId) {
@@ -159,6 +167,7 @@ export default function ChatPage() {
         setConversations(Array.isArray(convs) ? convs : []);
       } catch (err: any) {
         console.error('Errore invio messaggio:', err);
+        showError(err);
       }
       setIsSending(false);
     } else if (activeConv) {
@@ -169,7 +178,9 @@ export default function ChatPage() {
         const { data } = await messages.getMessages(activeConvId!);
         const msgs = data?.messages ?? [];
         setChatMessages(Array.isArray(msgs) ? [...msgs].reverse() : []);
-      } catch {}
+      } catch (err: any) {
+        showError(err);
+      }
       setIsSending(false);
     }
   };
@@ -321,6 +332,9 @@ export default function ChatPage() {
 
             {/* Input */}
             <div className="p-3 border-t border-border bg-white">
+              {sendError && (
+                <p className="mb-2 text-xs text-red-600">{sendError}</p>
+              )}
               <div className="flex items-end gap-2">
                 <textarea
                   value={newMessage}

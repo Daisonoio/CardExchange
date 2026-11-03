@@ -3,6 +3,7 @@ using CardExchange.API.Controllers;
 using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
 using CardExchange.API.Services;
+using CardExchange.API.Services.Email;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
 using CardExchange.Infrastructure.Data;
@@ -21,6 +22,7 @@ public class AuthControllerTests
     private readonly Mock<IUserRepository> _userRepoMock;
     private readonly Mock<ITokenService> _tokenServiceMock;
     private readonly Mock<ILogger<AuthController>> _loggerMock;
+    private readonly Mock<IEmailSender> _emailSenderMock;
     private readonly JwtSettings _jwtSettings;
     private readonly ApplicationDbContext _context;
     private readonly AuthController _controller;
@@ -30,6 +32,7 @@ public class AuthControllerTests
         _userRepoMock = new Mock<IUserRepository>();
         _tokenServiceMock = new Mock<ITokenService>();
         _loggerMock = new Mock<ILogger<AuthController>>();
+        _emailSenderMock = new Mock<IEmailSender>();
 
         _jwtSettings = new JwtSettings
         {
@@ -50,6 +53,8 @@ public class AuthControllerTests
             _tokenServiceMock.Object,
             Options.Create(_jwtSettings),
             _context,
+            _emailSenderMock.Object,
+            Options.Create(new EmailSettings { FrontendBaseUrl = "https://app.test" }),
             _loggerMock.Object
         );
     }
@@ -236,5 +241,96 @@ public class AuthControllerTests
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value.Should().BeOfType<LoginResponse>().Subject;
         response.AccessToken.Should().Be("access-token");
+    }
+
+    [Fact]
+    public async Task ForgotPassword_WithUnknownEmail_ReturnsOkAndSendsNothing()
+    {
+        _userRepoMock.Setup(x => x.GetByEmailAsync("nobody@test.com")).ReturnsAsync((User?)null);
+
+        var result = await _controller.ForgotPassword(new ForgotPasswordRequest { Email = "nobody@test.com" });
+
+        result.Should().BeOfType<OkObjectResult>();
+        _emailSenderMock.Verify(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ForgotThenResetPassword_WithEmailedToken_ChangesPasswordAndInvalidatesToken()
+    {
+        var user = new User
+        {
+            Email = "reset@test.com",
+            Username = "resetuser",
+            FirstName = "Reset",
+            LastName = "User",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("OldPassword1!"),
+            IsActive = true,
+            RefreshToken = "old-refresh"
+        };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        _userRepoMock.Setup(x => x.GetByEmailAsync("reset@test.com")).ReturnsAsync(user);
+        _userRepoMock.Setup(x => x.SaveChangesAsync()).Returns(async () => await _context.SaveChangesAsync() > 0);
+
+        EmailMessage? sent = null;
+        _emailSenderMock
+            .Setup(x => x.SendAsync("reset@test.com", It.IsAny<string>(), It.IsAny<EmailMessage>(), It.IsAny<CancellationToken>()))
+            .Callback<string, string, EmailMessage, CancellationToken>((_, _, m, _) => sent = m)
+            .Returns(Task.CompletedTask);
+
+        await _controller.ForgotPassword(new ForgotPasswordRequest { Email = "reset@test.com" });
+
+        sent.Should().NotBeNull();
+        var marker = "reset-password?token=";
+        var start = sent!.TextBody.IndexOf(marker) + marker.Length;
+        var token = Uri.UnescapeDataString(new string(sent.TextBody[start..].TakeWhile(c => !char.IsWhiteSpace(c)).ToArray()));
+        user.PasswordResetTokenHash.Should().NotBe(token, "il token non deve essere salvato in chiaro");
+
+        var reset = await _controller.ResetPassword(new ResetPasswordRequest
+        {
+            Token = token,
+            NewPassword = "NewPassword1!",
+            ConfirmNewPassword = "NewPassword1!"
+        });
+
+        reset.Should().BeOfType<OkObjectResult>();
+        BCrypt.Net.BCrypt.Verify("NewPassword1!", user.PasswordHash).Should().BeTrue();
+        user.PasswordResetTokenHash.Should().BeNull();
+        user.RefreshToken.Should().BeNull();
+        user.EmailConfirmed.Should().BeTrue();
+
+        var reuse = await _controller.ResetPassword(new ResetPasswordRequest
+        {
+            Token = token,
+            NewPassword = "Another1!",
+            ConfirmNewPassword = "Another1!"
+        });
+        reuse.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public async Task ResetPassword_WithExpiredToken_ReturnsBadRequest()
+    {
+        var user = new User
+        {
+            Email = "exp@test.com",
+            Username = "expuser",
+            PasswordHash = "x",
+            IsActive = true,
+            PasswordResetTokenHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("tok"))),
+            PasswordResetTokenExpiry = DateTime.UtcNow.AddMinutes(-1)
+        };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        var result = await _controller.ResetPassword(new ResetPasswordRequest
+        {
+            Token = "tok",
+            NewPassword = "NewPassword1!",
+            ConfirmNewPassword = "NewPassword1!"
+        });
+
+        result.Should().BeOfType<BadRequestObjectResult>();
     }
 }

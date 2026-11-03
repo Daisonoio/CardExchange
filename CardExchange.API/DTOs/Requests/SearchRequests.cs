@@ -17,7 +17,9 @@ namespace CardExchange.API.DTOs.Requests
         public string? Type { get; set; }
 
         // Premium filters
+        /// <summary>Limite numerico inferiore su CardCondition (1=Mint, 8=Damaged).</summary>
         public int? MinCondition { get; set; }
+        /// <summary>Limite numerico superiore su CardCondition: es. 3 = Excellent o migliore.</summary>
         public int? MaxCondition { get; set; }
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }

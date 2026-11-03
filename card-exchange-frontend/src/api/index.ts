@@ -27,6 +27,14 @@ export const auth = {
     client.post<AuthResponse>('/auth/register', data),
   me: () => client.get<User>('/auth/me'),
   logout: () => client.post('/auth/logout'),
+  forgotPassword: (email: string) =>
+    client.post<{ message: string }>('/auth/forgot-password', { email }),
+  resetPassword: (data: { token: string; newPassword: string; confirmNewPassword: string }) =>
+    client.post<{ message: string }>('/auth/reset-password', data),
+  verifyEmail: (token: string) =>
+    client.get<{ message: string }>('/auth/verify-email', { params: { token } }),
+  resendVerification: () =>
+    client.post<{ message: string }>('/auth/resend-verification'),
 };
 
 // === Cards ===
@@ -118,11 +126,11 @@ export const yugioh = {
 export const onepiece = {
   search: (q: string, page = 1) =>
     client.get<{ source: string; cards: any[]; totalCount: number }>(
-      '/onepiece/search',
+      '/onepiecetcg/search',
       { params: { q, page } }
     ),
   importCard: (code: string) =>
-    client.post<{ cardInfoId: number; isNew: boolean }>('/onepiece/import', { code }),
+    client.post<{ cardInfoId: number; isNew: boolean }>('/onepiecetcg/import', { code }),
 };
 
 // === Users ===

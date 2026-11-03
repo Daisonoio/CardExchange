@@ -1405,10 +1405,16 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<int?>("ParentOfferId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("ReceiverConfirmedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("ReceiverId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("ResponseDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SenderConfirmedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("SenderId")
@@ -1585,6 +1591,13 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PasswordResetTokenExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordResetTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("PaymentQrCodeUrl")
                         .HasMaxLength(600)

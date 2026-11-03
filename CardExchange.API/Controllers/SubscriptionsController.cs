@@ -17,15 +17,18 @@ namespace CardExchange.API.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<SubscriptionsController> _logger;
 
         public SubscriptionsController(
             ApplicationDbContext context,
             ISubscriptionService subscriptionService,
+            IConfiguration configuration,
             ILogger<SubscriptionsController> logger)
         {
             _context = context;
             _subscriptionService = subscriptionService;
+            _configuration = configuration;
             _logger = logger;
         }
 
@@ -39,10 +42,10 @@ namespace CardExchange.API.Controllers
             var plans = await _context.SubscriptionPlans
                 .AsNoTracking()
                 .Where(p => p.IsActive)
-                .OrderBy(p => p.Price)
                 .ToListAsync();
 
-            return Ok(plans.Select(MapToPlanDto));
+            // Ordinamento in memoria: SQLite (sviluppo) non supporta ORDER BY su decimal
+            return Ok(plans.OrderBy(p => p.Price).Select(MapToPlanDto));
         }
 
         /// <summary>
@@ -112,7 +115,9 @@ namespace CardExchange.API.Controllers
         }
 
         /// <summary>
-        /// Sottoscrivi un piano (simula pagamento per ora)
+        /// Sottoscrivi un piano.
+        /// I piani a pagamento richiedono un provider di pagamento verificato lato server:
+        /// finché non è integrato, sono attivabili solo con Subscriptions:AllowSimulatedPayments=true (solo sviluppo).
         /// </summary>
         [HttpPost("subscribe")]
         public async Task<ActionResult<UserSubscriptionDto>> Subscribe([FromBody] CreateSubscriptionRequest request)
@@ -124,6 +129,16 @@ namespace CardExchange.API.Controllers
             if (plan == null || !plan.IsActive)
             {
                 return NotFound(new { message = "Piano non trovato o non disponibile" });
+            }
+
+            var allowSimulatedPayments = _configuration.GetValue<bool>("Subscriptions:AllowSimulatedPayments");
+            if (plan.Price > 0 && !allowSimulatedPayments)
+            {
+                _logger.LogWarning("Tentativo di attivare il piano a pagamento {PlanId} senza pagamento verificato da utente {UserId}", plan.Id, userId);
+                return StatusCode(StatusCodes.Status402PaymentRequired, new
+                {
+                    message = "I pagamenti online non sono ancora disponibili. Il piano Premium sarà attivabile a breve."
+                });
             }
 
             // Verifica se ha già un abbonamento attivo

@@ -772,7 +772,7 @@ namespace CardExchange.API.Controllers
             // Filtra per condizione se specificata
             if (wishlistItem.PreferredCondition.HasValue)
             {
-                availableCards = availableCards.Where(c => c.Condition >= wishlistItem.PreferredCondition.Value);
+                availableCards = availableCards.Where(c => c.Condition <= wishlistItem.PreferredCondition.Value);
             }
 
             // Filtra per prezzo se specificato
@@ -1002,7 +1002,7 @@ namespace CardExchange.API.Controllers
             // Filtra per condizione se specificata
             if (wishlistItem.PreferredCondition.HasValue)
             {
-                availableCards = availableCards.Where(c => c.Condition >= wishlistItem.PreferredCondition.Value);
+                availableCards = availableCards.Where(c => c.Condition <= wishlistItem.PreferredCondition.Value);
             }
 
             // Filtra per prezzo se specificato

@@ -113,6 +113,21 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
         ClockSkew = TimeSpan.FromSeconds(30)
     };
+
+    // SignalR: WebSocket e Server-Sent Events non possono inviare l'header Authorization,
+    // quindi il client passa il token nella query string (access_token) solo per gli hub.
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            if (!string.IsNullOrEmpty(accessToken) && context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 // ============================================================
@@ -131,6 +146,13 @@ builder.Services.AddSignalR();
 // Services & Repositories
 // ============================================================
 builder.Services.AddScoped<ITokenService, TokenService>();
+
+// Email: SMTP se configurato, altrimenti solo log (sviluppo)
+builder.Services.Configure<CardExchange.API.Configuration.EmailSettings>(builder.Configuration.GetSection("Email"));
+if (!string.IsNullOrWhiteSpace(builder.Configuration["Email:Smtp:Host"]))
+    builder.Services.AddScoped<CardExchange.API.Services.Email.IEmailSender, CardExchange.API.Services.Email.SmtpEmailSender>();
+else
+    builder.Services.AddScoped<CardExchange.API.Services.Email.IEmailSender, CardExchange.API.Services.Email.LogOnlyEmailSender>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<INotificationDispatcher, NotificationDispatcher>();

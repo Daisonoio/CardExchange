@@ -42,6 +42,11 @@ namespace CardExchange.Core.Entities
         public bool EmailConfirmed { get; set; } = false;
         public string? EmailVerificationToken { get; set; }
         public DateTime? EmailVerificationTokenExpiry { get; set; }
+
+        // Recupero password: si salva solo l'hash SHA-256 del token inviato via email
+        [MaxLength(64)]
+        public string? PasswordResetTokenHash { get; set; }
+        public DateTime? PasswordResetTokenExpiry { get; set; }
         public DateTime? LastLoginAt { get; set; }
 
         // Reputazione

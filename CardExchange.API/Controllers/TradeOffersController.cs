@@ -386,6 +386,42 @@ namespace CardExchange.API.Controllers
             if (!availabilityCheck.IsValid)
                 return BadRequest(new { message = availabilityCheck.ErrorMessage });
 
+            var isSender = userId == offer.SenderId;
+            var alreadyConfirmed = isSender ? offer.SenderConfirmedAt.HasValue : offer.ReceiverConfirmedAt.HasValue;
+            var bothConfirmedBefore = offer.SenderConfirmedAt.HasValue && offer.ReceiverConfirmedAt.HasValue;
+
+            // Se entrambi risultano già confermati (es. conferme simultanee) si procede al completamento
+            if (alreadyConfirmed && !bothConfirmedBefore)
+                return BadRequest(new { message = "Hai già confermato questo scambio. In attesa della conferma dell'altro utente." });
+
+            if (!alreadyConfirmed)
+            {
+                var now = DateTime.UtcNow;
+                if (isSender) offer.SenderConfirmedAt = now;
+                else offer.ReceiverConfirmedAt = now;
+            }
+
+            var otherUserId = isSender ? offer.ReceiverId : offer.SenderId;
+            var currentUsername = isSender ? offer.Sender?.Username : offer.Receiver?.Username;
+
+            // Prima conferma: si registra e si chiede all'altro utente di confermare. Nessun trasferimento di carte.
+            if (!offer.SenderConfirmedAt.HasValue || !offer.ReceiverConfirmedAt.HasValue)
+            {
+                _tradeOfferRepository.Update(offer);
+                await _tradeOfferRepository.SaveChangesAsync();
+
+                await _notificationService.SendAsync(
+                    otherUserId,
+                    NotificationType.TradeOfferAccepted,
+                    "Conferma lo scambio",
+                    $"{currentUsername} ha confermato lo scambio #{offer.Id}. Confermalo anche tu per completarlo.",
+                    offer.Id,
+                    "TradeOffer");
+
+                _logger.LogInformation("Scambio {OfferId} confermato da {UserId}, in attesa dell'altra parte", id, userId);
+                return Ok(MapToDto(offer));
+            }
+
             User? sender;
             User? receiver;
 
@@ -419,10 +455,9 @@ namespace CardExchange.API.Controllers
                 return StatusCode(500, new { message = "Errore durante il completamento dello scambio" });
             }
 
-            var otherUserId = userId == offer.SenderId ? offer.ReceiverId : offer.SenderId;
-            var currentUser = userId == offer.SenderId ? sender : receiver;
+            var currentUser = isSender ? sender : receiver;
             await _notificationService.SendTradeOfferNotificationAsync(
-                otherUserId, NotificationType.TradeCompleted, offer.Id, currentUser!.Username);
+                otherUserId, NotificationType.TradeCompleted, offer.Id, currentUser?.Username ?? currentUsername ?? string.Empty);
 
             _logger.LogInformation("Scambio {OfferId} completato", id);
 
@@ -586,6 +621,8 @@ namespace CardExchange.API.Controllers
                 CompletedDate = offer.CompletedDate,
                 ExpiresAt = offer.ExpiresAt,
                 ParentOfferId = offer.ParentOfferId,
+                SenderConfirmedAt = offer.SenderConfirmedAt,
+                ReceiverConfirmedAt = offer.ReceiverConfirmedAt,
                 OfferedCards = offer.Items
                     .Where(i => i.Side == TradeOfferItemSide.Offered)
                     .Select(MapItemToDto).ToList(),

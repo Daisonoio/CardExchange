@@ -1,3 +1,4 @@
+using CardExchange.API.Authorization;
 using CardExchange.Core.Entities;
 using CardExchange.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -11,11 +12,13 @@ namespace CardExchange.API.Hubs
     public class ChatHub : Hub
     {
         private readonly ApplicationDbContext _context;
+        private readonly ISubscriptionService _subscriptionService;
         private readonly ILogger<ChatHub> _logger;
 
-        public ChatHub(ApplicationDbContext context, ILogger<ChatHub> logger)
+        public ChatHub(ApplicationDbContext context, ISubscriptionService subscriptionService, ILogger<ChatHub> logger)
         {
             _context = context;
+            _subscriptionService = subscriptionService;
             _logger = logger;
         }
 
@@ -71,6 +74,14 @@ namespace CardExchange.API.Hubs
             content = content.Trim();
             if (content.Length > 2000) content = content[..2000];
 
+            // Stesso limite giornaliero dell'endpoint REST
+            var plan = await _subscriptionService.GetUserActivePlanAsync(userId);
+            var dailyLimit = plan?.MaxDailyMessages ?? 10;
+            var todayCount = await _context.Messages
+                .CountAsync(m => m.SenderId == userId && m.CreatedAt >= DateTime.UtcNow.Date);
+            if (todayCount >= dailyLimit)
+                throw new HubException($"Hai raggiunto il limite di {dailyLimit} messaggi giornalieri");
+
             Conversation conversation = null!;
             Message message = null!;
 
@@ -122,7 +133,7 @@ namespace CardExchange.API.Hubs
             {
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "Errore durante l'invio del messaggio da {SenderId} a {RecipientId}", userId, recipientId);
-                return;
+                throw new HubException("Impossibile inviare il messaggio. Riprova.");
             }
 
             var senderUser = await _context.Users.AsNoTracking()

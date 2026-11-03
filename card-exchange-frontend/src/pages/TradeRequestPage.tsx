@@ -18,6 +18,8 @@ export default function TradeRequestPage() {
 
   const receiverId = Number(userId);
   const preselectedCards: Card[] = (location.state as any)?.selectedCards ?? [];
+  // Se presente, la pagina crea una contro-offerta all'offerta indicata
+  const counterOfferId: number | null = (location.state as any)?.counterOfferId ?? null;
 
   // Requested cards (from the other user)
   const [requestedCards, setRequestedCards] = useState<Card[]>(preselectedCards);
@@ -62,6 +64,16 @@ export default function TradeRequestPage() {
         const allMyCards = Array.isArray(myData) ? myData : (myData as any).cards ?? [];
         setMyCards(allMyCards.filter((c: Card) => c.isAvailableForTrade));
 
+        // Contro-offerta: parte dall'offerta originale a ruoli invertiti
+        if (counterOfferId) {
+          const { data: original } = await tradeOffers.getById(counterOfferId);
+          const theirIds = new Set(original.offeredCards.map((i) => i.cardId));
+          const myIds = new Set(original.requestedCards.map((i) => i.cardId));
+          setRequestedCards(otherCards.filter((c: Card) => theirIds.has(c.id)));
+          setOfferedCards(allMyCards.filter((c: Card) => myIds.has(c.id)));
+          if (original.senderUsername) setOtherUsername(original.senderUsername);
+        }
+
         // Load other user's wishlist to find matching cards
         try {
           const { data: wlData } = await wishlist.getByUser(receiverId);
@@ -84,7 +96,7 @@ export default function TradeRequestPage() {
       }
     };
     load();
-  }, [currentUser, receiverId]);
+  }, [currentUser, receiverId, counterOfferId]);
 
   // Toggle card in requested list
   const toggleRequested = useCallback((card: Card) => {
@@ -157,7 +169,13 @@ export default function TradeRequestPage() {
           : [];
       }
 
-      const { data: createdOffer } = await tradeOffers.create(payload);
+      const { data: createdOffer } = counterOfferId
+        ? await tradeOffers.counter(counterOfferId, {
+            message: payload.message,
+            offeredCards: payload.offeredCards,
+            requestedCards: payload.requestedCards,
+          })
+        : await tradeOffers.create(payload);
       setCreatedOfferId((createdOffer as any)?.id ?? null);
       setSuccess(true);
     } catch (err: any) {
@@ -186,7 +204,7 @@ export default function TradeRequestPage() {
         <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
           <Check size={32} className="text-green-600" />
         </div>
-        <h2 className="text-xl font-bold text-text mb-2">Richiesta inviata!</h2>
+        <h2 className="text-xl font-bold text-text mb-2">{counterOfferId ? 'Contro-offerta inviata!' : 'Richiesta inviata!'}</h2>
         <p className="text-sm text-text-secondary mb-8 text-center">
           La proposta è stata inviata a{' '}
           <span className="font-semibold">@{otherUsername || `utente #${receiverId}`}</span>
@@ -221,7 +239,7 @@ export default function TradeRequestPage() {
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="text-xl font-bold text-text">Nuova Richiesta</h1>
+          <h1 className="text-xl font-bold text-text">{counterOfferId ? 'Contro-offerta' : 'Nuova Richiesta'}</h1>
           <p className="text-sm text-text-secondary">a @{otherUsername || `utente #${receiverId}`}</p>
         </div>
       </div>

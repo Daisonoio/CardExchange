@@ -3,6 +3,7 @@ using CardExchange.API.Configuration;
 using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
 using CardExchange.API.Services;
+using CardExchange.API.Services.Email;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
 using CardExchange.Infrastructure.Data;
@@ -13,6 +14,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.RateLimiting;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace CardExchange.API.Controllers
 {
@@ -25,19 +28,27 @@ namespace CardExchange.API.Controllers
         private readonly ITokenService _tokenService;
         private readonly JwtSettings _jwtSettings;
         private readonly ApplicationDbContext _context;
+        private readonly IEmailSender _emailSender;
+        private readonly EmailSettings _emailSettings;
         private readonly ILogger<AuthController> _logger;
+
+        private static readonly TimeSpan PasswordResetTokenLifetime = TimeSpan.FromHours(1);
 
         public AuthController(
             IUserRepository userRepository,
             ITokenService tokenService,
             IOptions<JwtSettings> jwtSettings,
-             ApplicationDbContext context,
+            ApplicationDbContext context,
+            IEmailSender emailSender,
+            IOptions<EmailSettings> emailSettings,
             ILogger<AuthController> logger)
         {
             _userRepository = userRepository;
             _tokenService = tokenService;
             _jwtSettings = jwtSettings.Value;
             _context = context;
+            _emailSender = emailSender;
+            _emailSettings = emailSettings.Value;
             _logger = logger;
         }
 
@@ -115,6 +126,8 @@ namespace CardExchange.API.Controllers
                 // ==========================================
 
                 _logger.LogInformation("Nuovo utente registrato: {UserId} - {Username}", user.Id, user.Username);
+
+                await SendVerificationEmailAsync(user);
 
                 // Genera i token
                 var accessToken = _tokenService.GenerateAccessToken(user);
@@ -490,17 +503,128 @@ namespace CardExchange.API.Controllers
 
                 _logger.LogInformation("Token verifica email rigenerato per utente: {UserId}", userId);
 
-                return Ok(new
-                {
-                    message = "Nuovo link di verifica generato",
-                    verificationToken = user.EmailVerificationToken
-                });
+                await SendVerificationEmailAsync(user);
+
+                // Il token non viene mai restituito nella risposta: arriva solo via email
+                return Ok(new { message = "Ti abbiamo inviato un nuovo link di verifica via email" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Errore durante la rigenerazione del token di verifica");
                 return StatusCode(500, new { message = "Errore interno del server" });
             }
+        }
+
+        /// <summary>
+        /// Avvia il recupero password. Risponde sempre allo stesso modo per non rivelare quali email sono registrate.
+        /// </summary>
+        [HttpPost("forgot-password")]
+        [AllowAnonymous]
+        public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            const string genericMessage = "Se l'indirizzo è registrato, riceverai a breve un'email con le istruzioni per reimpostare la password.";
+            try
+            {
+                var user = await _userRepository.GetByEmailAsync(request.Email.Trim());
+                if (user == null || !user.IsActive)
+                {
+                    return Ok(new { message = genericMessage });
+                }
+
+                var token = GenerateUrlSafeToken();
+                user.PasswordResetTokenHash = HashToken(token);
+                user.PasswordResetTokenExpiry = DateTime.UtcNow.Add(PasswordResetTokenLifetime);
+
+                _userRepository.Update(user);
+                await _userRepository.SaveChangesAsync();
+
+                var link = $"{_emailSettings.FrontendBaseUrl.TrimEnd('/')}/reset-password?token={Uri.EscapeDataString(token)}";
+                await TrySendEmailAsync(user, EmailTemplates.ResetPassword(user.FirstName, link));
+
+                _logger.LogInformation("Richiesta reset password per utente {UserId}", user.Id);
+                return Ok(new { message = genericMessage });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante la richiesta di reset password");
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
+        /// <summary>
+        /// Imposta una nuova password usando il token ricevuto via email (monouso, valido 1 ora).
+        /// </summary>
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            try
+            {
+                var tokenHash = HashToken(request.Token);
+                var user = await _context.Users
+                    .FirstOrDefaultAsync(u => u.PasswordResetTokenHash == tokenHash);
+
+                if (user == null || user.PasswordResetTokenExpiry == null || user.PasswordResetTokenExpiry < DateTime.UtcNow)
+                {
+                    return BadRequest(new { message = "Link di reset non valido o scaduto. Richiedine uno nuovo." });
+                }
+
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+                user.PasswordResetTokenHash = null;
+                user.PasswordResetTokenExpiry = null;
+
+                // Chi ha ricevuto il link ha dimostrato di controllare la casella email
+                user.EmailConfirmed = true;
+
+                // Disconnette tutte le sessioni esistenti
+                user.RefreshToken = null;
+                user.RefreshTokenExpiryTime = null;
+
+                _userRepository.Update(user);
+                await _userRepository.SaveChangesAsync();
+
+                _logger.LogInformation("Password reimpostata tramite email per utente {UserId}", user.Id);
+                return Ok(new { message = "Password reimpostata. Ora puoi accedere con la nuova password." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante il reset della password");
+                return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
+        private async Task SendVerificationEmailAsync(User user)
+        {
+            if (string.IsNullOrEmpty(user.EmailVerificationToken)) return;
+            var link = $"{_emailSettings.FrontendBaseUrl.TrimEnd('/')}/verify-email?token={Uri.EscapeDataString(user.EmailVerificationToken)}";
+            await TrySendEmailAsync(user, EmailTemplates.VerifyEmail(user.FirstName, link));
+        }
+
+        /// <summary>
+        /// Un errore del provider email non deve far fallire registrazione o reset: si registra e si prosegue.
+        /// </summary>
+        private async Task TrySendEmailAsync(User user, EmailMessage message)
+        {
+            try
+            {
+                await _emailSender.SendAsync(user.Email, $"{user.FirstName} {user.LastName}".Trim(), message, HttpContext?.RequestAborted ?? CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Invio email '{Subject}' fallito per utente {UserId}", message.Subject, user.Id);
+            }
+        }
+
+        private static string GenerateUrlSafeToken()
+        {
+            var bytes = RandomNumberGenerator.GetBytes(32);
+            return Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        }
+
+        private static string HashToken(string token)
+        {
+            var hash = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+            return Convert.ToHexString(hash);
         }
 
         // Helper method
@@ -515,6 +639,7 @@ namespace CardExchange.API.Controllers
                 LastName = user.LastName,
                 Bio = user.Bio,
                 IsActive = user.IsActive,
+                EmailConfirmed = user.EmailConfirmed,
                 CreatedAt = user.CreatedAt,
                 Location = user.Location != null ? new UserLocationDto
                 {
@@ -528,6 +653,31 @@ namespace CardExchange.API.Controllers
                 } : null
             };
         }
+    }
+
+    public class ForgotPasswordRequest
+    {
+        [Required(ErrorMessage = "L'email è obbligatoria")]
+        [EmailAddress(ErrorMessage = "Email non valida")]
+        [MaxLength(255)]
+        public string Email { get; set; } = string.Empty;
+    }
+
+    public class ResetPasswordRequest
+    {
+        [Required(ErrorMessage = "Il token è obbligatorio")]
+        [MaxLength(200)]
+        public string Token { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "La nuova password è obbligatoria")]
+        [MinLength(8, ErrorMessage = "La password deve essere di almeno 8 caratteri")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
+            ErrorMessage = "La password deve contenere almeno una maiuscola, una minuscola, un numero e un carattere speciale")]
+        public string NewPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "La conferma password è obbligatoria")]
+        [Compare("NewPassword", ErrorMessage = "Le password non coincidono")]
+        public string ConfirmNewPassword { get; set; } = string.Empty;
     }
 
     // DTO per cambio password

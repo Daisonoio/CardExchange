@@ -81,8 +81,8 @@ namespace CardExchange.API.Services
                 var availableCards = await _cardRepository.GetCardsByCardInfoAsync(wish.CardInfoId);
                 foreach (var card in availableCards.Where(c => c.UserId != userId))
                 {
-                    // Condition filter
-                    if (wish.PreferredCondition.HasValue && card.Condition < wish.PreferredCondition.Value)
+                    // Condition filter (Mint=1 ... Damaged=8): scarta solo carte in condizione peggiore di quella richiesta
+                    if (wish.PreferredCondition.HasValue && card.Condition > wish.PreferredCondition.Value)
                         continue;
                     // Price filter
                     if (wish.MaxPrice.HasValue && card.EstimatedValue.HasValue && card.EstimatedValue > wish.MaxPrice)
@@ -101,8 +101,8 @@ namespace CardExchange.API.Services
                 var wishlists = await _wishlistRepository.GetWishlistByCardInfoAsync(myCard.CardInfoId);
                 foreach (var wish in wishlists.Where(w => w.UserId != userId))
                 {
-                    // Condition filter
-                    if (wish.PreferredCondition.HasValue && myCard.Condition < wish.PreferredCondition.Value)
+                    // Condition filter (Mint=1 ... Damaged=8): scarta solo carte in condizione peggiore di quella richiesta
+                    if (wish.PreferredCondition.HasValue && myCard.Condition > wish.PreferredCondition.Value)
                         continue;
 
                     if (!iHaveTheyWant.ContainsKey(wish.UserId))

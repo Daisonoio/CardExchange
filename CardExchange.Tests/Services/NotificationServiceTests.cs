@@ -101,6 +101,29 @@ public class NotificationServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task SendAsync_WithTradeType_UsesCustomTitleAndReference()
+    {
+        var user = new User
+        {
+            Email = "trade@test.com",
+            Username = "tradeuser",
+            FirstName = "Trade",
+            LastName = "User",
+            PasswordHash = "hash"
+        };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        await _service.SendAsync(user.Id, NotificationType.TradeOfferAccepted, "Conferma lo scambio", "Confermalo anche tu", 7, "TradeOffer");
+
+        var notification = await _context.Notifications.FirstAsync(n => n.UserId == user.Id);
+        notification.Title.Should().Be("Conferma lo scambio");
+        notification.Body.Should().Be("Confermalo anche tu");
+        notification.ReferenceId.Should().Be(7);
+        notification.ReferenceType.Should().Be("TradeOffer");
+    }
+
+    [Fact]
     public async Task SendWishlistMatchNotificationAsync_CorrectContent()
     {
         var user = new User

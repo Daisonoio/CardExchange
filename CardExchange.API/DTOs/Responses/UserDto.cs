@@ -12,6 +12,8 @@
         public string? SatispayUsername { get; set; }
         public string? PaymentQrCodeUrl { get; set; }
         public bool IsActive { get; set; }
+        /// <summary>Valorizzato solo per l'utente corrente (endpoint di autenticazione).</summary>
+        public bool? EmailConfirmed { get; set; }
         public DateTime CreatedAt { get; set; }
         public UserLocationDto? Location { get; set; }
     }

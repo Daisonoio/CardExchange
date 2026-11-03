@@ -14,6 +14,8 @@ namespace CardExchange.API.DTOs.Responses
         public DateTime? CompletedDate { get; set; }
         public DateTime? ExpiresAt { get; set; }
         public int? ParentOfferId { get; set; }
+        public DateTime? SenderConfirmedAt { get; set; }
+        public DateTime? ReceiverConfirmedAt { get; set; }
         public List<TradeOfferItemDto> OfferedCards { get; set; } = new();
         public List<TradeOfferItemDto> RequestedCards { get; set; } = new();
     }
