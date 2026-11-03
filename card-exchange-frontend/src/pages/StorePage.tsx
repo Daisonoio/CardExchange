@@ -1,0 +1,96 @@
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, CalendarDays, Clock, Globe, Instagram, Loader2, MapPin, Phone, ShieldCheck } from 'lucide-react';
+import { stores } from '../api';
+import type { Store } from '../types';
+import { useGame } from '../context/GameContext';
+import StoresMap from '../components/stores/StoresMap';
+import EmptyState from '../components/ui/EmptyState';
+
+const STATUS_LABEL: Record<Store['status'], { text: string; cls: string }> = {
+  Pending: { text: 'In attesa di verifica', cls: 'bg-amber-50 text-amber-700' },
+  Verified: { text: 'Verificato', cls: 'bg-green-50 text-green-700' },
+  Rejected: { text: 'Non approvato', cls: 'bg-red-50 text-red-700' },
+  Suspended: { text: 'Sospeso', cls: 'bg-gray-100 text-gray-600' },
+};
+
+/** Scheda pubblica di un negozio. */
+export default function StorePage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { games } = useGame();
+  const [store, setStore] = useState<Store | null | undefined>(undefined);
+
+  useEffect(() => {
+    stores.get(Number(id)).then(({ data }) => setStore(data)).catch(() => setStore(null));
+  }, [id]);
+
+  if (store === undefined) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>;
+  if (store === null) return <EmptyState icon={MapPin} title="Negozio non trovato" description="La scheda non esiste o non è ancora verificata." />;
+
+  const gameNames = games.filter((g) => store.gameIds.includes(g.id)).map((g) => g.name);
+  const directions = `https://www.openstreetmap.org/directions?to=${store.latitude}%2C${store.longitude}`;
+
+  return (
+    <div className="pb-24 space-y-4">
+      <div className="flex items-center gap-3">
+        <button onClick={() => navigate(-1)} aria-label="Indietro" className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center shrink-0">
+          <ArrowLeft size={18} />
+        </button>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl font-bold text-text truncate">{store.name}</h1>
+          <p className="text-sm text-text-secondary truncate">{store.city}{store.province ? ` (${store.province})` : ''}</p>
+        </div>
+        {store.isOwner && (
+          <Link to={`/stores/${store.id}/edit`} className="text-xs font-semibold text-primary hover:underline shrink-0">Modifica</Link>
+        )}
+      </div>
+
+      {(store.isOwner || store.status !== 'Verified') && (
+        <div className={`p-3 rounded-xl text-sm ${STATUS_LABEL[store.status].cls}`}>
+          <strong>{STATUS_LABEL[store.status].text}</strong>
+          {store.reviewNote && <span> · {store.reviewNote}</span>}
+          {store.status === 'Pending' && <span className="block text-xs mt-0.5">Finché non è verificato, il negozio è visibile solo a te.</span>}
+        </div>
+      )}
+
+      {store.isSafeMeetupSpot && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-green-50 text-green-800 text-sm">
+          <ShieldCheck size={18} className="shrink-0" />
+          Punto d'incontro consigliato per gli scambi di persona
+        </div>
+      )}
+
+      {store.description && <p className="text-sm text-text whitespace-pre-line">{store.description}</p>}
+
+      <StoresMap items={[store]} />
+
+      <ul className="bg-white rounded-2xl border border-border divide-y divide-border/60 text-sm">
+        <li className="flex items-start gap-3 p-3">
+          <MapPin size={16} className="mt-0.5 text-primary shrink-0" />
+          <div className="flex-1">
+            {store.address}, {store.postalCode ? `${store.postalCode} ` : ''}{store.city}
+            <a href={directions} target="_blank" rel="noopener noreferrer" className="block text-xs font-semibold text-primary hover:underline">Indicazioni stradali</a>
+          </div>
+        </li>
+        {store.openingHours && <li className="flex items-start gap-3 p-3"><Clock size={16} className="mt-0.5 text-primary shrink-0" />{store.openingHours}</li>}
+        {store.phone && <li className="flex items-center gap-3 p-3"><Phone size={16} className="text-primary shrink-0" /><a href={`tel:${store.phone}`} className="hover:underline">{store.phone}</a></li>}
+        {store.website && <li className="flex items-center gap-3 p-3"><Globe size={16} className="text-primary shrink-0" /><a href={store.website} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">{store.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</a></li>}
+        {store.instagram && <li className="flex items-center gap-3 p-3"><Instagram size={16} className="text-primary shrink-0" /><a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener noreferrer" className="hover:underline">@{store.instagram}</a></li>}
+      </ul>
+
+      {gameNames.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {gameNames.map((n) => <span key={n} className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">{n}</span>)}
+        </div>
+      )}
+
+      <section className="bg-white rounded-2xl border border-border p-3">
+        <h2 className="text-sm font-semibold flex items-center gap-2"><CalendarDays size={16} className="text-primary" /> Eventi in programma</h2>
+        <p className="text-xs text-text-muted mt-1">
+          {store.upcomingEventsCount > 0 ? `${store.upcomingEventsCount} eventi in arrivo` : 'Nessun evento in programma.'}
+        </p>
+      </section>
+    </div>
+  );
+}

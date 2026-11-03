@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, NavLink, useNavigate } from 'react-router-dom';
 import {
   Menu, X, Layers, Bell, MessageSquare, Sparkles,
-  ArrowLeftRight, LogOut,
+  ArrowLeftRight, LogOut, MapPinned,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useRealtime } from '../../context/RealtimeContext';
@@ -17,6 +17,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/trades': 'Scambi',
   '/matchmaking': 'Matchmaking',
   '/chat': 'Chat',
+  '/local': 'Vicino a te',
   '/profile/edit': 'Modifica Profilo',
 };
 
@@ -24,6 +25,7 @@ const SIDEBAR_LINKS = [
   { to: '/trades', icon: ArrowLeftRight, label: 'Scambi' },
   { to: '/matchmaking', icon: Sparkles, label: 'Matchmaking' },
   { to: '/chat', icon: MessageSquare, label: 'Chat' },
+  { to: '/local', icon: MapPinned, label: 'Vicino a te: eventi e negozi' },
 ];
 
 export default function MobileHeader() {

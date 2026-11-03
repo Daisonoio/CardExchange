@@ -13,7 +13,6 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import ExplorePage from './pages/ExplorePage';
 import CollectionPage from './pages/CollectionPage';
 import WishlistPage from './pages/WishlistPage';
-import EventsPage from './pages/EventsPage';
 import ProfilePage from './pages/ProfilePage';
 import EditProfilePage from './pages/EditProfilePage';
 import HomePage from './pages/HomePage';
@@ -23,6 +22,9 @@ import TradeRequestPage from './pages/TradeRequestPage';
 import ChatPage from './pages/ChatPage';
 import MatchmakingPage from './pages/MatchmakingPage';
 import ModerationPage from './pages/ModerationPage';
+import LocalPage from './pages/LocalPage';
+import StorePage from './pages/StorePage';
+import StoreFormPage from './pages/StoreFormPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,7 +59,11 @@ export default function App() {
               <Route path="/trades/new/:userId" element={<TradeRequestPage />} />
               <Route path="/chat" element={<ChatPage />} />
               <Route path="/wishlist" element={<WishlistPage />} />
-              <Route path="/events" element={<EventsPage />} />
+              <Route path="/events" element={<Navigate to="/local?tab=events" replace />} />
+              <Route path="/local" element={<LocalPage />} />
+              <Route path="/stores/new" element={<StoreFormPage />} />
+              <Route path="/stores/:id" element={<StorePage />} />
+              <Route path="/stores/:id/edit" element={<StoreFormPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />
               <Route path="/moderation" element={<ModerationPage />} />

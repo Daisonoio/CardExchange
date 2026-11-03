@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Compass, Library, Heart, Sparkles, ArrowLeftRight,
-  UserCircle, LogOut, Layers, Bell, MessageSquare,
+  UserCircle, LogOut, Layers, Bell, MessageSquare, MapPinned,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useRealtime } from '../../context/RealtimeContext';
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { to: '/collection', icon: Library, label: 'Collezione' },
   { to: '/wishlist', icon: Heart, label: 'Ricerca' },
   { to: '/matchmaking', icon: Sparkles, label: 'Match' },
+  { to: '/local', icon: MapPinned, label: 'Vicino a te' },
   { to: '/trades', icon: ArrowLeftRight, label: 'Scambi' },
   { to: '/profile', icon: UserCircle, label: 'Profilo' },
 ];

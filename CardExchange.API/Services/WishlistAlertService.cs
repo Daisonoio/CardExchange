@@ -96,7 +96,7 @@ namespace CardExchange.API.Services
 
                     var wisherLocation = wish.User?.Location;
                     if (wisherLocation?.Latitude == null || wisherLocation.Longitude == null) continue;
-                    var distance = DistanceKm((double)wisherLocation.Latitude.Value, (double)wisherLocation.Longitude.Value,
+                    var distance = Geo.DistanceKm((double)wisherLocation.Latitude.Value, (double)wisherLocation.Longitude.Value,
                         (double)ownerLocation.Latitude.Value, (double)ownerLocation.Longitude.Value);
                     var radius = wisherLocation.MaxDistanceKm > 0 ? wisherLocation.MaxDistanceKm : DefaultRadiusKm;
                     if (distance > radius) continue;
@@ -122,17 +122,6 @@ namespace CardExchange.API.Services
 
             if (sent > 0)
                 _logger.LogInformation("Avvisi wishlist inviati: {Count}", sent);
-        }
-
-        public static double DistanceKm(double lat1, double lon1, double lat2, double lon2)
-        {
-            const double R = 6371;
-            double ToRad(double d) => d * Math.PI / 180;
-            var dLat = ToRad(lat2 - lat1);
-            var dLon = ToRad(lon2 - lon1);
-            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                    Math.Cos(ToRad(lat1)) * Math.Cos(ToRad(lat2)) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-            return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         }
     }
 }

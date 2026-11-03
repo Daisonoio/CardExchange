@@ -8,8 +8,9 @@ import { apiErrorMessage } from '../utils/apiError';
 import { hasPermission } from '../utils/permissions';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
+import StoresModeration from '../components/stores/StoresModeration';
 
-type Tab = 'open' | 'closed';
+type Tab = 'open' | 'closed' | 'stores';
 
 /** Coda delle segnalazioni per moderatori (permesso ADMIN.REPORTS.MANAGE). */
 export default function ModerationPage() {
@@ -23,10 +24,11 @@ export default function ModerationPage() {
   const canBan = hasPermission('USERS.BAN');
 
   const load = useCallback(async () => {
+    if (tab === 'stores') return;
     setLoading(true);
     setError(null);
     try {
-      const { data } = await moderation.reports(tab);
+      const { data } = await moderation.reports(tab as 'open' | 'closed');
       setItems(data.items);
     } catch (err) {
       setError(apiErrorMessage(err, 'Non hai accesso alla moderazione.'));
@@ -61,20 +63,22 @@ export default function ModerationPage() {
       </div>
 
       <div className="flex rounded-xl border border-border overflow-hidden bg-white mb-4">
-        {(['open', 'closed'] as Tab[]).map((t) => (
+        {(['open', 'closed', 'stores'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`flex-1 py-2 text-sm font-medium ${tab === t ? 'bg-primary text-white' : 'text-text-secondary'}`}
           >
-            {t === 'open' ? 'Da gestire' : 'Chiuse'}
+            {t === 'open' ? 'Segnalazioni' : t === 'closed' ? 'Chiuse' : 'Negozi'}
           </button>
         ))}
       </div>
 
       {error && <div className="mb-3 p-3 rounded-xl bg-red-50 text-danger text-sm">{error}</div>}
 
-      {loading ? (
+      {tab === 'stores' ? (
+        <StoresModeration />
+      ) : loading ? (
         <div className="flex justify-center py-10"><Loader2 className="animate-spin text-primary" /></div>
       ) : items.length === 0 ? (
         <EmptyState icon={ShieldCheck} title="Nessuna segnalazione" description={tab === 'open' ? 'Non ci sono segnalazioni da gestire.' : 'Nessuna segnalazione chiusa.'} />

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { CalendarClock, CalendarPlus, MapPin } from 'lucide-react';
-import { meetups } from '../../api';
-import type { TradeMeetup } from '../../types';
+import { CalendarClock, CalendarPlus, MapPin, ShieldCheck } from 'lucide-react';
+import { meetups, stores } from '../../api';
+import type { Store, TradeMeetup } from '../../types';
 import { apiErrorMessage } from '../../utils/apiError';
 import Button from '../ui/Button';
 
@@ -45,7 +45,10 @@ function downloadIcs(m: TradeMeetup, otherUsername: string) {
 export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { tradeOfferId: number; userId: number; otherUsername: string }) {
   const [list, setList] = useState<TradeMeetup[] | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ when: '', locationName: '', address: '', notes: '' });
+  const [form, setForm] = useState<{ when: string; locationName: string; address: string; notes: string; latitude?: number; longitude?: number }>(
+    { when: '', locationName: '', address: '', notes: '' });
+  // Negozi verificati vicini, proposti come luoghi d'incontro sicuri
+  const [nearbyStores, setNearbyStores] = useState<Store[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,15 +82,24 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
   const openForm = () => {
     const suggested = new Date(Date.now() + 24 * 60 * 60 * 1000);
     suggested.setMinutes(0, 0, 0);
-    setForm({ when: toLocalInput(suggested), locationName: active?.locationName ?? '', address: active?.address ?? '', notes: '' });
+    setForm({
+      when: toLocalInput(suggested), locationName: active?.locationName ?? '', address: active?.address ?? '', notes: '',
+      latitude: active?.latitude, longitude: active?.longitude,
+    });
     setShowForm(true);
+    stores.list({ meetupOnly: true, radiusKm: 30 }).then(({ data }) => setNearbyStores(data.slice(0, 5))).catch(() => setNearbyStores([]));
   };
+
+  const pickStore = (s: Store) =>
+    setForm((f) => ({ ...f, locationName: s.name, address: `${s.address}, ${s.city}`, latitude: s.latitude, longitude: s.longitude }));
 
   const submit = () => run(async () => {
     await meetups.propose(tradeOfferId, {
       scheduledAt: new Date(form.when).toISOString(),
       locationName: form.locationName.trim(),
       address: form.address.trim() || undefined,
+      latitude: form.latitude,
+      longitude: form.longitude,
       notes: form.notes.trim() || undefined,
     });
     setShowForm(false);
@@ -170,11 +182,30 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
               className="mt-1 w-full px-3 py-2 rounded-xl border border-border text-sm"
             />
           </label>
+          {nearbyStores.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-text-secondary mb-1 flex items-center gap-1">
+                <ShieldCheck size={13} className="text-green-600" /> Negozi consigliati per lo scambio
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {nearbyStores.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => pickStore(s)}
+                    className={`px-2.5 py-1 rounded-full text-xs border ${form.locationName === s.name ? 'border-primary bg-primary/10 text-primary' : 'border-border text-text-secondary'}`}
+                  >
+                    {s.name}{s.distanceKm != null ? ` · ${s.distanceKm} km` : ''}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <label className="block text-xs font-semibold text-text-secondary">
             Luogo
             <input
               value={form.locationName}
-              onChange={(e) => setForm({ ...form, locationName: e.target.value })}
+              onChange={(e) => setForm({ ...form, locationName: e.target.value, latitude: undefined, longitude: undefined })}
               maxLength={200}
               placeholder="Es. Negozio Games Corner"
               className="mt-1 w-full px-3 py-2 rounded-xl border border-border text-sm"

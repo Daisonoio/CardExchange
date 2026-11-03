@@ -37,6 +37,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<UserReport> UserReports { get; set; }
         public DbSet<TradeMeetup> TradeMeetups { get; set; }
         public DbSet<PushSubscription> PushSubscriptions { get; set; }
+        public DbSet<Store> Stores { get; set; }
         public DbSet<SavedSearch> SavedSearches { get; set; }
 
         public DbSet<FavoriteCard> FavoriteCards { get; set; }
@@ -262,6 +263,15 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(b => b.BlockedUserId);
                 entity.HasOne(b => b.Blocker).WithMany().HasForeignKey(b => b.BlockerId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(b => b.BlockedUser).WithMany().HasForeignKey(b => b.BlockedUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Negozi: un evento può essere ospitato da un negozio; eliminare il negozio non elimina gli eventi
+            modelBuilder.Entity<Store>(entity =>
+            {
+                entity.HasIndex(s => new { s.Status, s.City });
+                entity.HasIndex(s => s.OwnerId);
+                entity.HasOne(s => s.Owner).WithMany().HasForeignKey(s => s.OwnerId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasMany(s => s.Events).WithOne(e => e.Store!).HasForeignKey(e => e.StoreId).OnDelete(DeleteBehavior.SetNull);
             });
 
             // Sottoscrizioni Web Push: un endpoint appartiene a un solo utente
@@ -609,6 +619,7 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<Notification>().HasQueryFilter(n => !n.IsDeleted);
             modelBuilder.Entity<SavedSearch>().HasQueryFilter(ss => !ss.IsDeleted);
             modelBuilder.Entity<Event>().HasQueryFilter(e => !e.IsDeleted);
+            modelBuilder.Entity<Store>().HasQueryFilter(s => !s.IsDeleted);
             modelBuilder.Entity<EventParticipant>().HasQueryFilter(ep => !ep.IsDeleted);
             modelBuilder.Entity<PriceHistory>().HasQueryFilter(ph => !ph.IsDeleted);
             modelBuilder.Entity<PriceAlert>().HasQueryFilter(pa => !pa.IsDeleted);

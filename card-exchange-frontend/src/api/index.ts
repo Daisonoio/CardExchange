@@ -335,7 +335,7 @@ export const moderation = {
 export const meetups = {
   list: (tradeOfferId: number) =>
     client.get<import('../types').TradeMeetup[]>(`/tradeoffers/${tradeOfferId}/meetups`),
-  propose: (tradeOfferId: number, data: { scheduledAt: string; locationName: string; address?: string; notes?: string }) =>
+  propose: (tradeOfferId: number, data: { scheduledAt: string; locationName: string; address?: string; latitude?: number; longitude?: number; notes?: string }) =>
     client.post<import('../types').TradeMeetup>(`/tradeoffers/${tradeOfferId}/meetups`, data),
   accept: (tradeOfferId: number, meetupId: number) =>
     client.post<import('../types').TradeMeetup>(`/tradeoffers/${tradeOfferId}/meetups/${meetupId}/accept`),
@@ -352,5 +352,19 @@ export const pushApi = {
     client.post<{ message: string }>('/push/subscribe', data),
   unsubscribe: (endpoint: string) => client.post<{ message: string }>('/push/unsubscribe', { endpoint }),
   test: () => client.post<{ message: string }>('/push/test'),
+};
+
+// === Negozi ===
+export const stores = {
+  list: (params?: { latitude?: number; longitude?: number; radiusKm?: number; gameId?: number; meetupOnly?: boolean; q?: string }) =>
+    client.get<import('../types').Store[]>('/stores', { params }),
+  get: (id: number) => client.get<import('../types').Store>(`/stores/${id}`),
+  mine: () => client.get<import('../types').Store[]>('/stores/mine'),
+  create: (data: import('../types').StoreInput) => client.post<import('../types').Store>('/stores', data),
+  update: (id: number, data: import('../types').StoreInput) => client.put<import('../types').Store>(`/stores/${id}`, data),
+  pending: (status: 'pending' | 'verified' | 'rejected' | 'suspended' = 'pending') =>
+    client.get<{ ownerUsername: string; createdAt: string; store: import('../types').Store }[]>('/moderation/stores', { params: { status } }),
+  review: (id: number, decision: 'verify' | 'reject' | 'suspend', note?: string) =>
+    client.post<{ message: string }>(`/moderation/stores/${id}/review`, { decision, note }),
 };
 

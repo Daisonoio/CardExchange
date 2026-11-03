@@ -666,3 +666,30 @@ export interface TradeMeetup {
   respondedAt?: string;
 }
 
+// === Negozi ===
+export interface Store {
+  id: number;
+  name: string;
+  description?: string;
+  address: string;
+  city: string;
+  province?: string;
+  postalCode?: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  phone?: string;
+  website?: string;
+  instagram?: string;
+  openingHours?: string;
+  gameIds: number[];
+  isSafeMeetupSpot: boolean;
+  status: 'Pending' | 'Verified' | 'Rejected' | 'Suspended';
+  reviewNote?: string;
+  isOwner: boolean;
+  distanceKm?: number;
+  upcomingEventsCount: number;
+}
+
+export type StoreInput = Omit<Store, 'id' | 'status' | 'reviewNote' | 'isOwner' | 'distanceKm' | 'upcomingEventsCount'>;
+

@@ -77,8 +77,12 @@ namespace CardExchange.Core.Entities
         // Contatori denormalizzati
         public int ParticipantCount { get; set; } = 0;
 
+        /// <summary>Negozio che ospita l'evento (facoltativo).</summary>
+        public int? StoreId { get; set; }
+
         // Relazioni
         public virtual User Organizer { get; set; } = null!;
+        public virtual Store? Store { get; set; }
         public virtual ICollection<EventParticipant> Participants { get; set; } = new List<EventParticipant>();
     }
 }
