@@ -1,0 +1,17 @@
+{
+  "name": "CardExchange – scambi di carte vicino a te",
+  "short_name": "CardExchange",
+  "description": "Trova chi, vicino a te, ha la carta che cerchi e vuole quella che hai tu.",
+  "lang": "it",
+  "start_url": "/home",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef2f7",
+  "theme_color": "#1a3461",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

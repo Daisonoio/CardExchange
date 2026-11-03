@@ -23,6 +23,11 @@ services:
       - Email__Smtp__UseStartTls=${SMTP_USE_STARTTLS:-true}
       - Email__FromAddress=${EMAIL_FROM_ADDRESS:-no-reply@example.com}
       - Email__FrontendBaseUrl=${FRONTEND_BASE_URL:-http://localhost:5173}
+      - WebPush__PublicKey=${WEBPUSH_PUBLIC_KEY:-}
+      - WebPush__PrivateKey=${WEBPUSH_PRIVATE_KEY:-}
+      - WebPush__Subject=${WEBPUSH_SUBJECT:-mailto:admin@example.com}
+      - Jobs__DailyMaintenance__RunAtUtc=${JOBS_DAILY_RUN_AT_UTC:-02:30}
+      - Jobs__WeeklyDigest__Enabled=${JOBS_WEEKLY_DIGEST_ENABLED:-true}
     depends_on:
       sqlserver:
         condition: service_healthy

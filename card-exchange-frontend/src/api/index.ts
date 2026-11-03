@@ -345,3 +345,12 @@ export const meetups = {
     client.post<import('../types').TradeMeetup>(`/tradeoffers/${tradeOfferId}/meetups/${meetupId}/cancel`),
 };
 
+// === Notifiche push (Web Push) ===
+export const pushApi = {
+  publicKey: () => client.get<{ enabled: boolean; publicKey?: string }>('/push/public-key'),
+  subscribe: (data: { endpoint: string; keys: { p256dh: string; auth: string } }) =>
+    client.post<{ message: string }>('/push/subscribe', data),
+  unsubscribe: (endpoint: string) => client.post<{ message: string }>('/push/unsubscribe', { endpoint }),
+  test: () => client.post<{ message: string }>('/push/test'),
+};
+

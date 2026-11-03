@@ -225,8 +225,16 @@ namespace CardExchange.API.Services.Prices
         {
             try
             {
-                using var scope = _scopeFactory.CreateScope();
-                await scope.ServiceProvider.GetRequiredService<DailyMaintenance>().RunAsync(options, ct);
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    await scope.ServiceProvider.GetRequiredService<DailyMaintenance>().RunAsync(options, ct);
+                }
+
+                if (_configuration.GetValue("Jobs:WeeklyDigest:Enabled", true))
+                {
+                    using var digestScope = _scopeFactory.CreateScope();
+                    await digestScope.ServiceProvider.GetRequiredService<WeeklyDigest>().RunAsync(DateTime.UtcNow, ct);
+                }
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {

@@ -25,6 +25,7 @@ namespace CardExchange.API.Controllers
         private readonly INotificationService _notificationService;
         private readonly ApplicationDbContext _context;
         private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
+        private readonly IWishlistAlertService _wishlistAlerts;
         private readonly ILogger<CardsController> _logger;
 
         public CardsController(
@@ -35,7 +36,7 @@ namespace CardExchange.API.Controllers
             IScryfallService scryfallService,
             INotificationService notificationService,
             ApplicationDbContext context,
-            CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<CardsController> logger)
+            CardExchange.API.Services.Moderation.IUserBlockService blocks, IWishlistAlertService wishlistAlerts, ILogger<CardsController> logger)
         {
             _cardRepository = cardRepository;
             _userRepository = userRepository;
@@ -45,6 +46,7 @@ namespace CardExchange.API.Controllers
             _notificationService = notificationService;
             _context = context;
             _blocks = blocks;
+            _wishlistAlerts = wishlistAlerts;
             _logger = logger;
         }
 
@@ -344,6 +346,9 @@ namespace CardExchange.API.Controllers
 
                 _logger.LogInformation("Carta aggiunta alla collezione dell'utente {UserId}: {CardId}", userId, card.Id);
 
+                if (card.IsAvailableForTrade)
+                    await _wishlistAlerts.NotifyAvailableAsync(new[] { card.Id });
+
                 // Ricarica la carta con tutte le relazioni
                 var createdCard = await _cardRepository.GetUserCardAsync(userId, card.Id);
                 return CreatedAtAction(nameof(GetCardById), new { id = card.Id }, MapToDto(createdCard!));
@@ -402,11 +407,12 @@ namespace CardExchange.API.Controllers
                 if (request.Notes != null)
                     card.Notes = request.Notes;
 
-                if (request.IsAvailableForTrade.HasValue)
-                    card.IsAvailableForTrade = request.IsAvailableForTrade.Value;
-
+                // Stato precedente letto prima di modificarlo (prima veniva letto dopo e risultava sempre uguale)
                 var oldPrice = card.EstimatedValue;
                 var oldAvailable = card.IsAvailableForTrade;
+
+                if (request.IsAvailableForTrade.HasValue)
+                    card.IsAvailableForTrade = request.IsAvailableForTrade.Value;
 
                 if (request.EstimatedValue.HasValue)
                     card.EstimatedValue = request.EstimatedValue.Value;
@@ -415,6 +421,9 @@ namespace CardExchange.API.Controllers
                 await _cardRepository.SaveChangesAsync();
 
                 _logger.LogInformation("Carta aggiornata: {CardId}", id);
+
+                if (!oldAvailable && card.IsAvailableForTrade)
+                    await _wishlistAlerts.NotifyAvailableAsync(new[] { card.Id });
 
                 // Notify favorite holders of price/availability changes
                 try
@@ -467,6 +476,10 @@ namespace CardExchange.API.Controllers
             var ids = request.CardIds.Distinct().ToList();
             var cards = await _context.Cards.Where(c => c.UserId == userId && ids.Contains(c.Id)).ToListAsync();
 
+            var becomingAvailable = request.Delete != true && request.IsAvailableForTrade == true
+                ? cards.Where(c => !c.IsAvailableForTrade).Select(c => c.Id).ToList()
+                : new List<int>();
+
             foreach (var card in cards)
             {
                 if (request.Delete == true)
@@ -479,6 +492,9 @@ namespace CardExchange.API.Controllers
                 }
             }
             await _context.SaveChangesAsync();
+
+            if (becomingAvailable.Count > 0)
+                await _wishlistAlerts.NotifyAvailableAsync(becomingAvailable);
 
             _logger.LogInformation("Azione di massa su {Count} carte dell'utente {UserId} (delete={Delete}, trade={Trade})",
                 cards.Count, userId, request.Delete, request.IsAvailableForTrade);

@@ -17,17 +17,20 @@ namespace CardExchange.API.Services.Notifications
         private readonly ApplicationDbContext _context;
         private readonly ILogger<NotificationDispatcher> _logger;
         private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly Push.IPushQueue _pushQueue;
         private readonly Dictionary<NotificationType, INotificationHandler> _handlerMap;
 
         public NotificationDispatcher(
             ApplicationDbContext context,
             ILogger<NotificationDispatcher> logger,
             IHubContext<NotificationHub> hubContext,
-            IEnumerable<INotificationHandler> handlers)
+            IEnumerable<INotificationHandler> handlers,
+            Push.IPushQueue pushQueue)
         {
             _context = context;
             _logger = logger;
             _hubContext = hubContext;
+            _pushQueue = pushQueue;
             _handlerMap = new Dictionary<NotificationType, INotificationHandler>();
 
             foreach (var handler in handlers)
@@ -125,6 +128,14 @@ namespace CardExchange.API.Services.Notifications
         /// </summary>
         private async Task PushToClientAsync(Notification notification)
         {
+            // Notifica push sui dispositivi registrati (inviata in background)
+            _pushQueue.Enqueue(new Push.PushJob(
+                notification.UserId,
+                notification.Title,
+                notification.Body,
+                Push.PushQueue.UrlFor(notification.ReferenceType, notification.ReferenceId),
+                Tag: $"{notification.Type}-{notification.ReferenceId}"));
+
             try
             {
                 await _hubContext.Clients

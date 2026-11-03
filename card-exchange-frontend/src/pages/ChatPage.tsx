@@ -16,6 +16,8 @@ export default function ChatPage() {
   const [searchParams] = useSearchParams();
   const preselectedUserId = searchParams.get('userId') ? Number(searchParams.get('userId')) : null;
   const preselectedTradeId = searchParams.get('tradeOfferId') ? Number(searchParams.get('tradeOfferId')) : null;
+  // Apertura diretta da notifica push: /chat?conversationId=123
+  const preselectedConversationId = searchParams.get('conversationId') ? Number(searchParams.get('conversationId')) : null;
 
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
   const [activeConvId, setActiveConvId] = useState<number | null>(null);
@@ -100,14 +102,16 @@ export default function ChatPage() {
         const list = Array.isArray(data) ? data : (data as any)?.conversations ?? [];
         setConversations(list);
         // Auto-open preselected or first conversation
-        if (preselectedUserId) {
+        if (preselectedConversationId && list.some((c: ConversationPreview) => c.conversationId === preselectedConversationId)) {
+          setActiveConvId(preselectedConversationId);
+        } else if (preselectedUserId) {
           const match = list.find((c: ConversationPreview) => c.otherUser.id === preselectedUserId);
           if (match) setActiveConvId(match.conversationId);
         }
       })
       .catch((err) => console.error('Errore caricamento conversazioni:', err))
       .finally(() => setIsLoadingConvs(false));
-  }, [user, preselectedUserId]);
+  }, [user, preselectedUserId, preselectedConversationId]);
 
   // Load messages for active conversation
   useEffect(() => {

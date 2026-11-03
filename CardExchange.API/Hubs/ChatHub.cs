@@ -14,13 +14,15 @@ namespace CardExchange.API.Hubs
         private readonly ApplicationDbContext _context;
         private readonly ISubscriptionService _subscriptionService;
         private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
+        private readonly CardExchange.API.Services.Push.IPushQueue _pushQueue;
         private readonly ILogger<ChatHub> _logger;
 
-        public ChatHub(ApplicationDbContext context, ISubscriptionService subscriptionService, CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<ChatHub> logger)
+        public ChatHub(ApplicationDbContext context, ISubscriptionService subscriptionService, CardExchange.API.Services.Moderation.IUserBlockService blocks, CardExchange.API.Services.Push.IPushQueue pushQueue, ILogger<ChatHub> logger)
         {
             _context = context;
             _subscriptionService = subscriptionService;
             _blocks = blocks;
+            _pushQueue = pushQueue;
             _logger = logger;
         }
 
@@ -165,6 +167,16 @@ namespace CardExchange.API.Hubs
                 senderUsername = senderUser?.Username ?? "",
                 preview = content.Length > 60 ? content[..60] + "..." : content
             });
+
+            if (!await _context.NotificationPreferences.AnyAsync(p => p.UserId == recipientId && p.Type == NotificationType.NewMessage && !p.IsEnabled))
+            {
+                _pushQueue.Enqueue(new CardExchange.API.Services.Push.PushJob(
+                    recipientId,
+                    $"Messaggio da {senderUser?.Username}",
+                    content.Length > 120 ? content[..120] + "…" : content,
+                    $"/chat?conversationId={conversation.Id}",
+                    Tag: $"chat-{conversation.Id}"));
+            }
         }
 
         /// <summary>

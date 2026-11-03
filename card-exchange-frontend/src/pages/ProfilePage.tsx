@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import ReviewsSheet from '../components/users/ReviewsSheet';
 import BlockedUsersSheet from '../components/users/BlockedUsersSheet';
 import { hasPermission } from '../utils/permissions';
+import PushToggle from '../components/notifications/PushToggle';
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
@@ -76,6 +77,8 @@ export default function ProfilePage() {
           </div>
         ))}
       </div>
+
+      <PushToggle />
 
       {/* Menu list */}
       <div className="bg-white rounded-2xl shadow-sm border border-border/50 overflow-hidden mb-4">

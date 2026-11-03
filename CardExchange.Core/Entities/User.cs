@@ -49,6 +49,9 @@ namespace CardExchange.Core.Entities
         public DateTime? PasswordResetTokenExpiry { get; set; }
         public DateTime? LastLoginAt { get; set; }
 
+        /// <summary>Ultimo invio del riepilogo settimanale via email.</summary>
+        public DateTime? LastWeeklyDigestAt { get; set; }
+
         // Reputazione
         public decimal ReputationScore { get; set; } = 0;
         public int TotalTradesCompleted { get; set; } = 0;

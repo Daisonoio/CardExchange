@@ -36,6 +36,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<UserBlock> UserBlocks { get; set; }
         public DbSet<UserReport> UserReports { get; set; }
         public DbSet<TradeMeetup> TradeMeetups { get; set; }
+        public DbSet<PushSubscription> PushSubscriptions { get; set; }
         public DbSet<SavedSearch> SavedSearches { get; set; }
 
         public DbSet<FavoriteCard> FavoriteCards { get; set; }
@@ -261,6 +262,14 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(b => b.BlockedUserId);
                 entity.HasOne(b => b.Blocker).WithMany().HasForeignKey(b => b.BlockerId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(b => b.BlockedUser).WithMany().HasForeignKey(b => b.BlockedUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Sottoscrizioni Web Push: un endpoint appartiene a un solo utente
+            modelBuilder.Entity<PushSubscription>(entity =>
+            {
+                entity.HasIndex(p => p.Endpoint).IsUnique();
+                entity.HasIndex(p => p.UserId);
+                entity.HasOne(p => p.User).WithMany().HasForeignKey(p => p.UserId).OnDelete(DeleteBehavior.Cascade);
             });
 
             // Appuntamenti di scambio

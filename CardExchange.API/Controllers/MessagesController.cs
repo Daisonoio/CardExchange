@@ -17,16 +17,18 @@ namespace CardExchange.API.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ISubscriptionService _subscriptionService;
         private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
+        private readonly CardExchange.API.Services.Push.IPushQueue _pushQueue;
         private readonly ILogger<MessagesController> _logger;
 
         public MessagesController(
             ApplicationDbContext context,
             ISubscriptionService subscriptionService,
-            CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<MessagesController> logger)
+            CardExchange.API.Services.Moderation.IUserBlockService blocks, CardExchange.API.Services.Push.IPushQueue pushQueue, ILogger<MessagesController> logger)
         {
             _context = context;
             _subscriptionService = subscriptionService;
             _blocks = blocks;
+            _pushQueue = pushQueue;
             _logger = logger;
         }
 
@@ -207,6 +209,17 @@ namespace CardExchange.API.Controllers
             });
 
             await _context.SaveChangesAsync();
+
+            if (!await _context.NotificationPreferences.AnyAsync(p => p.UserId == request.RecipientId && p.Type == NotificationType.NewMessage && !p.IsEnabled))
+            {
+                var senderName = await _context.Users.Where(u => u.Id == userId).Select(u => u.Username).FirstOrDefaultAsync();
+                _pushQueue.Enqueue(new CardExchange.API.Services.Push.PushJob(
+                    request.RecipientId,
+                    $"Messaggio da {senderName}",
+                    request.Content.Length > 120 ? request.Content[..120] + "…" : request.Content,
+                    $"/chat?conversationId={conversation.Id}",
+                    Tag: $"chat-{conversation.Id}"));
+            }
 
             return Ok(new
             {

@@ -104,6 +104,7 @@ namespace CardExchange.API.Services.Import
         private readonly IScryfallService _scryfall;
         private readonly IMagicCatalogService _catalog;
         private readonly ISubscriptionService _subscriptions;
+        private readonly IWishlistAlertService _wishlistAlerts;
         private readonly ILogger<CollectionImportService> _logger;
 
         public CollectionImportService(
@@ -111,12 +112,14 @@ namespace CardExchange.API.Services.Import
             IScryfallService scryfall,
             IMagicCatalogService catalog,
             ISubscriptionService subscriptions,
+            IWishlistAlertService wishlistAlerts,
             ILogger<CollectionImportService> logger)
         {
             _context = context;
             _scryfall = scryfall;
             _catalog = catalog;
             _subscriptions = subscriptions;
+            _wishlistAlerts = wishlistAlerts;
             _logger = logger;
         }
 
@@ -236,6 +239,7 @@ namespace CardExchange.API.Services.Import
             var existingCopies = await _context.Cards.Where(c => c.UserId == userId).ToListAsync();
             var copyCount = existingCopies.Count;
             var cardInfoIds = new Dictionary<string, CardInfo>(StringComparer.OrdinalIgnoreCase);
+            var newlyAvailable = new List<Card>();
 
             foreach (var row in rows)
             {
@@ -261,7 +265,11 @@ namespace CardExchange.API.Services.Import
                 if (existing != null)
                 {
                     existing.Quantity += row.Quantity;
-                    if (request.IsAvailableForTrade) existing.IsAvailableForTrade = true;
+                    if (request.IsAvailableForTrade && !existing.IsAvailableForTrade)
+                    {
+                        existing.IsAvailableForTrade = true;
+                        newlyAvailable.Add(existing);
+                    }
                     response.MergedIntoExisting++;
                 }
                 else
@@ -285,6 +293,7 @@ namespace CardExchange.API.Services.Import
                     };
                     _context.Cards.Add(card);
                     existingCopies.Add(card);
+                    if (card.IsAvailableForTrade) newlyAvailable.Add(card);
                     copyCount++;
                     response.CreatedCopies++;
                 }
@@ -293,6 +302,9 @@ namespace CardExchange.API.Services.Import
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
+
+            // Dopo il commit le nuove copie hanno un Id
+            await _wishlistAlerts.NotifyAvailableAsync(newlyAvailable.Select(c => c.Id));
 
             _logger.LogInformation("Import collezione utente {UserId}: {Created} nuove copie, {Merged} unite, {Skipped} oltre il limite, {Failed} fallite",
                 userId, response.CreatedCopies, response.MergedIntoExisting, response.SkippedByPlanLimit, response.Failed.Count);

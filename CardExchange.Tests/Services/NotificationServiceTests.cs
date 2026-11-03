@@ -42,7 +42,8 @@ public class NotificationServiceTests : IDisposable
             _context,
             new Mock<ILogger<NotificationDispatcher>>().Object,
             hubContextMock.Object,
-            handlers);
+            handlers,
+            new Mock<CardExchange.API.Services.Push.IPushQueue>().Object);
 
         _service = new NotificationService(
             _context,

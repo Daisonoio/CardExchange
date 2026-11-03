@@ -23,6 +23,16 @@ namespace CardExchange.API.Services.Email
             link: link,
             footer: "Il link scade tra 1 ora e può essere usato una sola volta. Se non hai richiesto tu il reset, ignora questa email: la tua password resta invariata.");
 
+        public static EmailMessage WeeklyDigest(string firstName, int totalMatches, IReadOnlyList<string> highlights, string link, string preferencesLink) => Build(
+            subject: totalMatches == 1
+                ? "Un collezionista vicino a te ha carte che cerchi"
+                : $"{totalMatches} collezionisti vicino a te hanno carte che cerchi",
+            greeting: firstName,
+            intro: "ecco i match più interessanti di questa settimana:\n" + string.Join("\n", highlights.Select(h => "• " + h)),
+            buttonText: "Vedi tutti i match",
+            link: link,
+            footer: $"Ricevi questa email perché hai attivo il riepilogo settimanale. Puoi disattivarlo dalle preferenze notifiche: {preferencesLink}");
+
         private static EmailMessage Build(string subject, string greeting, string intro, string buttonText, string link, string footer)
         {
             var name = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(greeting) ? "ciao" : greeting);
@@ -36,7 +46,7 @@ namespace CardExchange.API.Services.Email
                     <tr><td style="background:#1a3461;color:#ffffff;padding:20px 24px;border-radius:12px 12px 0 0;font-size:20px;font-weight:bold;">CardExchange</td></tr>
                     <tr><td style="padding:24px;font-size:15px;line-height:1.5;">
                       <p>Ciao {name},</p>
-                      <p>{WebUtility.HtmlEncode(intro)}</p>
+                      <p>{WebUtility.HtmlEncode(intro).Replace("\n", "<br>")}</p>
                       <p style="text-align:center;margin:28px 0;">
                         <a href="{safeLink}" style="background:#1a3461;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:10px;font-weight:bold;display:inline-block;">{WebUtility.HtmlEncode(buttonText)}</a>
                       </p>

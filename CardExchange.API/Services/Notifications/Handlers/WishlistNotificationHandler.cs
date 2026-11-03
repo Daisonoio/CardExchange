@@ -19,8 +19,10 @@ namespace CardExchange.API.Services.Notifications.Handlers
             {
                 UserId = userId,
                 Type = NotificationType.WishlistMatch,
-                Title = "Carta trovata nella tua wishlist!",
-                Body = $"La carta \"{cardName}\" che cercavi è ora disponibile per lo scambio",
+                Title = parameters.TryGetValue("Title", out var title) && title is string t && t.Length > 0
+                    ? t : "Carta trovata nella tua wishlist!",
+                Body = parameters.TryGetValue("Body", out var body) && body is string b && b.Length > 0
+                    ? b : $"La carta \"{cardName}\" che cercavi è ora disponibile per lo scambio",
                 ReferenceId = cardId,
                 ReferenceType = "Card"
             };

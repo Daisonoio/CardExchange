@@ -19,7 +19,9 @@ namespace CardExchange.Core.Entities
         CounterOfferReceived = 13,
         PriceSpike = 14,
         /// <summary>Proposta, conferma, annullamento o promemoria di un appuntamento di scambio.</summary>
-        MeetupUpdate = 15
+        MeetupUpdate = 15,
+        /// <summary>Riepilogo settimanale via email (usato solo come preferenza: disattivabile).</summary>
+        WeeklyDigest = 16
     }
 
     public class Notification : BaseEntity

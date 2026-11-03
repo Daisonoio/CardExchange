@@ -16,6 +16,16 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Threading.RateLimiting;
 
+// Utility: genera una coppia di chiavi VAPID per le notifiche push ed esce
+//   dotnet run --project CardExchange.API -- --generate-vapid-keys
+if (args.Contains("--generate-vapid-keys"))
+{
+    var (vapidPublic, vapidPrivate) = CardExchange.API.Services.Push.WebPushOptions.GenerateKeys();
+    Console.WriteLine($"WEBPUSH_PUBLIC_KEY={vapidPublic}");
+    Console.WriteLine($"WEBPUSH_PRIVATE_KEY={vapidPrivate}");
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ============================================================
@@ -166,15 +176,30 @@ builder.Services.AddScoped<INotificationHandler, SystemNotificationHandler>();
 
 builder.Services.AddScoped<IPriceTrackingService, PriceTrackingService>();
 builder.Services.AddScoped<IMatchmakingService, MatchmakingService>();
+builder.Services.AddScoped<IWishlistAlertService, WishlistAlertService>();
 builder.Services.AddScoped<CardExchange.API.Services.Moderation.IUserBlockService, CardExchange.API.Services.Moderation.UserBlockService>();
 builder.Services.AddScoped<CardExchange.API.Services.Import.IMagicCatalogService, CardExchange.API.Services.Import.MagicCatalogService>();
 builder.Services.AddScoped<CardExchange.API.Services.Import.ICollectionImportService, CardExchange.API.Services.Import.CollectionImportService>();
 builder.Services.AddScoped<CardExchange.API.Services.Prices.ICatalogPriceRefresher, CardExchange.API.Services.Prices.CatalogPriceRefresher>();
 // Lavori notturni: scadenza offerte, prezzi, storico, allarmi (sezione Jobs:DailyMaintenance)
 builder.Services.AddScoped<CardExchange.API.Services.Prices.DailyMaintenance>();
+builder.Services.AddScoped<WeeklyDigest>();
 builder.Services.AddHostedService<CardExchange.API.Services.Prices.DailyMaintenanceHostedService>();
 builder.Services.AddScoped<MeetupReminders>();
 builder.Services.AddHostedService<MeetupRemindersHostedService>();
+
+// Web Push (PWA). In sviluppo, senza chiavi configurate, ne genera una coppia temporanea a ogni avvio.
+builder.Services.Configure<CardExchange.API.Services.Push.WebPushOptions>(options =>
+{
+    builder.Configuration.GetSection("WebPush").Bind(options);
+    if (!options.IsConfigured && builder.Environment.IsDevelopment())
+    {
+        (options.PublicKey, options.PrivateKey) = CardExchange.API.Services.Push.WebPushOptions.GenerateKeys();
+    }
+});
+builder.Services.AddHttpClient("WebPush");
+builder.Services.AddSingleton<CardExchange.API.Services.Push.IPushQueue, CardExchange.API.Services.Push.PushQueue>();
+builder.Services.AddHostedService<CardExchange.API.Services.Push.PushSenderHostedService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<IScryfallService, ScryfallService>(client =>
 {
