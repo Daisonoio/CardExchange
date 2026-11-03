@@ -10,7 +10,8 @@ namespace CardExchange.API.Services.Notifications.Handlers
             NotificationType.NewReview,
             NotificationType.SubscriptionExpiring,
             NotificationType.SubscriptionExpired,
-            NotificationType.PriceSpike
+            NotificationType.PriceSpike,
+            NotificationType.MeetupUpdate
         };
 
         public NotificationPayload BuildPayload(NotificationType type, Dictionary<string, object> parameters)

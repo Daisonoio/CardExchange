@@ -648,3 +648,21 @@ export interface ModerationReport {
   reportedUser: { id: number; username: string; isActive: boolean; reputationScore: number; totalTradesCompleted: number; openReports: number };
 }
 
+// === Appuntamenti ===
+export interface TradeMeetup {
+  id: number;
+  tradeOfferId: number;
+  proposedById: number;
+  proposedByUsername: string;
+  /** ISO UTC */
+  scheduledAt: string;
+  locationName: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  notes?: string;
+  status: 'Proposed' | 'Accepted' | 'Declined' | 'Cancelled' | 'Superseded';
+  createdAt: string;
+  respondedAt?: string;
+}
+

@@ -331,3 +331,17 @@ export const moderation = {
     client.post<{ message: string }>(`/moderation/reports/${id}/resolve`, data),
 };
 
+// === Appuntamenti di scambio ===
+export const meetups = {
+  list: (tradeOfferId: number) =>
+    client.get<import('../types').TradeMeetup[]>(`/tradeoffers/${tradeOfferId}/meetups`),
+  propose: (tradeOfferId: number, data: { scheduledAt: string; locationName: string; address?: string; notes?: string }) =>
+    client.post<import('../types').TradeMeetup>(`/tradeoffers/${tradeOfferId}/meetups`, data),
+  accept: (tradeOfferId: number, meetupId: number) =>
+    client.post<import('../types').TradeMeetup>(`/tradeoffers/${tradeOfferId}/meetups/${meetupId}/accept`),
+  decline: (tradeOfferId: number, meetupId: number) =>
+    client.post<import('../types').TradeMeetup>(`/tradeoffers/${tradeOfferId}/meetups/${meetupId}/decline`),
+  cancel: (tradeOfferId: number, meetupId: number) =>
+    client.post<import('../types').TradeMeetup>(`/tradeoffers/${tradeOfferId}/meetups/${meetupId}/cancel`),
+};
+

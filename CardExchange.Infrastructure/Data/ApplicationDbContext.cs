@@ -35,6 +35,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<TradeReview> TradeReviews { get; set; }
         public DbSet<UserBlock> UserBlocks { get; set; }
         public DbSet<UserReport> UserReports { get; set; }
+        public DbSet<TradeMeetup> TradeMeetups { get; set; }
         public DbSet<SavedSearch> SavedSearches { get; set; }
 
         public DbSet<FavoriteCard> FavoriteCards { get; set; }
@@ -260,6 +261,15 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(b => b.BlockedUserId);
                 entity.HasOne(b => b.Blocker).WithMany().HasForeignKey(b => b.BlockerId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(b => b.BlockedUser).WithMany().HasForeignKey(b => b.BlockedUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Appuntamenti di scambio
+            modelBuilder.Entity<TradeMeetup>(entity =>
+            {
+                entity.HasIndex(m => new { m.TradeOfferId, m.Status });
+                entity.HasIndex(m => new { m.Status, m.ScheduledAt });
+                entity.HasOne(m => m.TradeOffer).WithMany().HasForeignKey(m => m.TradeOfferId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(m => m.ProposedBy).WithMany().HasForeignKey(m => m.ProposedById).OnDelete(DeleteBehavior.Restrict);
             });
 
             // Segnalazioni utenti

@@ -8,6 +8,7 @@ import {
   X,
   Bell,
   TrendingUp,
+  CalendarClock,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -49,6 +50,12 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
     icon: CheckCheck,
     color: 'text-emerald-500 bg-emerald-50',
     label: 'Scambio completato',
+    category: 'trade',
+  },
+  MeetupUpdate: {
+    icon: CalendarClock,
+    color: 'text-indigo-500 bg-indigo-50',
+    label: 'Appuntamento di scambio',
     category: 'trade',
   },
   CounterOfferReceived: {

@@ -17,7 +17,9 @@ namespace CardExchange.Core.Entities
         FavoritePriceChanged = 11,
         FavoriteCardTraded = 12,
         CounterOfferReceived = 13,
-        PriceSpike = 14
+        PriceSpike = 14,
+        /// <summary>Proposta, conferma, annullamento o promemoria di un appuntamento di scambio.</summary>
+        MeetupUpdate = 15
     }
 
     public class Notification : BaseEntity

@@ -13,6 +13,7 @@ import EmptyState from '../components/ui/EmptyState';
 import BottomSheet from '../components/ui/BottomSheet';
 import ReviewFormSheet from '../components/users/ReviewFormSheet';
 import UserSafetyMenu from '../components/users/UserSafetyMenu';
+import MeetupPanel from '../components/trades/MeetupPanel';
 
 const STATUS_CONFIG: Record<TradeOfferStatus, { label: string; color: string; icon: typeof Check }> = {
   Pending: { label: 'In attesa', color: 'bg-amber-50 text-amber-600', icon: Clock },
@@ -389,6 +390,8 @@ function OfferDetail({
           <X size={16} /> Annulla richiesta
         </Button>
       )}
+
+      {isAccepted && <MeetupPanel tradeOfferId={offer.id} userId={userId} otherUsername={otherName} />}
 
       {isAccepted && (() => {
         const myConfirmed = isSender ? !!offer.senderConfirmedAt : !!offer.receiverConfirmedAt;

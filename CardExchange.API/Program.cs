@@ -173,6 +173,8 @@ builder.Services.AddScoped<CardExchange.API.Services.Prices.ICatalogPriceRefresh
 // Lavori notturni: scadenza offerte, prezzi, storico, allarmi (sezione Jobs:DailyMaintenance)
 builder.Services.AddScoped<CardExchange.API.Services.Prices.DailyMaintenance>();
 builder.Services.AddHostedService<CardExchange.API.Services.Prices.DailyMaintenanceHostedService>();
+builder.Services.AddScoped<MeetupReminders>();
+builder.Services.AddHostedService<MeetupRemindersHostedService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<IScryfallService, ScryfallService>(client =>
 {
