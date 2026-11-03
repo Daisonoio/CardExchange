@@ -1,191 +1,84 @@
-import { useState, useEffect } from 'react';
-import { CalendarDays, MapPin, Users, Loader2, Navigation } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { CalendarDays, ChevronRight, Loader2, MapPin, Plus, Store as StoreIcon, Users } from 'lucide-react';
 import { events } from '../api';
 import type { CardEvent } from '../types';
-import { useGeolocation } from '../hooks/useGeolocation';
-import Button from '../components/ui/Button';
+import { EVENT_TYPE_LABELS } from '../types';
+import { apiErrorMessage } from '../utils/apiError';
+import { formatEventDate } from '../utils/eventDate';
 import EmptyState from '../components/ui/EmptyState';
 
+type Mode = 'nearby' | 'all';
+
+/** Eventi della zona (posizione del profilo) o tutti i prossimi eventi. Usata nella scheda "Eventi" di "Vicino a te". */
 export default function EventsPage() {
-  const [eventList, setEventList] = useState<CardEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [mode, setMode] = useState<'upcoming' | 'nearby'>('upcoming');
-  const { position, requestPosition, isLoading: geoLoading } = useGeolocation();
+  const [mode, setMode] = useState<Mode>('nearby');
+  const [result, setResult] = useState<{ mode: Mode; items: CardEvent[]; error?: string } | null>(null);
 
   useEffect(() => {
-    const load = async () => {
-      setIsLoading(true);
-      try {
-        if (mode === 'nearby' && position) {
-          const { data } = await events.getNearby(position.latitude, position.longitude, 100);
-          setEventList(data);
-        } else {
-          const { data } = await events.getUpcoming();
-          setEventList(data.items || data as unknown as CardEvent[]);
-        }
-      } catch (err) {
-        console.error('Errore caricamento eventi:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    load();
-  }, [mode, position]);
+    let cancelled = false;
+    const request = mode === 'nearby'
+      ? events.getNearby(undefined, undefined, 50).then(({ data }) => data)
+      : events.getUpcoming().then(({ data }) => data.items ?? (data as unknown as CardEvent[]));
+    request
+      .then((items) => { if (!cancelled) setResult({ mode, items }); })
+      .catch((err) => { if (!cancelled) setResult({ mode, items: [], error: apiErrorMessage(err, 'Impossibile caricare gli eventi.') }); });
+    return () => { cancelled = true; };
+  }, [mode]);
 
-  const handleJoin = async (eventId: number) => {
-    try {
-      await events.join(eventId);
-      setEventList((prev) =>
-        prev.map((e) =>
-          e.id === eventId
-            ? { ...e, isParticipating: true, participantCount: e.participantCount + 1 }
-            : e
-        )
-      );
-    } catch (err) {
-      console.error('Errore iscrizione:', err);
-    }
-  };
-
-  const handleLeave = async (eventId: number) => {
-    try {
-      await events.leave(eventId);
-      setEventList((prev) =>
-        prev.map((e) =>
-          e.id === eventId
-            ? { ...e, isParticipating: false, participantCount: e.participantCount - 1 }
-            : e
-        )
-      );
-    } catch (err) {
-      console.error('Errore disiscrizione:', err);
-    }
-  };
-
-  const formatDate = (date: string) => {
-    const d = new Date(date);
-    return d.toLocaleDateString('it-IT', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const loading = result?.mode !== mode;
 
   return (
-    <div>
-      <h1 className="text-xl font-bold text-text mb-1">Eventi</h1>
-      <p className="text-sm text-text-secondary mb-4">Meetup e tornei di scambio</p>
-
-      {/* Mode tabs */}
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={() => setMode('upcoming')}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-            mode === 'upcoming'
-              ? 'bg-primary text-white'
-              : 'bg-white text-text-secondary border border-border'
-          }`}
-        >
-          Prossimi
-        </button>
-        <button
-          onClick={() => {
-            if (!position) requestPosition();
-            setMode('nearby');
-          }}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1 ${
-            mode === 'nearby'
-              ? 'bg-primary text-white'
-              : 'bg-white text-text-secondary border border-border'
-          }`}
-        >
-          <Navigation size={14} />
-          Vicino a me
-        </button>
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        {([['nearby', 'Vicino a me'], ['all', 'Tutti i prossimi']] as [Mode, string][]).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setMode(key)}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold border ${mode === key ? 'bg-primary text-white border-primary' : 'bg-white text-text-secondary border-border'}`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {isLoading || geoLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 size={28} className="animate-spin text-primary" />
-        </div>
-      ) : eventList.length === 0 ? (
-        <EmptyState
-          icon={CalendarDays}
-          title="Nessun evento trovato"
-          description={mode === 'nearby'
-            ? 'Nessun evento nelle vicinanze'
-            : 'Non ci sono eventi in programma'}
-        />
+      <Link to="/events/new" className="flex items-center justify-center gap-2 p-3 rounded-2xl border-2 border-dashed border-border text-sm font-semibold text-primary hover:bg-surface-dark">
+        <Plus size={16} /> Organizza un evento
+      </Link>
+
+      {loading ? (
+        <div className="flex justify-center py-10"><Loader2 className="animate-spin text-primary" /></div>
+      ) : result?.error ? (
+        <EmptyState icon={MapPin} title="Eventi vicini non disponibili" description={result.error} />
+      ) : !result || result.items.length === 0 ? (
+        <EmptyState icon={CalendarDays} title="Nessun evento in programma" description="Organizzane uno: una serata di scambio basta un tavolo e qualche collezionista." />
       ) : (
-        <div className="space-y-3">
-          {eventList.map((event) => (
-            <div key={event.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-border/50">
-              {event.imageUrl && (
-                <img
-                  src={event.imageUrl}
-                  alt={event.title}
-                  className="w-full h-36 object-cover"
-                  loading="lazy"
-                />
-              )}
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-xs font-semibold text-primary uppercase tracking-wide">
-                      {event.type}
-                    </span>
-                    <h3 className="text-base font-bold text-text mt-0.5">{event.title}</h3>
+        <ul className="space-y-2">
+          {result.items.map((e) => (
+            <li key={e.id}>
+              <Link to={`/events/${e.id}`} className="block p-3 rounded-2xl bg-white border border-border hover:shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="w-12 shrink-0 rounded-xl bg-primary/10 text-primary text-center py-1">
+                    <div className="text-[10px] uppercase font-semibold">{new Date(e.startDate).toLocaleDateString('it-IT', { month: 'short' })}</div>
+                    <div className="text-lg font-bold leading-none">{new Date(e.startDate).getDate()}</div>
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{e.title}</p>
+                    <p className="text-xs text-text-muted">{EVENT_TYPE_LABELS[e.type] ?? e.type} · {formatEventDate(e.startDate)}</p>
+                    <p className="text-xs text-text-secondary truncate flex items-center gap-1 mt-0.5">
+                      {e.storeName ? <><StoreIcon size={11} /> {e.storeName}</> : <><MapPin size={11} /> {e.city}</>}
+                    </p>
+                    <p className="text-[11px] text-text-muted flex items-center gap-1 mt-0.5">
+                      <Users size={11} /> {e.participantCount}{e.maxParticipants ? `/${e.maxParticipants}` : ''} partecipanti
+                      {e.isParticipating && <span className="ml-1 text-green-700 font-semibold">· Iscritto</span>}
+                    </p>
+                  </div>
+                  <ChevronRight size={16} className="text-text-muted mt-3 shrink-0" />
                 </div>
-
-                <div className="flex flex-col gap-1.5 mt-3 text-sm text-text-secondary">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays size={14} className="text-text-muted shrink-0" />
-                    <span>{formatDate(event.startDate)}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin size={14} className="text-text-muted shrink-0" />
-                    <span className="truncate">{event.city}{event.province && `, ${event.province}`}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users size={14} className="text-text-muted shrink-0" />
-                    <span>
-                      {event.participantCount} partecipanti
-                      {event.maxParticipants && ` / ${event.maxParticipants}`}
-                    </span>
-                  </div>
-                </div>
-
-                {event.description && (
-                  <p className="text-xs text-text-muted mt-2 line-clamp-2">{event.description}</p>
-                )}
-
-                <div className="flex items-center justify-between mt-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-xs font-bold text-primary">
-                        {event.organizer.username[0].toUpperCase()}
-                      </span>
-                    </div>
-                    <span className="text-xs text-text-secondary">@{event.organizer.username}</span>
-                  </div>
-
-                  {event.isParticipating ? (
-                    <Button size="sm" variant="outline" onClick={() => handleLeave(event.id)}>
-                      Annulla
-                    </Button>
-                  ) : (
-                    <Button size="sm" onClick={() => handleJoin(event.id)}>
-                      Partecipa
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

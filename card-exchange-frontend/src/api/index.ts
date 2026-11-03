@@ -176,11 +176,20 @@ export const events = {
     client.get<PagedResult<CardEvent>>(`/events/city/${city}`, {
       params: { page },
     }),
-  getNearby: (lat: number, lon: number, radiusKm = 50) =>
+  /** Senza coordinate il backend usa la posizione del profilo. */
+  getNearby: (lat?: number, lon?: number, radiusKm = 50) =>
     client.get<CardEvent[]>('/events/nearby', {
       params: { latitude: lat, longitude: lon, radiusKm },
     }),
-  getById: (id: number) => client.get<CardEvent>(`/events/${id}`),
+  getById: (id: number) => client.get<import('../types').CardEventDetail>(`/events/${id}`),
+  byStore: (storeId: number) => client.get<CardEvent[]>(`/events/store/${storeId}`),
+  create: (data: {
+    title: string; description?: string; type: number; startDate: string; endDate?: string;
+    address: string; city: string; province?: string; postalCode?: string; country: string;
+    latitude?: number; longitude?: number; maxParticipants?: number; isPublic: boolean;
+    supportedGameIds?: string; storeId?: number;
+  }) => client.post<CardEvent>('/events', data),
+  cancel: (id: number) => client.delete(`/events/${id}`),
   join: (id: number) => client.post(`/events/${id}/join`),
   leave: (id: number) => client.post(`/events/${id}/leave`),
 };

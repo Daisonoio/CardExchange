@@ -17,6 +17,7 @@ namespace CardExchange.Infrastructure.Repositories
             var query = _dbSet
                 .Where(e => e.Status == EventStatus.Published && e.StartDate > now)
                 .Include(e => e.Organizer)
+                .Include(e => e.Store)
                 .OrderBy(e => e.StartDate);
 
             var totalCount = await query.CountAsync();
@@ -37,6 +38,7 @@ namespace CardExchange.Infrastructure.Repositories
                     && e.StartDate > now
                     && e.City.ToLower() == city.ToLower())
                 .Include(e => e.Organizer)
+                .Include(e => e.Store)
                 .OrderBy(e => e.StartDate);
 
             var totalCount = await query.CountAsync();
@@ -60,6 +62,7 @@ namespace CardExchange.Infrastructure.Repositories
                     && e.Latitude != null
                     && e.Longitude != null)
                 .Include(e => e.Organizer)
+                .Include(e => e.Store)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -106,6 +109,7 @@ namespace CardExchange.Infrastructure.Repositories
         {
             return await _dbSet
                 .Include(e => e.Organizer)
+                .Include(e => e.Store)
                 .Include(e => e.Participants)
                     .ThenInclude(p => p.User)
                 .FirstOrDefaultAsync(e => e.Id == eventId);
@@ -128,6 +132,7 @@ namespace CardExchange.Infrastructure.Repositories
             return await _dbSet
                 .Where(e => eventIds.Contains(e.Id) && e.StartDate > now)
                 .Include(e => e.Organizer)
+                .Include(e => e.Store)
                 .OrderBy(e => e.StartDate)
                 .AsNoTracking()
                 .ToListAsync();

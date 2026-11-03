@@ -333,6 +333,9 @@ export interface CardEvent {
   imageUrl?: string;
   participantCount: number;
   isParticipating: boolean;
+  supportedGameIds?: string;
+  storeId?: number;
+  storeName?: string;
   organizer: {
     id: number;
     username: string;
@@ -341,6 +344,23 @@ export interface CardEvent {
   };
   createdAt: string;
 }
+
+export interface CardEventDetail extends CardEvent {
+  participants: { userId: number; username: string; avatarUrl?: string; status: string; joinedAt: string }[];
+}
+
+export const EVENT_TYPE_LABELS: Record<string, string> = {
+  Trademeetup: 'Serata di scambio',
+  Tournament: 'Torneo',
+  CardShow: 'Fiera',
+  DraftEvent: 'Draft',
+  SealedEvent: 'Sealed',
+  CasualPlay: 'Gioco libero',
+  Other: 'Altro',
+};
+export const EVENT_TYPE_VALUES: Record<string, number> = {
+  Trademeetup: 1, Tournament: 2, CardShow: 3, DraftEvent: 4, SealedEvent: 5, CasualPlay: 6, Other: 99,
+};
 
 // === Trade Offers ===
 export type TradeOfferStatus = 'Pending' | 'Accepted' | 'Rejected' | 'Cancelled' | 'Completed' | 'CounterOffer' | 'Expired';

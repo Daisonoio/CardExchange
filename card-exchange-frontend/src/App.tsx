@@ -25,6 +25,8 @@ import ModerationPage from './pages/ModerationPage';
 import LocalPage from './pages/LocalPage';
 import StorePage from './pages/StorePage';
 import StoreFormPage from './pages/StoreFormPage';
+import EventPage from './pages/EventPage';
+import EventFormPage from './pages/EventFormPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,6 +63,8 @@ export default function App() {
               <Route path="/wishlist" element={<WishlistPage />} />
               <Route path="/events" element={<Navigate to="/local?tab=events" replace />} />
               <Route path="/local" element={<LocalPage />} />
+              <Route path="/events/new" element={<EventFormPage />} />
+              <Route path="/events/:id" element={<EventPage />} />
               <Route path="/stores/new" element={<StoreFormPage />} />
               <Route path="/stores/:id" element={<StorePage />} />
               <Route path="/stores/:id/edit" element={<StoreFormPage />} />

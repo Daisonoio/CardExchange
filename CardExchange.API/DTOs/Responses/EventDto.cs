@@ -20,6 +20,9 @@ namespace CardExchange.API.DTOs.Responses
         public string? ImageUrl { get; set; }
         public string? SupportedGameIds { get; set; }
         public int ParticipantCount { get; set; }
+        /// <summary>Negozio che ospita l'evento, se presente.</summary>
+        public int? StoreId { get; set; }
+        public string? StoreName { get; set; }
         public OrganizerDto Organizer { get; set; } = null!;
         public bool IsParticipating { get; set; }
         public DateTime CreatedAt { get; set; }

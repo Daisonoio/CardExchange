@@ -4,6 +4,8 @@ using CardExchange.API.DTOs.Responses;
 using CardExchange.API.Services;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Interfaces;
+using CardExchange.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,17 +22,20 @@ namespace CardExchange.API.Controllers
         private readonly IEventRepository _eventRepository;
         private readonly IUserRepository _userRepository;
         private readonly INotificationService _notificationService;
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<EventsController> _logger;
 
         public EventsController(
             IEventRepository eventRepository,
             IUserRepository userRepository,
             INotificationService notificationService,
+            ApplicationDbContext context,
             ILogger<EventsController> logger)
         {
             _eventRepository = eventRepository;
             _userRepository = userRepository;
             _notificationService = notificationService;
+            _context = context;
             _logger = logger;
         }
 
@@ -107,8 +112,8 @@ namespace CardExchange.API.Controllers
         [HttpGet("nearby")]
         [RequirePermission("SEARCH.GEOGRAPHIC")]
         public async Task<ActionResult> GetNearbyEvents(
-            [FromQuery] decimal latitude,
-            [FromQuery] decimal longitude,
+            [FromQuery] decimal? latitude,
+            [FromQuery] decimal? longitude,
             [FromQuery] int radiusKm = 50,
             [FromQuery] int limit = 20)
         {
@@ -116,9 +121,23 @@ namespace CardExchange.API.Controllers
             {
                 radiusKm = Math.Clamp(radiusKm, 1, 500);
                 limit = Math.Clamp(limit, 1, 50);
+                var currentUserId = GetCurrentUserId();
 
-                var events = await _eventRepository.GetNearbyEventsAsync(latitude, longitude, radiusKm, limit);
-                var dtos = events.Select(e => MapToDto(e, false));
+                // Senza coordinate si usa la posizione salvata nel profilo
+                if (latitude == null || longitude == null)
+                {
+                    var loc = await _context.UserLocations.AsNoTracking().FirstOrDefaultAsync(l => l.UserId == currentUserId);
+                    if (loc?.Latitude == null || loc.Longitude == null)
+                        return BadRequest(new { message = "Imposta la tua posizione nel profilo per vedere gli eventi vicini" });
+                    latitude = loc.Latitude;
+                    longitude = loc.Longitude;
+                }
+
+                var events = await _eventRepository.GetNearbyEventsAsync(latitude.Value, longitude.Value, radiusKm, limit);
+                var mine = currentUserId > 0
+                    ? (await _eventRepository.GetUserEventsAsync(currentUserId)).Select(e => e.Id).ToHashSet()
+                    : new HashSet<int>();
+                var dtos = events.Select(e => MapToDto(e, mine.Contains(e.Id)));
 
                 return Ok(dtos);
             }
@@ -127,6 +146,30 @@ namespace CardExchange.API.Controllers
                 _logger.LogError(ex, "Errore durante la ricerca eventi nelle vicinanze");
                 return StatusCode(500, new { message = "Errore interno del server" });
             }
+        }
+
+        /// <summary>
+        /// Eventi futuri pubblicati di un negozio.
+        /// </summary>
+        [HttpGet("store/{storeId:int}")]
+        [AllowAnonymous]
+        public async Task<ActionResult> GetStoreEvents(int storeId)
+        {
+            var now = DateTime.UtcNow;
+            var events = await _context.Events
+                .AsNoTracking()
+                .Include(e => e.Organizer)
+                .Include(e => e.Store)
+                .Where(e => e.StoreId == storeId && e.Status == EventStatus.Published && e.IsPublic
+                            && (e.EndDate ?? e.StartDate.AddHours(6)) >= now)
+                .OrderBy(e => e.StartDate)
+                .Take(20)
+                .ToListAsync();
+            var currentUserId = GetCurrentUserId();
+            var mine = currentUserId > 0
+                ? (await _eventRepository.GetUserEventsAsync(currentUserId)).Select(e => e.Id).ToHashSet()
+                : new HashSet<int>();
+            return Ok(events.Select(e => MapToDto(e, mine.Contains(e.Id))));
         }
 
         /// <summary>
@@ -166,6 +209,8 @@ namespace CardExchange.API.Controllers
                     ImageUrl = eventEntity.ImageUrl,
                     SupportedGameIds = eventEntity.SupportedGameIds,
                     ParticipantCount = eventEntity.Participants.Count(p => p.Status != ParticipationStatus.Cancelled),
+                    StoreId = eventEntity.StoreId,
+                    StoreName = eventEntity.Store?.Name,
                     CreatedAt = eventEntity.CreatedAt,
                     IsParticipating = isParticipating,
                     Organizer = new OrganizerDto
@@ -213,6 +258,28 @@ namespace CardExchange.API.Controllers
                 if (request.EndDate.HasValue && request.EndDate <= request.StartDate)
                     return BadRequest(new { message = "La data di fine deve essere successiva alla data di inizio" });
 
+                // Evento ospitato da un negozio: solo il proprietario, solo se verificato; il luogo è quello del negozio
+                Store? store = null;
+                if (request.StoreId.HasValue)
+                {
+                    store = await _context.Stores.FirstOrDefaultAsync(s => s.Id == request.StoreId.Value);
+                    if (store == null || store.OwnerId != userId)
+                        return BadRequest(new { message = "Puoi organizzare eventi solo nei negozi che gestisci" });
+                    if (store.Status != StoreStatus.Verified)
+                        return BadRequest(new { message = "Il negozio deve essere verificato prima di pubblicare eventi" });
+                    request.Address = store.Address;
+                    request.City = store.City;
+                    request.Province = store.Province;
+                    request.PostalCode = store.PostalCode;
+                    request.Country = store.Country;
+                    request.Latitude = store.Latitude;
+                    request.Longitude = store.Longitude;
+                }
+                else if (request.Latitude == null || request.Longitude == null)
+                {
+                    return BadRequest(new { message = "Indica il luogo dell'evento sulla mappa" });
+                }
+
                 var eventEntity = new Event
                 {
                     OrganizerId = userId,
@@ -232,7 +299,8 @@ namespace CardExchange.API.Controllers
                     MaxParticipants = request.MaxParticipants,
                     IsPublic = request.IsPublic,
                     ImageUrl = request.ImageUrl,
-                    SupportedGameIds = request.SupportedGameIds
+                    SupportedGameIds = request.SupportedGameIds,
+                    StoreId = store?.Id
                 };
 
                 // Aggiungi organizzatore come primo partecipante
@@ -529,6 +597,8 @@ namespace CardExchange.API.Controllers
                 ImageUrl = e.ImageUrl,
                 SupportedGameIds = e.SupportedGameIds,
                 ParticipantCount = e.ParticipantCount,
+                StoreId = e.StoreId,
+                StoreName = e.Store?.Name,
                 IsParticipating = isParticipating,
                 CreatedAt = e.CreatedAt,
                 Organizer = e.Organizer != null ? new OrganizerDto

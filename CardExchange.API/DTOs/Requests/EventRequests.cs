@@ -40,6 +40,9 @@ namespace CardExchange.API.DTOs.Requests
         public int? MaxParticipants { get; set; }
         public bool IsPublic { get; set; } = true;
 
+        /// <summary>Negozio verificato dell'organizzatore che ospita l'evento: indirizzo e coordinate vengono presi dal negozio.</summary>
+        public int? StoreId { get; set; }
+
         [MaxLength(500)]
         public string? ImageUrl { get; set; }
 

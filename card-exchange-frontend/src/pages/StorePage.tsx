@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, Clock, Globe, Instagram, Loader2, MapPin, Phone, ShieldCheck } from 'lucide-react';
-import { stores } from '../api';
-import type { Store } from '../types';
+import { events, stores } from '../api';
+import type { CardEvent, Store } from '../types';
+import { EVENT_TYPE_LABELS } from '../types';
+import { formatEventDate } from '../utils/eventDate';
 import { useGame } from '../context/GameContext';
 import StoresMap from '../components/stores/StoresMap';
 import EmptyState from '../components/ui/EmptyState';
@@ -20,9 +22,11 @@ export default function StorePage() {
   const navigate = useNavigate();
   const { games } = useGame();
   const [store, setStore] = useState<Store | null | undefined>(undefined);
+  const [storeEvents, setStoreEvents] = useState<CardEvent[]>([]);
 
   useEffect(() => {
     stores.get(Number(id)).then(({ data }) => setStore(data)).catch(() => setStore(null));
+    events.byStore(Number(id)).then(({ data }) => setStoreEvents(data)).catch(() => setStoreEvents([]));
   }, [id]);
 
   if (store === undefined) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>;
@@ -86,10 +90,26 @@ export default function StorePage() {
       )}
 
       <section className="bg-white rounded-2xl border border-border p-3">
-        <h2 className="text-sm font-semibold flex items-center gap-2"><CalendarDays size={16} className="text-primary" /> Eventi in programma</h2>
-        <p className="text-xs text-text-muted mt-1">
-          {store.upcomingEventsCount > 0 ? `${store.upcomingEventsCount} eventi in arrivo` : 'Nessun evento in programma.'}
-        </p>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold flex items-center gap-2"><CalendarDays size={16} className="text-primary" /> Eventi in programma</h2>
+          {store.isOwner && store.status === 'Verified' && (
+            <Link to="/events/new" className="text-xs font-semibold text-primary hover:underline">Crea evento</Link>
+          )}
+        </div>
+        {storeEvents.length === 0 ? (
+          <p className="text-xs text-text-muted mt-1">Nessun evento in programma.</p>
+        ) : (
+          <ul className="mt-2 space-y-1">
+            {storeEvents.map((e) => (
+              <li key={e.id}>
+                <Link to={`/events/${e.id}`} className="block p-2 rounded-xl hover:bg-surface-dark">
+                  <span className="block text-sm font-medium">{e.title}</span>
+                  <span className="block text-xs text-text-muted">{EVENT_TYPE_LABELS[e.type] ?? e.type} · {formatEventDate(e.startDate)} · {e.participantCount} partecipanti</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );
