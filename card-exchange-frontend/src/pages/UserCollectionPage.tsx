@@ -265,7 +265,7 @@ export default function UserCollectionPage() {
 
       {/* Floating action bar */}
       {selectionMode && selectedCards.length > 0 && (
-        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white border-t border-border p-4 z-40 shadow-lg">
+        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white border-t border-border p-4 pb-10 md:pb-4 z-40 shadow-lg">
           <div className="flex items-center gap-3 max-w-lg mx-auto">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold">{t('user.selectedCount', { count: selectedCards.length })}</p>
@@ -283,7 +283,7 @@ export default function UserCollectionPage() {
 
       {/* Quick trade button when not in selection mode */}
       {!selectionMode && userCards.length > 0 && (
-        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-border p-4 z-40">
+        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-border p-4 pb-10 md:pb-4 z-40">
           <Button
             onClick={() => setSelectionMode(true)}
             className="w-full max-w-lg mx-auto"

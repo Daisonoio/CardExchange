@@ -276,7 +276,7 @@ export default function ChatPage() {
   const showingChat = !!activeConvId || (!!preselectedUserId && !activeConvId);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] md:flex-row md:gap-0 md:h-[calc(100vh-8rem)]">
+    <div className="flex flex-col h-[calc(100dvh-10.5rem)] md:flex-row md:gap-0 md:h-[calc(100vh-8rem)]">
       {/* === CONVERSATION LIST (sidebar on desktop, full on mobile when no chat open) === */}
       <div className={`${showingChat ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 md:border-r md:border-border shrink-0`}>
         <div className="p-3 border-b border-border">

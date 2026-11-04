@@ -72,7 +72,7 @@ export default function VerifyEmailBanner() {
     <div
       role="status"
       aria-live="polite"
-      className={`fixed z-40 left-3 right-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] md:left-auto md:right-6 md:bottom-6 md:w-96
+      className={`fixed z-40 left-3 right-3 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] md:left-auto md:right-6 md:bottom-6 md:w-96
         transition-all duration-300 motion-reduce:transition-none ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'}`}
     >
       <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 pr-2 text-sm text-amber-900 shadow-lg shadow-amber-900/10">

@@ -40,7 +40,7 @@ export default function Layout() {
       {/* Mobile top bar with hamburger */}
       <MobileHeader />
       <GameSelector />
-      <main className="flex-1 pb-20 md:pb-4 pt-14 md:pt-0">
+      <main className="flex-1 pb-28 md:pb-4 pt-14 md:pt-0">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <Outlet />
         </div>

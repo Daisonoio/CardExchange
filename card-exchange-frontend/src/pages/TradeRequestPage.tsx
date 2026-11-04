@@ -508,7 +508,7 @@ export default function TradeRequestPage() {
       )}
 
       {/* Submit */}
-      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white border-t border-border p-4 z-40">
+      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white border-t border-border p-4 pb-10 md:pb-4 z-40">
         <Button
           onClick={handleSubmit}
           className="w-full"
