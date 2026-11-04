@@ -28,6 +28,10 @@ namespace CardExchange.API.DTOs.Requests
 
         [Range(0, 999999.99, ErrorMessage = "Il valore deve essere tra 0 e 999999.99")]
         public decimal? EstimatedValue { get; set; }
+
+        /// <summary>Prezzo a cui il proprietario cederebbe la carta (indicativo). Null = usa il valore di mercato.</summary>
+        [Range(0, 999999.99, ErrorMessage = "Il prezzo deve essere tra 0 e 999999.99")]
+        public decimal? AskingPrice { get; set; }
     }
 
     public class UpdateCardRequest
@@ -51,6 +55,13 @@ namespace CardExchange.API.DTOs.Requests
 
         [Range(0, 999999.99, ErrorMessage = "Il valore deve essere tra 0 e 999999.99")]
         public decimal? EstimatedValue { get; set; }
+
+        /// <summary>Nuovo prezzo indicato (indicativo); null = non modificare.</summary>
+        [Range(0, 999999.99, ErrorMessage = "Il prezzo deve essere tra 0 e 999999.99")]
+        public decimal? AskingPrice { get; set; }
+
+        /// <summary>True = rimuove il prezzo indicato e torna al valore di mercato.</summary>
+        public bool ClearAskingPrice { get; set; }
     }
 
     public class BulkCardActionRequest

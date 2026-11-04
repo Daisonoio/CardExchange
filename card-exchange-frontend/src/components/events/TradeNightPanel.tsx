@@ -6,6 +6,7 @@ import type { Card, EventLive, LiveMatchCard } from '../../types';
 import { apiErrorMessage } from '../../utils/apiError';
 import Button from '../ui/Button';
 import CardVariantBadges from '../cards/CardVariantBadges';
+import PriceTag from '../cards/PriceTag';
 
 const REFRESH_MS = 30_000;
 const time = (iso: string) => new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
@@ -46,7 +47,7 @@ export default function TradeNightPanel({ eventId }: { eventId: number }) {
     // La pagina di richiesta accetta le carte preselezionate: bastano id e dati da mostrare
     const selectedCards = cards.map((c) => ({
       id: c.cardId, userId, cardInfoId: 0, cardName: c.name, condition: c.condition, language: c.language,
-      finish: c.finish, quantity: 1, isAvailableForTrade: true, estimatedValue: c.priceEur,
+      finish: c.finish, quantity: 1, isAvailableForTrade: true, askingPrice: c.askingPrice, marketValue: c.priceEur,
     }) as Card);
     navigate(`/trades/new/${userId}`, { state: { selectedCards } });
   };
@@ -98,7 +99,7 @@ export default function TradeNightPanel({ eventId }: { eventId: number }) {
                             <li key={c.cardId} className="flex items-center gap-1.5">
                               <span className="truncate">{c.name}</span>
                               <CardVariantBadges language={c.language} finish={c.finish} />
-                              {c.priceEur != null && <span className="ml-auto text-text-muted">€{c.priceEur.toFixed(2)}</span>}
+                              <span className="ml-auto"><PriceTag compact askingPrice={c.askingPrice} marketValue={c.priceEur} /></span>
                             </li>
                           ))}
                         </ul>

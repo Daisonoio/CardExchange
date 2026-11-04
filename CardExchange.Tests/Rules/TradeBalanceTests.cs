@@ -22,10 +22,10 @@ public class TradeBalanceTests
     public void CopyValue_AppliesFinishAndCondition()
     {
         var info = new CardInfo { PriceEur = 10m, PriceEurFoil = 30m };
-        CardPricing.CopyValueEur(new Card { CardInfo = info, Condition = CardCondition.NearMint }).Should().Be(10m);
-        CardPricing.CopyValueEur(new Card { CardInfo = info, Condition = CardCondition.LightlyPlayed, Finish = CardFinish.Foil }).Should().Be(21m);
-        CardPricing.CopyValueEur(new Card { CardInfo = new CardInfo(), EstimatedValue = 4m, Condition = CardCondition.Excellent }).Should().Be(3.6m);
-        CardPricing.CopyValueEur(new Card { CardInfo = new CardInfo(), Condition = CardCondition.Mint }).Should().BeNull();
+        CardPricing.MarketValueEur(new Card { CardInfo = info, Condition = CardCondition.NearMint }).Should().Be(10m);
+        CardPricing.MarketValueEur(new Card { CardInfo = info, Condition = CardCondition.LightlyPlayed, Finish = CardFinish.Foil }).Should().Be(21m);
+        CardPricing.MarketValueEur(new Card { CardInfo = new CardInfo(), EstimatedValue = 4m, Condition = CardCondition.Excellent }).Should().Be(3.6m);
+        CardPricing.MarketValueEur(new Card { CardInfo = new CardInfo(), Condition = CardCondition.Mint }).Should().BeNull();
     }
 
     [Fact]

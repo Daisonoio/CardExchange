@@ -136,7 +136,7 @@ export default function UserCollectionPage() {
   });
 
   const totalValue = userCards.reduce(
-    (sum, c) => sum + (c.estimatedValue || c.cardInfo?.priceEur || 0) * c.quantity, 0
+    (sum, c) => sum + (c.marketValue ?? c.estimatedValue ?? c.cardInfo?.priceEur ?? 0) * c.quantity, 0
   );
 
   if (isOwnCollection) return null;
@@ -264,7 +264,7 @@ export default function UserCollectionPage() {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold">{selectedCards.length} carte selezionate</p>
               <p className="text-xs text-text-muted">
-                {selectedCards.reduce((s, c) => s + (c.estimatedValue || 0), 0).toFixed(2)} EUR
+                {selectedCards.reduce((s, c) => s + (c.price ?? c.estimatedValue ?? 0), 0).toFixed(2)} EUR
               </p>
             </div>
             <Button onClick={handleGoToTradeRequest} size="lg">

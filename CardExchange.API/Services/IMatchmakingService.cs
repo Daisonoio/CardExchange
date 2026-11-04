@@ -43,7 +43,10 @@ namespace CardExchange.API.Services
         public string? Language { get; set; }
         public string Finish { get; set; } = "Normal";
         public int Quantity { get; set; }
+        /// <summary>Valore di mercato della copia.</summary>
         public decimal? PriceEur { get; set; }
+        /// <summary>Prezzo indicato dal proprietario (indicativo), se impostato.</summary>
+        public decimal? AskingPrice { get; set; }
         public int WishlistPriority { get; set; }
     }
 }

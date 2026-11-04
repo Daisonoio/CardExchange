@@ -135,6 +135,9 @@ namespace CardExchange.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal?>("AskingPrice")
+                        .HasColumnType("decimal(10,2)");
+
                     b.Property<int>("CardInfoId")
                         .HasColumnType("int");
 

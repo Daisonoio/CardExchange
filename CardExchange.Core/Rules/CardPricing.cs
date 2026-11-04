@@ -38,14 +38,20 @@ namespace CardExchange.Core.Rules
         };
 
         /// <summary>
-        /// Valore stimato in euro di una singola copia: prezzo di mercato per la sua finitura
-        /// (o il valore inserito dall'utente se il catalogo non ha prezzi) corretto per la condizione.
-        /// Null se non c'è nessun prezzo disponibile.
+        /// Valore di mercato in euro di una singola copia: prezzo di mercato per la sua finitura
+        /// (o il valore stimato all'inserimento se il catalogo non ha prezzi) corretto per la condizione.
+        /// È un riferimento per valutare le opportunità, non il prezzo della trattativa. Null se non c'è nessun prezzo.
         /// </summary>
-        public static decimal? CopyValueEur(Card card)
+        public static decimal? MarketValueEur(Card card)
         {
             var basePrice = ReferencePriceEur(card.CardInfo, card.Finish, card.EstimatedValue);
             return basePrice.HasValue ? Math.Round(basePrice.Value * ConditionFactor(card.Condition), 2) : null;
         }
+
+        /// <summary>
+        /// Prezzo da mostrare per una copia: quello indicato dal proprietario, altrimenti il valore di mercato.
+        /// Sempre indicativo: gli utenti si accordano liberamente.
+        /// </summary>
+        public static decimal? EffectivePriceEur(Card card) => card.AskingPrice ?? MarketValueEur(card);
     }
 }

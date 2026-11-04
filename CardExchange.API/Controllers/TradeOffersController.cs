@@ -204,8 +204,10 @@ namespace CardExchange.API.Controllers
         }
 
         /// <summary>
-        /// Propone quali delle proprie carte offrire: solo quelle disponibili allo scambio che il destinatario
-        /// cerca (rispettando le preferenze della sua wishlist), per un valore vicino a quello delle carte richieste.
+        /// Suggerisce quali delle proprie carte offrire: solo quelle disponibili allo scambio che il destinatario
+        /// cerca (rispettando le preferenze della sua wishlist). L'obiettivo è il prezzo indicato dal proprietario per le
+        /// carte richieste (o il loro valore di mercato se non indicato), cioè la cifra a cui sarebbe disposto a cederle.
+        /// È solo un punto di partenza: gli utenti si accordano liberamente.
         /// </summary>
         [HttpPost("suggest")]
         public async Task<ActionResult<TradeSuggestionDto>> Suggest([FromBody] TradeSuggestRequest request)
@@ -234,12 +236,13 @@ namespace CardExchange.API.Controllers
             foreach (var card in myCards)
             {
                 var wish = wishByCardInfo[card.CardInfoId].FirstOrDefault(w => WishlistMatchRules.Satisfies(card, w));
-                var value = CardPricing.CopyValueEur(card);
+                // Le carte offerte vengono valutate al loro valore di mercato (riferimento comune per l'altro utente)
+                var value = CardPricing.MarketValueEur(card) ?? card.AskingPrice;
                 if (wish == null || value == null) continue;
                 candidates.Add(new OfferCandidate(card.Id, value.Value, card.Quantity, wish.Priority));
             }
 
-            var picks = TradeBalance.SuggestOffer(candidates, requestedEval.RequestedTotal);
+            var picks = TradeBalance.SuggestOffer(candidates, requestedEval.RequestedPriceTotal);
             var offered = picks.Select(p => new TradeOfferItemRequest { CardId = p.CardId, Quantity = p.Quantity }).ToList();
             var evaluation = await EvaluateAsync(offered, request.RequestedCards);
 
@@ -264,21 +267,37 @@ namespace CardExchange.API.Controllers
                 .ToDictionaryAsync(c => c.Id);
 
             var dto = new TradeEvaluationDto();
-            decimal SumSide(List<TradeOfferItemRequest> side)
+            (decimal Market, decimal Price) SumSide(List<TradeOfferItemRequest> side)
             {
-                decimal total = 0;
+                decimal market = 0, price = 0;
                 foreach (var item in side)
                 {
-                    var unit = cards.TryGetValue(item.CardId, out var card) ? CardPricing.CopyValueEur(card) : null;
+                    cards.TryGetValue(item.CardId, out var card);
+                    var marketUnit = card != null ? CardPricing.MarketValueEur(card) : null;
+                    var priceUnit = card != null ? CardPricing.EffectivePriceEur(card) : null;
                     var quantity = Math.Max(1, item.Quantity);
-                    if (unit == null) dto.MissingPriceCount++;
-                    else total += unit.Value * quantity;
-                    dto.Items.Add(new TradeItemValueDto { CardId = item.CardId, Quantity = quantity, UnitValue = unit });
+                    if (marketUnit == null && priceUnit == null) dto.MissingPriceCount++;
+                    market += (marketUnit ?? priceUnit ?? 0) * quantity;
+                    price += (priceUnit ?? 0) * quantity;
+                    dto.Items.Add(new TradeItemValueDto
+                    {
+                        CardId = item.CardId,
+                        Quantity = quantity,
+                        UnitValue = marketUnit,
+                        AskingPrice = card?.AskingPrice,
+                        UnitPrice = priceUnit
+                    });
                 }
-                return total;
+                return (market, price);
             }
 
-            var balance = TradeBalance.Evaluate(SumSide(offered), SumSide(requested));
+            var offeredSums = SumSide(offered);
+            var requestedSums = SumSide(requested);
+            dto.OfferedPriceTotal = offeredSums.Price;
+            dto.RequestedPriceTotal = requestedSums.Price;
+
+            // Confronto sui valori di mercato: solo un riferimento, gli accordi tra utenti sono liberi
+            var balance = TradeBalance.Evaluate(offeredSums.Market, requestedSums.Market);
             dto.OfferedTotal = balance.OfferedTotal;
             dto.RequestedTotal = balance.RequestedTotal;
             dto.Difference = balance.Difference;

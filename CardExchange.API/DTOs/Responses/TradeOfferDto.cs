@@ -51,10 +51,20 @@ namespace CardExchange.API.DTOs.Responses
         public DateTime CreatedAt { get; set; }
     }
 
+    /// <summary>
+    /// Riferimenti di valore per uno scambio. Sono indicativi: la piattaforma non impone equivalenze
+    /// e non gestisce pagamenti; gli utenti si accordano liberamente.
+    /// </summary>
     public class TradeEvaluationDto
     {
+        /// <summary>Valore di mercato totale delle carte offerte.</summary>
         public decimal OfferedTotal { get; set; }
+        /// <summary>Valore di mercato totale delle carte richieste.</summary>
         public decimal RequestedTotal { get; set; }
+        /// <summary>Totale dei prezzi indicati dai proprietari (o di mercato se non indicati), carte offerte.</summary>
+        public decimal OfferedPriceTotal { get; set; }
+        /// <summary>Totale dei prezzi indicati dai proprietari (o di mercato se non indicati), carte richieste.</summary>
+        public decimal RequestedPriceTotal { get; set; }
         /// <summary>Offerto meno richiesto: positivo = chi propone dà di più.</summary>
         public decimal Difference { get; set; }
         public decimal Tolerance { get; set; }
@@ -69,7 +79,12 @@ namespace CardExchange.API.DTOs.Responses
     {
         public int CardId { get; set; }
         public int Quantity { get; set; }
+        /// <summary>Valore di mercato unitario.</summary>
         public decimal? UnitValue { get; set; }
+        /// <summary>Prezzo indicato dal proprietario, se impostato.</summary>
+        public decimal? AskingPrice { get; set; }
+        /// <summary>Prezzo unitario mostrato (indicato o di mercato).</summary>
+        public decimal? UnitPrice { get; set; }
     }
 
     public class TradeSuggestionDto

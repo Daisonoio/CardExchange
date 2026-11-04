@@ -280,9 +280,9 @@ namespace CardExchange.API.Controllers
                         o.CheckedInAt,
                         isMutual = m?.IsMutual ?? false,
                         score = m?.Score ?? 0,
-                        theyHave = m?.TheyHaveIWant.Select(c => new { c.CardId, c.Name, c.Condition, c.Language, c.Finish, c.PriceEur }).Take(5) ?? Enumerable.Empty<object>(),
+                        theyHave = m?.TheyHaveIWant.Select(c => new { c.CardId, c.Name, c.Condition, c.Language, c.Finish, c.PriceEur, c.AskingPrice }).Take(5) ?? Enumerable.Empty<object>(),
                         theyHaveCount = m?.TheyHaveIWant.Count ?? 0,
-                        iHave = m?.IHaveTheyWant.Select(c => new { c.CardId, c.Name, c.Condition, c.Language, c.Finish, c.PriceEur }).Take(5) ?? Enumerable.Empty<object>(),
+                        iHave = m?.IHaveTheyWant.Select(c => new { c.CardId, c.Name, c.Condition, c.Language, c.Finish, c.PriceEur, c.AskingPrice }).Take(5) ?? Enumerable.Empty<object>(),
                         iHaveCount = m?.IHaveTheyWant.Count ?? 0
                     };
                 })

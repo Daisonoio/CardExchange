@@ -1,3 +1,4 @@
+using CardExchange.Core.Rules;
 using CardExchange.Core.Constants;
 ﻿using CardExchange.API.Authorization;
 using CardExchange.API.DTOs.Requests;
@@ -338,7 +339,8 @@ namespace CardExchange.API.Controllers
                     Finish = (CardFinish)request.Finish,
                     Notes = request.Notes,
                     IsAvailableForTrade = request.IsAvailableForTrade,
-                    EstimatedValue = request.EstimatedValue
+                    EstimatedValue = request.EstimatedValue,
+                    AskingPrice = request.AskingPrice
                 };
 
                 await _cardRepository.AddAsync(card);
@@ -416,6 +418,11 @@ namespace CardExchange.API.Controllers
 
                 if (request.EstimatedValue.HasValue)
                     card.EstimatedValue = request.EstimatedValue.Value;
+
+                if (request.ClearAskingPrice)
+                    card.AskingPrice = null;
+                else if (request.AskingPrice.HasValue)
+                    card.AskingPrice = Math.Round(request.AskingPrice.Value, 2);
 
                 _cardRepository.Update(card);
                 await _cardRepository.SaveChangesAsync();
@@ -840,6 +847,9 @@ namespace CardExchange.API.Controllers
                 Notes = card.Notes,
                 IsAvailableForTrade = card.IsAvailableForTrade,
                 EstimatedValue = card.EstimatedValue,
+                MarketValue = CardPricing.MarketValueEur(card),
+                AskingPrice = card.AskingPrice,
+                Price = CardPricing.EffectivePriceEur(card),
                 ImageSmall = card.CardInfo?.ImageSmall,
                 ImageNormal = card.CardInfo?.ImageNormal ?? card.CardInfo?.ImageUrl,
                 ImageLarge = card.CardInfo?.ImageLarge,
@@ -899,6 +909,9 @@ namespace CardExchange.API.Controllers
                 Notes = card.Notes,
                 IsAvailableForTrade = card.IsAvailableForTrade,
                 EstimatedValue = card.EstimatedValue,
+                MarketValue = CardPricing.MarketValueEur(card),
+                AskingPrice = card.AskingPrice,
+                Price = CardPricing.EffectivePriceEur(card),
                 HasUserPhotos = photos.Count > 0,
                 UserPhotoCount = photos.Count,
                 Photos = photos,

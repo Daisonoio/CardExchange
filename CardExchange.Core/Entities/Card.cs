@@ -50,7 +50,15 @@ namespace CardExchange.Core.Entities
 
         public bool IsAvailableForTrade { get; set; } = true;
 
+        /// <summary>Valore stimato registrato all'inserimento (es. prezzo di mercato all'import). Usato solo se il catalogo non ha prezzi.</summary>
         public decimal? EstimatedValue { get; set; }
+
+        /// <summary>
+        /// Prezzo indicato dal proprietario: la cifra a cui sarebbe disposto a cedere la carta. Indicativo e trattabile;
+        /// se assente si usa il valore di mercato. La piattaforma non gestisce pagamenti né conclude vendite.
+        /// </summary>
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal? AskingPrice { get; set; }
 
         // Relazioni
         [ForeignKey("UserId")]

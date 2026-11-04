@@ -2,6 +2,7 @@ import { ArrowLeftRight, Camera, Heart, TrendingUp } from 'lucide-react';
 import type { Card } from '../../types';
 import { CONDITION_LABELS } from '../../types';
 import CardVariantBadges from './CardVariantBadges';
+import PriceTag from './PriceTag';
 
 interface CardGridItemProps {
   card: Card;
@@ -126,9 +127,7 @@ export default function CardGridItem({ card, onClick, selected, onPhotoClick, is
         <p className="text-[11px] font-semibold text-text truncate leading-tight">{cardName}</p>
         <p className="text-[10px] text-text-muted truncate">{card.cardSetName || card.cardInfo?.cardSet?.name || ''}</p>
         <CardVariantBadges language={card.language} finish={card.finish} className="mt-0.5" />
-        {(card.estimatedValue != null && card.estimatedValue > 0) && (
-          <p className="text-[10px] font-bold text-accent mt-0.5">€{card.estimatedValue.toFixed(2)}</p>
-        )}
+        <PriceTag compact askingPrice={card.askingPrice} marketValue={card.marketValue ?? card.estimatedValue} />
       </div>
 
       {/* Selected overlay */}

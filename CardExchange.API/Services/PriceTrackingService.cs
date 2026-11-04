@@ -260,7 +260,7 @@ namespace CardExchange.API.Services
                 if (info == null) continue;
 
                 card.CardInfo = info;
-                var valueEur = CardPricing.CopyValueEur(card);
+                var valueEur = CardPricing.MarketValueEur(card);
                 offeredEur += valueEur ?? 0;
                 offeredUsd += info.PriceUsd ?? 0;
                 offeredCards.Add(new TradeCardValue
@@ -282,7 +282,7 @@ namespace CardExchange.API.Services
                 if (info == null) continue;
 
                 card.CardInfo = info;
-                var valueEur = CardPricing.CopyValueEur(card);
+                var valueEur = CardPricing.MarketValueEur(card);
                 requestedEur += valueEur ?? 0;
                 requestedUsd += info.PriceUsd ?? 0;
                 requestedCards.Add(new TradeCardValue

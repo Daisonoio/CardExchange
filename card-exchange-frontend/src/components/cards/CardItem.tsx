@@ -2,6 +2,7 @@ import { MoreHorizontal, ArrowLeftRight } from 'lucide-react';
 import type { Card, CardCondition } from '../../types';
 import { CONDITION_LABELS } from '../../types';
 import CardVariantBadges from './CardVariantBadges';
+import PriceTag from './PriceTag';
 
 interface CardItemProps {
   card: Card;
@@ -118,14 +119,7 @@ export default function CardItem({ card, onEdit, onDelete, onClick, showUser }: 
           {/* Price */}
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center gap-3">
-              {info?.priceEur != null && (
-                <span className="text-sm font-bold text-accent">{info.priceEur.toFixed(2)}</span>
-              )}
-              {card.estimatedValue != null && (
-                <span className="text-xs text-text-muted">
-                  Est. {card.estimatedValue.toFixed(2)}
-                </span>
-              )}
+              <PriceTag askingPrice={card.askingPrice} marketValue={card.marketValue ?? info?.priceEur ?? card.estimatedValue} />
             </div>
             {showUser && (card.user || card.userUsername) && (
               <span className="text-xs text-text-secondary">@{card.user?.username || card.userUsername}</span>

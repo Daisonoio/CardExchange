@@ -163,6 +163,12 @@ export interface Card {
   notes?: string;
   isAvailableForTrade: boolean;
   estimatedValue?: number;
+  /** Valore di mercato della copia (riferimento). */
+  marketValue?: number;
+  /** Prezzo indicato dal proprietario: cifra a cui la cederebbe, indicativa e trattabile. */
+  askingPrice?: number;
+  /** Prezzo mostrato: indicato dal proprietario, altrimenti di mercato. */
+  price?: number;
   imageSmall?: string;
   imageNormal?: string;
   imageLarge?: string;
@@ -181,6 +187,9 @@ export interface CreateCardRequest {
   quantity: number;
   /** Codice lingua; nell'aggiornamento '' rimuove la lingua. */
   language?: string;
+  askingPrice?: number;
+  /** Solo aggiornamento: rimuove il prezzo indicato. */
+  clearAskingPrice?: boolean;
   finish?: CardFinish;
   notes?: string;
   isAvailableForTrade: boolean;
@@ -597,12 +606,20 @@ export interface ImportCommitResult {
 export interface TradeItemValue {
   cardId: number;
   quantity: number;
+  /** Valore di mercato unitario. */
   unitValue?: number | null;
+  askingPrice?: number | null;
+  /** Prezzo indicato o, in mancanza, di mercato. */
+  unitPrice?: number | null;
 }
 
 export interface TradeEvaluation {
+  /** Totali a valore di mercato. */
   offeredTotal: number;
   requestedTotal: number;
+  /** Totali ai prezzi indicati dai proprietari (o di mercato se non indicati). */
+  offeredPriceTotal: number;
+  requestedPriceTotal: number;
   /** Offerto meno richiesto (positivo = dai di più). */
   difference: number;
   tolerance: number;
@@ -723,6 +740,7 @@ export interface LiveMatchCard {
   language?: string;
   finish: string;
   priceEur?: number;
+  askingPrice?: number;
 }
 
 export interface EventLive {

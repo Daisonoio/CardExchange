@@ -30,6 +30,7 @@ export default function CollectionPage() {
     notes: '',
     language: readLastLanguage(),
     finish: 1 as CardFinish,
+    askingPrice: '',
   });
   const [printings, setPrintings] = useState<ScryfallCard[]>([]);
   const [loadingPrintings, setLoadingPrintings] = useState(false);
@@ -125,6 +126,7 @@ export default function CollectionPage() {
         quantity: addForm.quantity,
         language: addForm.language || undefined,
         finish: addForm.finish,
+        askingPrice: addForm.askingPrice.trim() ? Math.max(0, Number(addForm.askingPrice.replace(',', '.'))) : undefined,
         isAvailableForTrade: addForm.isAvailableForTrade,
         notes: addForm.notes || undefined,
       });
@@ -135,7 +137,7 @@ export default function CollectionPage() {
       setPrintings([]);
       setShowPrintings(false);
       // Mantiene la lingua scelta: di solito si inseriscono più carte nella stessa lingua
-      setAddForm((f) => ({ condition: 2, quantity: 1, isAvailableForTrade: true, notes: '', language: f.language, finish: 1 }));
+      setAddForm((f) => ({ condition: 2, quantity: 1, isAvailableForTrade: true, notes: '', language: f.language, finish: 1, askingPrice: '' }));
       loadCards();
     } catch (err) {
       console.error('Errore aggiunta carta:', err);
@@ -184,7 +186,7 @@ export default function CollectionPage() {
   };
 
   const totalValue = myCards.reduce(
-    (sum, c) => sum + (c.estimatedValue || c.cardInfo?.priceEur || 0) * c.quantity, 0
+    (sum, c) => sum + (c.marketValue ?? c.estimatedValue ?? c.cardInfo?.priceEur ?? 0) * c.quantity, 0
   );
 
   return (
@@ -506,6 +508,25 @@ export default function CollectionPage() {
                   +
                 </button>
               </div>
+            </div>
+
+            {/* Prezzo indicato (facoltativo) */}
+            <div>
+              <label htmlFor="add-asking-price" className="text-xs font-semibold text-text-secondary block mb-1.5">
+                Prezzo a cui la cederesti (facoltativo)
+              </label>
+              <input
+                id="add-asking-price"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                value={addForm.askingPrice}
+                onChange={(e) => setAddForm({ ...addForm, askingPrice: e.target.value })}
+                placeholder="Vuoto = valore di mercato"
+                className="w-full px-3 py-2 rounded-xl border border-border text-sm"
+              />
+              <p className="text-[10px] text-text-muted mt-1">Indicativo e trattabile: con chi scambi potete accordarvi liberamente.</p>
             </div>
 
             {/* Trade toggle */}

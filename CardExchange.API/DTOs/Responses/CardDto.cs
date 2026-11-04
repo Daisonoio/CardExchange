@@ -20,6 +20,12 @@
         public string? Notes { get; set; }
         public bool IsAvailableForTrade { get; set; }
         public decimal? EstimatedValue { get; set; }
+        /// <summary>Valore di mercato della copia (riferimento, già corretto per condizione e finitura).</summary>
+        public decimal? MarketValue { get; set; }
+        /// <summary>Prezzo indicato dal proprietario, se impostato.</summary>
+        public decimal? AskingPrice { get; set; }
+        /// <summary>Prezzo da mostrare: indicato dal proprietario, altrimenti di mercato. Sempre indicativo.</summary>
+        public decimal? Price { get; set; }
         public string? ImageSmall { get; set; }
         public string? ImageNormal { get; set; }
         public string? ImageLarge { get; set; }

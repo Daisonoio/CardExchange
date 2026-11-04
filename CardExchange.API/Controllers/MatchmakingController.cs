@@ -69,6 +69,7 @@ namespace CardExchange.API.Controllers
                             c.Finish,
                             c.Quantity,
                             c.PriceEur,
+                            c.AskingPrice,
                             c.WishlistPriority
                         }),
                         iHaveTheyWant = m.IHaveTheyWant.Select(c => new
@@ -83,6 +84,7 @@ namespace CardExchange.API.Controllers
                             c.Finish,
                             c.Quantity,
                             c.PriceEur,
+                            c.AskingPrice,
                             c.WishlistPriority
                         })
                     })

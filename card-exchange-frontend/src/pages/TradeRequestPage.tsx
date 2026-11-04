@@ -8,6 +8,8 @@ import { useAuth } from '../context/AuthContext';
 import type { Card, TradeEvaluation, WishlistItem } from '../types';
 import Button from '../components/ui/Button';
 import TradeBalanceMeter from '../components/trades/TradeBalanceMeter';
+import OfflineDealNotice from '../components/trades/OfflineDealNotice';
+import PriceTag from '../components/cards/PriceTag';
 
 type ProposalMode = 'trade' | 'buy' | 'request';
 
@@ -148,7 +150,14 @@ export default function TradeRequestPage() {
     return () => { cancelled = true; clearTimeout(timer); };
   }, [requestedCards, offeredCards, offeredQty, mode]);
 
-  const unitValue = (cardId: number) => evaluation?.items.find((i) => i.cardId === cardId)?.unitValue ?? undefined;
+  // Prezzi dal backend (aggiornati); in mancanza quelli già presenti sulla carta
+  const priceOf = (card: Card) => {
+    const item = evaluation?.items.find((i) => i.cardId === card.id);
+    return {
+      asking: item ? item.askingPrice : card.askingPrice,
+      market: item?.unitValue ?? card.marketValue ?? card.estimatedValue,
+    };
+  };
 
   const handleSuggest = async () => {
     if (requestedCards.length === 0) {
@@ -163,7 +172,7 @@ export default function TradeRequestPage() {
         const byId = new Map(myCards.map((c) => [c.id, c]));
         setOfferedCards(data.offeredCards.map((o) => byId.get(o.cardId)).filter((c): c is Card => !!c));
         setOfferedQty(Object.fromEntries(data.offeredCards.map((o) => [o.cardId, o.quantity])));
-        setSuggestMessage(`Proposta composta con ${data.offeredCards.length} ${data.offeredCards.length === 1 ? 'carta' : 'carte'} che @${otherUsername || 'l\'utente'} sta cercando. Puoi modificarla.`);
+        setSuggestMessage(`Suggerite ${data.offeredCards.length} ${data.offeredCards.length === 1 ? 'carta' : 'carte'} che @${otherUsername || 'l\'utente'} sta cercando, in base ai prezzi indicati. È solo un punto di partenza: cambiala come vuoi.`);
       } else {
         setSuggestMessage(data.message ?? 'Nessuna proposta disponibile.');
       }
@@ -312,7 +321,7 @@ export default function TradeRequestPage() {
         ) : (
           <div className="space-y-1.5">
             {requestedCards.map((card) => (
-              <MiniCard key={card.id} card={card} value={unitValue(card.id)} onRemove={() => toggleRequested(card)} />
+              <MiniCard key={card.id} card={card} price={priceOf(card)} onRemove={() => toggleRequested(card)} />
             ))}
           </div>
         )}
@@ -421,7 +430,7 @@ export default function TradeRequestPage() {
                 <MiniCard
                   key={card.id}
                   card={card}
-                  value={unitValue(card.id)}
+                  price={priceOf(card)}
                   onRemove={() => toggleOffered(card)}
                   offered
                   quantity={qtyOf(card.id)}
@@ -486,6 +495,8 @@ export default function TradeRequestPage() {
         />
       </section>
 
+      <OfflineDealNotice className="mb-4" />
+
       {/* Error */}
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
@@ -513,16 +524,15 @@ export default function TradeRequestPage() {
 
 /* ---- Mini Card Components ---- */
 
-function MiniCard({ card, onRemove, offered, value, quantity, onQuantityChange }: {
+function MiniCard({ card, onRemove, offered, price, quantity, onQuantityChange }: {
   card: Card;
   onRemove: () => void;
   offered?: boolean;
-  /** Valore unitario calcolato dal backend; se assente si usa il valore stimato della carta. */
-  value?: number | null;
+  /** Prezzo indicato dal proprietario e valore di mercato (unitari). */
+  price?: { asking?: number | null; market?: number | null };
   quantity?: number;
   onQuantityChange?: (q: number) => void;
 }) {
-  const shownValue = value ?? card.estimatedValue;
   return (
     <div className={`flex items-center gap-2.5 p-2 rounded-xl border ${offered ? 'border-amber-200 bg-amber-50/50' : 'border-border/50 bg-white'}`}>
       {/* {image ? (
@@ -533,9 +543,8 @@ function MiniCard({ card, onRemove, offered, value, quantity, onQuantityChange }
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold truncate">{card.cardName || 'Carta'}</p>
         <p className="text-xs text-text-secondary truncate">{card.cardSetName}</p>
-        {shownValue != null && shownValue > 0 && (
-          <span className="text-xs font-medium text-accent">€{shownValue.toFixed(2)}{quantity && quantity > 1 ? ' cad.' : ''}</span>
-        )}
+        <PriceTag askingPrice={price?.asking ?? card.askingPrice} marketValue={price?.market ?? card.marketValue ?? card.estimatedValue} />
+        {quantity != null && quantity > 1 && <span className="text-[10px] text-text-muted"> cad.</span>}
       </div>
       {onQuantityChange && quantity != null && (
         <div className="flex items-center gap-1 shrink-0" aria-label="Quantità offerta">
@@ -571,8 +580,8 @@ function MiniCardToggle({ card, selected, onToggle, highlight }: {
         <p className="text-xs font-semibold truncate">{card.cardName || 'Carta'}</p>
         <p className="text-[10px] text-text-muted truncate">
           {card.cardSetName}
-          {card.estimatedValue ? ` · €${card.estimatedValue.toFixed(2)}` : ''}
         </p>
+        <PriceTag compact askingPrice={card.askingPrice} marketValue={card.marketValue ?? card.estimatedValue} />
       </div>
       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
         selected ? 'border-primary bg-primary' : 'border-border'

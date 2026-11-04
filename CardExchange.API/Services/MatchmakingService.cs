@@ -156,6 +156,7 @@ namespace CardExchange.API.Services
                             Finish = card.Finish.ToString(),
                             Quantity = card.Quantity,
                             PriceEur = CardPricing.ReferencePriceEur(info, card.Finish, card.EstimatedValue),
+                            AskingPrice = card.AskingPrice,
                             WishlistPriority = wish.Priority
                         });
                     }
@@ -180,6 +181,7 @@ namespace CardExchange.API.Services
                             Finish = card.Finish.ToString(),
                             Quantity = card.Quantity,
                             PriceEur = CardPricing.ReferencePriceEur(info, card.Finish, card.EstimatedValue),
+                            AskingPrice = card.AskingPrice,
                             WishlistPriority = wish.Priority
                         });
                     }

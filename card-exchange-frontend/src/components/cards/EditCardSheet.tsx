@@ -7,6 +7,7 @@ import { cards, cardPhotos } from '../../api';
 import Button from '../ui/Button';
 import BottomSheet from '../ui/BottomSheet';
 import PriceHistoryChart from './PriceHistoryChart';
+import PriceTag from './PriceTag';
 
 interface EditCardSheetProps {
   card: Card | null;
@@ -29,6 +30,8 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
   const [finish, setFinish] = useState<CardFinish>(1);
   const [isAvailableForTrade, setIsAvailableForTrade] = useState(true);
   const [notes, setNotes] = useState('');
+  // Prezzo a cui il proprietario cederebbe la carta ('' = usa il valore di mercato)
+  const [askingPrice, setAskingPrice] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +56,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
     setFinish(finishValue(card.finish) ?? 1);
     setIsAvailableForTrade(card.isAvailableForTrade ?? true);
     setNotes(card.notes || '');
+    setAskingPrice(card.askingPrice != null ? String(card.askingPrice) : '');
     setError(null);
     setShowPhoto(false);
 
@@ -90,6 +94,9 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
         finish,
         isAvailableForTrade,
         notes: notes || undefined,
+        ...(askingPrice.trim() === ''
+          ? { clearAskingPrice: true }
+          : { askingPrice: Math.max(0, Number(askingPrice.replace(',', '.'))) }),
       });
       onUpdated();
       onClose();
@@ -184,9 +191,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
             <p className="font-semibold text-sm truncate">{cardName}</p>
             <p className="text-xs text-text-secondary truncate">{cardSetName}</p>
             {card.rarity && <p className="text-xs text-text-muted mt-0.5">{card.rarity}</p>}
-            {card.estimatedValue != null && card.estimatedValue > 0 && (
-              <p className="text-sm font-bold text-accent mt-1">€{card.estimatedValue.toFixed(2)}</p>
-            )}
+            <div className="mt-1"><PriceTag askingPrice={card.askingPrice} marketValue={card.marketValue ?? card.estimatedValue} /></div>
           </div>
         </div>
 
@@ -316,6 +321,30 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
               finish={finish}
               onFinishChange={(f) => setFinish(f ?? 1)}
             />
+
+            {/* Prezzo indicato */}
+            <div>
+              <label htmlFor="asking-price" className="text-xs font-semibold text-text-secondary block mb-1.5">
+                Prezzo a cui la cederesti (facoltativo)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm">€</span>
+                <input
+                  id="asking-price"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.01"
+                  value={askingPrice}
+                  onChange={(e) => setAskingPrice(e.target.value)}
+                  placeholder={card.marketValue != null ? `${card.marketValue.toFixed(2)} (valore di mercato)` : 'Valore di mercato'}
+                  className="w-full pl-7 pr-3 py-2 rounded-xl border border-border text-sm"
+                />
+              </div>
+              <p className="text-[10px] text-text-muted mt-1">
+                Indicativo e trattabile. Se lo lasci vuoto mostriamo il valore di mercato.
+              </p>
+            </div>
 
             {/* Quantity */}
             <div>

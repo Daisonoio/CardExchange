@@ -13,7 +13,7 @@ namespace CardExchange.Core.Rules
         /// - la condizione è uguale o migliore di quella richiesta (Mint=1 ... Damaged=8);
         /// - la lingua coincide, quando richiesta (una carta senza lingua indicata non soddisfa una lingua specifica);
         /// - la finitura coincide, quando richiesta;
-        /// - il valore stimato non supera il prezzo massimo, quando entrambi sono noti.
+        /// - il prezzo (indicato dal proprietario o di mercato) non supera il prezzo massimo, quando entrambi sono noti.
         /// La corrispondenza della carta (CardInfoId) è responsabilità del chiamante.
         /// </summary>
         public static bool Satisfies(Card card, WishlistItem wish)
@@ -24,7 +24,9 @@ namespace CardExchange.Core.Rules
                 return false;
             if (wish.PreferredFinish.HasValue && card.Finish != wish.PreferredFinish.Value)
                 return false;
-            if (wish.MaxPrice.HasValue && card.EstimatedValue.HasValue && card.EstimatedValue.Value > wish.MaxPrice.Value)
+            // Prezzo massimo confrontato con il prezzo indicato dal proprietario (o il valore di mercato se non indicato)
+            var price = CardPricing.EffectivePriceEur(card);
+            if (wish.MaxPrice.HasValue && price.HasValue && price.Value > wish.MaxPrice.Value)
                 return false;
             return true;
         }
