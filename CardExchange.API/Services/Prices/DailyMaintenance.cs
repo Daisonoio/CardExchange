@@ -230,6 +230,14 @@ namespace CardExchange.API.Services.Prices
                     await scope.ServiceProvider.GetRequiredService<DailyMaintenance>().RunAsync(options, ct);
                 }
 
+                using (var billingScope = _scopeFactory.CreateScope())
+                {
+                    var (expired, reminded, stale) = await billingScope.ServiceProvider
+                        .GetRequiredService<CardExchange.API.Services.Billing.IBillingService>().RunMaintenanceAsync(DateTime.UtcNow);
+                    _logger.LogInformation("Abbonamenti: {Expired} scaduti, {Reminded} promemoria, {Stale} richieste di bonifico annullate",
+                        expired, reminded, stale);
+                }
+
                 if (_configuration.GetValue("Jobs:WeeklyDigest:Enabled", true))
                 {
                     using var digestScope = _scopeFactory.CreateScope();

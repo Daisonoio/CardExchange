@@ -5,7 +5,9 @@ namespace CardExchange.Core.Entities
     public enum SubscriptionTier
     {
         Free = 0,
-        Premium = 1
+        Premium = 1,
+        /// <summary>Piano per negozi: collezione illimitata, scheda in evidenza.</summary>
+        Store = 2
     }
 
     public enum BillingCycle

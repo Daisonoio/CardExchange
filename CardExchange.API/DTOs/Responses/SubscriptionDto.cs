@@ -38,6 +38,11 @@ namespace CardExchange.API.DTOs.Responses
         public bool AutoRenew { get; set; }
         public decimal AmountPaid { get; set; }
         public string Currency { get; set; } = "EUR";
+        /// <summary>Stripe, BankTransfer, Manual, Simulated.</summary>
+        public string PaymentMethod { get; set; } = string.Empty;
+        /// <summary>Per i bonifici: causale da indicare.</summary>
+        public string? PaymentReference { get; set; }
+        public DateTime CreatedAt { get; set; }
         public SubscriptionPlanDto? Plan { get; set; }
     }
 

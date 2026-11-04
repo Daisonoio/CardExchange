@@ -220,10 +220,12 @@ namespace CardExchange.Infrastructure.Data
             await SeedSubscriptionPlans(context);
         }
 
-        private static async Task SeedSubscriptionPlans(ApplicationDbContext context)
+        /// <summary>
+        /// Crea i piani mancanti (per nome): idempotente, chiamato a ogni avvio così anche i database esistenti
+        /// ricevono i piani nuovi. I prezzi dei piani già presenti non vengono toccati.
+        /// </summary>
+        public static async Task SeedSubscriptionPlans(ApplicationDbContext context)
         {
-            if (await context.SubscriptionPlans.AnyAsync())
-                return;
 
             var plans = new List<SubscriptionPlan>
             {
@@ -270,10 +272,35 @@ namespace CardExchange.Infrastructure.Data
                     HasPriorityListing = true,
                     HasVerifiedBadge = true,
                     HasWishlistAlerts = true
+                },
+                new SubscriptionPlan
+                {
+                    Name = "Negozio Annuale",
+                    Description = "Per i negozi: scheda negozio in evidenza nella sezione Locale, badge verificato, eventi e collezione senza limiti.",
+                    Tier = SubscriptionTier.Store,
+                    Cycle = BillingCycle.Annual,
+                    Price = 99.00m,
+                    Currency = "EUR",
+                    IsActive = true,
+                    MaxCards = int.MaxValue,
+                    MaxWishlistItems = int.MaxValue,
+                    MaxActiveTradeOffers = int.MaxValue,
+                    MaxDailyMessages = int.MaxValue,
+                    CanSearchAdvanced = true,
+                    CanSearchGeographic = true,
+                    CanExportCollection = true,
+                    CanViewStatistics = true,
+                    CanSaveSearches = true,
+                    HasPriorityListing = true,
+                    HasVerifiedBadge = true,
+                    HasWishlistAlerts = true
                 }
             };
 
-            await context.SubscriptionPlans.AddRangeAsync(plans);
+            var existing = await context.SubscriptionPlans.Select(p => p.Name).ToListAsync();
+            var missing = plans.Where(p => !existing.Contains(p.Name)).ToList();
+            if (missing.Count == 0) return;
+            await context.SubscriptionPlans.AddRangeAsync(missing);
             await context.SaveChangesAsync();
         }
     }

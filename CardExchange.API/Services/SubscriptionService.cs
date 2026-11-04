@@ -42,7 +42,7 @@ namespace CardExchange.API.Services
             return await _context.Set<UserSubscription>()
                 .AnyAsync(s => s.UserId == userId
                     && s.Status == SubscriptionStatus.Active
-                    && s.EndDate > DateTime.UtcNow
+                    && s.StartDate <= DateTime.UtcNow && s.EndDate > DateTime.UtcNow
                     && !s.IsDeleted);
         }
 
@@ -52,7 +52,7 @@ namespace CardExchange.API.Services
                 .Include(s => s.Plan)
                 .Where(s => s.UserId == userId
                     && s.Status == SubscriptionStatus.Active
-                    && s.EndDate > DateTime.UtcNow
+                    && s.StartDate <= DateTime.UtcNow && s.EndDate > DateTime.UtcNow
                     && !s.IsDeleted)
                 .OrderByDescending(s => s.Plan.Tier)
                 .FirstOrDefaultAsync();

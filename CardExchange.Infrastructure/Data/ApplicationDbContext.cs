@@ -38,6 +38,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<TradeMeetup> TradeMeetups { get; set; }
         public DbSet<PushSubscription> PushSubscriptions { get; set; }
         public DbSet<Store> Stores { get; set; }
+        public DbSet<ProcessedWebhookEvent> ProcessedWebhookEvents { get; set; }
         public DbSet<SavedSearch> SavedSearches { get; set; }
 
         public DbSet<FavoriteCard> FavoriteCards { get; set; }
@@ -51,6 +52,30 @@ namespace CardExchange.Infrastructure.Data
         // DbSets - Configurazione
         public DbSet<AppConfig> AppConfigs { get; set; }
         public DbSet<AppConfigKey> AppConfigKeys { get; set; }
+
+        /// <summary>
+        /// Tutte le date sono salvate in UTC: in lettura il database restituisce DateTimeKind.Unspecified e la
+        /// serializzazione JSON ometterebbe la "Z", facendo interpretare l'orario come locale nel browser.
+        /// </summary>
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+            configurationBuilder.Properties<DateTime?>().HaveConversion<NullableUtcDateTimeConverter>();
+        }
+
+        private sealed class UtcDateTimeConverter : Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime, DateTime>
+        {
+            public UtcDateTimeConverter() : base(
+                v => v.Kind == DateTimeKind.Local ? v.ToUniversalTime() : v,
+                v => DateTime.SpecifyKind(v, DateTimeKind.Utc)) { }
+        }
+
+        private sealed class NullableUtcDateTimeConverter : Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime?, DateTime?>
+        {
+            public NullableUtcDateTimeConverter() : base(
+                v => v.HasValue && v.Value.Kind == DateTimeKind.Local ? v.Value.ToUniversalTime() : v,
+                v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v) { }
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -266,6 +291,9 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(b => b.Blocker).WithMany().HasForeignKey(b => b.BlockerId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(b => b.BlockedUser).WithMany().HasForeignKey(b => b.BlockedUserId).OnDelete(DeleteBehavior.Restrict);
             });
+
+            modelBuilder.Entity<ProcessedWebhookEvent>().HasIndex(e => new { e.Provider, e.EventId }).IsUnique();
+            modelBuilder.Entity<UserSubscription>().HasIndex(s => s.ExternalSubscriptionId);
 
             // Negozi: un evento può essere ospitato da un negozio; eliminare il negozio non elimina gli eventi
             modelBuilder.Entity<Store>(entity =>

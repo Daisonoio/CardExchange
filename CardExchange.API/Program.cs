@@ -166,6 +166,9 @@ else
 // Limiti del piano gratuito (PlanLimits:FreeMaxCards vuoto = collezione illimitata)
 builder.Services.Configure<CardExchange.API.Configuration.PlanLimitsOptions>(builder.Configuration.GetSection("PlanLimits"));
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+// Abbonamenti alla piattaforma: carta (Stripe) e bonifico confermato dall'amministratore
+builder.Services.Configure<CardExchange.API.Configuration.BillingOptions>(builder.Configuration.GetSection("Billing"));
+builder.Services.AddScoped<CardExchange.API.Services.Billing.IBillingService, CardExchange.API.Services.Billing.BillingService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
 
@@ -348,6 +351,7 @@ using (var scope = app.Services.CreateScope())
         }
 
         await RBACSeeder.SeedRolesAndPermissions(context);
+        await RBACSeeder.SeedSubscriptionPlans(context);
         await GameSeeder.SeedGames(context);
     }
     catch (Exception ex)

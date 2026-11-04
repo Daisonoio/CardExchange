@@ -24,6 +24,13 @@ services:
       - Email__FromAddress=${EMAIL_FROM_ADDRESS:-no-reply@example.com}
       - Email__FrontendBaseUrl=${FRONTEND_BASE_URL:-http://localhost:5173}
       - PlanLimits__FreeMaxCards=${PLAN_FREE_MAX_CARDS:-}
+      - Billing__BankTransfer__Enabled=${BILLING_BANK_TRANSFER_ENABLED:-true}
+      - Billing__BankTransfer__AccountHolder=${BILLING_BANK_ACCOUNT_HOLDER:-}
+      - Billing__BankTransfer__Iban=${BILLING_BANK_IBAN:-}
+      - Billing__BankTransfer__Bic=${BILLING_BANK_BIC:-}
+      - Billing__BankTransfer__BankName=${BILLING_BANK_NAME:-}
+      - Billing__Stripe__SecretKey=${STRIPE_SECRET_KEY:-}
+      - Billing__Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET:-}
       - WebPush__PublicKey=${WEBPUSH_PUBLIC_KEY:-}
       - WebPush__PrivateKey=${WEBPUSH_PRIVATE_KEY:-}
       - WebPush__Subject=${WEBPUSH_SUBJECT:-mailto:admin@example.com}
