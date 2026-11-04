@@ -9,7 +9,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
-import { Layers } from 'lucide-react';
+import BrandLogo from '../components/brand/BrandLogo';
 
 export default function RegisterPage() {
   const { t } = useTranslation('auth');
@@ -93,8 +93,8 @@ export default function RegisterPage() {
     <div className="min-h-screen flex flex-col items-center justify-center px-4 py-8 bg-gradient-to-b from-primary/5 to-surface-dark">
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
-            <Layers size={32} className="text-primary" />
+          <div className="flex justify-center mb-4">
+            <BrandLogo layout="horizontal" theme="light" height={44} />
           </div>
           <h1 className="text-2xl font-bold text-text">{t('register.title')}</h1>
           <p className="text-sm text-text-secondary mt-1">{t('register.subtitle')}</p>

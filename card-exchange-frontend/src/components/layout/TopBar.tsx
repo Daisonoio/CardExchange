@@ -3,11 +3,12 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Compass, Library, Heart, Sparkles, ArrowLeftRight,
-  UserCircle, LogOut, Layers, Bell, MessageSquare, MapPinned,
+  UserCircle, LogOut, Bell, MessageSquare, MapPinned,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useRealtime } from '../../context/RealtimeContext';
 import NotificationCenter from '../notifications/NotificationCenter';
+import BrandLogo from '../brand/BrandLogo';
 
 const NAV_ITEMS = [
   { to: '/explore', icon: Compass, label: 'topBar.explore' },
@@ -35,9 +36,8 @@ export default function TopBar() {
     <>
       <header className="hidden md:flex sticky top-0 z-50 items-center border-b border-border h-16" style={{ background: '#1a3461' }}>
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between w-full">
-          <NavLink to="/home" className="flex items-center gap-2 font-bold text-xl text-white shrink-0">
-            <Layers size={26} />
-            <span>CardExchange</span>
+          <NavLink to="/home" className="flex items-center shrink-0" aria-label="CardExchange">
+            <BrandLogo layout="horizontal" theme="dark" height={40} title="" />
           </NavLink>
 
           <nav className="flex items-center gap-1">

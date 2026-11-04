@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useLocation, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Menu, X, Layers, Bell, MessageSquare, Sparkles,
+  Menu, X, Bell, MessageSquare, Sparkles,
   ArrowLeftRight, LogOut, MapPinned,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useRealtime } from '../../context/RealtimeContext';
 import NotificationCenter from '../notifications/NotificationCenter';
+import BrandLogo from '../brand/BrandLogo';
 
 // Chiavi del namespace "layout"
 const PAGE_TITLES: Record<string, string> = {
@@ -75,8 +76,15 @@ export default function MobileHeader() {
         </button>
 
         <div className="flex items-center gap-2 font-bold text-lg" style={{ color: '#1a3461' }}>
-          <Layers size={20} />
-          <span>{title}</span>
+          {titleKey && location.pathname !== '/home' ? (
+            <>
+              <BrandLogo layout="mark" theme="light" height={32} title="" />
+              <span>{title}</span>
+            </>
+          ) : (
+            // Home e pagine senza titolo: logo completo
+            <BrandLogo layout="horizontal" theme="light" height={36} />
+          )}
         </div>
 
         <button
@@ -115,10 +123,7 @@ export default function MobileHeader() {
       >
         {/* Drawer header */}
         <div className="flex items-center justify-between px-5 pt-10 pb-6 border-b border-white/10">
-          <div className="flex items-center gap-2 text-white font-bold text-lg">
-            <Layers size={22} />
-            <span>CardExchange</span>
-          </div>
+          <BrandLogo layout="horizontal" theme="dark" height={36} />
           <button
             onClick={() => setDrawerOpen(false)}
             className="text-white/60 hover:text-white transition-colors"
