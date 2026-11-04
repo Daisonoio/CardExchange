@@ -1,0 +1,48 @@
+{
+  "condition": {
+    "1": "Mint",
+    "2": "Near Mint",
+    "3": "Excellent",
+    "4": "Good",
+    "5": "Lightly Played",
+    "6": "Moderately Played",
+    "7": "Heavily Played",
+    "8": "Damaged"
+  },
+  "finish": {
+    "1": "Normale",
+    "2": "Foil",
+    "3": "Reverse Holo",
+    "4": "Etched"
+  },
+  "cardLanguage": {
+    "en": "Inglese",
+    "it": "Italiano",
+    "fr": "Francese",
+    "de": "Tedesco",
+    "es": "Spagnolo",
+    "pt": "Portoghese",
+    "ja": "Giapponese",
+    "ko": "Coreano",
+    "zhs": "Cinese semplificato",
+    "zht": "Cinese tradizionale",
+    "ru": "Russo"
+  },
+  "eventType": {
+    "Trademeetup": "Serata di scambio",
+    "Tournament": "Torneo",
+    "CardShow": "Fiera",
+    "DraftEvent": "Draft",
+    "SealedEvent": "Sealed",
+    "CasualPlay": "Gioco libero",
+    "Other": "Altro"
+  },
+  "reportReason": {
+    "Scam": "Truffa",
+    "NoShow": "Non presentato",
+    "Harassment": "Comportamento offensivo",
+    "CardsNotAsDescribed": "Carte non conformi",
+    "Spam": "Spam",
+    "Other": "Altro"
+  }
+}

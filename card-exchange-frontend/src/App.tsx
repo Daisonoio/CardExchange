@@ -1,4 +1,6 @@
+import { Fragment } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { GameProvider } from './context/GameContext';
@@ -38,6 +40,12 @@ const queryClient = new QueryClient({
   },
 });
 
+/** Al cambio lingua si rimonta l'interfaccia, così si aggiornano anche le etichette calcolate fuori dai componenti. */
+function LanguageRoot({ children }: { children: React.ReactNode }) {
+  const { i18n } = useTranslation();
+  return <Fragment key={i18n.resolvedLanguage}>{children}</Fragment>;
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -46,6 +54,7 @@ export default function App() {
         <AuthProvider>
           <RealtimeProvider>
           <GameProvider>
+          <LanguageRoot>
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
@@ -84,6 +93,7 @@ export default function App() {
             {/* Default redirect */}
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>
+          </LanguageRoot>
           </GameProvider>
           </RealtimeProvider>
         </AuthProvider>

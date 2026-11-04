@@ -1,0 +1,19 @@
+{
+  "title": "Scan a card",
+  "hint": "Fit the card in the frame with the name clearly readable",
+  "capture": "Take photo",
+  "uploadPhoto": "Upload a photo",
+  "privacy": "Recognition happens on your device: the photo is never sent, only the name it reads to search the catalogue.",
+  "noCamera": "This browser can't use the camera. You can upload a photo of the card instead.",
+  "cameraDenied": "The camera couldn't be used (permission denied or unavailable). You can upload a photo of the card instead.",
+  "loadingEngine": "Getting text recognition ready…",
+  "reading": "Reading the card…",
+  "failed": "I couldn't read the photo.",
+  "retry": "Try again",
+  "recognized": "Recognised text, tap to search:",
+  "nothingRead": "No readable name found: type it below or try again with more light.",
+  "editQuery": "Fix the name and search",
+  "search": "Search",
+  "noResults": "No cards found with this name.",
+  "scanAnother": "Scan another card"
+}

@@ -1,0 +1,19 @@
+{
+  "title": "Scansiona una carta",
+  "hint": "Inquadra la carta nel riquadro, con il nome ben leggibile",
+  "capture": "Scatta",
+  "uploadPhoto": "Carica una foto",
+  "privacy": "Il riconoscimento avviene sul tuo dispositivo: la foto non viene inviata, solo il nome letto per cercarlo nel catalogo.",
+  "noCamera": "Questo browser non permette di usare la fotocamera. Puoi caricare una foto della carta.",
+  "cameraDenied": "Non è stato possibile usare la fotocamera (permesso negato o non disponibile). Puoi caricare una foto della carta.",
+  "loadingEngine": "Preparo il riconoscimento del testo…",
+  "reading": "Leggo la carta…",
+  "failed": "Non sono riuscito a leggere la foto.",
+  "retry": "Riprova",
+  "recognized": "Testo riconosciuto, tocca per cercare:",
+  "nothingRead": "Non ho trovato un nome leggibile: scrivilo qui sotto o riprova con più luce.",
+  "editQuery": "Correggi il nome e cerca",
+  "search": "Cerca",
+  "noResults": "Nessuna carta trovata con questo nome.",
+  "scanAnother": "Scansiona un'altra carta"
+}

@@ -1,3 +1,4 @@
+import i18n from '../i18n';
 // === Auth ===
 export interface LoginRequest {
   usernameOrEmail: string;
@@ -105,30 +106,29 @@ export interface Game {
 
 export type CardCondition = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
-export const CONDITION_LABELS: Record<CardCondition, string> = {
-  1: 'Mint',
-  2: 'Near Mint',
-  3: 'Excellent',
-  4: 'Good',
-  5: 'Lightly Played',
-  6: 'Moderately Played',
-  7: 'Heavily Played',
-  8: 'Damaged',
-};
+
+// Etichette tradotte: oggetti con getter, si leggono come prima (CONDITION_LABELS[2]) ma rispettano la lingua corrente
+function translatedLabels<K extends string | number>(group: string, keys: readonly K[]): Record<K, string> {
+  const out = {} as Record<K, string>;
+  for (const k of keys) Object.defineProperty(out, k, { enumerable: true, get: () => i18n.t(`labels:${group}.${k}`) });
+  return out;
+}
+
+export const CONDITION_LABELS = translatedLabels<CardCondition>('condition', [1, 2, 3, 4, 5, 6, 7, 8]);
 
 // Lingue di stampa (stessi codici del backend / Scryfall). Vuoto = non specificata.
 export const CARD_LANGUAGES: { code: string; label: string; short: string }[] = [
-  { code: 'en', label: 'Inglese', short: 'EN' },
-  { code: 'it', label: 'Italiano', short: 'IT' },
-  { code: 'fr', label: 'Francese', short: 'FR' },
-  { code: 'de', label: 'Tedesco', short: 'DE' },
-  { code: 'es', label: 'Spagnolo', short: 'ES' },
-  { code: 'pt', label: 'Portoghese', short: 'PT' },
-  { code: 'ja', label: 'Giapponese', short: 'JP' },
-  { code: 'ko', label: 'Coreano', short: 'KO' },
-  { code: 'zhs', label: 'Cinese semplificato', short: 'CS' },
-  { code: 'zht', label: 'Cinese tradizionale', short: 'CT' },
-  { code: 'ru', label: 'Russo', short: 'RU' },
+  { code: 'en', short: 'EN', get label() { return i18n.t('labels:cardLanguage.en'); } },
+  { code: 'it', short: 'IT', get label() { return i18n.t('labels:cardLanguage.it'); } },
+  { code: 'fr', short: 'FR', get label() { return i18n.t('labels:cardLanguage.fr'); } },
+  { code: 'de', short: 'DE', get label() { return i18n.t('labels:cardLanguage.de'); } },
+  { code: 'es', short: 'ES', get label() { return i18n.t('labels:cardLanguage.es'); } },
+  { code: 'pt', short: 'PT', get label() { return i18n.t('labels:cardLanguage.pt'); } },
+  { code: 'ja', short: 'JP', get label() { return i18n.t('labels:cardLanguage.ja'); } },
+  { code: 'ko', short: 'KO', get label() { return i18n.t('labels:cardLanguage.ko'); } },
+  { code: 'zhs', short: 'CS', get label() { return i18n.t('labels:cardLanguage.zhs'); } },
+  { code: 'zht', short: 'CT', get label() { return i18n.t('labels:cardLanguage.zht'); } },
+  { code: 'ru', short: 'RU', get label() { return i18n.t('labels:cardLanguage.ru'); } },
 ];
 
 export const languageLabel = (code?: string | null) =>
@@ -138,12 +138,7 @@ export const languageShort = (code?: string | null) =>
 
 // Finitura: 1=Normale, 2=Foil, 3=Reverse Holo, 4=Etched. Il backend restituisce il nome ("Foil").
 export type CardFinish = 1 | 2 | 3 | 4;
-export const FINISH_LABELS: Record<CardFinish, string> = {
-  1: 'Normale',
-  2: 'Foil',
-  3: 'Reverse Holo',
-  4: 'Etched',
-};
+export const FINISH_LABELS = translatedLabels<CardFinish>('finish', [1, 2, 3, 4]);
 const FINISH_BY_NAME: Record<string, CardFinish> = { Normal: 1, Foil: 2, ReverseHolo: 3, Etched: 4 };
 export const finishValue = (finish?: CardFinish | string | null): CardFinish | undefined =>
   finish == null ? undefined : typeof finish === 'number' ? finish : FINISH_BY_NAME[finish];
@@ -363,15 +358,7 @@ export interface CardEventDetail extends CardEvent {
   participants: { userId: number; username: string; avatarUrl?: string; status: string; joinedAt: string }[];
 }
 
-export const EVENT_TYPE_LABELS: Record<string, string> = {
-  Trademeetup: 'Serata di scambio',
-  Tournament: 'Torneo',
-  CardShow: 'Fiera',
-  DraftEvent: 'Draft',
-  SealedEvent: 'Sealed',
-  CasualPlay: 'Gioco libero',
-  Other: 'Altro',
-};
+export const EVENT_TYPE_LABELS: Record<string, string> = translatedLabels('eventType', ['Trademeetup', 'Tournament', 'CardShow', 'DraftEvent', 'SealedEvent', 'CasualPlay', 'Other']);
 export const EVENT_TYPE_VALUES: Record<string, number> = {
   Trademeetup: 1, Tournament: 2, CardShow: 3, DraftEvent: 4, SealedEvent: 5, CasualPlay: 6, Other: 99,
 };
@@ -678,10 +665,7 @@ export const REPORT_REASONS: { value: number; label: string }[] = [
   { value: 6, label: 'Altro' },
 ];
 
-export const REPORT_REASON_LABELS: Record<string, string> = {
-  Scam: 'Truffa', NoShow: 'Non presentato', Harassment: 'Comportamento offensivo',
-  CardsNotAsDescribed: 'Carte non conformi', Spam: 'Spam', Other: 'Altro',
-};
+export const REPORT_REASON_LABELS: Record<string, string> = translatedLabels('reportReason', ['Scam', 'NoShow', 'Harassment', 'CardsNotAsDescribed', 'Spam', 'Other']);
 
 export interface ModerationReport {
   id: number;
