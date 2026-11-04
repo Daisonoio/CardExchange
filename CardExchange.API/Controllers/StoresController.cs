@@ -89,6 +89,8 @@ namespace CardExchange.API.Controllers
             public bool IsOwner { get; set; }
             public double? DistanceKm { get; set; }
             public int UpcomingEventsCount { get; set; }
+            /// <summary>Il proprietario ha il piano Negozio attivo: scheda in evidenza in cima all'elenco.</summary>
+            public bool IsFeatured { get; set; }
         }
 
         // ---------------- Pubblico ----------------
@@ -128,18 +130,23 @@ namespace CardExchange.API.Controllers
                 stores = stores.Where(s => ParseGameIds(s.SupportedGameIds).Contains(gameId.Value)).ToList();
 
             var eventCounts = await UpcomingEventCountsAsync(stores.Select(s => s.Id).ToList());
+            var featured = await FeaturedOwnerIdsAsync(stores.Select(s => s.OwnerId).Distinct().ToList());
 
+            // I negozi con piano Negozio attivo vengono prima (sempre entro il raggio), poi distanza o nome
             IEnumerable<StoreDto> result;
             if (latitude.HasValue && longitude.HasValue)
             {
                 result = stores
-                    .Select(s => ToDto(s, userId, eventCounts, Geo.DistanceKm(latitude.Value, longitude.Value, (double)s.Latitude, (double)s.Longitude)))
+                    .Select(s => ToDto(s, userId, eventCounts, Geo.DistanceKm(latitude.Value, longitude.Value, (double)s.Latitude, (double)s.Longitude), featured))
                     .Where(d => d.DistanceKm <= radiusKm)
-                    .OrderBy(d => d.DistanceKm);
+                    .OrderByDescending(d => d.IsFeatured)
+                    .ThenBy(d => d.DistanceKm);
             }
             else
             {
-                result = stores.OrderBy(s => s.Name).Select(s => ToDto(s, userId, eventCounts, null));
+                result = stores.Select(s => ToDto(s, userId, eventCounts, null, featured))
+                    .OrderByDescending(d => d.IsFeatured)
+                    .ThenBy(d => d.Name);
             }
             return Ok(result.Take(100));
         }
@@ -155,7 +162,8 @@ namespace CardExchange.API.Controllers
                 return NotFound(new { message = "Negozio non trovato" });
 
             var counts = await UpcomingEventCountsAsync(new List<int> { id });
-            return Ok(ToDto(store, userId, counts, null));
+            var featured = await FeaturedOwnerIdsAsync(new List<int> { store.OwnerId });
+            return Ok(ToDto(store, userId, counts, null, featured));
         }
 
         // ---------------- Gestione della propria scheda ----------------
@@ -329,7 +337,22 @@ namespace CardExchange.API.Controllers
                 .ToDictionaryAsync(x => x.Key, x => x.Count);
         }
 
-        private static StoreDto ToDto(Store s, int currentUserId, Dictionary<int, int> eventCounts, double? distanceKm) => new()
+        /// <summary>Proprietari con un abbonamento di livello Negozio in corso.</summary>
+        private async Task<HashSet<int>> FeaturedOwnerIdsAsync(List<int> ownerIds)
+        {
+            if (ownerIds.Count == 0) return new HashSet<int>();
+            var now = DateTime.UtcNow;
+            var ids = await _context.UserSubscriptions
+                .Where(s => ownerIds.Contains(s.UserId) && s.Status == SubscriptionStatus.Active
+                            && s.StartDate <= now && s.EndDate > now && s.Plan.Tier == SubscriptionTier.Store)
+                .Select(s => s.UserId)
+                .Distinct()
+                .ToListAsync();
+            return ids.ToHashSet();
+        }
+
+        private static StoreDto ToDto(Store s, int currentUserId, Dictionary<int, int> eventCounts, double? distanceKm,
+            HashSet<int>? featuredOwners = null) => new()
         {
             Id = s.Id,
             Name = s.Name,
@@ -351,7 +374,8 @@ namespace CardExchange.API.Controllers
             ReviewNote = s.OwnerId == currentUserId ? s.ReviewNote : null,
             IsOwner = currentUserId != 0 && s.OwnerId == currentUserId,
             DistanceKm = distanceKm.HasValue ? Math.Round(distanceKm.Value, 1) : null,
-            UpcomingEventsCount = eventCounts.GetValueOrDefault(s.Id)
+            UpcomingEventsCount = eventCounts.GetValueOrDefault(s.Id),
+            IsFeatured = s.Status == StoreStatus.Verified && featuredOwners != null && featuredOwners.Contains(s.OwnerId)
         };
 
         private bool IsModerator() => User.HasClaim("Permission", "ADMIN.REPORTS.MANAGE");

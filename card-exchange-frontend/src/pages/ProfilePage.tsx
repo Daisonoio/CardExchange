@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Star, ArrowLeftRight, MessageCircle, MapPin, LogOut,
-  ChevronRight, Pencil, Library, Heart, Trophy, Ban, ShieldCheck,
+  ChevronRight, Pencil, Library, Heart, Trophy, Ban, ShieldCheck, Crown, Receipt,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ReviewsSheet from '../components/users/ReviewsSheet';
 import BlockedUsersSheet from '../components/users/BlockedUsersSheet';
-import { hasPermission } from '../utils/permissions';
+import { hasPermission, hasRole } from '../utils/permissions';
 import PushToggle from '../components/notifications/PushToggle';
 import InviteCard from '../components/users/InviteCard';
 
@@ -28,12 +28,14 @@ export default function ProfilePage() {
 
   const menuItems = [
     { label: 'Modifica Profilo', icon: Pencil, to: '/profile/edit' },
+    { label: 'Il mio piano', icon: Crown, to: '/premium' },
     { label: 'Le mie Carte', icon: Library, to: '/collection' },
     { label: 'Wishlist', icon: Heart, to: '/wishlist' },
     { label: 'I miei Scambi', icon: ArrowLeftRight, to: '/trades' },
     { label: 'Recensioni ricevute', icon: Trophy, to: null, action: () => setShowReviews(true) },
     { label: 'Utenti bloccati', icon: Ban, to: null, action: () => setShowBlocked(true) },
     ...(hasPermission('ADMIN.REPORTS.MANAGE') ? [{ label: 'Moderazione', icon: ShieldCheck, to: '/moderation' }] : []),
+    ...(hasRole('Admin', 'SuperAdmin') ? [{ label: 'Abbonamenti', icon: Receipt, to: '/admin/billing' }] : []),
   ] as { label: string; icon: typeof Star; to: string | null; action?: () => void }[];
 
   return (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, Clock, Globe, Instagram, Loader2, MapPin, Phone, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, Globe, Instagram, Loader2, MapPin, Phone, ShieldCheck, Sparkles } from 'lucide-react';
 import { events, stores } from '../api';
 import type { CardEvent, Store } from '../types';
 import { EVENT_TYPE_LABELS } from '../types';
@@ -43,6 +43,9 @@ export default function StorePage() {
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-text truncate">{store.name}</h1>
+          {store.isFeatured && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700"><Sparkles size={12} /> Negozio in evidenza</span>
+          )}
           <p className="text-sm text-text-secondary truncate">{store.city}{store.province ? ` (${store.province})` : ''}</p>
         </div>
         {store.isOwner && (
@@ -56,6 +59,13 @@ export default function StorePage() {
           {store.reviewNote && <span> · {store.reviewNote}</span>}
           {store.status === 'Pending' && <span className="block text-xs mt-0.5">Finché non è verificato, il negozio è visibile solo a te.</span>}
         </div>
+      )}
+
+      {store.isOwner && store.status === 'Verified' && !store.isFeatured && (
+        <Link to="/premium?for=store" className="block p-3 rounded-xl bg-secondary/10 text-sm text-text hover:bg-secondary/20">
+          <strong className="flex items-center gap-1"><Sparkles size={14} className="text-amber-700" /> Metti il negozio in evidenza</strong>
+          <span className="text-xs text-text-secondary">Con il piano Negozio la tua scheda compare in cima all'elenco dei negozi vicini.</span>
+        </Link>
       )}
 
       {store.isSafeMeetupSpot && (

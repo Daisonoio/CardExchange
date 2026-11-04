@@ -728,9 +728,11 @@ export interface Store {
   isOwner: boolean;
   distanceKm?: number;
   upcomingEventsCount: number;
+  /** Il proprietario ha il piano Negozio attivo. */
+  isFeatured?: boolean;
 }
 
-export type StoreInput = Omit<Store, 'id' | 'status' | 'reviewNote' | 'isOwner' | 'distanceKm' | 'upcomingEventsCount'>;
+export type StoreInput = Omit<Store, 'id' | 'status' | 'reviewNote' | 'isOwner' | 'distanceKm' | 'upcomingEventsCount' | 'isFeatured'>;
 
 // === Serata di scambio ===
 export interface LiveMatchCard {
@@ -763,3 +765,88 @@ export interface EventLive {
   }[];
 }
 
+
+// === Abbonamenti alla piattaforma (Premium, Negozio) ===
+export type SubscriptionTier = 'Free' | 'Premium' | 'Store';
+
+export interface SubscriptionPlan {
+  id: number;
+  name: string;
+  description?: string;
+  tier: SubscriptionTier;
+  cycle: 'Monthly' | 'Annual';
+  price: number;
+  currency: string;
+  canSearchAdvanced: boolean;
+  canSearchGeographic: boolean;
+  canExportCollection: boolean;
+  canViewStatistics: boolean;
+  canSaveSearches: boolean;
+  hasPriorityListing: boolean;
+  hasVerifiedBadge: boolean;
+  hasWishlistAlerts: boolean;
+}
+
+export interface UserSubscription {
+  id: number;
+  planName: string;
+  tier: SubscriptionTier;
+  status: 'Active' | 'Expired' | 'Cancelled' | 'PendingPayment';
+  startDate: string;
+  endDate: string;
+  autoRenew: boolean;
+  amountPaid: number;
+  currency: string;
+  paymentMethod: 'Stripe' | 'BankTransfer' | 'Manual' | 'Simulated';
+  paymentReference?: string;
+  createdAt: string;
+  plan?: SubscriptionPlan;
+}
+
+export interface SubscriptionState {
+  tier: SubscriptionTier;
+  active?: UserSubscription;
+  queued: UserSubscription[];
+  pending: UserSubscription[];
+}
+
+export interface BankDetails {
+  accountHolder: string;
+  iban: string;
+  bic?: string;
+  bankName?: string;
+}
+
+export interface BillingOptions {
+  cardEnabled: boolean;
+  bankTransfer?: BankDetails & { enabled: boolean };
+}
+
+export interface BankTransferInstructions extends BankDetails {
+  request: UserSubscription;
+  amount: number;
+  currency: string;
+  reference: string;
+  message: string;
+}
+
+export interface AdminSubscriptionRow {
+  id: number;
+  userId: number;
+  username: string;
+  email: string;
+  planId: number;
+  planName: string;
+  tier: SubscriptionTier;
+  price: number;
+  status: UserSubscription['status'];
+  paymentMethod: UserSubscription['paymentMethod'];
+  paymentReference?: string;
+  amountPaid: number;
+  currency: string;
+  startDate: string;
+  endDate: string;
+  autoRenew: boolean;
+  adminNote?: string;
+  createdAt: string;
+}

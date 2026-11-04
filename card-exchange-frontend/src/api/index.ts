@@ -386,3 +386,28 @@ export const referrals = {
   lookup: (code: string) => client.get<{ username: string }>(`/referrals/${code}`),
 };
 
+
+// === Abbonamenti alla piattaforma ===
+export const billing = {
+  plans: () => client.get<import('../types').SubscriptionPlan[]>('/subscriptions/plans'),
+  options: () => client.get<import('../types').BillingOptions>('/subscriptions/billing-options'),
+  current: () => client.get<import('../types').SubscriptionState>('/subscriptions/current'),
+  history: () => client.get<import('../types').UserSubscription[]>('/subscriptions/history'),
+  bankTransfer: (planId: number) =>
+    client.post<import('../types').BankTransferInstructions>('/subscriptions/bank-transfer', { planId }),
+  cancelBankTransfer: (id: number) => client.delete<{ message: string }>(`/subscriptions/bank-transfer/${id}`),
+  cancelRenewal: () => client.post<{ message: string; activeUntil: string }>('/subscriptions/cancel', {}),
+  checkout: (planId: number) => client.post<{ url: string }>('/billing/stripe/checkout', { planId }),
+  portal: () => client.post<{ url: string }>('/billing/stripe/portal'),
+};
+
+export const adminBilling = {
+  list: (params: { status?: string; q?: string; page?: number }) =>
+    client.get<{ total: number; page: number; items: import('../types').AdminSubscriptionRow[] }>('/admin/billing/subscriptions', { params }),
+  confirm: (id: number, data: { amountPaid?: number; note?: string }) =>
+    client.post<{ message: string }>(`/admin/billing/subscriptions/${id}/confirm`, data),
+  revoke: (id: number, note?: string) =>
+    client.post<{ message: string }>(`/admin/billing/subscriptions/${id}/revoke`, { note }),
+  grant: (data: { user: string; planId: number; amountPaid: number; endDate?: string; paymentReference?: string; note?: string }) =>
+    client.post<{ message: string }>('/admin/billing/grant', data),
+};

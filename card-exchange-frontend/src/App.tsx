@@ -22,6 +22,8 @@ import TradeRequestPage from './pages/TradeRequestPage';
 import ChatPage from './pages/ChatPage';
 import MatchmakingPage from './pages/MatchmakingPage';
 import ModerationPage from './pages/ModerationPage';
+import PremiumPage from './pages/PremiumPage';
+import AdminBillingPage from './pages/AdminBillingPage';
 import LocalPage from './pages/LocalPage';
 import StorePage from './pages/StorePage';
 import StoreFormPage from './pages/StoreFormPage';
@@ -71,6 +73,8 @@ export default function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />
               <Route path="/moderation" element={<ModerationPage />} />
+              <Route path="/premium" element={<PremiumPage />} />
+              <Route path="/admin/billing" element={<AdminBillingPage />} />
             </Route>
 
             {/* Default redirect */}
