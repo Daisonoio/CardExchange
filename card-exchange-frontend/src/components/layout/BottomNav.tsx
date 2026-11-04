@@ -21,8 +21,8 @@ function NavItemLink({ to, icon: Icon, label }: { to: NavItem['to']; icon: NavIt
   return (
     <NavLink
       to={to}
-      // Solo la propria pagina: /collection/123 (collezione di un altro) non accende "Collezione"
-      end
+      // /collection/123 è la collezione di un altro utente: "Collezione" si accende solo sulla propria
+      end={to === '/collection'}
       className={({ isActive }) =>
         `flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors ${
           isActive ? 'text-secondary' : 'text-white/50 hover:text-white/80'
