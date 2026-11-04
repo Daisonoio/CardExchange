@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { referrals } from '../api';
 import { clearStoredReferral, getStoredReferral } from '../utils/referral';
+import { MINIMUM_AGE, ageFromIsoDate, todayIso } from '../utils/age';
 import { Trans, useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Input from '../components/ui/Input';
@@ -19,6 +20,7 @@ export default function RegisterPage() {
     lastName: '',
     password: '',
     confirmPassword: '',
+    birthDate: '',
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -45,6 +47,15 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!form.birthDate) {
+      setError(t('register.birthDateRequired'));
+      return;
+    }
+    if (ageFromIsoDate(form.birthDate) < MINIMUM_AGE) {
+      setError(t('register.underage', { age: MINIMUM_AGE }));
+      return;
+    }
+
     setIsLoading(true);
     try {
       await register({
@@ -54,6 +65,7 @@ export default function RegisterPage() {
         lastName: form.lastName,
         password: form.password,
         confirmPassword: form.confirmPassword,
+        birthDate: form.birthDate,
         referralCode: invitedBy && referralCode ? referralCode : undefined,
       });
       clearStoredReferral();
@@ -93,6 +105,20 @@ export default function RegisterPage() {
           <div className="grid grid-cols-2 gap-3">
             <Input label={t('register.firstName')} value={form.firstName} onChange={set('firstName')} required />
             <Input label={t('register.lastName')} value={form.lastName} onChange={set('lastName')} required />
+          </div>
+
+          <div>
+            <Input
+              label={t('register.birthDate')}
+              type="date"
+              value={form.birthDate}
+              onChange={set('birthDate')}
+              max={todayIso()}
+              min="1900-01-01"
+              autoComplete="bday"
+              required
+            />
+            <p className="text-[11px] text-text-muted mt-1">{t('register.birthDateHint', { age: MINIMUM_AGE })}</p>
           </div>
 
           <Input

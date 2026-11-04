@@ -5,9 +5,10 @@ import BottomNav from './BottomNav';
 import GameSelector from './GameSelector';
 import MobileHeader from './MobileHeader';
 import VerifyEmailBanner from './VerifyEmailBanner';
+import AgeGate from './AgeGate';
 
 export default function Layout() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -19,6 +20,11 @@ export default function Layout() {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Account creati prima del controllo dell'età: data di nascita obbligatoria prima di continuare
+  if (user?.birthDateRequired) {
+    return <AgeGate />;
   }
 
   return (

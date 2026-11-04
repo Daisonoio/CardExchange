@@ -24,6 +24,7 @@ services:
       - Email__FromAddress=${EMAIL_FROM_ADDRESS:-no-reply@example.com}
       - Email__FrontendBaseUrl=${FRONTEND_BASE_URL:-http://localhost:5173}
       - PlanLimits__FreeMaxCards=${PLAN_FREE_MAX_CARDS:-}
+      - Registration__MinimumAge=${REGISTRATION_MINIMUM_AGE:-14}
       - Billing__BankTransfer__Enabled=${BILLING_BANK_TRANSFER_ENABLED:-true}
       - Billing__BankTransfer__AccountHolder=${BILLING_BANK_ACCOUNT_HOLDER:-}
       - Billing__BankTransfer__Iban=${BILLING_BANK_IBAN:-}

@@ -20,6 +20,9 @@ namespace CardExchange.Core.Entities
         [MaxLength(100)]
         public string LastName { get; set; } = string.Empty;
 
+        /// <summary>Data di nascita, per verificare l'età minima (null per gli account creati prima del controllo).</summary>
+        public DateOnly? BirthDate { get; set; }
+
         [MaxLength(500)]
         public string? Bio { get; set; }
 

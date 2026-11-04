@@ -17,6 +17,10 @@
         public int TotalReviewsReceived { get; set; }
         /// <summary>Valorizzato solo per l'utente corrente (endpoint di autenticazione).</summary>
         public bool? EmailConfirmed { get; set; }
+        /// <summary>Solo per l'utente corrente: manca la data di nascita (account creati prima del controllo dell'età).</summary>
+        public bool? BirthDateRequired { get; set; }
+        /// <summary>Solo per l'utente corrente: ha meno di 18 anni (per i consigli di sicurezza negli incontri).</summary>
+        public bool? IsMinor { get; set; }
         public DateTime CreatedAt { get; set; }
         public UserLocationDto? Location { get; set; }
         /// <summary>"Premium" o "Store" se l'utente ha un piano con badge sul profilo.</summary>

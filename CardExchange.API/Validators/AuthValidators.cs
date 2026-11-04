@@ -26,6 +26,12 @@ namespace CardExchange.API.Validators
                 .NotEmpty().WithMessage("Il cognome è obbligatorio")
                 .MaximumLength(100);
 
+            // L'età minima (configurabile) la verifica il controller; qui solo presenza e plausibilità
+            RuleFor(x => x.BirthDate)
+                .NotNull().WithMessage("La data di nascita è obbligatoria")
+                .Must(d => d == null || CardExchange.Core.Rules.AgeRules.IsPlausible(d.Value, DateOnly.FromDateTime(DateTime.UtcNow)))
+                .WithMessage("Data di nascita non valida");
+
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("La password è obbligatoria")
                 .MinimumLength(8).WithMessage("La password deve essere di almeno 8 caratteri")

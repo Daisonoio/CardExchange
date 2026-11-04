@@ -10,6 +10,15 @@ public class RegisterRequestValidatorTests
     private readonly RegisterRequestValidator _validator = new();
 
     [Fact]
+    public void MissingOrImplausibleBirthDate_HasError()
+    {
+        var missing = new RegisterRequest { Email = "t@t.com", Username = "test", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "P@ssw0rd!" };
+        _validator.TestValidate(missing).ShouldHaveValidationErrorFor(x => x.BirthDate);
+        var future = new RegisterRequest { Email = "t@t.com", Username = "test", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "P@ssw0rd!", BirthDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(3) };
+        _validator.TestValidate(future).ShouldHaveValidationErrorFor(x => x.BirthDate);
+    }
+
+    [Fact]
     public void ValidRequest_NoErrors()
     {
         var request = new RegisterRequest
@@ -19,7 +28,8 @@ public class RegisterRequestValidatorTests
             FirstName = "Test",
             LastName = "User",
             Password = "Password1!",
-            ConfirmPassword = "Password1!"
+            ConfirmPassword = "Password1!",
+            BirthDate = new DateOnly(1995, 6, 15)
         };
 
         var result = _validator.TestValidate(request);
@@ -29,7 +39,7 @@ public class RegisterRequestValidatorTests
     [Fact]
     public void EmptyEmail_HasError()
     {
-        var request = new RegisterRequest { Email = "", Username = "test", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "P@ssw0rd!" };
+        var request = new RegisterRequest { Email = "", Username = "test", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "P@ssw0rd!", BirthDate = new DateOnly(1995, 6, 15) };
         var result = _validator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.Email);
     }
@@ -37,7 +47,7 @@ public class RegisterRequestValidatorTests
     [Fact]
     public void InvalidEmail_HasError()
     {
-        var request = new RegisterRequest { Email = "not-an-email", Username = "test", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "P@ssw0rd!" };
+        var request = new RegisterRequest { Email = "not-an-email", Username = "test", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "P@ssw0rd!", BirthDate = new DateOnly(1995, 6, 15) };
         var result = _validator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.Email);
     }
@@ -45,7 +55,7 @@ public class RegisterRequestValidatorTests
     [Fact]
     public void ShortUsername_HasError()
     {
-        var request = new RegisterRequest { Email = "t@t.com", Username = "ab", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "P@ssw0rd!" };
+        var request = new RegisterRequest { Email = "t@t.com", Username = "ab", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "P@ssw0rd!", BirthDate = new DateOnly(1995, 6, 15) };
         var result = _validator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.Username);
     }
@@ -53,7 +63,7 @@ public class RegisterRequestValidatorTests
     [Fact]
     public void UsernameWithSpaces_HasError()
     {
-        var request = new RegisterRequest { Email = "t@t.com", Username = "has spaces", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "P@ssw0rd!" };
+        var request = new RegisterRequest { Email = "t@t.com", Username = "has spaces", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "P@ssw0rd!", BirthDate = new DateOnly(1995, 6, 15) };
         var result = _validator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.Username);
     }
@@ -61,7 +71,7 @@ public class RegisterRequestValidatorTests
     [Fact]
     public void WeakPassword_HasError()
     {
-        var request = new RegisterRequest { Email = "t@t.com", Username = "test", FirstName = "T", LastName = "U", Password = "password", ConfirmPassword = "password" };
+        var request = new RegisterRequest { Email = "t@t.com", Username = "test", FirstName = "T", LastName = "U", Password = "password", ConfirmPassword = "password", BirthDate = new DateOnly(1995, 6, 15) };
         var result = _validator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.Password);
     }
@@ -69,7 +79,7 @@ public class RegisterRequestValidatorTests
     [Fact]
     public void MismatchedPasswords_HasError()
     {
-        var request = new RegisterRequest { Email = "t@t.com", Username = "test", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "Different1!" };
+        var request = new RegisterRequest { Email = "t@t.com", Username = "test", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "Different1!", BirthDate = new DateOnly(1995, 6, 15) };
         var result = _validator.TestValidate(request);
         result.ShouldHaveValidationErrorFor(x => x.ConfirmPassword);
     }

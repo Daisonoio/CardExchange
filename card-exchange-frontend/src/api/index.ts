@@ -26,6 +26,7 @@ export const auth = {
   register: (data: RegisterRequest) =>
     client.post<AuthResponse>('/auth/register', data),
   me: () => client.get<User>('/auth/me'),
+  setBirthDate: (birthDate: string) => client.post<User>('/auth/birth-date', { birthDate }),
   logout: () => client.post('/auth/logout'),
   forgotPassword: (email: string) =>
     client.post<{ message: string }>('/auth/forgot-password', { email }),

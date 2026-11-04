@@ -74,7 +74,8 @@ public class AuthControllerTests
             FirstName = "Test",
             LastName = "User",
             Password = "Password1!",
-            ConfirmPassword = "Password1!"
+            ConfirmPassword = "Password1!",
+            BirthDate = new DateOnly(1995, 6, 15)
         };
 
         // Act
@@ -101,7 +102,8 @@ public class AuthControllerTests
             FirstName = "Test",
             LastName = "User",
             Password = "Password1!",
-            ConfirmPassword = "Password1!"
+            ConfirmPassword = "Password1!",
+            BirthDate = new DateOnly(1995, 6, 15)
         };
 
         // Act
@@ -135,7 +137,8 @@ public class AuthControllerTests
             FirstName = "Test",
             LastName = "User",
             Password = "Password1!",
-            ConfirmPassword = "Password1!"
+            ConfirmPassword = "Password1!",
+            BirthDate = new DateOnly(1995, 6, 15)
         };
 
         // Act
@@ -333,5 +336,66 @@ public class AuthControllerTests
         });
 
         result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public async Task Register_UnderMinimumAge_IsRejected()
+    {
+        var request = new RegisterRequest
+        {
+            Email = "kid@test.com", Username = "kid", FirstName = "K", LastName = "D",
+            Password = "Password1!", ConfirmPassword = "Password1!",
+            BirthDate = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-13)
+        };
+
+        var result = await _controller.Register(request);
+
+        var bad = result.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        bad.Value!.ToString().Should().Contain("UNDERAGE");
+        _userRepoMock.Verify(x => x.CreateAsync(It.IsAny<User>()), Times.Never);
+    }
+
+    private async Task<User> SignedInUserWithoutBirthDate()
+    {
+        var user = new User { Email = "old@test.com", Username = "olduser", FirstName = "O", LastName = "U", PasswordHash = "x", IsActive = true };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        _controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext
+        {
+            HttpContext = new Microsoft.AspNetCore.Http.DefaultHttpContext
+            {
+                User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(
+                    new[] { new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user.Id.ToString()) }, "test"))
+            }
+        };
+        return user;
+    }
+
+    [Fact]
+    public async Task SetBirthDate_Adult_SavesOnce()
+    {
+        var user = await SignedInUserWithoutBirthDate();
+
+        var ok = await _controller.SetBirthDate(new BirthDateRequest { BirthDate = new DateOnly(1990, 5, 1) });
+        var dto = ok.Result.Should().BeOfType<OkObjectResult>().Subject.Value.Should().BeOfType<CardExchange.API.DTOs.Responses.UserDto>().Subject;
+        dto.BirthDateRequired.Should().BeFalse();
+        dto.IsMinor.Should().BeFalse();
+        user.BirthDate.Should().Be(new DateOnly(1990, 5, 1));
+
+        var again = await _controller.SetBirthDate(new BirthDateRequest { BirthDate = new DateOnly(2000, 1, 1) });
+        again.Result.Should().BeOfType<ConflictObjectResult>();
+        user.BirthDate.Should().Be(new DateOnly(1990, 5, 1), "non si può cambiare da soli");
+    }
+
+    [Fact]
+    public async Task SetBirthDate_UnderMinimumAge_SuspendsAccount()
+    {
+        var user = await SignedInUserWithoutBirthDate();
+
+        var result = await _controller.SetBirthDate(new BirthDateRequest { BirthDate = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-12) });
+
+        result.Result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(403);
+        user.IsActive.Should().BeFalse();
+        user.RefreshToken.Should().BeNull();
     }
 }

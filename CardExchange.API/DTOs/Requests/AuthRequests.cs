@@ -25,6 +25,9 @@ namespace CardExchange.API.DTOs.Requests
         [MaxLength(500)]
         public string? Bio { get; set; }
 
+        /// <summary>Data di nascita (aaaa-mm-gg): serve per l'età minima.</summary>
+        public DateOnly? BirthDate { get; set; }
+
         [Required(ErrorMessage = "La password è obbligatoria")]
         [MinLength(8, ErrorMessage = "La password deve essere di almeno 8 caratteri")]
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
@@ -74,5 +77,10 @@ namespace CardExchange.API.DTOs.Requests
 
         [Required(ErrorMessage = "Il nome del ruolo è obbligatorio")]
         public string RoleName { get; set; } = string.Empty;
+    }
+
+    public class BirthDateRequest
+    {
+        public DateOnly? BirthDate { get; set; }
     }
 }

@@ -5,6 +5,7 @@ using CardExchange.API.DTOs.Responses;
 using CardExchange.API.Services;
 using CardExchange.API.Services.Email;
 using CardExchange.Core.Entities;
+using CardExchange.Core.Rules;
 using CardExchange.Core.Interfaces;
 using CardExchange.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -70,10 +71,18 @@ namespace CardExchange.API.Controllers
         [HttpPost("register")]
         [EnableRateLimiting("AuthPolicy")]
         [AllowAnonymous]
-        public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
+        public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request,
+            [FromServices] IConfiguration? configuration = null)
         {
             try
             {
+                // Età minima (14 anni in Italia): sotto servirebbe il consenso verificabile dei genitori
+                var minimumAge = MinimumAge(configuration);
+                if (request.BirthDate == null)
+                    return BadRequest(new { message = "La data di nascita è obbligatoria" });
+                if (!AgeRules.MeetsMinimum(request.BirthDate.Value, DateOnly.FromDateTime(DateTime.UtcNow), minimumAge))
+                    return BadRequest(new { message = $"Per registrarti a CardExchange devi avere almeno {minimumAge} anni.", code = "UNDERAGE" });
+
                 // Verifica che email e username siano univoci
                 if (await _userRepository.EmailExistsAsync(request.Email))
                 {
@@ -104,6 +113,7 @@ namespace CardExchange.API.Controllers
                     FirstName = request.FirstName,
                     LastName = request.LastName,
                     Bio = request.Bio,
+                    BirthDate = request.BirthDate,
                     PasswordHash = passwordHash,
                     IsActive = true,
                     EmailConfirmed = false,
@@ -205,6 +215,8 @@ namespace CardExchange.API.Controllers
                         !u.IsActive && (u.Username == request.UsernameOrEmail || u.Email == request.UsernameOrEmail));
                     if (suspended != null && BCrypt.Net.BCrypt.Verify(request.Password, suspended.PasswordHash))
                     {
+                        if (suspended.BirthDate != null && !AgeRules.MeetsMinimum(suspended.BirthDate.Value, DateOnly.FromDateTime(DateTime.UtcNow), MinimumAge(null)))
+                            return Unauthorized(new { message = $"Per usare CardExchange devi avere almeno {MinimumAge(null)} anni. Per cancellare i tuoi dati scrivi al supporto.", code = "UNDERAGE" });
                         return Unauthorized(new { message = "Account sospeso. Contatta il supporto se pensi sia un errore." });
                     }
                     return Unauthorized(new { message = "Credenziali non valide" });
@@ -663,6 +675,47 @@ namespace CardExchange.API.Controllers
             return Convert.ToHexString(hash);
         }
 
+        private int MinimumAge(IConfiguration? configuration) =>
+            Math.Max(AgeRules.DefaultMinimumAge,
+                (configuration ?? HttpContext?.RequestServices?.GetService<IConfiguration>())?.GetValue<int?>("Registration:MinimumAge") ?? AgeRules.DefaultMinimumAge);
+
+        /// <summary>
+        /// Data di nascita per gli account creati prima del controllo dell'età. Si imposta una sola volta.
+        /// Sotto l'età minima l'account viene sospeso: senza consenso dei genitori non si possono trattare i dati.
+        /// </summary>
+        [HttpPost("birth-date")]
+        [Authorize]
+        public async Task<ActionResult<UserDto>> SetBirthDate([FromBody] BirthDateRequest request)
+        {
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId)) return Unauthorized();
+            var user = await _context.Users.Include(u => u.Location).FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return Unauthorized();
+            if (user.BirthDate != null)
+                return Conflict(new { message = "La data di nascita è già stata indicata. Per correggerla contatta il supporto." });
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (request.BirthDate == null || !AgeRules.IsPlausible(request.BirthDate.Value, today))
+                return BadRequest(new { message = "Data di nascita non valida" });
+
+            user.BirthDate = request.BirthDate;
+            var minimumAge = MinimumAge(null);
+            if (!AgeRules.MeetsMinimum(request.BirthDate.Value, today, minimumAge))
+            {
+                user.IsActive = false;
+                user.RefreshToken = null;
+                await _context.SaveChangesAsync();
+                _logger.LogWarning("Account {UserId} sospeso: età inferiore al minimo di {MinimumAge} anni", userId, minimumAge);
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    message = $"Per usare CardExchange devi avere almeno {minimumAge} anni. L'account è stato sospeso; per cancellare i tuoi dati scrivi al supporto.",
+                    code = "UNDERAGE"
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(MapToUserDto(user));
+        }
+
         // Helper method
         private static UserDto MapToUserDto(User user)
         {
@@ -676,6 +729,8 @@ namespace CardExchange.API.Controllers
                 Bio = user.Bio,
                 IsActive = user.IsActive,
                 EmailConfirmed = user.EmailConfirmed,
+                BirthDateRequired = user.BirthDate == null,
+                IsMinor = user.BirthDate != null && AgeRules.IsMinor(user.BirthDate.Value, DateOnly.FromDateTime(DateTime.UtcNow)),
                 ReputationScore = user.ReputationScore,
                 TotalTradesCompleted = user.TotalTradesCompleted,
                 TotalReviewsReceived = user.TotalReviewsReceived,

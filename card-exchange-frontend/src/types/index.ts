@@ -12,6 +12,8 @@ export interface RegisterRequest {
   lastName: string;
   password: string;
   confirmPassword: string;
+  /** Data di nascita aaaa-mm-gg (età minima 14 anni). */
+  birthDate: string;
   /** Codice invito facoltativo. */
   referralCode?: string;
 }
@@ -42,6 +44,10 @@ export interface User {
   paymentQrCodeUrl?: string;
   isActive: boolean;
   emailConfirmed?: boolean;
+  /** Account creato prima del controllo dell'età: va chiesta la data di nascita. */
+  birthDateRequired?: boolean;
+  /** Meno di 18 anni. */
+  isMinor?: boolean;
   reputationScore: number;
   totalTradesCompleted: number;
   totalReviewsReceived: number;
