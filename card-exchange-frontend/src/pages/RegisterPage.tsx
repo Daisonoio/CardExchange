@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { referrals } from '../api';
 import { clearStoredReferral, getStoredReferral } from '../utils/referral';
 import { MINIMUM_AGE, ageFromIsoDate, todayIso } from '../utils/age';
+import { USERNAME_RULE, passwordProblem } from '../utils/accountRules';
+import { apiErrorMessage } from '../utils/apiError';
 import { Trans, useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Input from '../components/ui/Input';
@@ -42,8 +44,14 @@ export default function RegisterPage() {
       return;
     }
 
-    if (form.password.length < 8) {
-      setError(t('register.passwordTooShort'));
+    if (!USERNAME_RULE.test(form.username)) {
+      setError(t('register.usernameRule'));
+      return;
+    }
+
+    const problem = passwordProblem(form.password);
+    if (problem) {
+      setError(t(`register.passwordProblem.${problem}`));
       return;
     }
 
@@ -71,8 +79,8 @@ export default function RegisterPage() {
       clearStoredReferral();
       navigate('/home');
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg || t('register.failed'));
+      // Il server spiega il motivo (email già usata, password non valida…): si mostra quello
+      setError(apiErrorMessage(err, t('register.failed')));
     } finally {
       setIsLoading(false);
     }
@@ -129,6 +137,7 @@ export default function RegisterPage() {
             autoComplete="username"
             required
           />
+          <p className="text-[11px] text-text-muted -mt-2">{t('register.usernameHint')}</p>
 
           <Input
             label={t('email')}
@@ -149,6 +158,7 @@ export default function RegisterPage() {
             autoComplete="new-password"
             required
           />
+          <p className="text-[11px] text-text-muted -mt-2">{t('register.passwordHint')}</p>
 
           <Input
             label={t('register.confirmPassword')}

@@ -7,7 +7,7 @@ import Button from '../components/ui/Button';
 import AuthShell from '../components/layout/AuthShell';
 import { apiErrorMessage } from '../utils/apiError';
 
-const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+import { PASSWORD_RULE } from '../utils/accountRules';
 
 export default function ResetPasswordPage() {
   const { t } = useTranslation('auth');

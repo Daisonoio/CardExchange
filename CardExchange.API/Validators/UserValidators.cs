@@ -16,7 +16,7 @@ namespace CardExchange.API.Validators
                 .NotEmpty().WithMessage("Lo username è obbligatorio")
                 .MinimumLength(3).WithMessage("Lo username deve essere di almeno 3 caratteri")
                 .MaximumLength(50)
-                .Matches(@"^[a-zA-Z0-9_-]+$").WithMessage("Lo username può contenere solo lettere, numeri, trattini e underscore");
+                .Matches(@"^[a-zA-Z0-9._-]+$").WithMessage("Lo username può contenere solo lettere, numeri, punto, trattino e underscore");
 
             RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
             RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
@@ -27,7 +27,7 @@ namespace CardExchange.API.Validators
                 .Matches(@"[A-Z]").WithMessage("La password deve contenere almeno una lettera maiuscola")
                 .Matches(@"[a-z]").WithMessage("La password deve contenere almeno una lettera minuscola")
                 .Matches(@"\d").WithMessage("La password deve contenere almeno un numero")
-                .Matches(@"[@$!%*?&]").WithMessage("La password deve contenere almeno un carattere speciale");
+                .Matches(@"[^A-Za-z\d\s]").WithMessage("La password deve contenere almeno un simbolo (es. ! # . - @)");
         }
     }
 

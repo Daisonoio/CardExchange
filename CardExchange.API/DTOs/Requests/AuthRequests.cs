@@ -30,8 +30,8 @@ namespace CardExchange.API.DTOs.Requests
 
         [Required(ErrorMessage = "La password è obbligatoria")]
         [MinLength(8, ErrorMessage = "La password deve essere di almeno 8 caratteri")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
-            ErrorMessage = "La password deve contenere almeno una maiuscola, una minuscola, un numero e un carattere speciale")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s]).{8,}$",
+            ErrorMessage = "La password deve contenere almeno una maiuscola, una minuscola, un numero e un simbolo (es. ! # . - @)")]
         public string Password { get; set; } = string.Empty;
 
         /// <summary>Codice invito facoltativo (dal link /register?ref=CODICE).</summary>

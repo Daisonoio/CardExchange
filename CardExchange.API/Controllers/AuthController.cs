@@ -765,8 +765,8 @@ namespace CardExchange.API.Controllers
 
         [Required(ErrorMessage = "La nuova password è obbligatoria")]
         [MinLength(8, ErrorMessage = "La password deve essere di almeno 8 caratteri")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
-            ErrorMessage = "La password deve contenere almeno una maiuscola, una minuscola, un numero e un carattere speciale")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s]).{8,}$",
+            ErrorMessage = "La password deve contenere almeno una maiuscola, una minuscola, un numero e un simbolo (es. ! # . - @)")]
         public string NewPassword { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La conferma password è obbligatoria")]
@@ -782,8 +782,8 @@ namespace CardExchange.API.Controllers
 
         [Required(ErrorMessage = "La nuova password è obbligatoria")]
         [MinLength(8, ErrorMessage = "La password deve essere di almeno 8 caratteri")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
-            ErrorMessage = "La password deve contenere almeno una maiuscola, una minuscola, un numero e un carattere speciale")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s]).{8,}$",
+            ErrorMessage = "La password deve contenere almeno una maiuscola, una minuscola, un numero e un simbolo (es. ! # . - @)")]
         public string NewPassword { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La conferma password è obbligatoria")]

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { apiErrorMessage } from '../utils/apiError';
 import { useAuth } from '../context/AuthContext';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -22,8 +23,7 @@ export default function LoginPage() {
       await login(form);
       navigate('/home');
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg || t('login.invalidCredentials'));
+      setError(apiErrorMessage(err, t('login.invalidCredentials')));
     } finally {
       setIsLoading(false);
     }

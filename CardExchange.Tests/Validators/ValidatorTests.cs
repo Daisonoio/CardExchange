@@ -9,6 +9,26 @@ public class RegisterRequestValidatorTests
 {
     private readonly RegisterRequestValidator _validator = new();
 
+    [Theory]
+    [InlineData("Password1#")]
+    [InlineData("Password1.")]
+    [InlineData("Password1-")]
+    [InlineData("Pässwörd1€")]
+    public void AnySymbolIsAccepted(string password)
+    {
+        var request = new RegisterRequest { Email = "t@t.com", Username = "luca.meli", FirstName = "T", LastName = "U", Password = password, ConfirmPassword = password, BirthDate = new DateOnly(1995, 6, 15) };
+        _validator.TestValidate(request).ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Theory]
+    [InlineData("Password123")]   // nessun simbolo
+    [InlineData("Password 123")]  // lo spazio non conta come simbolo
+    public void PasswordWithoutSymbol_HasError(string password)
+    {
+        var request = new RegisterRequest { Email = "t@t.com", Username = "test", FirstName = "T", LastName = "U", Password = password, ConfirmPassword = password, BirthDate = new DateOnly(1995, 6, 15) };
+        _validator.TestValidate(request).ShouldHaveValidationErrorFor(x => x.Password);
+    }
+
     [Fact]
     public void MissingOrImplausibleBirthDate_HasError()
     {
