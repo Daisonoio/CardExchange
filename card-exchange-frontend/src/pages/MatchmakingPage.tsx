@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Sparkles, MapPin, Star, ArrowLeftRight, ChevronDown, ChevronUp,
-  Loader2, RefreshCw, SlidersHorizontal, Users, ArrowRight, Trophy
+  Loader2, RefreshCw, SlidersHorizontal, Users, ArrowRight, Trophy, Check
 } from 'lucide-react';
 import { matchmaking } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -73,8 +73,9 @@ export default function MatchmakingPage() {
 
   const displayedMatches = filterMutualOnly ? matches.filter(m => m.isMutual) : matches;
 
-  const handleStartTrade = (userId: number) => {
-    navigate(`/trades/new/${userId}`);
+  // Le carte scelte arrivano nella proposta già come carte richieste
+  const handleStartTrade = (userId: number, requestedCardIds: number[]) => {
+    navigate(`/trades/new/${userId}`, { state: { requestedCardIds } });
   };
 
   return (
@@ -192,7 +193,7 @@ export default function MatchmakingPage() {
               match={match}
               isExpanded={expandedMatch === match.userId}
               onToggle={() => setExpandedMatch(expandedMatch === match.userId ? null : match.userId)}
-              onStartTrade={() => handleStartTrade(match.userId)}
+              onStartTrade={(ids) => handleStartTrade(match.userId, ids)}
             />
           ))}
           {hasMore && limit < 200 && (
@@ -212,7 +213,7 @@ interface MatchResultCardProps {
   match: MatchResult;
   isExpanded: boolean;
   onToggle: () => void;
-  onStartTrade: () => void;
+  onStartTrade: (requestedCardIds: number[]) => void;
 }
 
 function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchResultCardProps) {
@@ -221,6 +222,13 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
   const isMutual = match.isMutual;
   const theyHave = match.theyHaveIWant ?? [];
   const iHave = match.iHaveTheyWant ?? [];
+  // Carte dell'altro utente scelte per lo scambio
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const toggle = (cardId: number) => setSelected((prev) => {
+    const next = new Set(prev);
+    if (next.has(cardId)) next.delete(cardId); else next.add(cardId);
+    return next;
+  });
 
   return (
     <div className={`bg-white rounded-2xl border-2 overflow-hidden transition-all shadow-sm ${
@@ -308,12 +316,19 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
           {/* They have, I want */}
           {theyHave.length > 0 && (
             <div className="mt-3">
-              <p className="text-[11px] font-bold text-green-700 mb-2">
+              <p className="text-[11px] font-bold text-green-700">
                 {t('card.theyHaveTitle', { n: theyHave.length })}
               </p>
+              <p className="text-[11px] text-text-muted mb-2">{t('card.selectHint')}</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {theyHave.map((card) => (
-                  <MiniCard key={`they-${card.cardId}`} card={card} variant="want" />
+                  <MiniCard
+                    key={`they-${card.cardId}`}
+                    card={card}
+                    variant="want"
+                    selected={selected.has(card.cardId)}
+                    onToggle={() => toggle(card.cardId)}
+                  />
                 ))}
               </div>
             </div>
@@ -335,11 +350,19 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
 
           {/* Action button */}
           <div className="mt-4">
-            <Button onClick={onStartTrade} className="w-full" size="lg">
+            <Button
+              onClick={() => onStartTrade([...selected])}
+              disabled={selected.size === 0}
+              className="w-full"
+              size="lg"
+            >
               <ArrowLeftRight size={16} />
-              {t('card.proposeTrade')}
+              {selected.size > 0 ? t('card.proposeTradeWith', { count: selected.size }) : t('card.proposeTrade')}
               <ArrowRight size={14} />
             </Button>
+            {selected.size === 0 && theyHave.length > 0 && (
+              <p className="text-[11px] text-text-muted text-center mt-1.5">{t('card.selectToPropose')}</p>
+            )}
           </div>
         </div>
       )}
@@ -349,10 +372,18 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
 
 // ─── Mini Card Component ─────────────────────────────────────
 
-function MiniCard({ card, variant }: { card: MatchCard; variant: 'want' | 'have' }) {
+function MiniCard({ card, variant, selected = false, onToggle }: {
+  card: MatchCard;
+  variant: 'want' | 'have';
+  selected?: boolean;
+  onToggle?: () => void;
+}) {
   const { t } = useTranslation('matchmaking');
   const { euro } = useFormat();
-  const borderColor = variant === 'want' ? 'border-green-200' : 'border-blue-200';
+  const [imgFailed, setImgFailed] = useState(false);
+  const borderColor = selected
+    ? 'border-primary ring-2 ring-primary/30 bg-primary/5'
+    : variant === 'want' ? 'border-green-200 bg-white' : 'border-blue-200 bg-white';
   const priorityBadge = card.wishlistPriority === 1
     ? 'bg-red-50 text-red-600'
     : card.wishlistPriority === 2
@@ -360,16 +391,32 @@ function MiniCard({ card, variant }: { card: MatchCard; variant: 'want' | 'have'
     : 'bg-gray-50 text-gray-500';
   const priorityLabel = card.wishlistPriority === 1 ? t('priority.high') : card.wishlistPriority === 2 ? t('priority.medium') : t('priority.low');
 
+  const Wrapper = onToggle ? 'button' : 'div';
   return (
-    <div className={`flex gap-2 p-2 rounded-xl border bg-white ${borderColor}`}>
-      {card.imageSmall ? (
-        <img src={card.imageSmall} alt={card.name} className="w-10 h-14 rounded-lg object-cover shrink-0" />
+    <Wrapper
+      {...(onToggle ? { type: 'button' as const, onClick: onToggle, 'aria-pressed': selected } : {})}
+      className={`relative flex gap-2 p-2 rounded-xl border text-left w-full transition-all ${borderColor} ${
+        onToggle ? 'hover:border-primary/50 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary' : ''
+      }`}
+    >
+      {onToggle && (
+        <span
+          aria-hidden="true"
+          className={`absolute top-1.5 right-1.5 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+            selected ? 'bg-primary border-primary text-white' : 'bg-white border-border'
+          }`}
+        >
+          {selected && <Check size={12} strokeWidth={3} />}
+        </span>
+      )}
+      {card.imageSmall && !imgFailed ? (
+        <img src={card.imageSmall} alt="" onError={() => setImgFailed(true)} className="w-10 h-14 rounded-lg object-cover shrink-0" />
       ) : (
         <div className="w-10 h-14 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
           <span className="text-[8px] text-gray-500 text-center leading-tight px-0.5">{card.name}</span>
         </div>
       )}
-      <div className="min-w-0 flex-1">
+      <div className={`min-w-0 flex-1 ${onToggle ? 'pr-5' : ''}`}>
         <p className="text-[11px] font-semibold text-text truncate">{card.name}</p>
         <p className="text-[9px] text-text-muted truncate">{card.setName}</p>
         <p className="text-[9px] text-text-muted">{card.condition}</p>
@@ -380,6 +427,6 @@ function MiniCard({ card, variant }: { card: MatchCard; variant: 'want' | 'have'
           {priorityLabel}
         </span>
       </div>
-    </div>
+    </Wrapper>
   );
 }

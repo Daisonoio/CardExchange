@@ -34,7 +34,11 @@
     "iHaveCount_other": "{{count}} tue carte cercate",
     "theyHaveTitle": "Carte che cerchi ({{n}})",
     "iHaveTitle": "Tue carte che cerca ({{n}})",
-    "proposeTrade": "Proponi scambio"
+    "proposeTrade": "Proponi scambio",
+    "selectHint": "Tocca le carte che vuoi chiedere",
+    "proposeTradeWith_one": "Proponi scambio ({{count}} carta)",
+    "proposeTradeWith_other": "Proponi scambio ({{count}} carte)",
+    "selectToPropose": "Seleziona almeno una carta per proporre lo scambio"
   },
   "priority": {
     "high": "Alta",

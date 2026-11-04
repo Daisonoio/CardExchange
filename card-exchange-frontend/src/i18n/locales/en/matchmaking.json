@@ -34,7 +34,11 @@
     "iHaveCount_other": "{{count}} of your cards wanted",
     "theyHaveTitle": "Cards you're looking for ({{n}})",
     "iHaveTitle": "Your cards they want ({{n}})",
-    "proposeTrade": "Propose trade"
+    "proposeTrade": "Propose trade",
+    "selectHint": "Tap the cards you want to ask for",
+    "proposeTradeWith_one": "Propose trade ({{count}} card)",
+    "proposeTradeWith_other": "Propose trade ({{count}} cards)",
+    "selectToPropose": "Select at least one card to propose a trade"
   },
   "priority": {
     "high": "High",

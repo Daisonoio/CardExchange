@@ -27,6 +27,9 @@ export default function TradeRequestPage() {
   const preselectedCards: Card[] = (location.state as any)?.selectedCards ?? [];
   // Se presente, la pagina crea una contro-offerta all'offerta indicata
   const counterOfferId: number | null = (location.state as any)?.counterOfferId ?? null;
+  // Dal Matchmaking arrivano solo gli id delle carte scelte: si completano dopo aver caricato la collezione
+  const requestedCardIds: number[] = (location.state as any)?.requestedCardIds ?? [];
+  const requestedIdsKey = requestedCardIds.join(',');
 
   // Requested cards (from the other user)
   const [requestedCards, setRequestedCards] = useState<Card[]>(preselectedCards);
@@ -71,6 +74,10 @@ export default function TradeRequestPage() {
         const { data: otherData } = await cards.getByUser(receiverId);
         const otherCards = Array.isArray(otherData) ? otherData : (otherData as any).cards ?? [];
         setOtherUserCards(otherCards.filter((c: Card) => c.isAvailableForTrade));
+        if (requestedIdsKey) {
+          const ids = new Set(requestedIdsKey.split(',').map(Number));
+          setRequestedCards(otherCards.filter((c: Card) => ids.has(c.id) && c.isAvailableForTrade));
+        }
         // L'API restituisce { username, cards }: userUsername sulle singole carte può essere vuoto
         setOtherUsername((otherData as any)?.username || otherCards[0]?.userUsername || '');
 
@@ -111,7 +118,7 @@ export default function TradeRequestPage() {
       }
     };
     load();
-  }, [currentUser, receiverId, counterOfferId]);
+  }, [currentUser, receiverId, counterOfferId, requestedIdsKey]);
 
   // Toggle card in requested list
   const toggleRequested = useCallback((card: Card) => {
