@@ -83,6 +83,9 @@ namespace CardExchange.API.Services
         {
             var encoded = Uri.EscapeDataString(query);
             var cards = await GetCardsAsync($"/api/v7/cardinfo.php?fname={encoded}&num={num}&offset={offset}");
+            // Le carte trovate restano in memoria: l'aggiunta subito dopo non dipende da una nuova chiamata all'API
+            foreach (var card in cards ?? new List<YuGiOhCard>())
+                _cache.Set($"yugioh:card:{card.Id}", card, TimeSpan.FromHours(24));
             return cards ?? new List<YuGiOhCard>();
         }
 

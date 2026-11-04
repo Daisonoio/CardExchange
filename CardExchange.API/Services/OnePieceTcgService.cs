@@ -107,7 +107,12 @@ namespace CardExchange.API.Services
                 var result = JsonSerializer.Deserialize<OnePieceResponse>(json, _jsonOptions);
 
                 if (result != null)
+                {
                     _cache.Set(cacheKey, result, TimeSpan.FromHours(1));
+                    // Le carte trovate restano in memoria: l'aggiunta subito dopo non dipende da una nuova chiamata all'API
+                    foreach (var card in result.Data ?? new List<OnePieceCard>())
+                        if (!string.IsNullOrEmpty(card.Code)) _cache.Set($"optcg:card:{card.Code}", card, TimeSpan.FromHours(6));
+                }
 
                 return result;
             }

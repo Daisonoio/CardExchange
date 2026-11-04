@@ -84,7 +84,11 @@ namespace CardExchange.API.Services
         public async Task<ScryfallList<ScryfallCard>?> SearchCardsAsync(string query, int page = 1)
         {
             var encoded = Uri.EscapeDataString(query);
-            return await GetAsync<ScryfallList<ScryfallCard>>($"/cards/search?q={encoded}&page={page}");
+            var result = await GetAsync<ScryfallList<ScryfallCard>>($"/cards/search?q={encoded}&page={page}");
+            // Le carte trovate restano in memoria: l'aggiunta subito dopo non dipende da una nuova chiamata all'API
+            foreach (var card in result?.Data ?? new List<ScryfallCard>())
+                if (!string.IsNullOrEmpty(card.Id)) _cache.Set($"scryfall:card:id:{card.Id}", card, TimeSpan.FromHours(24));
+            return result;
         }
 
         public async Task<ScryfallCatalog?> AutocompleteAsync(string query)

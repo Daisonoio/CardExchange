@@ -66,7 +66,11 @@ namespace CardExchange.API.Services
         public async Task<PokemonTcgResponse<List<PokemonTcgCard>>?> SearchCardsAsync(string query, int page = 1, int pageSize = 20)
         {
             var encoded = Uri.EscapeDataString(query);
-            return await GetListAsync<PokemonTcgCard>($"/v2/cards?q={encoded}&page={page}&pageSize={pageSize}");
+            var result = await GetListAsync<PokemonTcgCard>($"/v2/cards?q={encoded}&page={page}&pageSize={pageSize}");
+            // Le carte trovate restano in memoria: l'aggiunta subito dopo non dipende da una nuova chiamata all'API
+            foreach (var card in result?.Data ?? new List<PokemonTcgCard>())
+                if (!string.IsNullOrEmpty(card.Id)) _cache.Set($"ptcg:card:{card.Id}", card, TimeSpan.FromHours(6));
+            return result;
         }
 
         // ================================================================

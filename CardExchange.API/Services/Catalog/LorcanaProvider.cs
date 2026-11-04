@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -18,8 +19,12 @@ namespace CardExchange.API.Services.Catalog
         private readonly IExchangeRates _fx;
         private readonly ILogger<LorcanaProvider> _logger;
 
-        public LorcanaProvider(HttpClient http, IExchangeRates fx, CatalogStore store, ILogger<LorcanaProvider> logger) : base(store)
+        private readonly Microsoft.Extensions.Caching.Memory.IMemoryCache _cache;
+
+        public LorcanaProvider(HttpClient http, IExchangeRates fx, CatalogStore store, ILogger<LorcanaProvider> logger,
+            Microsoft.Extensions.Caching.Memory.IMemoryCache cache) : base(store)
         {
+            _cache = cache;
             _http = http;
             _fx = fx;
             _logger = logger;
@@ -37,11 +42,17 @@ namespace CardExchange.API.Services.Catalog
             var page = await GetJsonAsync<LorcastSearch>($"cards/search?q={Uri.EscapeDataString(query)}", ct);
             if (page?.Results == null) return Array.Empty<CatalogCard>();
             var rate = await _fx.UsdToEurAsync(ct);
-            return page.Results.Take(limit).Select(c => Map(c, rate)).ToList();
+            var cards = page.Results.Take(limit).Select(c => Map(c, rate)).ToList();
+            // Le carte trovate restano in memoria: l'aggiunta subito dopo non dipende da una nuova chiamata all'API
+            foreach (var card in cards) _cache.Set(CacheKey(card.ExternalId), card, TimeSpan.FromHours(6));
+            return cards;
         }
+
+        private static string CacheKey(string externalId) => $"lorcana:card:{externalId}";
 
         public override async Task<CatalogCard?> GetAsync(string externalId, CancellationToken ct = default)
         {
+            if (_cache.TryGetValue(CacheKey(externalId), out CatalogCard? cached) && cached != null) return cached;
             var card = await GetJsonAsync<LorcastCard>($"cards/{Uri.EscapeDataString(externalId)}", ct);
             return card == null ? null : Map(card, await _fx.UsdToEurAsync(ct));
         }

@@ -149,7 +149,7 @@ namespace CardExchange.API.Controllers
             // La logica di import è nel provider di catalogo, condivisa con import CSV e catalogo generico
             var result = await _catalogProvider.ImportAsync(request.YuGiOhId.ToString());
             if (result == null)
-                return NotFound(new { message = "Carta non trovata nel catalogo" });
+                return NotFound(new { message = "Impossibile recuperare la carta dal catalogo in questo momento: riprova tra qualche istante." });
 
             return Ok(new
             {

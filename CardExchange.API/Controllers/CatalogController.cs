@@ -58,7 +58,7 @@ namespace CardExchange.API.Controllers
             if (string.IsNullOrWhiteSpace(request.ExternalId) || request.ExternalId.Length > 100)
                 return BadRequest(new { message = "Identificativo della carta non valido" });
             var result = await provider.ImportAsync(request.ExternalId.Trim(), ct);
-            if (result == null) return NotFound(new { message = "Carta non trovata nel catalogo" });
+            if (result == null) return NotFound(new { message = "Impossibile recuperare la carta dal catalogo in questo momento: riprova tra qualche istante." });
             return Ok(new { cardInfoId = result.CardInfoId, isNew = result.IsNew });
         }
     }
