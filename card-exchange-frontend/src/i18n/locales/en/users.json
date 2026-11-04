@@ -1,0 +1,67 @@
+{
+  "blocked": {
+    "title": "Blocked users",
+    "empty": "You haven't blocked anyone.",
+    "since": "since {{date}}",
+    "unblock": "Unblock"
+  },
+  "invite": {
+    "shareText": "Let's trade cards! Join CardExchange to find people near you who have the cards you're looking for.",
+    "copied": "Link copied to clipboard",
+    "copyManually": "Copy the link above",
+    "title": "Invite friends",
+    "subtitle": "More collectors nearby means more trades for everyone.",
+    "linkLabel": "Invite link",
+    "share": "Share",
+    "noneYet": "No friends have joined with your link yet.",
+    "joined_one": "{{count}} friend joined",
+    "joined_other": "{{count}} friends joined"
+  },
+  "planBadge": {
+    "storeTitle": "Shop with an active plan",
+    "premiumTitle": "Premium user",
+    "store": "Shop"
+  },
+  "reviewForm": {
+    "checks": {
+      "cardAsDescribed": "Cards as described",
+      "timelyShipping": "On time (meetup or shipping)",
+      "goodCommunication": "Clear and polite communication"
+    },
+    "saveError": "Couldn't save the review.",
+    "title": "How did it go with @{{username}}?",
+    "tapToRate": "Tap the stars to rate",
+    "outOfFive": "{{rating}} out of 5",
+    "commentPlaceholder": "A comment for other collectors (optional)",
+    "submit": "Post review"
+  },
+  "reviews": {
+    "titleOf": "Reviews of @{{username}}",
+    "title": "Reviews",
+    "empty": "No reviews yet.",
+    "count_one": "{{count}} review",
+    "count_other": "{{count}} reviews",
+    "checks": {
+      "cardAsDescribed": "Cards as described",
+      "timely": "On time",
+      "goodCommunication": "Good communication"
+    }
+  },
+  "stars": {
+    "valueOutOfFive": "{{value}} out of 5 stars",
+    "option_one": "{{count}} star",
+    "option_other": "{{count}} stars"
+  },
+  "safety": {
+    "blockConfirm": "Block @{{username}}? You won't see each other in searches and won't be able to message each other or propose trades.",
+    "actionError": "Something went wrong.",
+    "sendError": "Couldn't send.",
+    "moreActions": "More actions for @{{username}}",
+    "report": "Report @{{username}}",
+    "block": "Block @{{username}}",
+    "unblock": "Unblock @{{username}}",
+    "reportInfo": "Your report is anonymous to the other user and will be reviewed by a moderator.",
+    "detailsPlaceholder": "What happened? (optional)",
+    "sendReport": "Send report"
+  }
+}

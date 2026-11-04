@@ -1,0 +1,15 @@
+{
+  "title": "Chat",
+  "sendError": "Impossibile inviare il messaggio",
+  "empty": {
+    "title": "Nessuna conversazione",
+    "description": "Le chat appariranno qui quando inizierai a messaggiare con altri utenti"
+  },
+  "youPrefix": "Tu: ",
+  "startConversation": "Inizia una conversazione",
+  "userFallback": "Utente #{{id}}",
+  "linkedTrade": "Collegata a scambio #{{id}}",
+  "noMessages": "Nessun messaggio. Scrivi per iniziare la conversazione.",
+  "inputPlaceholder": "Scrivi un messaggio...",
+  "selectConversation": "Seleziona una conversazione"
+}

@@ -1,0 +1,148 @@
+{
+  "offlineDealNotice": {
+    "text": "CardExchange doesn't handle payments or close sales: you agree on prices and terms yourselves, and any payment happens directly between you, outside the app."
+  },
+  "balance": {
+    "title": "Reference values",
+    "updating": "updating…",
+    "marketValue": "Market value",
+    "askingPrices": "Asking prices",
+    "receive": "Get",
+    "give": "Give",
+    "missingPrice_one": "{{count}} card has neither an asking price nor a market value.",
+    "missingPrice_other": "{{count}} cards have neither an asking price nor a market value.",
+    "disclaimer": "Market value is only a reference and owners' asking prices are negotiable: you're free to agree on whatever you like, even a trade of unequal value.",
+    "suggesting": "Calculating…",
+    "suggest": "Suggest what to offer"
+  },
+  "status": {
+    "Pending": "Pending",
+    "Accepted": "Accepted",
+    "Rejected": "Declined",
+    "Cancelled": "Cancelled",
+    "Completed": "Completed",
+    "CounterOffer": "Counteroffer",
+    "Expired": "Expired"
+  },
+  "list": {
+    "title": "Trades",
+    "subtitle": "Your trade requests",
+    "tabs": {
+      "all": "All",
+      "received": "Received",
+      "sent": "Sent"
+    },
+    "empty": {
+      "title": "No requests",
+      "received": "You haven't received any trade requests",
+      "sent": "You haven't sent any trade requests",
+      "all": "No trade requests yet. Explore the available cards to get started!"
+    },
+    "cardsUnavailable": "Some cards are no longer available for this trade",
+    "actionError": "Something went wrong with this trade action",
+    "to": "To @{{username}}",
+    "from": "From @{{username}}",
+    "requestedCount_one": "{{count}} requested",
+    "requestedCount_other": "{{count}} requested",
+    "offeredCount_one": "{{count}} offered",
+    "offeredCount_other": "{{count}} offered"
+  },
+  "detail": {
+    "title": "Request #{{id}}",
+    "sentTo": "Sent to",
+    "receivedFrom": "Received from",
+    "message": "Message",
+    "requestedCards": "Requested cards ({{n}})",
+    "offeredCards": "Offered cards ({{n}})",
+    "payment": "Payment",
+    "payWithPaypal": "Pay with PayPal (@{{username}})",
+    "openPaymentQr": "Open payment QR",
+    "accept": "Accept",
+    "counterOffer": "Counteroffer",
+    "reject": "Decline",
+    "cancelRequest": "Cancel request",
+    "youConfirmed": "You've confirmed the trade. Waiting for @{{username}} to confirm.",
+    "otherConfirmed": "@{{username}} has already confirmed: confirm too to complete the trade.",
+    "confirmCompleted": "Confirm trade completed",
+    "completionInfo": "The trade is complete once you both confirm; only then do the cards move between collections.",
+    "alreadyReviewed": "You've already reviewed this trade. Thanks!",
+    "leaveReview": "Leave a review for @{{username}}",
+    "chatWith": "Chat with @{{username}}"
+  },
+  "request": {
+    "suggestPickFirst": "First choose the cards you want to receive.",
+    "suggestResult_one": "Suggested {{count}} card that {{username}} is looking for, based on asking prices. It's just a starting point: change it however you like.",
+    "suggestResult_other": "Suggested {{count}} cards that {{username}} is looking for, based on asking prices. It's just a starting point: change it however you like.",
+    "theUser": "the user",
+    "suggestNone": "No suggestion available.",
+    "suggestError": "Couldn't calculate a suggestion, please try again.",
+    "invalidPrice": "Enter a valid price",
+    "buyProposalTag": "[PURCHASE OFFER: €{{price}}]",
+    "defaultRequestMessage": "Card request with no specific offer",
+    "selectOffered": "Select at least one card to offer for the trade",
+    "sendError": "Couldn't send the request",
+    "userFallback": "user #{{id}}",
+    "success": {
+      "counterSent": "Counteroffer sent!",
+      "requestSent": "Request sent!",
+      "sentTo": "Your proposal has been sent to",
+      "chatWith": "Chat with @{{username}}",
+      "goToTrades": "Go to Trades"
+    },
+    "counterTitle": "Counteroffer",
+    "newTitle": "New Request",
+    "toUser": "to @{{username}}",
+    "requestedCards": "Requested cards ({{n}})",
+    "noneSelected": "No cards selected. Add cards from the collection below.",
+    "proposalType": "Proposal type",
+    "modes": {
+      "trade": "Trade",
+      "buy": "Buy",
+      "request": "Request"
+    },
+    "offeredCards": "Cards you offer ({{n}})",
+    "theyAreLooking": "Cards @{{username}} is looking for",
+    "searchMyCards": "Search your cards...",
+    "noCardsAvailable": "No cards available",
+    "buyOffer": "Purchase offer",
+    "estimatedMarketValue": "Estimated market value: {{value}}",
+    "requestInfo": "You'll send a request without a specific offer. The other user can reply with a counteroffer or agree to get in touch.",
+    "messageOptional": "Message (optional)",
+    "messagePlaceholder": "Add a message to your request...",
+    "submit": {
+      "trade": "Propose trade",
+      "buy": "Make purchase offer",
+      "request": "Send request"
+    },
+    "cardFallback": "Card",
+    "each": "each",
+    "offeredQuantity": "Quantity offered"
+  },
+  "meetup": {
+    "icsSummary": "Card trade with @{{username}}",
+    "actionError": "Something went wrong.",
+    "title": "Meetup",
+    "confirmed": "Confirmed",
+    "awaitingReply": "Awaiting reply",
+    "proposedByYou": "Proposed by you",
+    "proposedBy": "Proposed by @{{username}}",
+    "openMap": "Open in map",
+    "addToCalendar": "Add to calendar",
+    "accept": "Accept",
+    "decline": "Can't make it",
+    "proposeAnother": "Suggest another time",
+    "cancelMeetup": "Cancel meetup",
+    "declinedInfo": "@{{username}} couldn't make it on {{when}}: suggest another time.",
+    "intro": "Agree on when and where to meet. A public place, like a card shop, is best.",
+    "propose": "Propose a meetup",
+    "form": {
+      "when": "Date and time",
+      "suggestedStores": "Recommended shops for trading",
+      "place": "Place",
+      "placePlaceholder": "E.g. Games Corner shop",
+      "addressPlaceholder": "Address (optional)",
+      "notesPlaceholder": "Notes (optional), e.g. 'at the counter'",
+      "submit": "Send proposal"
+    }
+  }
+}

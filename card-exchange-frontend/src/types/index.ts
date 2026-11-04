@@ -656,14 +656,10 @@ export interface UserReviewsPage {
 }
 
 // === Segnalazioni ===
-export const REPORT_REASONS: { value: number; label: string }[] = [
-  { value: 1, label: 'Truffa o tentata truffa' },
-  { value: 2, label: "Non si è presentato all'appuntamento" },
-  { value: 3, label: 'Comportamento offensivo o molesto' },
-  { value: 4, label: 'Carte false o non come descritte' },
-  { value: 5, label: 'Spam' },
-  { value: 6, label: 'Altro' },
-];
+export const REPORT_REASONS: { value: number; label: string }[] = [1, 2, 3, 4, 5, 6].map((value) => ({
+  value,
+  get label() { return i18n.t(`labels:reportReasonLong.${value}`); },
+}));
 
 export const REPORT_REASON_LABELS: Record<string, string> = translatedLabels('reportReason', ['Scam', 'NoShow', 'Harassment', 'CardsNotAsDescribed', 'Spam', 'Other']);
 

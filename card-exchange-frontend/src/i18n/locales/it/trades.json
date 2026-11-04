@@ -1,0 +1,148 @@
+{
+  "offlineDealNotice": {
+    "text": "CardExchange non gestisce pagamenti e non conclude vendite: prezzi e condizioni li concordate voi, e gli eventuali pagamenti avvengono direttamente tra di voi, fuori dall'app."
+  },
+  "balance": {
+    "title": "Valori di riferimento",
+    "updating": "aggiornamento…",
+    "marketValue": "Valore di mercato",
+    "askingPrices": "Prezzi indicati",
+    "receive": "Ricevi",
+    "give": "Offri",
+    "missingPrice_one": "{{count}} carta non ha né prezzo indicato né valore di mercato.",
+    "missingPrice_other": "{{count}} carte non hanno né prezzo indicato né valore di mercato.",
+    "disclaimer": "Il valore di mercato è un riferimento e i prezzi indicati dai proprietari sono trattabili: potete accordarvi liberamente, anche su scambi di valore diverso.",
+    "suggesting": "Calcolo in corso…",
+    "suggest": "Suggeriscimi cosa offrire"
+  },
+  "status": {
+    "Pending": "In attesa",
+    "Accepted": "Accettata",
+    "Rejected": "Rifiutata",
+    "Cancelled": "Annullata",
+    "Completed": "Completata",
+    "CounterOffer": "Controproposta",
+    "Expired": "Scaduta"
+  },
+  "list": {
+    "title": "Scambi",
+    "subtitle": "Le tue richieste di scambio",
+    "tabs": {
+      "all": "Tutti",
+      "received": "Ricevute",
+      "sent": "Inviate"
+    },
+    "empty": {
+      "title": "Nessuna richiesta",
+      "received": "Non hai ricevuto richieste di scambio",
+      "sent": "Non hai inviato richieste di scambio",
+      "all": "Nessuna richiesta di scambio. Esplora le carte disponibili per iniziare!"
+    },
+    "cardsUnavailable": "Alcune carte non sono piu disponibili per questo scambio",
+    "actionError": "Errore durante l'azione sullo scambio",
+    "to": "A @{{username}}",
+    "from": "Da @{{username}}",
+    "requestedCount_one": "{{count}} richieste",
+    "requestedCount_other": "{{count}} richieste",
+    "offeredCount_one": "{{count}} offerte",
+    "offeredCount_other": "{{count}} offerte"
+  },
+  "detail": {
+    "title": "Dettaglio Richiesta #{{id}}",
+    "sentTo": "Inviata a",
+    "receivedFrom": "Ricevuta da",
+    "message": "Messaggio",
+    "requestedCards": "Carte richieste ({{n}})",
+    "offeredCards": "Carte offerte ({{n}})",
+    "payment": "Pagamento",
+    "payWithPaypal": "Paga con PayPal (@{{username}})",
+    "openPaymentQr": "Apri QR pagamento",
+    "accept": "Accetta",
+    "counterOffer": "Controproposta",
+    "reject": "Rifiuta",
+    "cancelRequest": "Annulla richiesta",
+    "youConfirmed": "Hai confermato lo scambio. In attesa della conferma di @{{username}}.",
+    "otherConfirmed": "@{{username}} ha già confermato: conferma anche tu per completare lo scambio.",
+    "confirmCompleted": "Conferma scambio avvenuto",
+    "completionInfo": "Lo scambio si completa quando confermate entrambi; solo allora le carte passano di collezione.",
+    "alreadyReviewed": "Hai già recensito questo scambio. Grazie!",
+    "leaveReview": "Lascia una recensione a @{{username}}",
+    "chatWith": "Chatta con @{{username}}"
+  },
+  "request": {
+    "suggestPickFirst": "Scegli prima le carte che vuoi ricevere.",
+    "suggestResult_one": "Suggerite {{count}} carta che {{username}} sta cercando, in base ai prezzi indicati. È solo un punto di partenza: cambiala come vuoi.",
+    "suggestResult_other": "Suggerite {{count}} carte che {{username}} sta cercando, in base ai prezzi indicati. È solo un punto di partenza: cambiala come vuoi.",
+    "theUser": "l'utente",
+    "suggestNone": "Nessuna proposta disponibile.",
+    "suggestError": "Impossibile calcolare una proposta, riprova.",
+    "invalidPrice": "Inserisci un prezzo valido",
+    "buyProposalTag": "[PROPOSTA ACQUISTO: €{{price}}]",
+    "defaultRequestMessage": "Richiesta carte senza proposta specifica",
+    "selectOffered": "Seleziona almeno una carta da offrire per lo scambio",
+    "sendError": "Errore durante l'invio della richiesta",
+    "userFallback": "utente #{{id}}",
+    "success": {
+      "counterSent": "Contro-offerta inviata!",
+      "requestSent": "Richiesta inviata!",
+      "sentTo": "La proposta è stata inviata a",
+      "chatWith": "Chatta con @{{username}}",
+      "goToTrades": "Vai agli Scambi"
+    },
+    "counterTitle": "Contro-offerta",
+    "newTitle": "Nuova Richiesta",
+    "toUser": "a @{{username}}",
+    "requestedCards": "Carte richieste ({{n}})",
+    "noneSelected": "Nessuna carta selezionata. Aggiungi carte dalla collezione qui sotto.",
+    "proposalType": "Tipo di proposta",
+    "modes": {
+      "trade": "Scambio",
+      "buy": "Acquisto",
+      "request": "Richiesta"
+    },
+    "offeredCards": "Carte che offri ({{n}})",
+    "theyAreLooking": "Carte che @{{username}} sta cercando",
+    "searchMyCards": "Cerca nelle tue carte...",
+    "noCardsAvailable": "Nessuna carta disponibile",
+    "buyOffer": "Offerta di acquisto",
+    "estimatedMarketValue": "Valore di mercato stimato: {{value}}",
+    "requestInfo": "Invierai una richiesta senza una proposta specifica. L'altro utente potrà rispondere con una controproposta o accettare di contattarti.",
+    "messageOptional": "Messaggio (opzionale)",
+    "messagePlaceholder": "Aggiungi un messaggio alla tua richiesta...",
+    "submit": {
+      "trade": "Proponi scambio",
+      "buy": "Proponi acquisto",
+      "request": "Invia richiesta"
+    },
+    "cardFallback": "Carta",
+    "each": "cad.",
+    "offeredQuantity": "Quantità offerta"
+  },
+  "meetup": {
+    "icsSummary": "Scambio carte con @{{username}}",
+    "actionError": "Operazione non riuscita.",
+    "title": "Appuntamento",
+    "confirmed": "Confermato",
+    "awaitingReply": "In attesa di risposta",
+    "proposedByYou": "Proposto da te",
+    "proposedBy": "Proposto da @{{username}}",
+    "openMap": "Apri nella mappa",
+    "addToCalendar": "Aggiungi al calendario",
+    "accept": "Accetta",
+    "decline": "Non posso",
+    "proposeAnother": "Proponi un altro orario",
+    "cancelMeetup": "Annulla appuntamento",
+    "declinedInfo": "@{{username}} non poteva {{when}}: proponi un altro orario.",
+    "intro": "Accordatevi su quando e dove incontrarvi. Meglio un luogo pubblico, come un negozio di carte.",
+    "propose": "Proponi appuntamento",
+    "form": {
+      "when": "Data e ora",
+      "suggestedStores": "Negozi consigliati per lo scambio",
+      "place": "Luogo",
+      "placePlaceholder": "Es. Negozio Games Corner",
+      "addressPlaceholder": "Indirizzo (facoltativo)",
+      "notesPlaceholder": "Note (facoltative), es. 'al bancone'",
+      "submit": "Invia proposta"
+    }
+  }
+}

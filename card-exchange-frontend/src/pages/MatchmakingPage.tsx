@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Sparkles, MapPin, Star, ArrowLeftRight, ChevronDown, ChevronUp,
   Loader2, RefreshCw, SlidersHorizontal, Users, ArrowRight, Trophy
@@ -11,8 +12,10 @@ import type { MatchResult, MatchCard } from '../types';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import PlanBadge from '../components/users/PlanBadge';
+import { useFormat } from '../i18n/format';
 
 export default function MatchmakingPage() {
+  const { t } = useTranslation('matchmaking');
   const { user } = useAuth();
   const { selectedGameId } = useGame();
   const navigate = useNavigate();
@@ -48,14 +51,14 @@ export default function MatchmakingPage() {
     } catch (err: any) {
       const msg = err?.response?.data?.message;
       if (msg === 'NO_LOCATION') {
-        setError('Configura la tua posizione nel profilo per usare il matchmaking.');
+        setError(t('errors.noLocation'));
       } else {
-        setError('Errore durante il caricamento dei match.');
+        setError(t('errors.loadFailed'));
       }
     } finally {
       setIsLoading(false);
     }
-  }, [user, radiusKm, selectedGameId, limit, filterMutualOnly]);
+  }, [user, radiusKm, selectedGameId, limit, filterMutualOnly, t]);
 
   useEffect(() => { loadMatches(); }, [loadMatches]);
 
@@ -75,7 +78,7 @@ export default function MatchmakingPage() {
             Matchmaking
           </h1>
           <p className="text-sm text-text-secondary mt-0.5">
-            Trova i migliori scambi vicino a te
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -102,7 +105,7 @@ export default function MatchmakingPage() {
         <div className="bg-white rounded-2xl p-4 border border-border/50 shadow-sm mb-4 space-y-3">
           <div>
             <label className="text-xs font-semibold text-text-secondary block mb-1">
-              Raggio di ricerca: {radiusKm} km
+              {t('filters.radius', { km: radiusKm })}
             </label>
             <input
               type="range"
@@ -119,7 +122,7 @@ export default function MatchmakingPage() {
             </div>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-text-secondary">Solo scambi reciproci</span>
+            <span className="text-xs font-medium text-text-secondary">{t('filters.mutualOnly')}</span>
             <button
               onClick={() => { setFilterMutualOnly(!filterMutualOnly); setLimit(50); }}
               className={`w-10 h-6 rounded-full transition-colors relative ${
@@ -139,15 +142,15 @@ export default function MatchmakingPage() {
         <div className="grid grid-cols-3 gap-2 mb-4">
           <div className="bg-white rounded-xl p-3 border border-border/50 text-center">
             <p className="text-lg font-bold text-text">{totalMatches}</p>
-            <p className="text-[10px] text-text-muted">Match trovati</p>
+            <p className="text-[10px] text-text-muted">{t('stats.found')}</p>
           </div>
           <div className="bg-primary/5 rounded-xl p-3 border border-primary/20 text-center">
             <p className="text-lg font-bold text-primary">{mutualCount}</p>
-            <p className="text-[10px] text-primary/70">Reciproci</p>
+            <p className="text-[10px] text-primary/70">{t('stats.mutual')}</p>
           </div>
           <div className="bg-white rounded-xl p-3 border border-border/50 text-center">
             <p className="text-lg font-bold text-text">{radiusKm} km</p>
-            <p className="text-[10px] text-text-muted">Raggio</p>
+            <p className="text-[10px] text-text-muted">{t('stats.radius')}</p>
           </div>
         </div>
       )}
@@ -156,30 +159,30 @@ export default function MatchmakingPage() {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <Loader2 size={32} className="animate-spin text-primary" />
-          <p className="text-sm text-text-muted">Cerco i migliori scambi...</p>
+          <p className="text-sm text-text-muted">{t('loading')}</p>
         </div>
       ) : error ? (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
           <p className="text-sm text-red-700">{error}</p>
-          {error.includes('posizione') && (
+          {error === t('errors.noLocation') && (
             <Button onClick={() => navigate('/profile/edit')} size="sm" className="mt-3">
-              Configura posizione
+              {t('errors.setLocation')}
             </Button>
           )}
         </div>
       ) : displayedMatches.length === 0 ? (
         <EmptyState
           icon={Users}
-          title={filterMutualOnly ? 'Nessuno scambio reciproco' : 'Nessun match trovato'}
+          title={filterMutualOnly ? t('empty.mutualTitle') : t('empty.title')}
           description={
             filterMutualOnly
-              ? 'Prova a disattivare il filtro reciproci o ad aumentare il raggio'
-              : 'Aggiungi carte alla collezione e alla wishlist per trovare match. Puoi anche provare ad aumentare il raggio di ricerca.'
+              ? t('empty.mutualDescription')
+              : t('empty.description')
           }
           action={
             filterMutualOnly ? (
               <Button onClick={() => setFilterMutualOnly(false)} size="sm" variant="outline">
-                Mostra tutti i match
+                {t('empty.showAll')}
               </Button>
             ) : undefined
           }
@@ -197,7 +200,7 @@ export default function MatchmakingPage() {
           ))}
           {hasMore && limit < 200 && (
             <Button variant="outline" className="w-full" onClick={() => setLimit((l) => Math.min(l + 50, 200))}>
-              Mostra altri match
+              {t('showMore')}
             </Button>
           )}
         </div>
@@ -216,6 +219,8 @@ interface MatchResultCardProps {
 }
 
 function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchResultCardProps) {
+  const { t } = useTranslation('matchmaking');
+  const { number } = useFormat();
   const isMutual = match.isMutual;
   const theyHave = match.theyHaveIWant ?? [];
   const iHave = match.iHaveTheyWant ?? [];
@@ -245,7 +250,7 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
               {isMutual && (
                 <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full whitespace-nowrap">
                   <ArrowLeftRight size={10} className="inline mr-0.5" />
-                  Scambio reciproco
+                  {t('card.mutualTrade')}
                 </span>
               )}
             </div>
@@ -267,13 +272,13 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
               {match.reputationScore > 0 && (
                 <span className="flex items-center gap-0.5">
                   <Star size={10} className="text-amber-500" />
-                  {match.reputationScore.toFixed(1)}
+                  {number(match.reputationScore, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
                 </span>
               )}
               {match.totalTradesCompleted > 0 && (
                 <span className="flex items-center gap-0.5">
                   <Trophy size={10} />
-                  {match.totalTradesCompleted} scambi
+                  {t('card.tradesCompleted', { count: match.totalTradesCompleted })}
                 </span>
               )}
             </div>
@@ -282,12 +287,12 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
             <div className="flex flex-wrap gap-1.5 mt-2">
               {theyHave.length > 0 && (
                 <span className="text-[10px] font-semibold bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
-                  {theyHave.length} {theyHave.length === 1 ? 'carta che cerchi' : 'carte che cerchi'}
+                  {t('card.theyHaveCount', { count: theyHave.length })}
                 </span>
               )}
               {iHave.length > 0 && (
                 <span className="text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">
-                  {iHave.length} {iHave.length === 1 ? 'tua carta cercata' : 'tue carte cercate'}
+                  {t('card.iHaveCount', { count: iHave.length })}
                 </span>
               )}
             </div>
@@ -307,7 +312,7 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
           {theyHave.length > 0 && (
             <div className="mt-3">
               <p className="text-[11px] font-bold text-green-700 mb-2">
-                Carte che cerchi ({theyHave.length})
+                {t('card.theyHaveTitle', { n: theyHave.length })}
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {theyHave.map((card) => (
@@ -321,7 +326,7 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
           {iHave.length > 0 && (
             <div className="mt-3">
               <p className="text-[11px] font-bold text-blue-700 mb-2">
-                Tue carte che cerca ({iHave.length})
+                {t('card.iHaveTitle', { n: iHave.length })}
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {iHave.map((card) => (
@@ -335,7 +340,7 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
           <div className="mt-4">
             <Button onClick={onStartTrade} className="w-full" size="lg">
               <ArrowLeftRight size={16} />
-              Proponi scambio
+              {t('card.proposeTrade')}
               <ArrowRight size={14} />
             </Button>
           </div>
@@ -348,13 +353,15 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
 // ─── Mini Card Component ─────────────────────────────────────
 
 function MiniCard({ card, variant }: { card: MatchCard; variant: 'want' | 'have' }) {
+  const { t } = useTranslation('matchmaking');
+  const { euro } = useFormat();
   const borderColor = variant === 'want' ? 'border-green-200' : 'border-blue-200';
   const priorityBadge = card.wishlistPriority === 1
     ? 'bg-red-50 text-red-600'
     : card.wishlistPriority === 2
     ? 'bg-amber-50 text-amber-600'
     : 'bg-gray-50 text-gray-500';
-  const priorityLabel = card.wishlistPriority === 1 ? 'Alta' : card.wishlistPriority === 2 ? 'Media' : 'Bassa';
+  const priorityLabel = card.wishlistPriority === 1 ? t('priority.high') : card.wishlistPriority === 2 ? t('priority.medium') : t('priority.low');
 
   return (
     <div className={`flex gap-2 p-2 rounded-xl border bg-white ${borderColor}`}>
@@ -370,7 +377,7 @@ function MiniCard({ card, variant }: { card: MatchCard; variant: 'want' | 'have'
         <p className="text-[9px] text-text-muted truncate">{card.setName}</p>
         <p className="text-[9px] text-text-muted">{card.condition}</p>
         {card.priceEur != null && card.priceEur > 0 && (
-          <p className="text-[10px] font-bold text-accent">€{card.priceEur.toFixed(2)}</p>
+          <p className="text-[10px] font-bold text-accent">{euro(card.priceEur)}</p>
         )}
         <span className={`text-[8px] font-semibold px-1.5 py-0.5 rounded-full inline-block mt-0.5 ${priorityBadge}`}>
           {priorityLabel}

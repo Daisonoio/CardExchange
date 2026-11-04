@@ -44,5 +44,13 @@
     "CardsNotAsDescribed": "Cards not as described",
     "Spam": "Spam",
     "Other": "Other"
+  },
+  "reportReasonLong": {
+    "1": "Scam or attempted scam",
+    "2": "Didn't show up to the meetup",
+    "3": "Offensive or harassing behaviour",
+    "4": "Fake cards or not as described",
+    "5": "Spam",
+    "6": "Other"
   }
 }

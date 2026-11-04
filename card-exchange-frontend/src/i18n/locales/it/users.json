@@ -1,0 +1,67 @@
+{
+  "blocked": {
+    "title": "Utenti bloccati",
+    "empty": "Non hai bloccato nessuno.",
+    "since": "dal {{date}}",
+    "unblock": "Sblocca"
+  },
+  "invite": {
+    "shareText": "Scambiamo carte! Iscriviti a CardExchange: trovi chi, vicino a te, ha le carte che cerchi.",
+    "copied": "Link copiato negli appunti",
+    "copyManually": "Copia il link qui sopra",
+    "title": "Invita amici",
+    "subtitle": "Più collezionisti in zona, più scambi per tutti.",
+    "linkLabel": "Link di invito",
+    "share": "Condividi",
+    "noneYet": "Nessun amico iscritto con il tuo link, per ora.",
+    "joined_one": "{{count}} amico iscritto",
+    "joined_other": "{{count}} amici iscritti"
+  },
+  "planBadge": {
+    "storeTitle": "Negozio con piano attivo",
+    "premiumTitle": "Utente Premium",
+    "store": "Negozio"
+  },
+  "reviewForm": {
+    "checks": {
+      "cardAsDescribed": "Carte come descritte",
+      "timelyShipping": "Puntuale (appuntamento o spedizione)",
+      "goodCommunication": "Comunicazione chiara e cortese"
+    },
+    "saveError": "Impossibile salvare la recensione.",
+    "title": "Com'è andata con @{{username}}?",
+    "tapToRate": "Tocca le stelle per votare",
+    "outOfFive": "{{rating}} su 5",
+    "commentPlaceholder": "Un commento per gli altri collezionisti (facoltativo)",
+    "submit": "Pubblica recensione"
+  },
+  "reviews": {
+    "titleOf": "Recensioni di @{{username}}",
+    "title": "Recensioni",
+    "empty": "Ancora nessuna recensione.",
+    "count_one": "{{count}} recensione",
+    "count_other": "{{count}} recensioni",
+    "checks": {
+      "cardAsDescribed": "Carte come descritte",
+      "timely": "Puntuale",
+      "goodCommunication": "Buona comunicazione"
+    }
+  },
+  "stars": {
+    "valueOutOfFive": "{{value}} stelle su 5",
+    "option_one": "{{count}} stelle",
+    "option_other": "{{count}} stelle"
+  },
+  "safety": {
+    "blockConfirm": "Bloccare @{{username}}? Non vi vedrete più nelle ricerche e non potrete scrivervi né proporvi scambi.",
+    "actionError": "Operazione non riuscita.",
+    "sendError": "Invio non riuscito.",
+    "moreActions": "Altre azioni su @{{username}}",
+    "report": "Segnala @{{username}}",
+    "block": "Blocca @{{username}}",
+    "unblock": "Sblocca @{{username}}",
+    "reportInfo": "La segnalazione è anonima per l'altro utente e verrà esaminata da un moderatore.",
+    "detailsPlaceholder": "Cosa è successo? (facoltativo)",
+    "sendReport": "Invia segnalazione"
+  }
+}

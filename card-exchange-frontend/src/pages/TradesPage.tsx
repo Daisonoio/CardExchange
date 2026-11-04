@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeftRight, Loader2, Check, X, Clock, MessageSquare,
   ChevronRight, RotateCcw, ExternalLink,
@@ -15,20 +16,23 @@ import ReviewFormSheet from '../components/users/ReviewFormSheet';
 import UserSafetyMenu from '../components/users/UserSafetyMenu';
 import MeetupPanel from '../components/trades/MeetupPanel';
 import OfflineDealNotice from '../components/trades/OfflineDealNotice';
+import { useFormat } from '../i18n/format';
 
-const STATUS_CONFIG: Record<TradeOfferStatus, { label: string; color: string; icon: typeof Check }> = {
-  Pending: { label: 'In attesa', color: 'bg-amber-50 text-amber-600', icon: Clock },
-  Accepted: { label: 'Accettata', color: 'bg-green-50 text-green-600', icon: Check },
-  Rejected: { label: 'Rifiutata', color: 'bg-red-50 text-red-600', icon: X },
-  Cancelled: { label: 'Annullata', color: 'bg-gray-100 text-gray-500', icon: X },
-  Completed: { label: 'Completata', color: 'bg-blue-50 text-blue-600', icon: Check },
-  CounterOffer: { label: 'Controproposta', color: 'bg-purple-50 text-purple-600', icon: RotateCcw },
-  Expired: { label: 'Scaduta', color: 'bg-gray-100 text-gray-500', icon: Clock },
+const STATUS_CONFIG: Record<TradeOfferStatus, { labelKey: string; color: string; icon: typeof Check }> = {
+  Pending: { labelKey: 'status.Pending', color: 'bg-amber-50 text-amber-600', icon: Clock },
+  Accepted: { labelKey: 'status.Accepted', color: 'bg-green-50 text-green-600', icon: Check },
+  Rejected: { labelKey: 'status.Rejected', color: 'bg-red-50 text-red-600', icon: X },
+  Cancelled: { labelKey: 'status.Cancelled', color: 'bg-gray-100 text-gray-500', icon: X },
+  Completed: { labelKey: 'status.Completed', color: 'bg-blue-50 text-blue-600', icon: Check },
+  CounterOffer: { labelKey: 'status.CounterOffer', color: 'bg-purple-50 text-purple-600', icon: RotateCcw },
+  Expired: { labelKey: 'status.Expired', color: 'bg-gray-100 text-gray-500', icon: Clock },
 };
 
 type TabFilter = 'all' | 'received' | 'sent';
 
 export default function TradesPage() {
+  const { t } = useTranslation('trades');
+  const { date } = useFormat();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { offers, isLoading, refresh: refreshTrades } = useTrades(!!user);
@@ -46,7 +50,7 @@ export default function TradesPage() {
     await Promise.all(Array.from(cardIds).map(async (cardId) => {
       const { data } = await cards.getById(cardId);
       if (!data || data.quantity < 1 || data.isAvailableForTrade === false) {
-        throw new Error('Alcune carte non sono piu disponibili per questo scambio');
+        throw new Error(t('list.cardsUnavailable'));
       }
     }));
   };
@@ -74,7 +78,7 @@ export default function TradesPage() {
       setSelectedOffer(null);
       refreshTrades();
     } catch (err: any) {
-      setActionError(err?.response?.data?.message || err?.message || 'Errore durante l\'azione sullo scambio');
+      setActionError(err?.response?.data?.message || err?.message || t('list.actionError'));
       console.error('Errore azione:', err);
     } finally {
       setActionLoading(null);
@@ -83,15 +87,15 @@ export default function TradesPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-text mb-1">Scambi</h1>
-      <p className="text-sm text-text-secondary mb-4">Le tue richieste di scambio</p>
+      <h1 className="text-xl font-bold text-text mb-1">{t('list.title')}</h1>
+      <p className="text-sm text-text-secondary mb-4">{t('list.subtitle')}</p>
 
       {/* Filter tabs */}
       <div className="flex gap-2 mb-4">
         {([
-          { key: 'all' as const, label: 'Tutti' },
-          { key: 'received' as const, label: 'Ricevute' },
-          { key: 'sent' as const, label: 'Inviate' },
+          { key: 'all' as const, label: t('list.tabs.all') },
+          { key: 'received' as const, label: t('list.tabs.received') },
+          { key: 'sent' as const, label: t('list.tabs.sent') },
         ]).map(({ key, label }) => (
           <button
             key={key}
@@ -115,12 +119,12 @@ export default function TradesPage() {
       ) : filteredOffers.length === 0 ? (
         <EmptyState
           icon={ArrowLeftRight}
-          title="Nessuna richiesta"
+          title={t('list.empty.title')}
           description={tab === 'received'
-            ? 'Non hai ricevuto richieste di scambio'
+            ? t('list.empty.received')
             : tab === 'sent'
-            ? 'Non hai inviato richieste di scambio'
-            : 'Nessuna richiesta di scambio. Esplora le carte disponibili per iniziare!'
+            ? t('list.empty.sent')
+            : t('list.empty.all')
           }
         />
       ) : (
@@ -149,16 +153,16 @@ export default function TradesPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm font-semibold truncate">
-                        {isSender ? `A @${otherUser}` : `Da @${otherUser}`}
+                        {isSender ? t('list.to', { username: otherUser }) : t('list.from', { username: otherUser })}
                       </span>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCfg.color}`}>
                         <StatusIcon size={10} className="inline mr-0.5" />
-                        {statusCfg.label}
+                        {t(statusCfg.labelKey)}
                       </span>
                     </div>
                     <div className="flex gap-4 text-xs text-text-muted">
-                      <span>{offer.requestedCards.length} richieste</span>
-                      <span>{offer.offeredCards.length} offerte</span>
+                      <span>{t('list.requestedCount', { count: offer.requestedCards.length })}</span>
+                      <span>{t('list.offeredCount', { count: offer.offeredCards.length })}</span>
                     </div>
                     {offer.message && (
                       <p className="text-xs text-text-secondary mt-1 truncate flex items-center gap-1">
@@ -166,7 +170,7 @@ export default function TradesPage() {
                       </p>
                     )}
                     <p className="text-[10px] text-text-muted mt-1">
-                      {new Date(offer.createdAt).toLocaleDateString('it-IT', {
+                      {date(offer.createdAt, {
                         day: 'numeric', month: 'short', year: 'numeric',
                       })}
                     </p>
@@ -183,7 +187,7 @@ export default function TradesPage() {
       <BottomSheet
         open={!!selectedOffer}
         onClose={() => setSelectedOffer(null)}
-        title={`Dettaglio Richiesta #${selectedOffer?.id ?? ''}`}
+        title={t('detail.title', { id: selectedOffer?.id ?? '' })}
       >
         {selectedOffer && (
           <OfferDetail
@@ -217,6 +221,8 @@ function OfferDetail({
   onNavigateToCounter: (offerId: number) => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation('trades');
+  const { dateTime } = useFormat();
   const navigate = useNavigate();
   const [otherUserPayment, setOtherUserPayment] = useState<Pick<User, 'paypalUsername' | 'satispayUsername' | 'paymentQrCodeUrl'> | null>(null);
   const isSender = offer.senderId === userId;
@@ -265,26 +271,26 @@ function OfferDetail({
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs text-text-muted">
-            {isSender ? 'Inviata a' : 'Ricevuta da'}{' '}
+            {isSender ? t('detail.sentTo') : t('detail.receivedFrom')}{' '}
             <span className="font-semibold text-text">
               @{isSender ? offer.receiverUsername : offer.senderUsername}
             </span>
           </p>
           <p className="text-[10px] text-text-muted mt-0.5">
-            {new Date(offer.createdAt).toLocaleDateString('it-IT', {
+            {dateTime(offer.createdAt, {
               day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
             })}
           </p>
         </div>
         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_CONFIG[offer.status]?.color ?? ''}`}>
-          {STATUS_CONFIG[offer.status]?.label ?? offer.status}
+          {STATUS_CONFIG[offer.status] ? t(STATUS_CONFIG[offer.status].labelKey) : offer.status}
         </span>
       </div>
 
       {/* Message */}
       {offer.message && (
         <div className="bg-surface-dark rounded-xl p-3">
-          <p className="text-xs font-semibold text-text-secondary mb-1">Messaggio</p>
+          <p className="text-xs font-semibold text-text-secondary mb-1">{t('detail.message')}</p>
           <p className="text-sm text-text">{offer.message}</p>
         </div>
       )}
@@ -292,7 +298,7 @@ function OfferDetail({
       {/* Requested cards */}
       <div>
         <p className="text-xs font-semibold text-text-secondary mb-1.5 uppercase">
-          Carte richieste ({offer.requestedCards.length})
+          {t('detail.requestedCards', { n: offer.requestedCards.length })}
         </p>
         <div className="space-y-1">
           {offer.requestedCards.map((item) => (
@@ -311,7 +317,7 @@ function OfferDetail({
       {offer.offeredCards.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-text-secondary mb-1.5 uppercase">
-            Carte offerte ({offer.offeredCards.length})
+            {t('detail.offeredCards', { n: offer.offeredCards.length })}
           </p>
           <div className="space-y-1">
             {offer.offeredCards.map((item) => (
@@ -329,14 +335,14 @@ function OfferDetail({
 
       {isAccepted && (otherUserPayment?.paypalUsername || otherUserPayment?.satispayUsername || otherUserPayment?.paymentQrCodeUrl) && (
         <div className="bg-surface-dark rounded-xl p-3 space-y-2">
-          <p className="text-xs font-semibold text-text-secondary uppercase">Pagamento</p>
+          <p className="text-xs font-semibold text-text-secondary uppercase">{t('detail.payment')}</p>
           {otherUserPayment?.paypalUsername && (
             <button
               onClick={openPaypal}
               className="w-full py-2.5 rounded-xl text-sm font-medium border border-border bg-white hover:bg-surface-dark transition-colors"
             >
               <ExternalLink size={14} className="inline mr-1" />
-              Paga con PayPal (@{otherUserPayment.paypalUsername})
+              {t('detail.payWithPaypal', { username: otherUserPayment.paypalUsername })}
             </button>
           )}
           {otherUserPayment?.satispayUsername && (
@@ -348,7 +354,7 @@ function OfferDetail({
               className="w-full py-2.5 rounded-xl text-sm font-medium border border-border bg-white hover:bg-surface-dark transition-colors"
             >
               <ExternalLink size={14} className="inline mr-1" />
-              Apri QR pagamento
+              {t('detail.openPaymentQr')}
             </button>
           )}
         </div>
@@ -364,7 +370,7 @@ function OfferDetail({
       {isPending && isReceiver && (
         <div className="space-y-2 pt-2">
           <Button onClick={() => onAction(offer.id, 'accept')} className="w-full" isLoading={loading}>
-            <Check size={16} /> Accetta
+            <Check size={16} /> {t('detail.accept')}
           </Button>
           <div className="flex gap-2">
             <button
@@ -372,7 +378,7 @@ function OfferDetail({
               className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-primary text-primary hover:bg-primary/5 transition-colors"
             >
               <RotateCcw size={14} className="inline mr-1" />
-              Controproposta
+              {t('detail.counterOffer')}
             </button>
             <button
               onClick={() => onAction(offer.id, 'reject')}
@@ -380,7 +386,7 @@ function OfferDetail({
               className="flex-1 py-2.5 rounded-xl text-sm font-medium border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
             >
               <X size={14} className="inline mr-1" />
-              Rifiuta
+              {t('detail.reject')}
             </button>
           </div>
         </div>
@@ -388,7 +394,7 @@ function OfferDetail({
 
       {isPending && isSender && (
         <Button onClick={() => onAction(offer.id, 'cancel')} variant="outline" className="w-full" isLoading={loading}>
-          <X size={16} /> Annulla richiesta
+          <X size={16} /> {t('detail.cancelRequest')}
         </Button>
       )}
 
@@ -403,7 +409,7 @@ function OfferDetail({
         if (myConfirmed) {
           return (
             <div className="p-3 rounded-xl bg-blue-50 border border-blue-100 text-sm text-blue-700 text-center">
-              Hai confermato lo scambio. In attesa della conferma di @{otherUsername}.
+              {t('detail.youConfirmed', { username: otherUsername })}
             </div>
           );
         }
@@ -411,14 +417,14 @@ function OfferDetail({
           <div className="space-y-1.5">
             {otherConfirmed && (
               <p className="text-xs text-center text-text-secondary">
-                @{otherUsername} ha già confermato: conferma anche tu per completare lo scambio.
+                {t('detail.otherConfirmed', { username: otherUsername })}
               </p>
             )}
             <Button onClick={() => onAction(offer.id, 'complete')} className="w-full" isLoading={loading}>
-              <Check size={16} /> Conferma scambio avvenuto
+              <Check size={16} /> {t('detail.confirmCompleted')}
             </Button>
             <p className="text-[10px] text-center text-text-muted">
-              Lo scambio si completa quando confermate entrambi; solo allora le carte passano di collezione.
+              {t('detail.completionInfo')}
             </p>
           </div>
         );
@@ -426,10 +432,10 @@ function OfferDetail({
 
       {isCompleted && (
         alreadyReviewed ? (
-          <p className="text-xs text-center text-text-muted">Hai già recensito questo scambio. Grazie!</p>
+          <p className="text-xs text-center text-text-muted">{t('detail.alreadyReviewed')}</p>
         ) : (
           <Button onClick={() => setShowReview(true)} className="w-full">
-            Lascia una recensione a @{otherName}
+            {t('detail.leaveReview', { username: otherName })}
           </Button>
         )
       )}
@@ -456,7 +462,7 @@ function OfferDetail({
         className="w-full py-2.5 rounded-xl text-sm font-medium border border-border text-text-secondary hover:bg-surface-dark transition-colors flex items-center justify-center gap-1.5 mt-2"
       >
         <MessageSquare size={14} />
-        Chatta con @{isSender ? offer.receiverUsername : offer.senderUsername}
+        {t('detail.chatWith', { username: isSender ? offer.receiverUsername : offer.senderUsername })}
       </button>
     </div>
   );

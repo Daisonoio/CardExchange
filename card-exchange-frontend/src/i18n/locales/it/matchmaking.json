@@ -1,0 +1,43 @@
+{
+  "subtitle": "Trova i migliori scambi vicino a te",
+  "errors": {
+    "noLocation": "Configura la tua posizione nel profilo per usare il matchmaking.",
+    "loadFailed": "Errore durante il caricamento dei match.",
+    "setLocation": "Configura posizione"
+  },
+  "filters": {
+    "radius": "Raggio di ricerca: {{km}} km",
+    "mutualOnly": "Solo scambi reciproci"
+  },
+  "stats": {
+    "found": "Match trovati",
+    "mutual": "Reciproci",
+    "radius": "Raggio"
+  },
+  "loading": "Cerco i migliori scambi...",
+  "empty": {
+    "mutualTitle": "Nessuno scambio reciproco",
+    "title": "Nessun match trovato",
+    "mutualDescription": "Prova a disattivare il filtro reciproci o ad aumentare il raggio",
+    "description": "Aggiungi carte alla collezione e alla wishlist per trovare match. Puoi anche provare ad aumentare il raggio di ricerca.",
+    "showAll": "Mostra tutti i match"
+  },
+  "showMore": "Mostra altri match",
+  "card": {
+    "mutualTrade": "Scambio reciproco",
+    "tradesCompleted_one": "{{count}} scambi",
+    "tradesCompleted_other": "{{count}} scambi",
+    "theyHaveCount_one": "{{count}} carta che cerchi",
+    "theyHaveCount_other": "{{count}} carte che cerchi",
+    "iHaveCount_one": "{{count}} tua carta cercata",
+    "iHaveCount_other": "{{count}} tue carte cercate",
+    "theyHaveTitle": "Carte che cerchi ({{n}})",
+    "iHaveTitle": "Tue carte che cerca ({{n}})",
+    "proposeTrade": "Proponi scambio"
+  },
+  "priority": {
+    "high": "Alta",
+    "medium": "Media",
+    "low": "Bassa"
+  }
+}

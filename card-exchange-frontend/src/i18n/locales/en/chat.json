@@ -1,0 +1,15 @@
+{
+  "title": "Chat",
+  "sendError": "Couldn't send the message",
+  "empty": {
+    "title": "No conversations",
+    "description": "Your chats will appear here once you start messaging other users"
+  },
+  "youPrefix": "You: ",
+  "startConversation": "Start a conversation",
+  "userFallback": "User #{{id}}",
+  "linkedTrade": "Linked to trade #{{id}}",
+  "noMessages": "No messages yet. Write something to start the conversation.",
+  "inputPlaceholder": "Write a message...",
+  "selectConversation": "Select a conversation"
+}

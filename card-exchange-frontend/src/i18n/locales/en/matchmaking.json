@@ -1,0 +1,43 @@
+{
+  "subtitle": "Find the best trades near you",
+  "errors": {
+    "noLocation": "Set your location in your profile to use matchmaking.",
+    "loadFailed": "Couldn't load matches.",
+    "setLocation": "Set location"
+  },
+  "filters": {
+    "radius": "Search radius: {{km}} km",
+    "mutualOnly": "Mutual trades only"
+  },
+  "stats": {
+    "found": "Matches found",
+    "mutual": "Mutual",
+    "radius": "Radius"
+  },
+  "loading": "Finding the best trades...",
+  "empty": {
+    "mutualTitle": "No mutual trades",
+    "title": "No matches found",
+    "mutualDescription": "Try turning off the mutual filter or increasing the radius",
+    "description": "Add cards to your collection and Wishlist to find matches. You can also try increasing the search radius.",
+    "showAll": "Show all matches"
+  },
+  "showMore": "Show more matches",
+  "card": {
+    "mutualTrade": "Mutual trade",
+    "tradesCompleted_one": "{{count}} trade",
+    "tradesCompleted_other": "{{count}} trades",
+    "theyHaveCount_one": "{{count}} card you want",
+    "theyHaveCount_other": "{{count}} cards you want",
+    "iHaveCount_one": "{{count}} of your cards wanted",
+    "iHaveCount_other": "{{count}} of your cards wanted",
+    "theyHaveTitle": "Cards you're looking for ({{n}})",
+    "iHaveTitle": "Your cards they want ({{n}})",
+    "proposeTrade": "Propose trade"
+  },
+  "priority": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  }
+}

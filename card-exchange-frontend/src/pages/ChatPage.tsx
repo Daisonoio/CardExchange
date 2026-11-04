@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, Send, MessageSquare, Loader2, ArrowLeftRight,
 } from 'lucide-react';
@@ -8,10 +9,13 @@ import { messages } from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { ConversationPreview, ChatMessage } from '../types';
 import EmptyState from '../components/ui/EmptyState';
+import { useFormat } from '../i18n/format';
 
 const CHAT_HUB_URL = '/hubs/chat';
 
 export default function ChatPage() {
+  const { t } = useTranslation('chat');
+  const { date, time } = useFormat();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const preselectedUserId = searchParams.get('userId') ? Number(searchParams.get('userId')) : null;
@@ -144,7 +148,7 @@ export default function ChatPage() {
     const showError = (err: any) => {
       // HubException: il messaggio arriva come "... HubException: <testo>"
       const hubMsg = typeof err?.message === 'string' ? err.message.split('HubException: ').pop() : null;
-      setSendError(err?.response?.data?.message || hubMsg || 'Impossibile inviare il messaggio');
+      setSendError(err?.response?.data?.message || hubMsg || t('sendError'));
       setNewMessage(content);
     };
 
@@ -199,7 +203,7 @@ export default function ChatPage() {
       {/* === CONVERSATION LIST (sidebar on desktop, full on mobile when no chat open) === */}
       <div className={`${showingChat ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 md:border-r md:border-border shrink-0`}>
         <div className="p-3 border-b border-border">
-          <h1 className="text-lg font-bold text-text">Chat</h1>
+          <h1 className="text-lg font-bold text-text">{t('title')}</h1>
         </div>
 
         {isLoadingConvs ? (
@@ -210,8 +214,8 @@ export default function ChatPage() {
           <div className="flex-1 flex items-center justify-center p-4">
             <EmptyState
               icon={MessageSquare}
-              title="Nessuna conversazione"
-              description="Le chat appariranno qui quando inizierai a messaggiare con altri utenti"
+              title={t('empty.title')}
+              description={t('empty.description')}
             />
           </div>
         ) : (
@@ -238,7 +242,7 @@ export default function ChatPage() {
                     <span className="text-sm font-semibold truncate">@{conv.otherUser.username}</span>
                     {conv.lastMessage && (
                       <span className="text-[10px] text-text-muted shrink-0">
-                        {new Date(conv.lastMessage.sentAt).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}
+                        {date(conv.lastMessage.sentAt, { day: 'numeric', month: 'short' })}
                       </span>
                     )}
                   </div>
@@ -246,8 +250,8 @@ export default function ChatPage() {
                     {conv.tradeOfferId && <ArrowLeftRight size={10} className="text-primary shrink-0" />}
                     <p className="text-xs text-text-muted truncate">
                       {conv.lastMessage
-                        ? `${conv.lastMessage.isFromMe ? 'Tu: ' : ''}${conv.lastMessage.content}`
-                        : 'Inizia una conversazione'}
+                        ? `${conv.lastMessage.isFromMe ? t('youPrefix') : ''}${conv.lastMessage.content}`
+                        : t('startConversation')}
                     </p>
                     {conv.unreadCount > 0 && (
                       <span className="ml-auto bg-primary text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 shrink-0">
@@ -281,11 +285,11 @@ export default function ChatPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold truncate">
-                  @{activeConv?.otherUser.username || `Utente #${preselectedUserId}`}
+                  @{activeConv?.otherUser.username || t('userFallback', { id: preselectedUserId })}
                 </p>
                 {activeConv?.tradeOfferId && (
                   <p className="text-[10px] text-primary flex items-center gap-1">
-                    <ArrowLeftRight size={10} /> Collegata a scambio #{activeConv.tradeOfferId}
+                    <ArrowLeftRight size={10} /> {t('linkedTrade', { id: activeConv.tradeOfferId })}
                   </p>
                 )}
               </div>
@@ -300,7 +304,7 @@ export default function ChatPage() {
               ) : chatMessages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <p className="text-sm text-text-muted text-center">
-                    Nessun messaggio. Scrivi per iniziare la conversazione.
+                    {t('noMessages')}
                   </p>
                 </div>
               ) : (
@@ -320,7 +324,7 @@ export default function ChatPage() {
                         <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                         <div className={`flex items-center gap-1 mt-0.5 ${msg.isFromMe ? 'justify-end' : ''}`}>
                           <span className={`text-[10px] ${msg.isFromMe ? 'text-white/70' : 'text-text-muted'}`}>
-                            {new Date(msg.sentAt).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
+                            {time(msg.sentAt, { hour: '2-digit', minute: '2-digit' })}
                           </span>
                           {msg.isFromMe && msg.isRead && (
                             <span className="text-[10px] text-white/70">✓✓</span>
@@ -349,7 +353,7 @@ export default function ChatPage() {
                       handleSend();
                     }
                   }}
-                  placeholder="Scrivi un messaggio..."
+                  placeholder={t('inputPlaceholder')}
                   rows={1}
                   className="flex-1 px-4 py-2.5 rounded-2xl border border-border bg-surface-dark text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 max-h-24"
                   style={{ minHeight: '40px' }}
@@ -368,7 +372,7 @@ export default function ChatPage() {
           <div className="hidden md:flex flex-1 items-center justify-center bg-gray-50/30">
             <div className="text-center">
               <MessageSquare size={48} className="mx-auto text-text-muted mb-3" />
-              <p className="text-sm text-text-muted">Seleziona una conversazione</p>
+              <p className="text-sm text-text-muted">{t('selectConversation')}</p>
             </div>
           </div>
         )}

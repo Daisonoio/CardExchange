@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { CalendarClock, CalendarPlus, MapPin, ShieldCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
+import { formatDateTime } from '../../i18n/format';
 import { meetups, stores } from '../../api';
 import type { Store, TradeMeetup } from '../../types';
 import { apiErrorMessage } from '../../utils/apiError';
 import Button from '../ui/Button';
 
 const formatWhen = (iso: string) =>
-  new Date(iso).toLocaleString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+  formatDateTime(iso, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 const capitalizeFirst = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
 const mapUrl = (m: TradeMeetup) =>
@@ -28,7 +31,7 @@ function downloadIcs(m: TradeMeetup, otherUsername: string) {
   const ics = [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//CardExchange//IT', 'BEGIN:VEVENT',
     `UID:meetup-${m.id}@cardexchange`, `DTSTAMP:${stamp(new Date())}`, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`,
-    `SUMMARY:${esc(`Scambio carte con @${otherUsername}`)}`,
+    `SUMMARY:${esc(i18n.t('trades:meetup.icsSummary', { username: otherUsername }))}`,
     `LOCATION:${esc([m.locationName, m.address].filter(Boolean).join(', '))}`,
     ...(m.notes ? [`DESCRIPTION:${esc(m.notes)}`] : []),
     'END:VEVENT', 'END:VCALENDAR',
@@ -43,6 +46,7 @@ function downloadIcs(m: TradeMeetup, otherUsername: string) {
 
 /** Appuntamento di uno scambio accettato: proposta, risposta, annullamento. */
 export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { tradeOfferId: number; userId: number; otherUsername: string }) {
+  const { t } = useTranslation('trades');
   const [list, setList] = useState<TradeMeetup[] | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<{ when: string; locationName: string; address: string; notes: string; latitude?: number; longitude?: number }>(
@@ -73,7 +77,7 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
       await fn();
       await load();
     } catch (err) {
-      setError(apiErrorMessage(err, 'Operazione non riuscita.'));
+      setError(apiErrorMessage(err, t('meetup.actionError')));
     } finally {
       setBusy(false);
     }
@@ -111,10 +115,10 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
     <section className="rounded-2xl border border-border bg-white p-3 space-y-2.5">
       <div className="flex items-center gap-2">
         <CalendarClock size={16} className="text-primary" />
-        <h3 className="text-sm font-semibold flex-1">Appuntamento</h3>
+        <h3 className="text-sm font-semibold flex-1">{t('meetup.title')}</h3>
         {active && (
           <span className={`text-[10px] px-2 py-0.5 rounded-full ${active.status === 'Accepted' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-            {active.status === 'Accepted' ? 'Confermato' : 'In attesa di risposta'}
+            {active.status === 'Accepted' ? t('meetup.confirmed') : t('meetup.awaitingReply')}
           </span>
         )}
       </div>
@@ -127,32 +131,32 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
             {active.notes && <p className="text-xs text-text-muted mt-0.5">{active.notes}</p>}
             {active.status === 'Proposed' && (
               <p className="text-[11px] text-text-muted mt-0.5">
-                Proposto da {active.proposedById === userId ? 'te' : `@${active.proposedByUsername}`}
+                {active.proposedById === userId ? t('meetup.proposedByYou') : t('meetup.proposedBy', { username: active.proposedByUsername })}
               </p>
             )}
           </div>
           <div className="flex flex-wrap gap-3 text-xs font-semibold text-primary">
             <a href={mapUrl(active)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:underline">
-              <MapPin size={13} /> Apri nella mappa
+              <MapPin size={13} /> {t('meetup.openMap')}
             </a>
             {active.status === 'Accepted' && (
               <button type="button" onClick={() => downloadIcs(active, otherUsername)} className="inline-flex items-center gap-1 hover:underline">
-                <CalendarPlus size={13} /> Aggiungi al calendario
+                <CalendarPlus size={13} /> {t('meetup.addToCalendar')}
               </button>
             )}
           </div>
 
           {active.status === 'Proposed' && active.proposedById !== userId ? (
             <div className="grid grid-cols-2 gap-1.5">
-              <Button size="sm" disabled={busy} onClick={() => run(() => meetups.accept(tradeOfferId, active.id))}>Accetta</Button>
-              <Button size="sm" variant="outline" disabled={busy} onClick={() => run(() => meetups.decline(tradeOfferId, active.id))}>Non posso</Button>
+              <Button size="sm" disabled={busy} onClick={() => run(() => meetups.accept(tradeOfferId, active.id))}>{t('meetup.accept')}</Button>
+              <Button size="sm" variant="outline" disabled={busy} onClick={() => run(() => meetups.decline(tradeOfferId, active.id))}>{t('meetup.decline')}</Button>
             </div>
           ) : null}
           {!showForm && (
             <div className="flex gap-3 text-xs">
-              <button type="button" onClick={openForm} className="font-semibold text-primary hover:underline">Proponi un altro orario</button>
+              <button type="button" onClick={openForm} className="font-semibold text-primary hover:underline">{t('meetup.proposeAnother')}</button>
               <button type="button" disabled={busy} onClick={() => run(() => meetups.cancel(tradeOfferId, active.id))} className="text-danger hover:underline">
-                Annulla appuntamento
+                {t('meetup.cancelMeetup')}
               </button>
             </div>
           )}
@@ -162,10 +166,10 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
           <div className="space-y-2">
             <p className="text-xs text-text-secondary">
               {lastDeclined
-                ? `@${lastDeclined.proposedById === userId ? otherUsername : lastDeclined.proposedByUsername} non poteva ${formatWhen(lastDeclined.scheduledAt)}: proponi un altro orario.`
-                : `Accordatevi su quando e dove incontrarvi. Meglio un luogo pubblico, come un negozio di carte.`}
+                ? t('meetup.declinedInfo', { username: lastDeclined.proposedById === userId ? otherUsername : lastDeclined.proposedByUsername, when: formatWhen(lastDeclined.scheduledAt) })
+                : t('meetup.intro')}
             </p>
-            <Button size="sm" className="w-full" onClick={openForm}>Proponi appuntamento</Button>
+            <Button size="sm" className="w-full" onClick={openForm}>{t('meetup.propose')}</Button>
           </div>
         )
       )}
@@ -173,7 +177,7 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
       {showForm && (
         <div className="space-y-2 pt-1">
           <label className="block text-xs font-semibold text-text-secondary">
-            Data e ora
+            {t('meetup.form.when')}
             <input
               type="datetime-local"
               value={form.when}
@@ -185,7 +189,7 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
           {nearbyStores.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-text-secondary mb-1 flex items-center gap-1">
-                <ShieldCheck size={13} className="text-green-600" /> Negozi consigliati per lo scambio
+                <ShieldCheck size={13} className="text-green-600" /> {t('meetup.form.suggestedStores')}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {nearbyStores.map((s) => (
@@ -202,12 +206,12 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
             </div>
           )}
           <label className="block text-xs font-semibold text-text-secondary">
-            Luogo
+            {t('meetup.form.place')}
             <input
               value={form.locationName}
               onChange={(e) => setForm({ ...form, locationName: e.target.value, latitude: undefined, longitude: undefined })}
               maxLength={200}
-              placeholder="Es. Negozio Games Corner"
+              placeholder={t('meetup.form.placePlaceholder')}
               className="mt-1 w-full px-3 py-2 rounded-xl border border-border text-sm"
             />
           </label>
@@ -215,19 +219,19 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
             maxLength={300}
-            placeholder="Indirizzo (facoltativo)"
+            placeholder={t('meetup.form.addressPlaceholder')}
             className="w-full px-3 py-2 rounded-xl border border-border text-sm"
           />
           <input
             value={form.notes}
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
             maxLength={500}
-            placeholder="Note (facoltative), es. 'al bancone'"
+            placeholder={t('meetup.form.notesPlaceholder')}
             className="w-full px-3 py-2 rounded-xl border border-border text-sm"
           />
           <div className="grid grid-cols-2 gap-1.5">
-            <Button size="sm" variant="outline" onClick={() => setShowForm(false)} disabled={busy}>Annulla</Button>
-            <Button size="sm" onClick={submit} isLoading={busy} disabled={!form.when || !form.locationName.trim()}>Invia proposta</Button>
+            <Button size="sm" variant="outline" onClick={() => setShowForm(false)} disabled={busy}>{t('common:actions.cancel')}</Button>
+            <Button size="sm" onClick={submit} isLoading={busy} disabled={!form.when || !form.locationName.trim()}>{t('meetup.form.submit')}</Button>
           </div>
         </div>
       )}

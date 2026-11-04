@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { tradeOffers } from '../../api';
 import { apiErrorMessage } from '../../utils/apiError';
 import BottomSheet from '../ui/BottomSheet';
@@ -6,9 +7,9 @@ import Button from '../ui/Button';
 import StarRating from './StarRating';
 
 const CHECKS = [
-  { key: 'cardAsDescribed', label: 'Carte come descritte' },
-  { key: 'timelyShipping', label: 'Puntuale (appuntamento o spedizione)' },
-  { key: 'goodCommunication', label: 'Comunicazione chiara e cortese' },
+  { key: 'cardAsDescribed', labelKey: 'reviewForm.checks.cardAsDescribed' },
+  { key: 'timelyShipping', labelKey: 'reviewForm.checks.timelyShipping' },
+  { key: 'goodCommunication', labelKey: 'reviewForm.checks.goodCommunication' },
 ] as const;
 
 /** Recensione dell'altro utente dopo uno scambio completato. */
@@ -19,6 +20,7 @@ export default function ReviewFormSheet({ offerId, otherUsername, open, onClose,
   onClose: () => void;
   onSubmitted: () => void;
 }) {
+  const { t } = useTranslation('users');
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [checks, setChecks] = useState({ cardAsDescribed: true, timelyShipping: true, goodCommunication: true });
@@ -35,23 +37,23 @@ export default function ReviewFormSheet({ offerId, otherUsername, open, onClose,
       onSubmitted();
       onClose();
     } catch (err) {
-      setError(apiErrorMessage(err, 'Impossibile salvare la recensione.'));
+      setError(apiErrorMessage(err, t('reviewForm.saveError')));
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <BottomSheet open={open} onClose={onClose} title={`Com'è andata con @${otherUsername}?`}>
+    <BottomSheet open={open} onClose={onClose} title={t('reviewForm.title', { username: otherUsername })}>
       <div className="space-y-4">
         <div className="flex flex-col items-center gap-1">
           <StarRating value={rating} onChange={setRating} size={32} />
-          <p className="text-xs text-text-muted">{rating === 0 ? 'Tocca le stelle per votare' : `${rating} su 5`}</p>
+          <p className="text-xs text-text-muted">{rating === 0 ? t('reviewForm.tapToRate') : t('reviewForm.outOfFive', { rating })}</p>
         </div>
         <div className="space-y-1.5">
-          {CHECKS.map(({ key, label }) => (
+          {CHECKS.map(({ key, labelKey }) => (
             <label key={key} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-dark text-sm">
-              {label}
+              {t(labelKey)}
               <input
                 type="checkbox"
                 className="w-5 h-5 accent-primary"
@@ -66,11 +68,11 @@ export default function ReviewFormSheet({ offerId, otherUsername, open, onClose,
           onChange={(e) => setComment(e.target.value)}
           maxLength={1000}
           rows={3}
-          placeholder="Un commento per gli altri collezionisti (facoltativo)"
+          placeholder={t('reviewForm.commentPlaceholder')}
           className="w-full px-4 py-3 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
         />
         {error && <p className="text-sm text-danger">{error}</p>}
-        <Button className="w-full" onClick={submit} isLoading={busy} disabled={rating === 0}>Pubblica recensione</Button>
+        <Button className="w-full" onClick={submit} isLoading={busy} disabled={rating === 0}>{t('reviewForm.submit')}</Button>
       </div>
     </BottomSheet>
   );

@@ -44,5 +44,13 @@
     "CardsNotAsDescribed": "Carte non conformi",
     "Spam": "Spam",
     "Other": "Altro"
+  },
+  "reportReasonLong": {
+    "1": "Truffa o tentata truffa",
+    "2": "Non si è presentato all'appuntamento",
+    "3": "Comportamento offensivo o molesto",
+    "4": "Carte false o non come descritte",
+    "5": "Spam",
+    "6": "Altro"
   }
 }

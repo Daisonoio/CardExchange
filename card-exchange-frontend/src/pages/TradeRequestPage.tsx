@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowLeftRight, DollarSign, Send, ArrowLeft, Loader2, X, Check, Search, MessageSquare,
 } from 'lucide-react';
@@ -10,10 +11,13 @@ import Button from '../components/ui/Button';
 import TradeBalanceMeter from '../components/trades/TradeBalanceMeter';
 import OfflineDealNotice from '../components/trades/OfflineDealNotice';
 import PriceTag from '../components/cards/PriceTag';
+import { useFormat } from '../i18n/format';
 
 type ProposalMode = 'trade' | 'buy' | 'request';
 
 export default function TradeRequestPage() {
+  const { t } = useTranslation('trades');
+  const { euro } = useFormat();
   const { userId } = useParams<{ userId: string }>();
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
@@ -161,7 +165,7 @@ export default function TradeRequestPage() {
 
   const handleSuggest = async () => {
     if (requestedCards.length === 0) {
-      setSuggestMessage('Scegli prima le carte che vuoi ricevere.');
+      setSuggestMessage(t('request.suggestPickFirst'));
       return;
     }
     setSuggesting(true);
@@ -172,12 +176,12 @@ export default function TradeRequestPage() {
         const byId = new Map(myCards.map((c) => [c.id, c]));
         setOfferedCards(data.offeredCards.map((o) => byId.get(o.cardId)).filter((c): c is Card => !!c));
         setOfferedQty(Object.fromEntries(data.offeredCards.map((o) => [o.cardId, o.quantity])));
-        setSuggestMessage(`Suggerite ${data.offeredCards.length} ${data.offeredCards.length === 1 ? 'carta' : 'carte'} che @${otherUsername || 'l\'utente'} sta cercando, in base ai prezzi indicati. È solo un punto di partenza: cambiala come vuoi.`);
+        setSuggestMessage(t('request.suggestResult', { count: data.offeredCards.length, username: otherUsername ? `@${otherUsername}` : t('request.theUser') }));
       } else {
-        setSuggestMessage(data.message ?? 'Nessuna proposta disponibile.');
+        setSuggestMessage(data.message ?? t('request.suggestNone'));
       }
     } catch {
-      setSuggestMessage('Impossibile calcolare una proposta, riprova.');
+      setSuggestMessage(t('request.suggestError'));
     } finally {
       setSuggesting(false);
     }
@@ -195,19 +199,19 @@ export default function TradeRequestPage() {
       if (mode === 'buy') {
         const price = parseFloat(buyPrice);
         if (!price || price <= 0) {
-          setError('Inserisci un prezzo valido');
+          setError(t('request.invalidPrice'));
           setIsSending(false);
           return;
         }
-        finalMessage = `[PROPOSTA ACQUISTO: €${price.toFixed(2)}]${message ? ` — ${message}` : ''}`;
+        finalMessage = `${t('request.buyProposalTag', { price: price.toFixed(2) })}${message ? ` — ${message}` : ''}`;
       }
 
       if (mode === 'request' && !finalMessage) {
-        finalMessage = 'Richiesta carte senza proposta specifica';
+        finalMessage = t('request.defaultRequestMessage');
       }
 
       if (mode === 'trade' && offeredCards.length === 0) {
-        setError('Seleziona almeno una carta da offrire per lo scambio');
+        setError(t('request.selectOffered'));
         setIsSending(false);
         return;
       }
@@ -246,7 +250,7 @@ export default function TradeRequestPage() {
       setCreatedOfferId((createdOffer as any)?.id ?? null);
       setSuccess(true);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Errore durante l\'invio della richiesta';
+      const msg = err?.response?.data?.message || t('request.sendError');
       setError(msg);
     } finally {
       setIsSending(false);
@@ -269,19 +273,19 @@ export default function TradeRequestPage() {
         <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
           <Check size={32} className="text-green-600" />
         </div>
-        <h2 className="text-xl font-bold text-text mb-2">{counterOfferId ? 'Contro-offerta inviata!' : 'Richiesta inviata!'}</h2>
+        <h2 className="text-xl font-bold text-text mb-2">{counterOfferId ? t('request.success.counterSent') : t('request.success.requestSent')}</h2>
         <p className="text-sm text-text-secondary mb-8 text-center">
-          La proposta è stata inviata a{' '}
-          <span className="font-semibold">@{otherUsername || `utente #${receiverId}`}</span>
+          {t('request.success.sentTo')}{' '}
+          <span className="font-semibold">@{otherUsername || t('request.userFallback', { id: receiverId })}</span>
         </p>
         <div className="flex flex-col gap-3 w-full max-w-xs">
           <Button onClick={() => navigate(chatUrl)} className="w-full" size="lg">
             <MessageSquare size={16} />
-            Chatta con @{otherUsername || `utente #${receiverId}`}
+            {t('request.success.chatWith', { username: otherUsername || t('request.userFallback', { id: receiverId }) })}
           </Button>
           <Button onClick={() => navigate('/trades')} variant="outline" className="w-full" size="lg">
             <ArrowLeftRight size={16} />
-            Vai agli Scambi
+            {t('request.success.goToTrades')}
           </Button>
         </div>
       </div>
@@ -304,19 +308,19 @@ export default function TradeRequestPage() {
           <ArrowLeft size={20} />
         </button>
         <div>
-          <h1 className="text-xl font-bold text-text">{counterOfferId ? 'Contro-offerta' : 'Nuova Richiesta'}</h1>
-          <p className="text-sm text-text-secondary">a @{otherUsername || `utente #${receiverId}`}</p>
+          <h1 className="text-xl font-bold text-text">{counterOfferId ? t('request.counterTitle') : t('request.newTitle')}</h1>
+          <p className="text-sm text-text-secondary">{t('request.toUser', { username: otherUsername || t('request.userFallback', { id: receiverId }) })}</p>
         </div>
       </div>
 
       {/* Selected cards I want */}
       <section className="mb-5">
         <h2 className="text-sm font-semibold text-text-secondary mb-2 uppercase tracking-wide">
-          Carte richieste ({requestedCards.length})
+          {t('request.requestedCards', { n: requestedCards.length })}
         </h2>
         {requestedCards.length === 0 ? (
           <p className="text-xs text-text-muted bg-surface-dark rounded-xl p-4 text-center">
-            Nessuna carta selezionata. Aggiungi carte dalla collezione qui sotto.
+            {t('request.noneSelected')}
           </p>
         ) : (
           <div className="space-y-1.5">
@@ -330,13 +334,13 @@ export default function TradeRequestPage() {
       {/* Proposal mode */}
       <section className="mb-5">
         <h2 className="text-sm font-semibold text-text-secondary mb-2 uppercase tracking-wide">
-          Tipo di proposta
+          {t('request.proposalType')}
         </h2>
         <div className="flex gap-2">
           {([
-            { key: 'trade' as const, icon: ArrowLeftRight, label: 'Scambio' },
-            { key: 'buy' as const, icon: DollarSign, label: 'Acquisto' },
-            { key: 'request' as const, icon: Send, label: 'Richiesta' },
+            { key: 'trade' as const, icon: ArrowLeftRight, label: t('request.modes.trade') },
+            { key: 'buy' as const, icon: DollarSign, label: t('request.modes.buy') },
+            { key: 'request' as const, icon: Send, label: t('request.modes.request') },
           ]).map(({ key, icon: Icon, label }) => (
             <button
               key={key}
@@ -368,7 +372,7 @@ export default function TradeRequestPage() {
       {mode === 'trade' && (
         <section className="mb-5">
           <h2 className="text-sm font-semibold text-text-secondary mb-2 uppercase tracking-wide">
-            Carte che offri ({offeredCards.length})
+            {t('request.offeredCards', { n: offeredCards.length })}
           </h2>
 
           {/* Matching cards (cards I have that they want) */}
@@ -376,7 +380,7 @@ export default function TradeRequestPage() {
             <div className="mb-3">
               <p className="text-xs text-green-600 font-medium mb-1.5 flex items-center gap-1">
                 <Check size={12} />
-                Carte che @{otherUsername} sta cercando
+                {t('request.theyAreLooking', { username: otherUsername })}
               </p>
               <div className="space-y-1">
                 {matchingCards.map((card) => {
@@ -400,7 +404,7 @@ export default function TradeRequestPage() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
-              placeholder="Cerca nelle tue carte..."
+              placeholder={t('request.searchMyCards')}
               value={searchMyCards}
               onChange={(e) => setSearchMyCards(e.target.value)}
               className="w-full pl-8 pr-4 py-2 rounded-xl border border-border bg-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -408,7 +412,7 @@ export default function TradeRequestPage() {
           </div>
           <div className="max-h-52 overflow-y-auto space-y-1 border border-border/50 rounded-xl p-2 bg-surface-dark">
             {filteredMyCards.length === 0 ? (
-              <p className="text-xs text-text-muted text-center py-3">Nessuna carta disponibile</p>
+              <p className="text-xs text-text-muted text-center py-3">{t('request.noCardsAvailable')}</p>
             ) : (
               filteredMyCards.slice(0, 30).map((card) => {
                 const isSelected = offeredCards.find((c) => c.id === card.id);
@@ -448,7 +452,7 @@ export default function TradeRequestPage() {
       {mode === 'buy' && (
         <section className="mb-5">
           <h2 className="text-sm font-semibold text-text-secondary mb-2 uppercase tracking-wide">
-            Offerta di acquisto
+            {t('request.buyOffer')}
           </h2>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted font-semibold">€</span>
@@ -464,7 +468,7 @@ export default function TradeRequestPage() {
           </div>
           {evaluation && evaluation.requestedTotal > 0 && (
             <p className="text-xs text-text-muted mt-1">
-              Valore di mercato stimato: €{evaluation.requestedTotal.toFixed(2)}
+              {t('request.estimatedMarketValue', { value: euro(evaluation.requestedTotal) })}
             </p>
           )}
         </section>
@@ -474,8 +478,7 @@ export default function TradeRequestPage() {
       {mode === 'request' && (
         <section className="mb-5">
           <div className="bg-blue-50 rounded-xl p-3 text-sm text-blue-700">
-            Invierai una richiesta senza una proposta specifica. L'altro utente potrà rispondere
-            con una controproposta o accettare di contattarti.
+            {t('request.requestInfo')}
           </div>
         </section>
       )}
@@ -483,12 +486,12 @@ export default function TradeRequestPage() {
       {/* Message */}
       <section className="mb-5">
         <h2 className="text-sm font-semibold text-text-secondary mb-2 uppercase tracking-wide">
-          Messaggio (opzionale)
+          {t('request.messageOptional')}
         </h2>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Aggiungi un messaggio alla tua richiesta..."
+          placeholder={t('request.messagePlaceholder')}
           rows={3}
           maxLength={1000}
           className="w-full px-4 py-3 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
@@ -513,9 +516,9 @@ export default function TradeRequestPage() {
           isLoading={isSending}
           disabled={requestedCards.length === 0}
         >
-          {mode === 'trade' && <><ArrowLeftRight size={16} /> Proponi scambio</>}
-          {mode === 'buy' && <><DollarSign size={16} /> Proponi acquisto</>}
-          {mode === 'request' && <><Send size={16} /> Invia richiesta</>}
+          {mode === 'trade' && <><ArrowLeftRight size={16} /> {t('request.submit.trade')}</>}
+          {mode === 'buy' && <><DollarSign size={16} /> {t('request.submit.buy')}</>}
+          {mode === 'request' && <><Send size={16} /> {t('request.submit.request')}</>}
         </Button>
       </div>
     </div>
@@ -533,6 +536,7 @@ function MiniCard({ card, onRemove, offered, price, quantity, onQuantityChange }
   quantity?: number;
   onQuantityChange?: (q: number) => void;
 }) {
+  const { t } = useTranslation('trades');
   return (
     <div className={`flex items-center gap-2.5 p-2 rounded-xl border ${offered ? 'border-amber-200 bg-amber-50/50' : 'border-border/50 bg-white'}`}>
       {/* {image ? (
@@ -541,13 +545,13 @@ function MiniCard({ card, onRemove, offered, price, quantity, onQuantityChange }
         <div className="w-9 h-12 rounded-md bg-gray-200 shrink-0" />
       )} */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold truncate">{card.cardName || 'Carta'}</p>
+        <p className="text-sm font-semibold truncate">{card.cardName || t('request.cardFallback')}</p>
         <p className="text-xs text-text-secondary truncate">{card.cardSetName}</p>
         <PriceTag askingPrice={price?.asking ?? card.askingPrice} marketValue={price?.market ?? card.marketValue ?? card.estimatedValue} />
-        {quantity != null && quantity > 1 && <span className="text-[10px] text-text-muted"> cad.</span>}
+        {quantity != null && quantity > 1 && <span className="text-[10px] text-text-muted"> {t('request.each')}</span>}
       </div>
       {onQuantityChange && quantity != null && (
-        <div className="flex items-center gap-1 shrink-0" aria-label="Quantità offerta">
+        <div className="flex items-center gap-1 shrink-0" aria-label={t('request.offeredQuantity')}>
           <button type="button" onClick={() => onQuantityChange(quantity - 1)} className="w-6 h-6 rounded-lg border border-border text-xs">-</button>
           <span className="w-5 text-center text-xs font-semibold">{quantity}</span>
           <button type="button" onClick={() => onQuantityChange(quantity + 1)} className="w-6 h-6 rounded-lg border border-border text-xs">+</button>
@@ -563,6 +567,7 @@ function MiniCard({ card, onRemove, offered, price, quantity, onQuantityChange }
 function MiniCardToggle({ card, selected, onToggle, highlight }: {
   card: Card; selected: boolean; onToggle: () => void; highlight?: boolean;
 }) {
+  const { t } = useTranslation('trades');
   const image = card.imageSmall || card.imageNormal || '';
   return (
     <button
@@ -577,7 +582,7 @@ function MiniCardToggle({ card, selected, onToggle, highlight }: {
         <div className="w-7 h-10 rounded bg-gray-200 shrink-0" />
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold truncate">{card.cardName || 'Carta'}</p>
+        <p className="text-xs font-semibold truncate">{card.cardName || t('request.cardFallback')}</p>
         <p className="text-[10px] text-text-muted truncate">
           {card.cardSetName}
         </p>

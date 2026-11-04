@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useFormat } from '../../i18n/format';
 import { safety } from '../../api';
 import BottomSheet from '../ui/BottomSheet';
 
 /** Elenco degli utenti bloccati, con sblocco. */
 export default function BlockedUsersSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation('users');
+  const { date } = useFormat();
   const [items, setItems] = useState<{ userId: number; username: string; blockedAt: string }[] | null>(null);
 
   useEffect(() => {
@@ -25,20 +29,20 @@ export default function BlockedUsersSheet({ open, onClose }: { open: boolean; on
   };
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="Utenti bloccati">
+    <BottomSheet open={open} onClose={onClose} title={t('blocked.title')}>
       {loading ? (
         <div className="flex justify-center py-8"><Loader2 className="animate-spin text-primary" /></div>
       ) : !items || items.length === 0 ? (
-        <p className="text-sm text-text-muted text-center py-8">Non hai bloccato nessuno.</p>
+        <p className="text-sm text-text-muted text-center py-8">{t('blocked.empty')}</p>
       ) : (
         <ul className="space-y-1.5">
           {items.map((i) => (
             <li key={i.userId} className="flex items-center justify-between p-3 rounded-xl border border-border">
               <div>
                 <p className="text-sm font-semibold">@{i.username}</p>
-                <p className="text-[10px] text-text-muted">dal {new Date(i.blockedAt).toLocaleDateString('it-IT')}</p>
+                <p className="text-[10px] text-text-muted">{t('blocked.since', { date: date(i.blockedAt, {}) })}</p>
               </div>
-              <button type="button" onClick={() => unblock(i.userId)} className="text-xs font-semibold text-primary hover:underline">Sblocca</button>
+              <button type="button" onClick={() => unblock(i.userId)} className="text-xs font-semibold text-primary hover:underline">{t('blocked.unblock')}</button>
             </li>
           ))}
         </ul>
