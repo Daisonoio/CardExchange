@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
-import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation, Map, Settings, SlidersHorizontal } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation, Map, Settings, SlidersHorizontal, ChevronRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cards, users, favorites } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -414,7 +414,12 @@ export default function ExplorePage() {
                 {t('users.count', { count: nearbyUsers.length, radius: effectiveRadius })}
               </p>
               {nearbyUsers.map((user) => (
-                <div key={user.id} className="bg-white rounded-2xl p-4 shadow-sm border border-border/50">
+                <Link
+                  key={user.id}
+                  to={`/collection/${user.id}`}
+                  aria-label={t('users.openCollection', { username: user.username })}
+                  className="block bg-white rounded-2xl p-4 shadow-sm border border-border/50 hover:border-primary/30 hover:shadow-md active:scale-[0.99] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       {user.avatarUrl ? (
@@ -439,8 +444,9 @@ export default function ExplorePage() {
                         </span>
                       </div>
                     </div>
+                    <ChevronRight size={18} className="text-text-muted shrink-0" aria-hidden="true" />
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}

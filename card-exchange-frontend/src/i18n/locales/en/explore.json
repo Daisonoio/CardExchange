@@ -41,6 +41,7 @@
     "count_one": "{{count}} user within {{radius}} km",
     "count_other": "{{count}} users within {{radius}} km",
     "trades_one": "{{count}} trade",
-    "trades_other": "{{count}} trades"
+    "trades_other": "{{count}} trades",
+    "openCollection": "Open @{{username}}'s collection"
   }
 }
