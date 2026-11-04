@@ -11,7 +11,9 @@ export function usePolling(
   { enabled, intervalMs, onVisibilityChange = true }: UsePollingOptions
 ) {
   const savedCallback = useRef(callback);
-  savedCallback.current = callback;
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback]);
 
   const poll = useCallback(() => {
     savedCallback.current();

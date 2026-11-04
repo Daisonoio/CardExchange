@@ -9,7 +9,9 @@ export function useSignalR(
 ) {
   const connectionRef = useRef<HubConnection | null>(null);
   const onNotificationRef = useRef(onNotification);
-  onNotificationRef.current = onNotification;
+  useEffect(() => {
+    onNotificationRef.current = onNotification;
+  }, [onNotification]);
 
   const getToken = useCallback(() => {
     return localStorage.getItem('token') || '';

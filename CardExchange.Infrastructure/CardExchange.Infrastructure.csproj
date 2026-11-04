@@ -12,6 +12,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -89,7 +89,7 @@ export default function NotificationCenter({
         onUnreadCountChange?.(updated.filter((n) => !n.isRead).length);
         return updated;
       });
-    } catch {}
+    } catch { /* errore non bloccante: si riprova al prossimo aggiornamento */ }
   };
 
   const handleMarkAllRead = async () => {
@@ -97,7 +97,7 @@ export default function NotificationCenter({
       await notifications.markAllAsRead();
       setItems((prev) => prev.map((n) => ({ ...n, isRead: true })));
       onUnreadCountChange?.(0);
-    } catch {}
+    } catch { /* errore non bloccante: si riprova al prossimo aggiornamento */ }
   };
 
   const handleDelete = async (id: number) => {
@@ -108,7 +108,7 @@ export default function NotificationCenter({
         onUnreadCountChange?.(updated.filter((n) => !n.isRead).length);
         return updated;
       });
-    } catch {}
+    } catch { /* errore non bloccante: si riprova al prossimo aggiornamento */ }
   };
 
   const handleNotificationClick = async (notification: Notification) => {

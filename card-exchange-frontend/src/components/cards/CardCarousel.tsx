@@ -34,7 +34,13 @@ const SWIPE_DISTANCE = 42;
 const SWIPE_VELOCITY = 0.28;
 const SNAP_BACK_MS = 420;
 
-export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) {
+/** Nessun hook prima del controllo: con 0 carte non si monta il carosello (prima React andava in errore). */
+export default function CardCarousel(props: CardCarouselProps) {
+  if (props.cards.length === 0) return null;
+  return <Carousel {...props} />;
+}
+
+function Carousel({ cards, onCardClick }: CardCarouselProps) {
   const [current, setCurrent] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSnapBack, setIsSnapBack] = useState(false);
@@ -46,10 +52,11 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
   const dragStartY = useRef(0);
   const dragStartTime = useRef(0);
   const sliderRef = useRef<HTMLDivElement>(null);
+  // Larghezza letta all'inizio del trascinamento (non durante il render)
+  const [containerW, setContainerW] = useState(400);
   const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const total = cards.length;
-  if (total === 0) return null;
 
   /* ---- navigate ---- */
   const goTo = useCallback(
@@ -105,7 +112,8 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
     setIsDragging(true);
     dragStartX.current = e.clientX;
     dragStartY.current = e.clientY;
-    dragStartTime.current = Date.now();
+    dragStartTime.current = e.timeStamp;
+    setContainerW(sliderRef.current?.offsetWidth || 400);
     setDragX(0);
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
@@ -121,7 +129,7 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
     const dx = e.clientX - dragStartX.current;
     const dy = e.clientY - dragStartY.current;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const dt = Date.now() - dragStartTime.current;
+    const dt = e.timeStamp - dragStartTime.current;
     const vel = Math.abs(dx) / dt;
 
     if (Math.abs(dx) > SWIPE_DISTANCE || vel > SWIPE_VELOCITY) {
@@ -151,7 +159,6 @@ export default function CardCarousel({ cards, onCardClick }: CardCarouselProps) 
   };
 
   /* ---- card styles ---- */
-  const containerW = sliderRef.current?.offsetWidth || 400;
   const dragFrac = isDragging ? dragX / containerW : 0;
 
   const getCardStyle = (index: number): React.CSSProperties => {

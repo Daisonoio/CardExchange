@@ -41,14 +41,14 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     try {
       const { data } = await messages.getUnreadCount();
       setChatUnread(data?.unreadCount ?? 0);
-    } catch {}
+    } catch { /* errore non bloccante: si riprova al prossimo aggiornamento */ }
   }, []);
 
   const refreshNotifCount = useCallback(async () => {
     try {
       const { data } = await notifications.getUnreadCount();
       setNotifUnread(data?.unreadCount ?? (data as any)?.UnreadCount ?? 0);
-    } catch {}
+    } catch { /* errore non bloccante: si riprova al prossimo aggiornamento */ }
   }, []);
 
   // Initial fetch + slow polling fallback

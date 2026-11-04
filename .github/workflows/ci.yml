@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (.NET build e test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+      # La soluzione contiene anche il frontend come progetto "sito web" di Visual Studio,
+      # che dotnet CLI non compila: si costruisce il progetto di test, che include tutti gli altri.
+      - name: Restore
+        run: dotnet restore CardExchange.Tests/CardExchange.Tests.csproj
+      - name: Build
+        run: dotnet build CardExchange.Tests/CardExchange.Tests.csproj -c Release --no-restore
+      - name: Test
+        run: dotnet test CardExchange.Tests/CardExchange.Tests.csproj -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+      - name: Pacchetti con vulnerabilità note
+        run: |
+          dotnet list CardExchange.API/CardExchange.API.csproj package --vulnerable --include-transitive | tee vuln.txt
+          if grep -q -E "\b(High|Critical)\b" vuln.txt; then echo "::error::Pacchetti NuGet con vulnerabilità alte o critiche"; exit 1; fi
+      - name: Risultati dei test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: "**/TestResults/*.trx"
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend (typecheck, lint, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: card-exchange-frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: card-exchange-frontend/package-lock.json
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck e build
+        run: npm run build
+      - name: Dipendenze con vulnerabilità alte o critiche
+        run: npm audit --omit=dev --audit-level=high
+
+  docker:
+    name: Immagine Docker dell'API
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build (senza pubblicare)
+        run: docker build -t cardexchange-api:ci .

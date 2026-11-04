@@ -41,6 +41,7 @@ export default function NotificationPreferences({ open, onClose }: NotificationP
       );
       onClose();
     } catch {
+      // errore non bloccante: resta lo stato precedente
     } finally {
       setIsSaving(false);
     }

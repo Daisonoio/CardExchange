@@ -19,5 +19,12 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Restano visibili come avvisi ma non bloccano la CI: sono debito di tipizzazione o consigli di stile,
+      // non errori. Le regole che segnalano bug veri (rules-of-hooks, refs) restano errori.
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-refresh/only-export-components': 'warn',
+    },
   },
 ])

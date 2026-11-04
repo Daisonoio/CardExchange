@@ -74,7 +74,7 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
 
   const handleDelete = async () => {
     if (!item) return;
-    if (!confirm(`Rimuovere \"${item.cardName || item.cardInfo?.name || 'questa carta'}\" dalla ricerca?`)) return;
+    if (!confirm(`Rimuovere "${item.cardName || item.cardInfo?.name || 'questa carta'}" dalla ricerca?`)) return;
     setIsDeleting(true);
     try {
       await wishlist.delete(item.id);
