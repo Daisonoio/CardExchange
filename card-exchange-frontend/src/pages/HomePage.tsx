@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Navigation, Loader2, Settings, Sparkles } from 'lucide-react';
+import { MapPin, Navigation, Loader2, Settings, Sparkles, X } from 'lucide-react';
 import { wishlist } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
@@ -16,7 +16,7 @@ import EmptyState from '../components/ui/EmptyState';
 export default function HomePage() {
   const { t } = useTranslation('home');
   const { user } = useAuth();
-  const { selectedGameId } = useGame();
+  const { selectedGameId, selectedGame, setSelectedGameId } = useGame();
   // Stesso raggio di Esplora e Matchmaking
   const [radiusKm] = useSearchRadius();
   const navigate = useNavigate();
@@ -72,10 +72,34 @@ export default function HomePage() {
 
   const showLocationPrompt = !hasProfileLocation && !position && !isLoading;
 
+  // Cosa sta filtrando la Home: va detto chiaramente, altrimenti sembra che manchino carte
+  const filterBar = (
+    <div className="flex flex-wrap items-center gap-2 mb-3 text-xs">
+      <span className="text-text-muted">{t('nearby.scope', { km: radiusKm })}</span>
+      {selectedGame && (
+        <button
+          type="button"
+          onClick={() => setSelectedGameId(null)}
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary font-semibold hover:bg-primary/15"
+          aria-label={t('nearby.clearGame', { game: selectedGame.name })}
+        >
+          {t('nearby.onlyGame', { game: selectedGame.name })} <X size={12} aria-hidden="true" />
+        </button>
+      )}
+      <button type="button" onClick={() => navigate('/explore')} className="text-primary font-semibold hover:underline">
+        {t('nearby.changeRadius')}
+      </button>
+    </div>
+  );
+
   return (
-    <div>
-      {/* Dove sono ora i profili che segui ("Sono qui") */}
-      <LiveStrip coords={hasProfileLocation ? null : position} />
+    // Su schermi larghi "Live ora" sta in una colonna a destra: il carosello resta tutto nella finestra
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-6 lg:items-start">
+      <aside className="lg:order-2 lg:sticky lg:top-32">
+        {/* Dove sono ora i profili che segui ("Sono qui") */}
+        <LiveStrip coords={hasProfileLocation ? null : position} />
+      </aside>
+      <div className="lg:order-1 min-w-0">
 
       {/* Location prompt */}
       {showLocationPrompt && (
@@ -114,6 +138,7 @@ export default function HomePage() {
             <h2 className="text-base font-bold text-text">{t('nearby.title')}</h2>
             <span className="text-xs text-text-muted">{t('nearby.results', { count: topCards.length })}</span>
           </div>
+          {filterBar}
           <div className="w-full -mx-4" style={{ width: 'calc(100% + 2rem)' }}>
             <CardCarousel cards={topCards} onCardClick={handleCardClick} />
           </div>
@@ -125,9 +150,14 @@ export default function HomePage() {
         <EmptyState
           icon={Sparkles}
           title={t('empty.title')}
-          description={t('empty.description')}
+          description={selectedGame ? t('empty.descriptionGame', { game: selectedGame.name, km: radiusKm }) : t('empty.description')}
           action={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap justify-center gap-2">
+              {selectedGame && (
+                <Button onClick={() => setSelectedGameId(null)} size="sm">
+                  {t('nearby.allGames')}
+                </Button>
+              )}
               <Button onClick={() => navigate('/wishlist')} size="sm" variant="outline">
                 Wishlist
               </Button>
@@ -138,6 +168,7 @@ export default function HomePage() {
           }
         />
       )}
+      </div>
     </div>
   );
 }

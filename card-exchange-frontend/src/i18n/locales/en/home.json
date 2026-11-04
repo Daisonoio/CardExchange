@@ -8,10 +8,16 @@
   "nearby": {
     "title": "Nearby",
     "results_one": "{{count}} result",
-    "results_other": "{{count}} results"
+    "results_other": "{{count}} results",
+    "scope": "Cards from your wishlist within {{km}} km",
+    "onlyGame": "Only {{game}}",
+    "clearGame": "Remove the {{game}} filter and show all games",
+    "allGames": "Show all games",
+    "changeRadius": "Change radius"
   },
   "empty": {
     "title": "No cards found",
-    "description": "None of the cards on your wishlist are available within your search radius. Try adding cards to your wishlist or increasing the radius."
+    "description": "None of the cards on your wishlist are available within your search radius. Try adding cards to your wishlist or increasing the radius.",
+    "descriptionGame": "No {{game}} cards from your wishlist within {{km}} km. Try showing all games or increasing the radius."
   }
 }

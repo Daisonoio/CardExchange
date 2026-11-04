@@ -8,10 +8,16 @@
   "nearby": {
     "title": "Nelle vicinanze",
     "results_one": "{{count}} risultato",
-    "results_other": "{{count}} risultati"
+    "results_other": "{{count}} risultati",
+    "scope": "Carte della tua wishlist entro {{km}} km",
+    "onlyGame": "Solo {{game}}",
+    "clearGame": "Togli il filtro {{game}} e mostra tutti i giochi",
+    "allGames": "Mostra tutti i giochi",
+    "changeRadius": "Cambia raggio"
   },
   "empty": {
     "title": "Nessuna carta trovata",
-    "description": "Non ci sono carte dalla tua wishlist disponibili nel raggio di ricerca. Prova ad aggiungere carte alla wishlist o ad aumentare il raggio."
+    "description": "Non ci sono carte dalla tua wishlist disponibili nel raggio di ricerca. Prova ad aggiungere carte alla wishlist o ad aumentare il raggio.",
+    "descriptionGame": "Nessuna carta {{game}} della tua wishlist entro {{km}} km. Prova a mostrare tutti i giochi o ad aumentare il raggio."
   }
 }

@@ -219,7 +219,7 @@ function Carousel({ cards, onCardClick }: CardCarouselProps) {
   const renderRange = 3;
 
   return (
-    <div className="w-full select-none [--carousel-card-h:min(72.5vw,350px)] md:[--carousel-card-h:min(350px,37dvh)]">
+    <div className="w-full select-none [--carousel-card-h:min(72.5vw,350px)] md:[--carousel-card-h:min(350px,33dvh)]">
       <style>{`
         @keyframes cardCarouselBreath {
           0%, 100% { box-shadow: 0 30px 56px rgba(15, 23, 42, 0.28), 0 12px 20px rgba(15, 23, 42, 0.2); }
@@ -268,6 +268,7 @@ function Carousel({ cards, onCardClick }: CardCarouselProps) {
                       className="absolute inset-0 w-full h-full object-cover"
                       draggable={false}
                       loading={Math.abs(i - current) <= 1 ? 'eager' : 'lazy'}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
                     />
                   )}
 
