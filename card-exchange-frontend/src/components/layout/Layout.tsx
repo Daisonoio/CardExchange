@@ -1,4 +1,4 @@
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import TopBar from './TopBar';
 import BottomNav from './BottomNav';
@@ -9,6 +9,9 @@ import AgeGate from './AgeGate';
 
 export default function Layout() {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const { pathname } = useLocation();
+  // Pagine a schermo intero (chat): occupano esattamente lo spazio tra le barre, senza scorrere la pagina
+  const fullHeight = pathname.startsWith('/chat');
 
   if (isLoading) {
     return (
@@ -28,7 +31,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className={`flex flex-col ${fullHeight ? 'h-[100dvh] overflow-hidden' : 'min-h-screen'}`}>
       {/* Sfondo decorativo dell'app: i due cerchi del marchio, fissi e dietro a tutto */}
       <div aria-hidden="true" className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {/* Sotto la barra in alto e i filtri dei giochi, così si vedono interi */}
@@ -39,12 +42,22 @@ export default function Layout() {
       <TopBar />
       {/* Mobile top bar with hamburger */}
       <MobileHeader />
-      <GameSelector />
-      <main className="flex-1 pb-28 md:pb-4 pt-14 md:pt-0">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <Outlet />
-        </div>
-      </main>
+      {/* Il filtro dei giochi non serve nella chat */}
+      {!fullHeight && <GameSelector />}
+      {fullHeight ? (
+        // Il fondo lascia spazio alla barra in basso e al cerchio della Home che sporge sopra
+        <main className="flex-1 min-h-0 flex flex-col pt-14 md:pt-0 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-4">
+          <div className="flex-1 min-h-0 flex flex-col w-full max-w-2xl md:max-w-4xl mx-auto px-3 py-3 md:px-4">
+            <Outlet />
+          </div>
+        </main>
+      ) : (
+        <main className="flex-1 pb-28 md:pb-4 pt-14 md:pt-0">
+          <div className="max-w-2xl mx-auto px-4 py-4">
+            <Outlet />
+          </div>
+        </main>
+      )}
       <BottomNav />
       {/* Avviso flottante: non occupa spazio nella pagina */}
       <VerifyEmailBanner />

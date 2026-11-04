@@ -276,9 +276,9 @@ export default function ChatPage() {
   const showingChat = !!activeConvId || (!!preselectedUserId && !activeConvId);
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-10.5rem)] md:flex-row md:gap-0 md:h-[calc(100vh-8rem)]">
+    <div className="flex-1 min-h-0 flex flex-col md:flex-row bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
       {/* === CONVERSATION LIST (sidebar on desktop, full on mobile when no chat open) === */}
-      <div className={`${showingChat ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 md:border-r md:border-border shrink-0`}>
+      <div className={`${showingChat ? 'hidden md:flex' : 'flex'} flex-col min-h-0 flex-1 md:flex-none w-full md:w-72 md:border-r md:border-border`}>
         <div className="p-3 border-b border-border">
           <h1 className="text-lg font-bold text-text">{t('title')}</h1>
         </div>
@@ -344,7 +344,7 @@ export default function ChatPage() {
       </div>
 
       {/* === CHAT AREA === */}
-      <div className={`${showingChat ? 'flex' : 'hidden md:flex'} flex-col flex-1 min-w-0`}>
+      <div className={`${showingChat ? 'flex' : 'hidden md:flex'} flex-col flex-1 min-w-0 min-h-0`}>
         {/* Chat header */}
         {(activeConv || preselectedUserId) ? (
           <>
