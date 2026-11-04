@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -40,6 +40,76 @@ export default function ChatPage() {
     return localStorage.getItem('token') || '';
   }, []);
 
+  // Conversazione aperta letta dai gestori SignalR (registrati una volta sola: evita valori obsoleti)
+  const activeConvIdRef = useRef<number | null>(null);
+  const conversationsRef = useRef<ConversationPreview[]>([]);
+  useLayoutEffect(() => {
+    activeConvIdRef.current = activeConvId;
+    conversationsRef.current = conversations;
+  }, [activeConvId, conversations]);
+
+  const reloadConversations = useCallback(async () => {
+    try {
+      const { data } = await messages.getConversations();
+      const list = Array.isArray(data) ? data : (data as any)?.conversations ?? [];
+      setConversations(list);
+      return list as ConversationPreview[];
+    } catch (err) {
+      console.error('Errore caricamento conversazioni:', err);
+      return null;
+    }
+  }, []);
+
+  /** Aggiunge un messaggio alla chat aperta (se è di quella conversazione) e aggiorna l'anteprima nella lista. */
+  const applyIncomingMessage = useCallback((msg: any) => {
+    if (!user || !msg) return;
+    const isFromMe = msg.senderId === user.id;
+    const chatMsg: ChatMessage = {
+      id: msg.id, senderId: msg.senderId, senderUsername: msg.senderUsername,
+      content: msg.content, isRead: msg.isRead ?? false,
+      sentAt: msg.sentAt, isFromMe,
+    };
+    const isActive = msg.conversationId === activeConvIdRef.current;
+    if (isActive) {
+      setChatMessages((prev) => (prev.some((m) => m.id === chatMsg.id) ? prev : [...prev, chatMsg]));
+      if (!isFromMe) hubRef.current?.invoke('MarkAsRead', msg.conversationId).catch(() => {});
+    }
+
+    const known = conversationsRef.current.some((c) => c.conversationId === msg.conversationId);
+    setConversations((prev) => {
+      if (!prev.some((c) => c.conversationId === msg.conversationId)) return prev;
+      const updated = prev.map((c) =>
+        c.conversationId === msg.conversationId
+          ? { ...c, lastMessage: { content: msg.content, sentAt: msg.sentAt, isFromMe } }
+          : c
+      );
+      // La conversazione più recente sale in cima
+      return [...updated].sort((a, b) =>
+        (b.conversationId === msg.conversationId ? 1 : 0) - (a.conversationId === msg.conversationId ? 1 : 0));
+    });
+    // Conversazione nuova (es. primo messaggio ricevuto): ricarica la lista
+    if (!known) {
+      reloadConversations().then((list) => {
+        // Chat "nuova" già aperta con il mittente: si apre da sola la conversazione appena nata
+        const otherId = isFromMe ? null : msg.senderId;
+        if (list && !activeConvIdRef.current && preselectedUserId && otherId === preselectedUserId) {
+          setActiveConvId(msg.conversationId);
+        }
+      });
+    }
+  }, [user, reloadConversations, preselectedUserId]);
+
+  const applyIncomingRef = useRef(applyIncomingMessage);
+  useLayoutEffect(() => { applyIncomingRef.current = applyIncomingMessage; }, [applyIncomingMessage]);
+
+  const joinActiveConversation = useCallback(() => {
+    const hub = hubRef.current;
+    const convId = activeConvIdRef.current;
+    if (!hub || hub.state !== 'Connected' || !convId) return;
+    hub.invoke('JoinConversation', convId).catch(() => {});
+    hub.invoke('MarkAsRead', convId).catch(() => {});
+  }, []);
+
   // SignalR connection
   useEffect(() => {
     if (!user) return;
@@ -53,49 +123,53 @@ export default function ChatPage() {
       .configureLogging(LogLevel.Warning)
       .build();
 
-    connection.on('ReceiveMessage', (msg: any) => {
-      const chatMsg: ChatMessage = {
-        id: msg.id, senderId: msg.senderId, senderUsername: msg.senderUsername,
-        content: msg.content, isRead: msg.isRead ?? false,
-        sentAt: msg.sentAt, isFromMe: msg.senderId === user.id,
-      };
-      setChatMessages((prev) => [...prev, chatMsg]);
-    });
+    connection.on('ReceiveMessage', (msg: any) => applyIncomingRef.current(msg));
 
     connection.on('NewMessageAlert', (alert: any) => {
+      // La chat aperta viene già aggiornata da ReceiveMessage: qui si contano solo le altre
+      if (alert.conversationId === activeConvIdRef.current) return;
       setConversations((prev) => prev.map((c) =>
-        c.conversationId === alert.conversationId
-          ? { ...c, unreadCount: c.unreadCount + 1, lastMessage: { content: alert.preview, sentAt: new Date().toISOString(), isFromMe: false } }
-          : c
+        c.conversationId === alert.conversationId ? { ...c, unreadCount: c.unreadCount + 1 } : c
       ));
     });
 
     connection.on('MessagesRead', (data: any) => {
-      if (data.conversationId === activeConvId) {
+      if (data.conversationId === activeConvIdRef.current) {
         setChatMessages((prev) => prev.map((m) => m.isFromMe ? { ...m, isRead: true } : m));
       }
     });
 
-    connection.start().catch((err) => console.warn('ChatHub connection failed:', err));
+    // Dopo una riconnessione si recupera quanto perso nel frattempo
+    connection.onreconnected(() => {
+      joinActiveConversation();
+      reloadConversations();
+      const convId = activeConvIdRef.current;
+      if (convId) {
+        messages.getMessages(convId).then(({ data }) => {
+          if (convId !== activeConvIdRef.current) return;
+          const msgs = data?.messages ?? [];
+          setChatMessages(Array.isArray(msgs) ? [...msgs].reverse() : []);
+        }).catch(() => {});
+      }
+    });
+
     hubRef.current = connection;
+    connection.start()
+      .then(() => joinActiveConversation())
+      .catch((err) => console.warn('ChatHub connection failed:', err));
 
     return () => { connection.stop().catch(() => {}); hubRef.current = null; };
-  }, [user, getToken]);
+  }, [user, getToken, joinActiveConversation, reloadConversations]);
 
   // Join/leave conversation group
   useEffect(() => {
     const hub = hubRef.current;
-    if (!hub || hub.state !== 'Connected') return;
-
-    if (prevConvRef.current && prevConvRef.current !== activeConvId) {
+    if (hub && hub.state === 'Connected' && prevConvRef.current && prevConvRef.current !== activeConvId) {
       hub.invoke('LeaveConversation', prevConvRef.current).catch(() => {});
     }
-    if (activeConvId) {
-      hub.invoke('JoinConversation', activeConvId).catch(() => {});
-      hub.invoke('MarkAsRead', activeConvId).catch(() => {});
-    }
+    joinActiveConversation();
     prevConvRef.current = activeConvId;
-  }, [activeConvId]);
+  }, [activeConvId, joinActiveConversation]);
 
   // Load conversations
   useEffect(() => {
@@ -159,7 +233,9 @@ export default function ChatPage() {
       // Via SignalR
       setIsSending(true);
       try {
-        await hub.invoke('SendMessage', activeConv.otherUser.id, content, null);
+        // L'hub restituisce il messaggio salvato: lo mostriamo subito senza attendere il broadcast
+        const saved = await hub.invoke('SendMessage', activeConv.otherUser.id, content, null);
+        applyIncomingMessage(saved);
       } catch (err: any) {
         showError(err);
       }
@@ -169,10 +245,9 @@ export default function ChatPage() {
       setIsSending(true);
       try {
         const { data } = await messages.send(preselectedUserId, content, preselectedTradeId ?? undefined);
+        await reloadConversations();
+        // Il cambio di conversazione carica i messaggi, compreso quello appena inviato
         setActiveConvId(data.conversationId);
-        // Reload conversations
-        const { data: convs } = await messages.getConversations();
-        setConversations(Array.isArray(convs) ? convs : []);
       } catch (err: any) {
         console.error('Errore invio messaggio:', err);
         showError(err);
@@ -181,11 +256,13 @@ export default function ChatPage() {
     } else if (activeConv) {
       setIsSending(true);
       try {
+        const convId = activeConvId!;
         await messages.send(activeConv.otherUser.id, content);
         // Reload messages
-        const { data } = await messages.getMessages(activeConvId!);
+        const { data } = await messages.getMessages(convId);
         const msgs = data?.messages ?? [];
-        setChatMessages(Array.isArray(msgs) ? [...msgs].reverse() : []);
+        if (convId === activeConvIdRef.current) setChatMessages(Array.isArray(msgs) ? [...msgs].reverse() : []);
+        reloadConversations();
       } catch (err: any) {
         showError(err);
       }

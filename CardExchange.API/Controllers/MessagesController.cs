@@ -4,6 +4,8 @@ using CardExchange.Core.Entities;
 using CardExchange.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using CardExchange.API.Hubs;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -19,12 +21,15 @@ namespace CardExchange.API.Controllers
         private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
         private readonly CardExchange.API.Services.Push.IPushQueue _pushQueue;
         private readonly ILogger<MessagesController> _logger;
+        private readonly IHubContext<ChatHub> _chatHub;
 
         public MessagesController(
             ApplicationDbContext context,
             ISubscriptionService subscriptionService,
-            CardExchange.API.Services.Moderation.IUserBlockService blocks, CardExchange.API.Services.Push.IPushQueue pushQueue, ILogger<MessagesController> logger)
+            CardExchange.API.Services.Moderation.IUserBlockService blocks, CardExchange.API.Services.Push.IPushQueue pushQueue, ILogger<MessagesController> logger,
+            IHubContext<ChatHub> chatHub)
         {
+            _chatHub = chatHub;
             _context = context;
             _subscriptionService = subscriptionService;
             _blocks = blocks;
@@ -210,9 +215,20 @@ namespace CardExchange.API.Controllers
 
             await _context.SaveChangesAsync();
 
+            var senderName = await _context.Users.Where(u => u.Id == userId).Select(u => u.Username).FirstOrDefaultAsync();
+
+            // Recapito in tempo reale come per l'invio via hub (es. primo messaggio di una nuova conversazione)
+            try
+            {
+                await ChatHub.BroadcastNewMessageAsync(_chatHub.Clients, conversation.Id, message, userId, senderName ?? "", request.RecipientId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Recapito in tempo reale del messaggio {MessageId} non riuscito", message.Id);
+            }
+
             if (!await _context.NotificationPreferences.AnyAsync(p => p.UserId == request.RecipientId && p.Type == NotificationType.NewMessage && !p.IsEnabled))
             {
-                var senderName = await _context.Users.Where(u => u.Id == userId).Select(u => u.Username).FirstOrDefaultAsync();
                 _pushQueue.Enqueue(new CardExchange.API.Services.Push.PushJob(
                     request.RecipientId,
                     $"Messaggio da {senderName}",

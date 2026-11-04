@@ -70,10 +70,10 @@ namespace CardExchange.API.Hubs
         /// <summary>
         /// Invocato dal client per inviare un messaggio. Persiste in DB e fa broadcast real-time.
         /// </summary>
-        public async Task SendMessage(int recipientId, string content, int? tradeOfferId = null)
+        public async Task<object?> SendMessage(int recipientId, string content, int? tradeOfferId = null)
         {
             var userId = GetUserId();
-            if (userId == 0 || userId == recipientId || string.IsNullOrWhiteSpace(content)) return;
+            if (userId == 0 || userId == recipientId || string.IsNullOrWhiteSpace(content)) return null;
 
             content = content.Trim();
             if (content.Length > 2000) content = content[..2000];
@@ -149,25 +149,7 @@ namespace CardExchange.API.Hubs
                 .Select(u => new { u.Username })
                 .FirstOrDefaultAsync();
 
-            var msgPayload = new
-            {
-                id = message.Id,
-                conversationId = conversation.Id,
-                senderId = userId,
-                senderUsername = senderUser?.Username ?? "",
-                content = message.Content,
-                sentAt = message.CreatedAt,
-                isRead = false
-            };
-
-            await Clients.Group($"conversation_{conversation.Id}").SendAsync("ReceiveMessage", msgPayload);
-
-            await Clients.Group($"chat_user_{recipientId}").SendAsync("NewMessageAlert", new
-            {
-                conversationId = conversation.Id,
-                senderUsername = senderUser?.Username ?? "",
-                preview = content.Length > 60 ? content[..60] + "..." : content
-            });
+            var msgPayload = await BroadcastNewMessageAsync(Clients, conversation.Id, message, userId, senderUser?.Username ?? "", recipientId);
 
             if (!await _context.NotificationPreferences.AnyAsync(p => p.UserId == recipientId && p.Type == NotificationType.NewMessage && !p.IsEnabled))
             {
@@ -178,6 +160,41 @@ namespace CardExchange.API.Hubs
                     $"/chat?conversationId={conversation.Id}",
                     Tag: $"chat-{conversation.Id}"));
             }
+
+            return msgPayload;
+        }
+
+        /// <summary>
+        /// Recapita un nuovo messaggio in tempo reale a entrambi i partecipanti.
+        /// Usa i gruppi personali (chat_user_{id}), a cui ogni connessione è iscritta alla connessione:
+        /// così il messaggio arriva anche se la pagina non ha ancora fatto JoinConversation
+        /// (conversazione appena creata, riconnessione, connessione ancora in avvio).
+        /// Usato sia dall'hub sia dall'endpoint REST.
+        /// </summary>
+        public static async Task<object> BroadcastNewMessageAsync(
+            IHubClients<IClientProxy> clients, int conversationId, Message message, int senderId, string senderUsername, int recipientId)
+        {
+            var payload = new
+            {
+                id = message.Id,
+                conversationId,
+                senderId,
+                senderUsername,
+                content = message.Content,
+                sentAt = message.CreatedAt,
+                isRead = false
+            };
+
+            await clients.Groups($"chat_user_{senderId}", $"chat_user_{recipientId}").SendAsync("ReceiveMessage", payload);
+
+            await clients.Group($"chat_user_{recipientId}").SendAsync("NewMessageAlert", new
+            {
+                conversationId,
+                senderUsername,
+                preview = message.Content.Length > 60 ? message.Content[..60] + "..." : message.Content
+            });
+
+            return payload;
         }
 
         /// <summary>
