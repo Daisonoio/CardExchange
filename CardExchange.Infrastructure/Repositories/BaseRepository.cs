@@ -118,23 +118,8 @@ namespace CardExchange.Infrastructure.Repositories
 
         public virtual async Task ExecuteInTransactionAsync(Func<Task> action)
         {
-            if (_context.Database.CurrentTransaction != null)
-            {
-                await action();
-                return;
-            }
-
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                await action();
-                await transaction.CommitAsync();
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+            // Compatibile con la ripetizione automatica di SQL Server (vedi TransactionExtensions)
+            await _context.InTransactionAsync(action);
         }
     }
 }

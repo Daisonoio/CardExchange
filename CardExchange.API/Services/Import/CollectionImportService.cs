@@ -278,12 +278,23 @@ namespace CardExchange.API.Services.Import
             var maxCards = plan?.MaxCards ?? int.MaxValue;
             response.PlanCardLimit = maxCards == int.MaxValue ? null : maxCards;
 
-            await using var transaction = await _context.Database.BeginTransactionAsync();
+            var newlyAvailable = new List<Card>();
+            var failedBefore = response.Failed.Count;
+
+            // Transazione compatibile con la ripetizione automatica di SQL Server: se il blocco viene ripetuto
+            // riparte da zero (contatori, elenchi e carte già presenti ricaricate dal database)
+            await _context.InTransactionAsync(async () =>
+            {
+            response.CreatedCopies = 0;
+            response.MergedIntoExisting = 0;
+            response.SkippedByPlanLimit = 0;
+            response.TotalQuantity = 0;
+            response.Failed.RemoveRange(failedBefore, response.Failed.Count - failedBefore);
+            newlyAvailable.Clear();
 
             var existingCopies = await _context.Cards.Where(c => c.UserId == userId).ToListAsync();
             var copyCount = existingCopies.Count;
             var cardInfoIds = new Dictionary<string, CardInfo>(StringComparer.OrdinalIgnoreCase);
-            var newlyAvailable = new List<Card>();
 
             foreach (var row in rows)
             {
@@ -356,7 +367,7 @@ namespace CardExchange.API.Services.Import
             }
 
             await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+            });
 
             // Dopo il commit le nuove copie hanno un Id
             await _wishlistAlerts.NotifyAvailableAsync(newlyAvailable.Select(c => c.Id));

@@ -92,53 +92,54 @@ namespace CardExchange.API.Hubs
             Conversation conversation = null!;
             Message message = null!;
 
-            await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var minId = Math.Min(userId, recipientId);
-                var maxId = Math.Max(userId, recipientId);
-
-                conversation = await _context.Conversations
-                    .FirstOrDefaultAsync(c => c.User1Id == minId && c.User2Id == maxId);
-
-                if (conversation == null)
+                (conversation, message) = await _context.InTransactionAsync(async () =>
                 {
-                    conversation = new Conversation
+                    var minId = Math.Min(userId, recipientId);
+                    var maxId = Math.Max(userId, recipientId);
+
+                    conversation = await _context.Conversations
+                        .FirstOrDefaultAsync(c => c.User1Id == minId && c.User2Id == maxId);
+
+                    if (conversation == null)
                     {
-                        User1Id = minId,
-                        User2Id = maxId,
-                        TradeOfferId = tradeOfferId
+                        conversation = new Conversation
+                        {
+                            User1Id = minId,
+                            User2Id = maxId,
+                            TradeOfferId = tradeOfferId
+                        };
+                        _context.Conversations.Add(conversation);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    conversation.LastMessageAt = DateTime.UtcNow;
+
+                    message = new Message
+                    {
+                        ConversationId = conversation.Id,
+                        SenderId = userId,
+                        Content = content
                     };
-                    _context.Conversations.Add(conversation);
+                    _context.Messages.Add(message);
+
+                    _context.Notifications.Add(new Notification
+                    {
+                        UserId = recipientId,
+                        Type = NotificationType.NewMessage,
+                        Title = "Nuovo messaggio",
+                        Body = content.Length > 80 ? content[..80] + "..." : content,
+                        ReferenceId = conversation.Id,
+                        ReferenceType = "Conversation"
+                    });
+
                     await _context.SaveChangesAsync();
-                }
-
-                conversation.LastMessageAt = DateTime.UtcNow;
-
-                message = new Message
-                {
-                    ConversationId = conversation.Id,
-                    SenderId = userId,
-                    Content = content
-                };
-                _context.Messages.Add(message);
-
-                _context.Notifications.Add(new Notification
-                {
-                    UserId = recipientId,
-                    Type = NotificationType.NewMessage,
-                    Title = "Nuovo messaggio",
-                    Body = content.Length > 80 ? content[..80] + "..." : content,
-                    ReferenceId = conversation.Id,
-                    ReferenceType = "Conversation"
+                    return (conversation, message);
                 });
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
                 _logger.LogError(ex, "Errore durante l'invio del messaggio da {SenderId} a {RecipientId}", userId, recipientId);
                 throw new HubException("Impossibile inviare il messaggio. Riprova.");
             }

@@ -552,38 +552,40 @@ namespace CardExchange.API.Controllers
                 return Ok(MapToDto(offer));
             }
 
-            User? sender;
-            User? receiver;
+            User? sender = null;
+            User? receiver = null;
+            string? transferError;
 
-            await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var transferResult = await ExecuteTradeTransferAsync(offer);
-                if (!transferResult.IsSuccess)
+                // Transazione compatibile con la ripetizione automatica di SQL Server
+                transferError = await _context.InTransactionAsync(async () =>
                 {
-                    await transaction.RollbackAsync();
-                    return BadRequest(new { message = transferResult.ErrorMessage });
-                }
+                    var transferResult = await ExecuteTradeTransferAsync(offer);
+                    if (!transferResult.IsSuccess)
+                        return transferResult.ErrorMessage; // nessun salvataggio: la transazione si chiude senza modifiche
 
-                offer.Status = TradeOfferStatus.Completed;
-                offer.CompletedDate = DateTime.UtcNow;
+                    offer.Status = TradeOfferStatus.Completed;
+                    offer.CompletedDate = DateTime.UtcNow;
 
-                sender = await _userRepository.GetByIdAsync(offer.SenderId);
-                receiver = await _userRepository.GetByIdAsync(offer.ReceiverId);
-                if (sender != null) sender.TotalTradesCompleted++;
-                if (receiver != null) receiver.TotalTradesCompleted++;
+                    sender = await _userRepository.GetByIdAsync(offer.SenderId);
+                    receiver = await _userRepository.GetByIdAsync(offer.ReceiverId);
+                    if (sender != null) sender.TotalTradesCompleted++;
+                    if (receiver != null) receiver.TotalTradesCompleted++;
 
-                _tradeOfferRepository.Update(offer);
-                await _tradeOfferRepository.SaveChangesAsync();
-
-                await transaction.CommitAsync();
+                    _tradeOfferRepository.Update(offer);
+                    await _tradeOfferRepository.SaveChangesAsync();
+                    return (string?)null;
+                });
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
                 _logger.LogError(ex, "Errore durante il completamento dello scambio {OfferId}", id);
                 return StatusCode(500, new { message = "Errore durante il completamento dello scambio" });
             }
+
+            if (transferError != null)
+                return BadRequest(new { message = transferError });
 
             var currentUser = isSender ? sender : receiver;
             await _notificationService.SendTradeOfferNotificationAsync(
@@ -631,27 +633,28 @@ namespace CardExchange.API.Controllers
                 GoodCommunication = request.GoodCommunication
             };
 
-            User? reviewedUser;
+            User? reviewedUser = null;
 
-            await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                offer.Reviews.Add(review);
-
-                reviewedUser = await _userRepository.GetByIdAsync(reviewedUserId);
-                if (reviewedUser != null)
+                await _context.InTransactionAsync(async () =>
                 {
-                    reviewedUser.TotalReviewsReceived++;
-                    var totalRating = reviewedUser.ReputationScore * (reviewedUser.TotalReviewsReceived - 1) + request.Rating;
-                    reviewedUser.ReputationScore = totalRating / reviewedUser.TotalReviewsReceived;
-                }
+                    // Aggiunta dal contesto (non dalla collezione dell'offerta): funziona anche se il blocco viene ripetuto
+                    _context.Add(review);
 
-                await _tradeOfferRepository.SaveChangesAsync();
-                await transaction.CommitAsync();
+                    reviewedUser = await _userRepository.GetByIdAsync(reviewedUserId);
+                    if (reviewedUser != null)
+                    {
+                        reviewedUser.TotalReviewsReceived++;
+                        var totalRating = reviewedUser.ReputationScore * (reviewedUser.TotalReviewsReceived - 1) + request.Rating;
+                        reviewedUser.ReputationScore = totalRating / reviewedUser.TotalReviewsReceived;
+                    }
+
+                    await _tradeOfferRepository.SaveChangesAsync();
+                });
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
                 _logger.LogError(ex, "Errore durante l'aggiunta della recensione per lo scambio {OfferId}", id);
                 return StatusCode(500, new { message = "Errore durante il salvataggio della recensione" });
             }
