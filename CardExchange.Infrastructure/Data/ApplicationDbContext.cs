@@ -103,6 +103,8 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<UserLocation>(entity =>
             {
                 entity.HasIndex(ul => ul.UserId).IsUnique();
+                // Prefiltro geografico (rettangolo attorno al raggio)
+                entity.HasIndex(ul => new { ul.Latitude, ul.Longitude });
 
                 entity.Property(ul => ul.Latitude)
                       .HasPrecision(10, 8);
@@ -183,6 +185,8 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<Card>(entity =>
             {
                 entity.HasIndex(c => new { c.UserId, c.CardInfoId });
+                // Matchmaking e ricerca: chi ha in scambio una certa carta
+                entity.HasIndex(c => new { c.CardInfoId, c.IsAvailableForTrade });
 
                 entity.Property(c => c.EstimatedValue)
                       .HasPrecision(10, 2);
@@ -226,6 +230,8 @@ namespace CardExchange.Infrastructure.Data
             modelBuilder.Entity<WishlistItem>(entity =>
             {
                 entity.HasIndex(wi => new { wi.UserId, wi.CardInfoId }).IsUnique();
+                // Matchmaking: chi cerca una certa carta
+                entity.HasIndex(wi => wi.CardInfoId);
 
                 entity.Property(wi => wi.MaxPrice)
                       .HasPrecision(10, 2);

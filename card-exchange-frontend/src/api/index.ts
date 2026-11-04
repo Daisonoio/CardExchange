@@ -288,7 +288,7 @@ export const games = {
 
 // === Matchmaking ===
 export const matchmaking = {
-  getMatches: (params?: { radiusKm?: number; latitude?: number; longitude?: number; gameId?: number | null }) => {
+  getMatches: (params?: { radiusKm?: number; latitude?: number; longitude?: number; gameId?: number | null; limit?: number; mutualOnly?: boolean }) => {
     const { gameId, ...rest } = params ?? {};
     return client.get<import('../types').MatchmakingResponse>('/matchmaking', {
       params: { ...rest, ...(gameId ? { gameId } : {}) },

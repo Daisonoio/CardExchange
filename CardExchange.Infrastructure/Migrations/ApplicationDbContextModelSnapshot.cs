@@ -179,7 +179,7 @@ namespace CardExchange.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CardInfoId");
+                    b.HasIndex("CardInfoId", "IsAvailableForTrade");
 
                     b.HasIndex("UserId", "CardInfoId");
 
@@ -2032,6 +2032,8 @@ namespace CardExchange.Infrastructure.Migrations
 
                     b.HasIndex("UserId")
                         .IsUnique();
+
+                    b.HasIndex("Latitude", "Longitude");
 
                     b.ToTable("UserLocations");
                 });

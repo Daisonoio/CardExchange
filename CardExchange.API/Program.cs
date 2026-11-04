@@ -255,6 +255,18 @@ builder.Services.AddOutputCache(options =>
 });
 
 // ============================================================
+// Compressione delle risposte (JSON: 5-10 volte più leggero su rete mobile)
+// ============================================================
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Fastest);
+builder.Services.Configure<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProviderOptions>(o => o.Level = System.IO.Compression.CompressionLevel.Fastest);
+
+// ============================================================
 // Rate Limiting
 // ============================================================
 builder.Services.AddRateLimiter(options =>
@@ -373,6 +385,7 @@ app.UseMiddleware<GlobalExceptionHandler>();
 
 // 2. Request logging con correlation ID
 app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseResponseCompression();
 
 // 3. Security headers
 app.UseMiddleware<SecurityHeadersMiddleware>();

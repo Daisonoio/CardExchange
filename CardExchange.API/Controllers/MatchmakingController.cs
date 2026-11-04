@@ -28,7 +28,9 @@ namespace CardExchange.API.Controllers
             [FromQuery] int? radiusKm = null,
             [FromQuery] double? latitude = null,
             [FromQuery] double? longitude = null,
-            [FromQuery] int? gameId = null)
+            [FromQuery] int? gameId = null,
+            [FromQuery] int limit = 50,
+            [FromQuery] bool mutualOnly = false)
         {
             try
             {
@@ -36,14 +38,18 @@ namespace CardExchange.API.Controllers
                 if (userId == 0) return Unauthorized();
 
                 var matches = await _matchmakingService.FindMatchesAsync(userId, radiusKm, latitude, longitude, gameId);
-                var matchList = matches.ToList();
-
-                var mutualCount = matchList.Count(m => m.IsMutual);
+                var all = matches.ToList();
+                var mutualCount = all.Count(m => m.IsMutual);
+                // I migliori N: con migliaia di match la risposta intera pesava diversi MB
+                limit = Math.Clamp(limit, 1, 200);
+                var filtered = mutualOnly ? all.Where(m => m.IsMutual).ToList() : all;
+                var matchList = filtered.Take(limit).ToList();
 
                 return Ok(new
                 {
-                    totalMatches = matchList.Count,
+                    totalMatches = all.Count,
                     mutualMatches = mutualCount,
+                    hasMore = filtered.Count > matchList.Count,
                     matches = matchList.Select(m => new
                     {
                         m.UserId,

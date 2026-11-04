@@ -497,6 +497,7 @@ export interface MatchResult {
 }
 
 export interface MatchmakingResponse {
+  hasMore?: boolean;
   totalMatches: number;
   mutualMatches: number;
   matches: MatchResult[];

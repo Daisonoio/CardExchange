@@ -1,248 +1,153 @@
-using CardExchange.Core.Rules;
 using CardExchange.Core.Entities;
-using CardExchange.Core.Interfaces;
+using CardExchange.Core.Rules;
+using CardExchange.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace CardExchange.API.Services
 {
+    /// <summary>
+    /// Matchmaking: chi ha le carte che cerco e chi cerca le carte che ho, con distanza e punteggio.
+    /// Numero di query costante (circa 6) indipendente dalle dimensioni di wishlist e collezione; con una posizione
+    /// nota gli utenti lontani sono scartati già nel database con un prefiltro rettangolare.
+    /// </summary>
     public class MatchmakingService : IMatchmakingService
     {
-        private readonly ICardRepository _cardRepository;
-        private readonly ICardInfoRepository _cardInfoRepository;
-        private readonly IWishlistRepository _wishlistRepository;
-        private readonly IUserRepository _userRepository;
-        private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
-        private readonly ILogger<MatchmakingService> _logger;
-        private readonly CardExchange.API.Authorization.ISubscriptionService? _subscriptions;
-
         /// <summary>
         /// Spinta in classifica per chi ha un piano con visibilità prioritaria: vale quanto avvicinarsi di una fascia
         /// di distanza, quindi non scavalca mai un match reciproco né un match molto più ricco.
         /// </summary>
         public const double PriorityListingBonus = 15;
 
+        private readonly ApplicationDbContext _context;
+        private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
+        private readonly CardExchange.API.Authorization.ISubscriptionService? _subscriptions;
+        private readonly ILogger<MatchmakingService> _logger;
+
         public MatchmakingService(
-            ICardRepository cardRepository,
-            ICardInfoRepository cardInfoRepository,
-            IWishlistRepository wishlistRepository,
-            IUserRepository userRepository,
-            CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<MatchmakingService> logger,
+            ApplicationDbContext context,
+            CardExchange.API.Services.Moderation.IUserBlockService blocks,
+            ILogger<MatchmakingService> logger,
             CardExchange.API.Authorization.ISubscriptionService? subscriptions = null)
         {
-            _subscriptions = subscriptions;
-            _cardRepository = cardRepository;
-            _cardInfoRepository = cardInfoRepository;
-            _wishlistRepository = wishlistRepository;
-            _userRepository = userRepository;
+            _context = context;
             _blocks = blocks;
             _logger = logger;
+            _subscriptions = subscriptions;
         }
 
         public async Task<IEnumerable<MatchResult>> FindMatchesAsync(
             int userId, int? radiusKm = null, double? latitude = null, double? longitude = null, int? gameId = null, IReadOnlyCollection<int>? onlyUserIds = null)
         {
-            var user = await _userRepository.GetWithLocationAsync(userId);
-            if (user == null) return Enumerable.Empty<MatchResult>();
+            var me = await _context.Users.AsNoTracking().Include(u => u.Location).FirstOrDefaultAsync(u => u.Id == userId);
+            if (me == null) return Enumerable.Empty<MatchResult>();
 
-            // Determine search coordinates
-            double? searchLat = latitude ?? (double?)user.Location?.Latitude;
-            double? searchLon = longitude ?? (double?)user.Location?.Longitude;
-            int searchRadius = radiusKm ?? user.Location?.MaxDistanceKm ?? 100;
+            double? searchLat = latitude ?? (double?)me.Location?.Latitude;
+            double? searchLon = longitude ?? (double?)me.Location?.Longitude;
+            int searchRadius = radiusKm ?? me.Location?.MaxDistanceKm ?? 100;
 
-            // 1. Get my wishlist (what I want)
-            var myWishlistAll = (await _wishlistRepository.GetUserWishlistAsync(userId)).ToList();
+            // 1-2. Cosa cerco e cosa offro (filtrati per gioco nel database)
+            var myWishlist = await _context.WishlistItems.AsNoTracking()
+                .Where(w => w.UserId == userId && (gameId == null || w.CardInfo.CardSet.GameId == gameId))
+                .ToListAsync();
+            var myCards = await _context.Cards.AsNoTracking()
+                .Include(c => c.CardInfo).ThenInclude(ci => ci.CardSet)
+                .Where(c => c.UserId == userId && c.IsAvailableForTrade && (gameId == null || c.CardInfo.CardSet.GameId == gameId))
+                .ToListAsync();
 
-            // Filter by game if specified
-            List<WishlistItem> myWishlist;
-            if (gameId.HasValue)
-            {
-                myWishlist = new List<WishlistItem>();
-                foreach (var w in myWishlistAll)
-                {
-                    var ci = await _cardInfoRepository.GetByIdAsync(w.CardInfoId);
-                    if (ci?.CardSet?.GameId == gameId.Value || ci?.CardSetId > 0)
-                    {
-                        // Need to check via CardSet
-                        var info = ci;
-                        if (info?.CardSet != null && info.CardSet.GameId == gameId.Value)
-                            myWishlist.Add(w);
-                    }
-                }
-            }
-            else
-            {
-                myWishlist = myWishlistAll;
-            }
-            var myWishlistCardInfoIds = myWishlist.Select(w => w.CardInfoId).ToHashSet();
+            var wantedIds = myWishlist.Select(w => w.CardInfoId).Distinct().ToList();
+            var offeredIds = myCards.Select(c => c.CardInfoId).Distinct().ToList();
+            if (wantedIds.Count == 0 && offeredIds.Count == 0) return Enumerable.Empty<MatchResult>();
 
-            // 2. Get my cards available for trade (what I offer)
-            var myCardsAll = (await _cardRepository.GetUserCardsAsync(userId))
-                .Where(c => c.IsAvailableForTrade);
-
-            var myCards = gameId.HasValue
-                ? myCardsAll.Where(c => c.CardInfo?.CardSet?.GameId == gameId.Value).ToList()
-                : myCardsAll.ToList();
-            var myCardInfoIds = myCards.Select(c => c.CardInfoId).ToHashSet();
-
-            if (!myWishlistCardInfoIds.Any() && !myCardInfoIds.Any())
-                return Enumerable.Empty<MatchResult>();
-
-            // Utenti bloccati (in entrambe le direzioni) esclusi dai match
             var blocked = await _blocks.GetBlockedUserIdsAsync(userId);
+            var onlyIds = onlyUserIds?.ToList();
 
-            // 3. Find all users who have cards I want (theyHaveIWant)
-            var theyHaveIWant = new Dictionary<int, List<(Card card, WishlistItem wishlistItem)>>();
-            foreach (var wish in myWishlist)
+            // Prefiltro geografico: rettangolo attorno al raggio. Gli utenti senza posizione restano (distanza ignota),
+            // come prima. Non si applica ai match tra presenti a un evento (sono nello stesso posto).
+            var useBox = onlyIds == null && searchLat.HasValue && searchLon.HasValue;
+            decimal minLat = 0, maxLat = 0, minLon = 0, maxLon = 0;
+            if (useBox)
             {
-                var availableCards = await _cardRepository.GetCardsByCardInfoAsync(wish.CardInfoId);
-                foreach (var card in availableCards.Where(c => c.UserId != userId && !blocked.Contains(c.UserId)))
-                {
-                    if (!WishlistMatchRules.Satisfies(card, wish))
-                        continue;
-
-                    if (!theyHaveIWant.ContainsKey(card.UserId))
-                        theyHaveIWant[card.UserId] = new();
-                    theyHaveIWant[card.UserId].Add((card, wish));
-                }
+                var latRange = searchRadius / 111.0;
+                var lonRange = searchRadius / (111.0 * Math.Max(0.01, Math.Cos(searchLat!.Value * Math.PI / 180)));
+                minLat = (decimal)(searchLat.Value - latRange);
+                maxLat = (decimal)(searchLat.Value + latRange);
+                minLon = (decimal)(searchLon!.Value - lonRange);
+                maxLon = (decimal)(searchLon.Value + lonRange);
             }
 
-            // 4. Find all users who want cards I have (iHaveTheyWant)
-            var iHaveTheyWant = new Dictionary<int, List<(Card card, WishlistItem wishlistItem)>>();
-            foreach (var myCard in myCards)
-            {
-                var wishlists = await _wishlistRepository.GetWishlistByCardInfoAsync(myCard.CardInfoId);
-                foreach (var wish in wishlists.Where(w => w.UserId != userId && !blocked.Contains(w.UserId)))
-                {
-                    if (!WishlistMatchRules.Satisfies(myCard, wish))
-                        continue;
+            // 3. Carte degli altri che cerco
+            var theirCardsQuery = _context.Cards.AsNoTracking()
+                .Include(c => c.CardInfo).ThenInclude(ci => ci.CardSet)
+                .Where(c => wantedIds.Contains(c.CardInfoId) && c.IsAvailableForTrade && c.UserId != userId
+                            && c.User.IsActive && !blocked.Contains(c.UserId));
+            if (onlyIds != null) theirCardsQuery = theirCardsQuery.Where(c => onlyIds.Contains(c.UserId));
+            if (useBox)
+                theirCardsQuery = theirCardsQuery.Where(c => c.User.Location == null || c.User.Location.Latitude == null || c.User.Location.Longitude == null
+                    || (c.User.Location.Latitude >= minLat && c.User.Location.Latitude <= maxLat
+                        && c.User.Location.Longitude >= minLon && c.User.Location.Longitude <= maxLon));
+            var theirCards = wantedIds.Count == 0 ? new List<Card>() : await theirCardsQuery.ToListAsync();
 
-                    if (!iHaveTheyWant.ContainsKey(wish.UserId))
-                        iHaveTheyWant[wish.UserId] = new();
-                    iHaveTheyWant[wish.UserId].Add((myCard, wish));
-                }
-            }
+            // 4. Wishlist degli altri che contengono le carte che offro
+            var theirWishesQuery = _context.WishlistItems.AsNoTracking()
+                .Where(w => offeredIds.Contains(w.CardInfoId) && w.UserId != userId && w.User.IsActive && !blocked.Contains(w.UserId));
+            if (onlyIds != null) theirWishesQuery = theirWishesQuery.Where(w => onlyIds.Contains(w.UserId));
+            if (useBox)
+                theirWishesQuery = theirWishesQuery.Where(w => w.User.Location == null || w.User.Location.Latitude == null || w.User.Location.Longitude == null
+                    || (w.User.Location.Latitude >= minLat && w.User.Location.Latitude <= maxLat
+                        && w.User.Location.Longitude >= minLon && w.User.Location.Longitude <= maxLon));
+            var theirWishes = offeredIds.Count == 0 ? new List<WishlistItem>() : await theirWishesQuery.ToListAsync();
 
-            // 5. Merge into unified user set
-            var allUserIds = theyHaveIWant.Keys.Union(iHaveTheyWant.Keys).ToHashSet();
-            if (onlyUserIds != null) allUserIds.IntersectWith(onlyUserIds);
+            // Abbinamenti con le regole condivise (condizione, lingua, finitura, prezzo massimo)
+            var wishesByCard = myWishlist.ToLookup(w => w.CardInfoId);
+            var theyHaveIWant = theirCards
+                .SelectMany(card => wishesByCard[card.CardInfoId].Where(wish => WishlistMatchRules.Satisfies(card, wish)).Select(wish => (card, wish)))
+                .GroupBy(x => x.card.UserId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+            var myCardsByInfo = myCards.ToLookup(c => c.CardInfoId);
+            var iHaveTheyWant = theirWishes
+                .SelectMany(wish => myCardsByInfo[wish.CardInfoId].Where(card => WishlistMatchRules.Satisfies(card, wish)).Select(card => (card, wish)))
+                .GroupBy(x => x.wish.UserId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var otherIds = theyHaveIWant.Keys.Union(iHaveTheyWant.Keys).ToList();
+            if (otherIds.Count == 0) return Enumerable.Empty<MatchResult>();
+
+            // 5. Profili degli altri utenti in un'unica query
+            var others = await _context.Users.AsNoTracking().Include(u => u.Location)
+                .Where(u => otherIds.Contains(u.Id) && u.IsActive)
+                .ToDictionaryAsync(u => u.Id);
 
             var results = new List<MatchResult>();
-
-            foreach (var otherUserId in allUserIds)
+            foreach (var otherId in otherIds)
             {
-                var otherUser = await _userRepository.GetWithLocationAsync(otherUserId);
-                if (otherUser == null || !otherUser.IsActive) continue;
+                if (!others.TryGetValue(otherId, out var other)) continue;
 
-                // Calculate distance
                 double? distanceKm = null;
-                if (searchLat.HasValue && searchLon.HasValue &&
-                    otherUser.Location?.Latitude != null && otherUser.Location?.Longitude != null)
+                if (searchLat.HasValue && searchLon.HasValue && other.Location?.Latitude != null && other.Location?.Longitude != null)
                 {
-                    distanceKm = CalculateDistance(
-                        searchLat.Value, searchLon.Value,
-                        (double)otherUser.Location.Latitude.Value,
-                        (double)otherUser.Location.Longitude.Value);
-
-                    // Filtro per raggio (non per i match tra presenti a un evento: sono nello stesso posto)
-                    if (onlyUserIds == null && distanceKm > searchRadius) continue;
+                    distanceKm = Geo.DistanceKm(searchLat.Value, searchLon.Value,
+                        (double)other.Location.Latitude.Value, (double)other.Location.Longitude.Value);
+                    if (onlyIds == null && distanceKm > searchRadius) continue;
                 }
 
-                // Build match cards: they have, I want
-                var theyHave = new List<MatchCard>();
-                if (theyHaveIWant.TryGetValue(otherUserId, out var theirCards))
-                {
-                    foreach (var (card, wish) in theirCards)
-                    {
-                        var info = card.CardInfo ?? await _cardInfoRepository.GetByIdAsync(card.CardInfoId);
-                        theyHave.Add(new MatchCard
-                        {
-                            CardId = card.Id,
-                            CardInfoId = card.CardInfoId,
-                            Name = info?.Name ?? "N/A",
-                            SetName = info?.CardSet?.Name,
-                            ImageSmall = info?.ImageSmall,
-                            Condition = card.Condition.ToString(),
-                            Language = card.Language,
-                            Finish = card.Finish.ToString(),
-                            Quantity = card.Quantity,
-                            PriceEur = CardPricing.ReferencePriceEur(info, card.Finish, card.EstimatedValue),
-                            AskingPrice = card.AskingPrice,
-                            WishlistPriority = wish.Priority
-                        });
-                    }
-                }
-
-                // Build match cards: I have, they want
-                var iHave = new List<MatchCard>();
-                if (iHaveTheyWant.TryGetValue(otherUserId, out var myMatchCards))
-                {
-                    foreach (var (card, wish) in myMatchCards)
-                    {
-                        var info = card.CardInfo ?? await _cardInfoRepository.GetByIdAsync(card.CardInfoId);
-                        iHave.Add(new MatchCard
-                        {
-                            CardId = card.Id,
-                            CardInfoId = card.CardInfoId,
-                            Name = info?.Name ?? "N/A",
-                            SetName = info?.CardSet?.Name,
-                            ImageSmall = info?.ImageSmall,
-                            Condition = card.Condition.ToString(),
-                            Language = card.Language,
-                            Finish = card.Finish.ToString(),
-                            Quantity = card.Quantity,
-                            PriceEur = CardPricing.ReferencePriceEur(info, card.Finish, card.EstimatedValue),
-                            AskingPrice = card.AskingPrice,
-                            WishlistPriority = wish.Priority
-                        });
-                    }
-                }
-
-                bool isMutual = theyHave.Any() && iHave.Any();
-                int mutualCount = Math.Min(theyHave.Count, iHave.Count);
-
-                // Score calculation
-                double score = 0;
-
-                // Mutual match bonus (highest weight)
-                if (isMutual)
-                    score += 100 + (mutualCount * 20);
-
-                // One-way match value
-                score += theyHave.Count * 10;
-                score += iHave.Count * 5;
-
-                // High priority wishlist bonus
-                score += theyHave.Where(c => c.WishlistPriority == 1).Count() * 15;
-
-                // Distance bonus (closer = better)
-                if (distanceKm.HasValue)
-                {
-                    if (distanceKm <= 10) score += 50;
-                    else if (distanceKm <= 25) score += 35;
-                    else if (distanceKm <= 50) score += 20;
-                    else if (distanceKm <= 100) score += 10;
-                }
-
-                // Reputation bonus
-                if (otherUser.ReputationScore >= 4) score += 15;
-                else if (otherUser.ReputationScore >= 3) score += 8;
-
-                // Completed trades bonus
-                if (otherUser.TotalTradesCompleted >= 10) score += 10;
-                else if (otherUser.TotalTradesCompleted >= 3) score += 5;
+                var theyHave = theyHaveIWant.TryGetValue(otherId, out var th) ? th.Select(x => ToMatchCard(x.card, x.wish)).ToList() : new List<MatchCard>();
+                var iHave = iHaveTheyWant.TryGetValue(otherId, out var ih) ? ih.Select(x => ToMatchCard(x.card, x.wish)).ToList() : new List<MatchCard>();
+                var isMutual = theyHave.Count > 0 && iHave.Count > 0;
+                var mutualCount = Math.Min(theyHave.Count, iHave.Count);
 
                 results.Add(new MatchResult
                 {
-                    UserId = otherUser.Id,
-                    Username = otherUser.Username,
-                    AvatarUrl = otherUser.AvatarUrl,
-                    ReputationScore = otherUser.ReputationScore,
-                    TotalTradesCompleted = otherUser.TotalTradesCompleted,
-                    City = otherUser.Location?.City,
-                    Province = otherUser.Location?.Province,
+                    UserId = other.Id,
+                    Username = other.Username,
+                    AvatarUrl = other.AvatarUrl,
+                    ReputationScore = other.ReputationScore,
+                    TotalTradesCompleted = other.TotalTradesCompleted,
+                    City = other.Location?.City,
+                    Province = other.Location?.Province,
                     DistanceKm = distanceKm.HasValue ? Math.Round(distanceKm.Value, 1) : null,
                     TheyHaveIWant = theyHave,
                     IHaveTheyWant = iHave,
-                    Score = Math.Round(score, 1),
+                    Score = Math.Round(Score(theyHave, iHave, distanceKm, other.ReputationScore, other.TotalTradesCompleted), 1),
                     MutualCardCount = mutualCount,
                     IsMutual = isMutual
                 });
@@ -259,24 +164,61 @@ namespace CardExchange.API.Services
                 }
             }
 
-            // Sort: mutual first, then by score descending
+            _logger.LogDebug("Matchmaking per {UserId}: {Count} risultati da {Cards} carte e {Wishes} desideri candidati",
+                userId, results.Count, theirCards.Count, theirWishes.Count);
+
+            // Prima i reciproci, poi per punteggio
             return results
                 .OrderByDescending(r => r.IsMutual)
                 .ThenByDescending(r => r.Score)
+                .ThenBy(r => r.DistanceKm ?? double.MaxValue) // a parità di punteggio, il più vicino
+                .ThenBy(r => r.UserId)
                 .ToList();
         }
 
-        private static double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
+        /// <summary>
+        /// Punteggio di un match: reciprocità, numero di carte, priorità della wishlist, vicinanza, reputazione ed esperienza.
+        /// </summary>
+        public static double Score(IReadOnlyCollection<MatchCard> theyHave, IReadOnlyCollection<MatchCard> iHave,
+            double? distanceKm, decimal reputation, int completedTrades)
         {
-            const double earthRadiusKm = 6371;
-            var dLat = (lat2 - lat1) * Math.PI / 180;
-            var dLon = (lon2 - lon1) * Math.PI / 180;
-            lat1 = lat1 * Math.PI / 180;
-            lat2 = lat2 * Math.PI / 180;
-            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2) * Math.Cos(lat1) * Math.Cos(lat2);
-            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-            return earthRadiusKm * c;
+            double score = 0;
+            if (theyHave.Count > 0 && iHave.Count > 0)
+                score += 100 + Math.Min(theyHave.Count, iHave.Count) * 20;
+            score += theyHave.Count * 10;
+            score += iHave.Count * 5;
+            score += theyHave.Count(c => c.WishlistPriority == 1) * 15;
+
+            if (distanceKm.HasValue)
+            {
+                if (distanceKm <= 10) score += 50;
+                else if (distanceKm <= 25) score += 35;
+                else if (distanceKm <= 50) score += 20;
+                else if (distanceKm <= 100) score += 10;
+            }
+
+            if (reputation >= 4) score += 15;
+            else if (reputation >= 3) score += 8;
+
+            if (completedTrades >= 10) score += 10;
+            else if (completedTrades >= 3) score += 5;
+            return score;
         }
+
+        private static MatchCard ToMatchCard(Card card, WishlistItem wish) => new()
+        {
+            CardId = card.Id,
+            CardInfoId = card.CardInfoId,
+            Name = card.CardInfo?.Name ?? "N/A",
+            SetName = card.CardInfo?.CardSet?.Name,
+            ImageSmall = card.CardInfo?.ImageSmall,
+            Condition = card.Condition.ToString(),
+            Language = card.Language,
+            Finish = card.Finish.ToString(),
+            Quantity = card.Quantity,
+            PriceEur = CardPricing.ReferencePriceEur(card.CardInfo, card.Finish, card.EstimatedValue),
+            AskingPrice = card.AskingPrice,
+            WishlistPriority = wish.Priority
+        };
     }
 }

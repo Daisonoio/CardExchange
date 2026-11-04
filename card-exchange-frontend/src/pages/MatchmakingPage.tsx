@@ -27,6 +27,9 @@ export default function MatchmakingPage() {
   const [radiusKm, setRadiusKm] = useState(100);
   const [showFilters, setShowFilters] = useState(false);
   const [filterMutualOnly, setFilterMutualOnly] = useState(false);
+  // Il server restituisce i migliori match a pagine da 50
+  const [limit, setLimit] = useState(50);
+  const [hasMore, setHasMore] = useState(false);
 
   // Expanded cards per match
   const [expandedMatch, setExpandedMatch] = useState<number | null>(null);
@@ -36,7 +39,8 @@ export default function MatchmakingPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data } = await matchmaking.getMatches({ radiusKm, gameId: selectedGameId });
+      const { data } = await matchmaking.getMatches({ radiusKm, gameId: selectedGameId, limit, mutualOnly: filterMutualOnly });
+      setHasMore(!!data?.hasMore);
       const list = data?.matches ?? [];
       setMatches(Array.isArray(list) ? list : []);
       setTotalMatches(data?.totalMatches ?? 0);
@@ -51,7 +55,7 @@ export default function MatchmakingPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, radiusKm, selectedGameId]);
+  }, [user, radiusKm, selectedGameId, limit, filterMutualOnly]);
 
   useEffect(() => { loadMatches(); }, [loadMatches]);
 
@@ -117,7 +121,7 @@ export default function MatchmakingPage() {
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-text-secondary">Solo scambi reciproci</span>
             <button
-              onClick={() => setFilterMutualOnly(!filterMutualOnly)}
+              onClick={() => { setFilterMutualOnly(!filterMutualOnly); setLimit(50); }}
               className={`w-10 h-6 rounded-full transition-colors relative ${
                 filterMutualOnly ? 'bg-primary' : 'bg-gray-300'
               }`}
@@ -191,6 +195,11 @@ export default function MatchmakingPage() {
               onStartTrade={() => handleStartTrade(match.userId)}
             />
           ))}
+          {hasMore && limit < 200 && (
+            <Button variant="outline" className="w-full" onClick={() => setLimit((l) => Math.min(l + 50, 200))}>
+              Mostra altri match
+            </Button>
+          )}
         </div>
       )}
     </div>
