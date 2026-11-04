@@ -9,6 +9,7 @@ import { useGame } from '../context/GameContext';
 import { apiErrorMessage } from '../utils/apiError';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
+import TradeNightPanel from '../components/events/TradeNightPanel';
 
 const fmt = (iso: string) =>
   new Date(iso).toLocaleString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
@@ -84,6 +85,8 @@ export default function EventPage() {
           {event.participantCount}{event.maxParticipants ? ` su ${event.maxParticipants}` : ''} partecipanti
         </li>
       </ul>
+
+      {event.status === 'Published' && !ended && <TradeNightPanel eventId={event.id} />}
 
       {event.description && <p className="text-sm text-text whitespace-pre-line">{event.description}</p>}
       {gameNames.length > 0 && (

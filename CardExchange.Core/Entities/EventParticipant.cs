@@ -23,6 +23,9 @@ namespace CardExchange.Core.Entities
         [MaxLength(500)]
         public string? Notes { get; set; }
 
+        /// <summary>Presenza confermata all'evento (serata di scambio). Null = non presente o uscito.</summary>
+        public DateTime? CheckedInAt { get; set; }
+
         // Relazioni
         public virtual Event Event { get; set; } = null!;
         public virtual User User { get; set; } = null!;

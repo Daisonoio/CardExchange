@@ -4,7 +4,8 @@ namespace CardExchange.API.Services
 {
     public interface IMatchmakingService
     {
-        Task<IEnumerable<MatchResult>> FindMatchesAsync(int userId, int? radiusKm = null, double? latitude = null, double? longitude = null, int? gameId = null);
+        /// <param name="onlyUserIds">Se valorizzato, cerca match solo tra questi utenti e senza filtro di distanza (es. presenti a un evento).</param>
+        Task<IEnumerable<MatchResult>> FindMatchesAsync(int userId, int? radiusKm = null, double? latitude = null, double? longitude = null, int? gameId = null, IReadOnlyCollection<int>? onlyUserIds = null);
     }
 
     public class MatchResult

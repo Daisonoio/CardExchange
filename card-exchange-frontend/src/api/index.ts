@@ -190,6 +190,9 @@ export const events = {
     supportedGameIds?: string; storeId?: number;
   }) => client.post<CardEvent>('/events', data),
   cancel: (id: number) => client.delete(`/events/${id}`),
+  checkIn: (id: number) => client.post<{ message: string }>(`/events/${id}/checkin`),
+  checkOut: (id: number) => client.post<{ message: string }>(`/events/${id}/checkout`),
+  live: (id: number) => client.get<import('../types').EventLive>(`/events/${id}/live`),
   join: (id: number) => client.post(`/events/${id}/join`),
   leave: (id: number) => client.post(`/events/${id}/leave`),
 };

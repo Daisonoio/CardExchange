@@ -29,7 +29,7 @@ namespace CardExchange.API.Services
         }
 
         public async Task<IEnumerable<MatchResult>> FindMatchesAsync(
-            int userId, int? radiusKm = null, double? latitude = null, double? longitude = null, int? gameId = null)
+            int userId, int? radiusKm = null, double? latitude = null, double? longitude = null, int? gameId = null, IReadOnlyCollection<int>? onlyUserIds = null)
         {
             var user = await _userRepository.GetWithLocationAsync(userId);
             if (user == null) return Enumerable.Empty<MatchResult>();
@@ -114,6 +114,7 @@ namespace CardExchange.API.Services
 
             // 5. Merge into unified user set
             var allUserIds = theyHaveIWant.Keys.Union(iHaveTheyWant.Keys).ToHashSet();
+            if (onlyUserIds != null) allUserIds.IntersectWith(onlyUserIds);
 
             var results = new List<MatchResult>();
 
@@ -132,8 +133,8 @@ namespace CardExchange.API.Services
                         (double)otherUser.Location.Latitude.Value,
                         (double)otherUser.Location.Longitude.Value);
 
-                    // Filter by radius
-                    if (distanceKm > searchRadius) continue;
+                    // Filtro per raggio (non per i match tra presenti a un evento: sono nello stesso posto)
+                    if (onlyUserIds == null && distanceKm > searchRadius) continue;
                 }
 
                 // Build match cards: they have, I want

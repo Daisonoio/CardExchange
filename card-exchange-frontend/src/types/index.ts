@@ -713,3 +713,33 @@ export interface Store {
 
 export type StoreInput = Omit<Store, 'id' | 'status' | 'reviewNote' | 'isOwner' | 'distanceKm' | 'upcomingEventsCount'>;
 
+// === Serata di scambio ===
+export interface LiveMatchCard {
+  cardId: number;
+  name: string;
+  condition: string;
+  language?: string;
+  finish: string;
+  priceEur?: number;
+}
+
+export interface EventLive {
+  isOpen: boolean;
+  checkedIn: boolean;
+  opensAt: string;
+  closesAt: string;
+  presentCount: number;
+  attendees: {
+    userId: number;
+    username: string;
+    reputationScore: number;
+    checkedInAt: string;
+    isMutual: boolean;
+    score: number;
+    theyHave: LiveMatchCard[];
+    theyHaveCount: number;
+    iHave: LiveMatchCard[];
+    iHaveCount: number;
+  }[];
+}
+

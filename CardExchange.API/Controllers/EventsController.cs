@@ -23,6 +23,8 @@ namespace CardExchange.API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly INotificationService _notificationService;
         private readonly ApplicationDbContext _context;
+        private readonly IMatchmakingService _matchmaking;
+        private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
         private readonly ILogger<EventsController> _logger;
 
         public EventsController(
@@ -30,12 +32,16 @@ namespace CardExchange.API.Controllers
             IUserRepository userRepository,
             INotificationService notificationService,
             ApplicationDbContext context,
+            IMatchmakingService matchmaking,
+            CardExchange.API.Services.Moderation.IUserBlockService blocks,
             ILogger<EventsController> logger)
         {
             _eventRepository = eventRepository;
             _userRepository = userRepository;
             _notificationService = notificationService;
             _context = context;
+            _matchmaking = matchmaking;
+            _blocks = blocks;
             _logger = logger;
         }
 
@@ -172,6 +178,122 @@ namespace CardExchange.API.Controllers
             return Ok(events.Select(e => MapToDto(e, mine.Contains(e.Id))));
         }
 
+        // ================================================================
+        // Serata di scambio: check-in e match tra i presenti
+        // ================================================================
+
+        /// <summary>Il check-in è aperto da 30 minuti prima dell'inizio fino alla fine (o 6 ore dopo l'inizio).</summary>
+        public static (DateTime Opens, DateTime Closes) CheckInWindow(Event e) =>
+            (e.StartDate.AddMinutes(-30), e.EndDate ?? e.StartDate.AddHours(6));
+
+        /// <summary>Segna l'utente come presente. Se non era iscritto viene iscritto (se ci sono posti).</summary>
+        [HttpPost("{id}/checkin")]
+        public async Task<IActionResult> CheckIn(int id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized();
+
+            var ev = await _context.Events.Include(e => e.Participants).FirstOrDefaultAsync(e => e.Id == id);
+            if (ev == null) return NotFound(new { message = "Evento non trovato" });
+            if (ev.Status != EventStatus.Published) return BadRequest(new { message = "L'evento non è attivo" });
+
+            var (opens, closes) = CheckInWindow(ev);
+            var now = DateTime.UtcNow;
+            if (now < opens) return BadRequest(new { message = "Il check-in apre 30 minuti prima dell'inizio" });
+            if (now > closes) return BadRequest(new { message = "L'evento è terminato" });
+
+            var participant = ev.Participants.FirstOrDefault(p => p.UserId == userId);
+            var active = ev.Participants.Count(p => p.Status != ParticipationStatus.Cancelled);
+            if (participant == null || participant.Status == ParticipationStatus.Cancelled)
+            {
+                if (ev.MaxParticipants.HasValue && active >= ev.MaxParticipants.Value)
+                    return BadRequest(new { message = "Posti esauriti" });
+                if (participant == null)
+                {
+                    participant = new EventParticipant { EventId = id, UserId = userId };
+                    ev.Participants.Add(participant);
+                }
+                ev.ParticipantCount = active + 1;
+            }
+
+            participant.Status = ParticipationStatus.Attended;
+            participant.CheckedInAt = now;
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Sei presente! Ora vedi chi c'è e con chi puoi scambiare." });
+        }
+
+        /// <summary>Esce dalla serata: non si è più visibili agli altri presenti.</summary>
+        [HttpPost("{id}/checkout")]
+        public async Task<IActionResult> CheckOut(int id)
+        {
+            var userId = GetCurrentUserId();
+            var participant = await _context.EventParticipants.FirstOrDefaultAsync(p => p.EventId == id && p.UserId == userId);
+            if (participant?.CheckedInAt != null)
+            {
+                participant.CheckedInAt = null;
+                await _context.SaveChangesAsync();
+            }
+            return Ok(new { message = "Sei uscito dalla serata" });
+        }
+
+        /// <summary>
+        /// Vista live della serata: presenti e match con ciascuno. Visibile solo a chi ha fatto check-in
+        /// (chi non è presente vede solo il numero dei presenti).
+        /// </summary>
+        [HttpGet("{id}/live")]
+        public async Task<IActionResult> Live(int id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized();
+
+            var ev = await _context.Events.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+            if (ev == null) return NotFound(new { message = "Evento non trovato" });
+
+            var (opens, closes) = CheckInWindow(ev);
+            var now = DateTime.UtcNow;
+            var isOpen = ev.Status == EventStatus.Published && now >= opens && now <= closes;
+
+            var blocked = await _blocks.GetBlockedUserIdsAsync(userId);
+            var present = await _context.EventParticipants
+                .AsNoTracking()
+                .Where(p => p.EventId == id && p.CheckedInAt != null && p.Status != ParticipationStatus.Cancelled)
+                .Select(p => new { p.UserId, p.User.Username, p.User.ReputationScore, p.CheckedInAt })
+                .ToListAsync();
+            var meCheckedIn = present.Any(p => p.UserId == userId);
+            var others = present.Where(p => p.UserId != userId && !blocked.Contains(p.UserId)).ToList();
+
+            if (!meCheckedIn || !isOpen)
+                return Ok(new { isOpen, checkedIn = meCheckedIn, opensAt = opens, closesAt = closes, presentCount = present.Count, attendees = Array.Empty<object>() });
+
+            var matches = (await _matchmaking.FindMatchesAsync(userId, onlyUserIds: others.Select(o => o.UserId).ToList()))
+                .ToDictionary(m => m.UserId);
+
+            var attendees = others
+                .Select(o =>
+                {
+                    matches.TryGetValue(o.UserId, out var m);
+                    return new
+                    {
+                        o.UserId,
+                        o.Username,
+                        o.ReputationScore,
+                        o.CheckedInAt,
+                        isMutual = m?.IsMutual ?? false,
+                        score = m?.Score ?? 0,
+                        theyHave = m?.TheyHaveIWant.Select(c => new { c.CardId, c.Name, c.Condition, c.Language, c.Finish, c.PriceEur }).Take(5) ?? Enumerable.Empty<object>(),
+                        theyHaveCount = m?.TheyHaveIWant.Count ?? 0,
+                        iHave = m?.IHaveTheyWant.Select(c => new { c.CardId, c.Name, c.Condition, c.Language, c.Finish, c.PriceEur }).Take(5) ?? Enumerable.Empty<object>(),
+                        iHaveCount = m?.IHaveTheyWant.Count ?? 0
+                    };
+                })
+                .OrderByDescending(a => a.isMutual)
+                .ThenByDescending(a => a.score)
+                .ThenBy(a => a.Username)
+                .ToList();
+
+            return Ok(new { isOpen, checkedIn = true, opensAt = opens, closesAt = closes, presentCount = present.Count, attendees });
+        }
+
         /// <summary>
         /// Ottiene il dettaglio di un evento con la lista dei partecipanti
         /// </summary>
@@ -186,6 +308,7 @@ namespace CardExchange.API.Controllers
                     return NotFound(new { message = "Evento non trovato" });
 
                 var currentUserId = GetCurrentUserId();
+                var blocked = await _blocks.GetBlockedUserIdsAsync(currentUserId);
                 var isParticipating = eventEntity.Participants
                     .Any(p => p.UserId == currentUserId && p.Status != ParticipationStatus.Cancelled);
 
@@ -220,8 +343,9 @@ namespace CardExchange.API.Controllers
                         AvatarUrl = eventEntity.Organizer.AvatarUrl,
                         ReputationScore = eventEntity.Organizer.ReputationScore
                     },
+                    // Gli utenti bloccati (in entrambe le direzioni) non compaiono nell'elenco
                     Participants = eventEntity.Participants
-                        .Where(p => p.Status != ParticipationStatus.Cancelled)
+                        .Where(p => p.Status != ParticipationStatus.Cancelled && !blocked.Contains(p.UserId))
                         .Select(p => new EventParticipantDto
                         {
                             UserId = p.UserId,

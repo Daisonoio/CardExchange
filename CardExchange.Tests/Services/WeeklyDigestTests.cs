@@ -23,7 +23,7 @@ public class WeeklyDigestTests : IDisposable
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
         _context = new ApplicationDbContext(options);
-        _matchmaking.Setup(m => m.FindMatchesAsync(It.IsAny<int>(), null, null, null, null)).ReturnsAsync(new[]
+        _matchmaking.Setup(m => m.FindMatchesAsync(It.IsAny<int>(), null, null, null, null, null)).ReturnsAsync(new[]
         {
             new MatchResult { UserId = 99, Username = "carla", DistanceKm = 3.4, Score = 120,
                 TheyHaveIWant = { new MatchCard(), new MatchCard() }, IHaveTheyWant = { new MatchCard() } },
@@ -76,7 +76,7 @@ public class WeeklyDigestTests : IDisposable
     {
         var u = AddUser("lonely");
         await _context.SaveChangesAsync();
-        _matchmaking.Setup(m => m.FindMatchesAsync(u.Id, null, null, null, null)).ReturnsAsync(Array.Empty<MatchResult>());
+        _matchmaking.Setup(m => m.FindMatchesAsync(u.Id, null, null, null, null, null)).ReturnsAsync(Array.Empty<MatchResult>());
 
         (await _digest.RunAsync(_now)).Should().Be(0);
         u.LastWeeklyDigestAt.Should().Be(_now);
