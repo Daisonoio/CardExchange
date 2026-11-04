@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, Loader2, MapPin, Store as StoreIcon, Users } from 'lucide-react';
-import { events } from '../api';
+import { events, referrals } from '../api';
+import { shareLink } from '../utils/referral';
 import type { CardEventDetail } from '../types';
 import { EVENT_TYPE_LABELS } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -23,6 +24,7 @@ export default function EventPage() {
   const [event, setEvent] = useState<CardEventDetail | null | undefined>(undefined);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [shareInfo, setShareInfo] = useState<string | null>(null);
 
   const load = useCallback(() => {
     events.getById(Number(id)).then(({ data }) => setEvent(data)).catch(() => setEvent(null));
@@ -116,6 +118,23 @@ export default function EventPage() {
           Annulla evento
         </button>
       )}
+
+      {event.status === 'Published' && !ended && (
+        <button
+          type="button"
+          onClick={async () => {
+            // Il link porta il codice invito: chi non è iscritto lo userà alla registrazione
+            const code = await referrals.mine().then(({ data }) => data.code).catch(() => null);
+            const url = `${window.location.origin}/events/${event.id}${code ? `?ref=${code}` : ''}`;
+            const r = await shareLink(url, event.title, `Vieni a "${event.title}" con me su CardExchange!`);
+            setShareInfo(r === 'copied' ? 'Link dell\'evento copiato negli appunti' : null);
+          }}
+          className="w-full text-sm font-semibold text-primary hover:underline"
+        >
+          Invita amici a questo evento
+        </button>
+      )}
+      {shareInfo && <p className="text-xs text-center text-text-secondary">{shareInfo}</p>}
 
       {event.participants.length > 0 && (
         <section className="bg-white rounded-2xl border border-border p-3">

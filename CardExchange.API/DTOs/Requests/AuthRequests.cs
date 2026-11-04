@@ -31,6 +31,10 @@ namespace CardExchange.API.DTOs.Requests
             ErrorMessage = "La password deve contenere almeno una maiuscola, una minuscola, un numero e un carattere speciale")]
         public string Password { get; set; } = string.Empty;
 
+        /// <summary>Codice invito facoltativo (dal link /register?ref=CODICE).</summary>
+        [MaxLength(12)]
+        public string? ReferralCode { get; set; }
+
         [Required(ErrorMessage = "La conferma password è obbligatoria")]
         [Compare("Password", ErrorMessage = "Le password non coincidono")]
         public string ConfirmPassword { get; set; } = string.Empty;

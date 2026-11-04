@@ -11,6 +11,8 @@ export interface RegisterRequest {
   lastName: string;
   password: string;
   confirmPassword: string;
+  /** Codice invito facoltativo. */
+  referralCode?: string;
 }
 
 export interface AuthResponse {

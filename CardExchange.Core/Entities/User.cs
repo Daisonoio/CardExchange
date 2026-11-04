@@ -49,6 +49,13 @@ namespace CardExchange.Core.Entities
         public DateTime? PasswordResetTokenExpiry { get; set; }
         public DateTime? LastLoginAt { get; set; }
 
+        /// <summary>Codice personale per invitare amici (link /register?ref=CODICE). Generato al primo uso.</summary>
+        [MaxLength(12)]
+        public string? ReferralCode { get; set; }
+
+        /// <summary>Utente che ha invitato questo utente, se registrato con un codice invito.</summary>
+        public int? ReferredByUserId { get; set; }
+
         /// <summary>Ultimo invio del riepilogo settimanale via email.</summary>
         public DateTime? LastWeeklyDigestAt { get; set; }
 

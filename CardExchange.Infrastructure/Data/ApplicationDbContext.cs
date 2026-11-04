@@ -65,6 +65,8 @@ namespace CardExchange.Infrastructure.Data
             {
                 entity.HasIndex(u => u.Email).IsUnique();
                 entity.HasIndex(u => u.Username).IsUnique();
+                entity.HasIndex(u => u.ReferralCode).IsUnique();
+                entity.HasIndex(u => u.ReferredByUserId);
                 entity.Property(u => u.Email).IsRequired().HasMaxLength(256);
                 entity.Property(u => u.Username).IsRequired().HasMaxLength(50);
                 entity.Property(u => u.ReputationScore).HasPrecision(3, 2);

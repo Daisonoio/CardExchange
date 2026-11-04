@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { referrals } from '../api';
+import { clearStoredReferral, getStoredReferral } from '../utils/referral';
 import { useAuth } from '../context/AuthContext';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -18,6 +20,14 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  // Invito: il codice è stato salvato all'apertura del link (?ref=)
+  const [referralCode] = useState(() => getStoredReferral());
+  const [invitedBy, setInvitedBy] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!referralCode) return;
+    referrals.lookup(referralCode).then(({ data }) => setInvitedBy(data.username)).catch(() => clearStoredReferral());
+  }, [referralCode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +52,9 @@ export default function RegisterPage() {
         lastName: form.lastName,
         password: form.password,
         confirmPassword: form.confirmPassword,
+        referralCode: invitedBy && referralCode ? referralCode : undefined,
       });
+      clearStoredReferral();
       navigate('/home');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -64,6 +76,11 @@ export default function RegisterPage() {
           </div>
           <h1 className="text-2xl font-bold text-text">Crea Account</h1>
           <p className="text-sm text-text-secondary mt-1">Unisciti alla community</p>
+          {invitedBy && (
+            <p className="mt-3 inline-block px-3 py-1.5 rounded-full bg-secondary/20 text-sm text-text">
+              Ti ha invitato <strong>@{invitedBy}</strong>
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-sm border border-border/50 space-y-3">

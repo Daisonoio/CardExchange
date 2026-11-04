@@ -29,6 +29,7 @@ namespace CardExchange.API.Controllers
         private readonly JwtSettings _jwtSettings;
         private readonly ApplicationDbContext _context;
         private readonly IEmailSender _emailSender;
+        private readonly INotificationService _notificationService;
         private readonly EmailSettings _emailSettings;
         private readonly ILogger<AuthController> _logger;
 
@@ -41,6 +42,7 @@ namespace CardExchange.API.Controllers
             ApplicationDbContext context,
             IEmailSender emailSender,
             IOptions<EmailSettings> emailSettings,
+            INotificationService notificationService,
             ILogger<AuthController> logger)
         {
             _userRepository = userRepository;
@@ -48,6 +50,7 @@ namespace CardExchange.API.Controllers
             _jwtSettings = jwtSettings.Value;
             _context = context;
             _emailSender = emailSender;
+            _notificationService = notificationService;
             _emailSettings = emailSettings.Value;
             _logger = logger;
         }
@@ -89,6 +92,11 @@ namespace CardExchange.API.Controllers
                 // Crea il nuovo utente
                 var emailVerificationToken = Guid.NewGuid().ToString("N");
 
+                // Invito: un codice non valido non blocca la registrazione, viene semplicemente ignorato
+                var referralCode = ReferralCodes.Normalize(request.ReferralCode);
+                var referrer = referralCode == null ? null
+                    : await _context.Users.FirstOrDefaultAsync(u => u.ReferralCode == referralCode);
+
                 var user = new User
                 {
                     Email = request.Email,
@@ -101,6 +109,7 @@ namespace CardExchange.API.Controllers
                     EmailConfirmed = false,
                     EmailVerificationToken = emailVerificationToken,
                     EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24),
+                    ReferredByUserId = referrer?.Id,
                     RefreshToken = _tokenService.GenerateRefreshToken(),
                     RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays)
                 };
@@ -129,6 +138,20 @@ namespace CardExchange.API.Controllers
                 _logger.LogInformation("Nuovo utente registrato: {UserId} - {Username}", user.Id, user.Username);
 
                 await SendVerificationEmailAsync(user);
+
+                if (referrer != null)
+                {
+                    try
+                    {
+                        await _notificationService.SendAsync(referrer.Id, NotificationType.SystemAnnouncement,
+                            "Un amico si è iscritto", $"{user.Username} si è iscritto con il tuo invito. Grazie per far crescere la community!",
+                            user.Id, "User");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Notifica invito non inviata a {ReferrerId}", referrer.Id);
+                    }
+                }
 
                 // Genera i token
                 var accessToken = _tokenService.GenerateAccessToken(user);

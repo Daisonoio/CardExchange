@@ -9,6 +9,7 @@ import ReviewsSheet from '../components/users/ReviewsSheet';
 import BlockedUsersSheet from '../components/users/BlockedUsersSheet';
 import { hasPermission } from '../utils/permissions';
 import PushToggle from '../components/notifications/PushToggle';
+import InviteCard from '../components/users/InviteCard';
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
@@ -79,6 +80,7 @@ export default function ProfilePage() {
       </div>
 
       <PushToggle />
+      <InviteCard />
 
       {/* Menu list */}
       <div className="bg-white rounded-2xl shadow-sm border border-border/50 overflow-hidden mb-4">

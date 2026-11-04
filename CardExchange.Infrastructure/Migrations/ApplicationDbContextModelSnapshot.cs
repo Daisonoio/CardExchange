@@ -1851,6 +1851,13 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<decimal>("PriceSpikeThreshold")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("ReferralCode")
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<int?>("ReferredByUserId")
+                        .HasColumnType("int");
+
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
 
@@ -1883,6 +1890,12 @@ namespace CardExchange.Infrastructure.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("ReferralCode")
+                        .IsUnique()
+                        .HasFilter("[ReferralCode] IS NOT NULL");
+
+                    b.HasIndex("ReferredByUserId");
 
                     b.HasIndex("Username")
                         .IsUnique();

@@ -380,3 +380,9 @@ export const stores = {
     client.post<{ message: string }>(`/moderation/stores/${id}/review`, { decision, note }),
 };
 
+// === Inviti ===
+export const referrals = {
+  mine: () => client.get<{ code: string; link: string; invitedCount: number; invited: { username: string; joinedAt: string; completedTrades: number }[] }>('/referrals/me'),
+  lookup: (code: string) => client.get<{ username: string }>(`/referrals/${code}`),
+};
+

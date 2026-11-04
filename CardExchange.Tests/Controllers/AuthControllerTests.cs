@@ -55,6 +55,7 @@ public class AuthControllerTests
             _context,
             _emailSenderMock.Object,
             Options.Create(new EmailSettings { FrontendBaseUrl = "https://app.test" }),
+            new Mock<INotificationService>().Object,
             _loggerMock.Object
         );
     }
