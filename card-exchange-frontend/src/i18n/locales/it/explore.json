@@ -2,7 +2,11 @@
   "title": "Esplora",
   "subtitle": "Trova carte e collezionisti",
   "advancedSearch": "Ricerca avanzata",
-  "tabs": { "cards": "Carte", "zone": "Zona", "users": "Utenti" },
+  "tabs": {
+    "cards": "Carte",
+    "zone": "Zona",
+    "users": "Utenti"
+  },
   "locationPrompt": {
     "title": "Imposta la tua posizione",
     "description": "Per vedere le carte disponibili nelle tue vicinanze, devi impostare la tua posizione.",
@@ -27,7 +31,9 @@
     "emptyDescriptionFrom": "Nessuna carta disponibile entro {{radius}} km da {{place}}. Prova ad aumentare il raggio.",
     "count_one": "{{count}} carta trovata entro {{radius}} km",
     "count_other": "{{count}} carte trovate entro {{radius}} km",
-    "fromPlace": " da {{place}}"
+    "fromPlace": " da {{place}}",
+    "center": "Centro: {{place}}",
+    "pickOnMap": "Scegli il punto sulla mappa"
   },
   "users": {
     "emptyTitle": "Nessun utente trovato",

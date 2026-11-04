@@ -53,6 +53,12 @@ export default function ExplorePage() {
   }, [currentUser, profileRadius, radiusKm]);
 
   const effectiveRadius = radiusKm ?? profileRadius;
+  // Il cursore aggiorna subito il numero; la ricerca parte quando ci si ferma (niente richieste a ogni passo)
+  const [queryRadius, setQueryRadius] = useState(effectiveRadius);
+  useEffect(() => {
+    const id = setTimeout(() => setQueryRadius(effectiveRadius), 300);
+    return () => clearTimeout(id);
+  }, [effectiveRadius]);
 
   // Load favorite card IDs
   useEffect(() => {
@@ -81,10 +87,10 @@ export default function ExplorePage() {
       try {
         if (tab === 'cards') {
           if (hasProfileLocation) {
-            const { data } = await cards.nearby(currentUser.id, effectiveRadius, undefined, selectedGameId, debouncedSearch || undefined);
+            const { data } = await cards.nearby(currentUser.id, queryRadius, undefined, selectedGameId, debouncedSearch || undefined);
             setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
           } else if (position) {
-            const { data } = await cards.nearby(currentUser.id, effectiveRadius, position, selectedGameId, debouncedSearch || undefined);
+            const { data } = await cards.nearby(currentUser.id, queryRadius, position, selectedGameId, debouncedSearch || undefined);
             setAvailableCards(Array.isArray(data) ? data : (data as any).cards ?? []);
           } else {
             setAvailableCards([]);
@@ -93,10 +99,10 @@ export default function ExplorePage() {
           }
         } else if (tab === 'users') {
           if (hasProfileLocation && currentUser.location?.latitude && currentUser.location?.longitude) {
-            const { data } = await users.nearby(currentUser.location.latitude, currentUser.location.longitude, effectiveRadius);
+            const { data } = await users.nearby(currentUser.location.latitude, currentUser.location.longitude, queryRadius);
             setNearbyUsers(Array.isArray(data) ? data : (data as any).users ?? []);
           } else if (position) {
-            const { data } = await users.nearby(position.latitude, position.longitude, effectiveRadius);
+            const { data } = await users.nearby(position.latitude, position.longitude, queryRadius);
             setNearbyUsers(Array.isArray(data) ? data : (data as any).users ?? []);
           } else {
             setNearbyUsers([]);
@@ -111,21 +117,22 @@ export default function ExplorePage() {
       }
     };
     load();
-  }, [tab, currentUser, hasProfileLocation, position, effectiveRadius, selectedGameId, debouncedSearch]);
+  }, [tab, currentUser, hasProfileLocation, position, queryRadius, selectedGameId, debouncedSearch]);
 
   // Zone search
-  const handleZoneLocationChange = useCallback((lat: number, lng: number, radius: number, label: string) => {
+  // Il raggio della zona è quello condiviso con Carte e Utenti
+  const handleZoneLocationChange = useCallback((lat: number, lng: number, _radius: number, label: string) => {
     setZoneCoords({ lat, lng });
-    setZoneRadius(radius);
     setZoneLabel(label);
   }, []);
 
-  const handleZoneSearch = async () => {
+  const handleZoneSearch = useCallback(async (scroll = true) => {
     if (!zoneCoords || !currentUser) return;
     setZoneLoading(true);
     setZoneSearched(true);
+    setZoneRadius(queryRadius);
     try {
-      const { data } = await cards.nearby(currentUser.id, zoneRadius, {
+      const { data } = await cards.nearby(currentUser.id, queryRadius, {
         latitude: zoneCoords.lat,
         longitude: zoneCoords.lng,
       }, selectedGameId);
@@ -135,11 +142,20 @@ export default function ExplorePage() {
       setZoneCards([]);
     } finally {
       setZoneLoading(false);
-      setTimeout(() => {
-        zoneResultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 50);
+      if (scroll) {
+        setTimeout(() => {
+          zoneResultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
+      }
     }
-  };
+  }, [zoneCoords, currentUser, queryRadius, selectedGameId]);
+
+  // Cambiando la distanza dopo una ricerca di zona, i risultati si aggiornano da soli
+  const zoneSearchRef = useRef(handleZoneSearch);
+  useEffect(() => { zoneSearchRef.current = handleZoneSearch; }, [handleZoneSearch]);
+  useEffect(() => {
+    if (tab === 'zone' && zoneSearched) zoneSearchRef.current(false);
+  }, [queryRadius]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Local filter only while debounce is pending
   const filteredCardsUnsorted = searchTerm && searchTerm !== debouncedSearch
@@ -170,6 +186,32 @@ export default function ExplorePage() {
   }, [navigate]);
 
   const hasLocation = hasProfileLocation || !!position;
+
+  // Selettore della distanza condiviso da Carte, Zona e Utenti: il valore resta lo stesso cambiando sezione
+  const radiusControl = (source: string) => (
+    <div className="bg-white rounded-2xl max-w-lg p-4 mb-4 border border-border/50">
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <label htmlFor="explore-radius" className="flex items-center gap-2 text-sm font-medium">
+          <Navigation size={16} className="text-primary" />
+          {t('cards.radius')}
+        </label>
+        <span className="text-xs text-accent font-medium truncate">{source}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <input
+          id="explore-radius"
+          type="range"
+          min={5}
+          max={200}
+          step={5}
+          value={effectiveRadius}
+          onChange={(e) => setRadiusKm(Number(e.target.value))}
+          className="flex-1 accent-primary"
+        />
+        <span className="text-xs font-bold text-primary w-12 text-right">{effectiveRadius} km</span>
+      </div>
+    </div>
+  );
 
   // Location prompt shown when user has no location
   const locationPrompt = (
@@ -251,30 +293,7 @@ export default function ExplorePage() {
         <>
           {!hasLocation ? locationPrompt : (
             <>
-              {/* Radius control */}
-              <div className="bg-white rounded-2xl max-w-lg p-4 mb-4 border border-border/50">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Navigation size={16} className="text-primary" />
-                    <span className="text-sm font-medium">{t('cards.radius')}</span>
-                  </div>
-                  <span className="text-xs text-accent font-medium">
-                    {hasProfileLocation ? t('cards.profileLocation') : t('cards.currentLocation')}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min={5}
-                    max={200}
-                    step={5}
-                    value={effectiveRadius}
-                    onChange={(e) => setRadiusKm(Number(e.target.value))}
-                    className="flex-1 accent-primary"
-                  />
-                  <span className="text-xs font-bold text-primary w-12 text-right">{effectiveRadius} km</span>
-                </div>
-              </div>
+              {radiusControl(hasProfileLocation ? t('cards.profileLocation') : t('cards.currentLocation'))}
 
               <div className="relative mb-4">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
@@ -319,6 +338,7 @@ export default function ExplorePage() {
       {/* ============ ZONE SEARCH TAB ============ */}
       {tab === 'zone' && (
         <><div>
+          {radiusControl(zoneLabel ? t('zone.center', { place: zoneLabel }) : hasProfileLocation ? t('cards.profileLocation') : t('zone.pickOnMap'))}
           <div className="bg-white rounded-2xl max-w-3xl mx-auto p-4 mb-4 border border-border/50">
 
             <Suspense fallback={
@@ -329,13 +349,14 @@ export default function ExplorePage() {
               <LocationPicker
                 initialLat={currentUser?.location?.latitude ?? 45.0703}
                 initialLng={currentUser?.location?.longitude ?? 7.6869}
-                initialRadius={zoneRadius}
+                radius={effectiveRadius}
+                showRadiusControl={false}
                 onLocationChange={handleZoneLocationChange}
               />
             </Suspense>
 
             <Button
-              onClick={handleZoneSearch}
+              onClick={() => handleZoneSearch()}
               className="w-full mt-4"
               size="lg"
               isLoading={zoneLoading}
@@ -395,6 +416,7 @@ export default function ExplorePage() {
       {/* ============ USERS TAB ============ */}
       {tab === 'users' && (
         <>
+          {hasLocation && radiusControl(hasProfileLocation ? t('cards.profileLocation') : t('cards.currentLocation'))}
           {!hasLocation ? locationPrompt : isLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 size={28} className="animate-spin text-primary" />

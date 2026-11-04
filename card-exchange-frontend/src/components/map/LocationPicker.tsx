@@ -8,6 +8,10 @@ interface LocationPickerProps {
   initialLat?: number;
   initialLng?: number;
   initialRadius?: number;
+  /** Raggio controllato dall'esterno (in km): se indicato, il cerchio sulla mappa segue questo valore. */
+  radius?: number;
+  /** false quando il raggio si sceglie fuori dalla mappa (es. selettore condiviso in Esplora). */
+  showRadiusControl?: boolean;
   onLocationChange: (lat: number, lng: number, radius: number, label: string) => void;
 }
 
@@ -44,12 +48,15 @@ export default function LocationPicker({
   initialLat = 45.0703,
   initialLng = 7.6869,
   initialRadius = 20,
+  radius: controlledRadius,
+  showRadiusControl = true,
   onLocationChange,
 }: LocationPickerProps) {
   const { t } = useTranslation('map');
   const [lat, setLat] = useState(initialLat);
   const [lng, setLng] = useState(initialLng);
-  const [radius, setRadius] = useState(initialRadius);
+  const [radiusState, setRadius] = useState(initialRadius);
+  const radius = controlledRadius ?? radiusState;
   const [label, setLabel] = useState('');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<NominatimResult[]>([]);
@@ -246,6 +253,7 @@ export default function LocationPicker({
       </div>
 
       {/* Radius slider */}
+      {showRadiusControl && (
       <div>
         <div className="flex items-center justify-between mb-1">
           <label className="text-xs font-semibold text-text-secondary">{t('location.radius')}</label>
@@ -265,6 +273,7 @@ export default function LocationPicker({
           <span>200 km</span>
         </div>
       </div>
+      )}
 
       {/* Selected location info */}
       {label && (

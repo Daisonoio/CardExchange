@@ -2,7 +2,11 @@
   "title": "Explore",
   "subtitle": "Find cards and collectors",
   "advancedSearch": "Advanced search",
-  "tabs": { "cards": "Cards", "zone": "Area", "users": "Users" },
+  "tabs": {
+    "cards": "Cards",
+    "zone": "Area",
+    "users": "Users"
+  },
   "locationPrompt": {
     "title": "Set your location",
     "description": "To see cards available near you, you need to set your location.",
@@ -27,7 +31,9 @@
     "emptyDescriptionFrom": "No cards available within {{radius}} km of {{place}}. Try increasing the radius.",
     "count_one": "{{count}} card found within {{radius}} km",
     "count_other": "{{count}} cards found within {{radius}} km",
-    "fromPlace": " of {{place}}"
+    "fromPlace": " of {{place}}",
+    "center": "Centre: {{place}}",
+    "pickOnMap": "Pick a spot on the map"
   },
   "users": {
     "emptyTitle": "No users found",
