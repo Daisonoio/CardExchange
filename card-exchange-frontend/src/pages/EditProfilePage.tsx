@@ -7,6 +7,7 @@ import i18n from '../i18n';
 import { useAuth } from '../context/AuthContext';
 import { useGeolocation } from '../hooks/useGeolocation';
 import Button from '../components/ui/Button';
+import { RADIUS_MAX, RADIUS_MIN, RADIUS_STEP, resetSearchRadius } from '../hooks/useSearchRadius';
 
 export default function EditProfilePage() {
   const { t } = useTranslation('profile');
@@ -153,6 +154,8 @@ export default function EditProfilePage() {
         longitude: locationForm.longitude,
         maxDistanceKm: locationForm.maxDistanceKm,
       });
+      // Il raggio salvato nel profilo diventa quello usato in tutte le sezioni
+      resetSearchRadius(user.id);
       await refreshUser();
       setMessage({ type: 'success', text: t('edit.locationSaved') });
     } catch {
@@ -340,19 +343,15 @@ export default function EditProfilePage() {
             </label>
             <input
               type="range"
-              min={5}
-              max={200}
-              step={5}
+              min={RADIUS_MIN}
+              max={RADIUS_MAX}
+              step={RADIUS_STEP}
               value={locationForm.maxDistanceKm}
               onChange={(e) =>
                 setLocationForm({ ...locationForm, maxDistanceKm: parseInt(e.target.value) })
               }
               className="w-full accent-primary"
             />
-            <div className="flex justify-between text-xs text-text-muted">
-              <span>5 km</span>
-              <span>200 km</span>
-            </div>
           </div>
         </div>
 

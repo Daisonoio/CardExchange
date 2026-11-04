@@ -13,6 +13,8 @@ import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import PlanBadge from '../components/users/PlanBadge';
 import { useFormat } from '../i18n/format';
+import { useSearchRadius } from '../hooks/useSearchRadius';
+import RadiusSlider from '../components/ui/RadiusSlider';
 
 export default function MatchmakingPage() {
   const { t } = useTranslation('matchmaking');
@@ -27,7 +29,14 @@ export default function MatchmakingPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Filters
-  const [radiusKm, setRadiusKm] = useState(100);
+  // Stesso raggio di Esplora e delle altre sezioni
+  const [radiusKm, setRadiusKm] = useSearchRadius();
+  // La ricerca parte quando si smette di muovere il cursore
+  const [queryRadius, setQueryRadius] = useState(radiusKm);
+  useEffect(() => {
+    const id = setTimeout(() => setQueryRadius(radiusKm), 300);
+    return () => clearTimeout(id);
+  }, [radiusKm]);
   const [showFilters, setShowFilters] = useState(false);
   const [filterMutualOnly, setFilterMutualOnly] = useState(false);
   // Il server restituisce i migliori match a pagine da 50
@@ -42,7 +51,7 @@ export default function MatchmakingPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data } = await matchmaking.getMatches({ radiusKm, gameId: selectedGameId, limit, mutualOnly: filterMutualOnly });
+      const { data } = await matchmaking.getMatches({ radiusKm: queryRadius, gameId: selectedGameId, limit, mutualOnly: filterMutualOnly });
       setHasMore(!!data?.hasMore);
       const list = data?.matches ?? [];
       setMatches(Array.isArray(list) ? list : []);
@@ -58,7 +67,7 @@ export default function MatchmakingPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [user, radiusKm, selectedGameId, limit, filterMutualOnly, t]);
+  }, [user, queryRadius, selectedGameId, limit, filterMutualOnly, t]);
 
   useEffect(() => { loadMatches(); }, [loadMatches]);
 
@@ -104,22 +113,10 @@ export default function MatchmakingPage() {
       {showFilters && (
         <div className="bg-white rounded-2xl p-4 border border-border/50 shadow-sm mb-4 space-y-3">
           <div>
-            <label className="text-xs font-semibold text-text-secondary block mb-1">
-              {t('filters.radius', { km: radiusKm })}
+            <label htmlFor="match-radius" className="text-xs font-semibold text-text-secondary block mb-1">
+              {t('filters.radiusLabel')}
             </label>
-            <input
-              type="range"
-              min={5}
-              max={500}
-              step={5}
-              value={radiusKm}
-              onChange={(e) => setRadiusKm(parseInt(e.target.value))}
-              className="w-full accent-primary"
-            />
-            <div className="flex justify-between text-[10px] text-text-muted">
-              <span>5 km</span>
-              <span>500 km</span>
-            </div>
+            <RadiusSlider id="match-radius" value={radiusKm} onChange={setRadiusKm} />
           </div>
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-text-secondary">{t('filters.mutualOnly')}</span>

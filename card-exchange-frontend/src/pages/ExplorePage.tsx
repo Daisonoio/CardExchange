@@ -10,6 +10,8 @@ import { useGeolocation } from '../hooks/useGeolocation';
 import CardItem from '../components/cards/CardItem';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
+import { useSearchRadius } from '../hooks/useSearchRadius';
+import RadiusSlider from '../components/ui/RadiusSlider';
 
 const LocationPicker = lazy(() => import('../components/map/LocationPicker'));
 
@@ -26,7 +28,8 @@ export default function ExplorePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [radiusKm, setRadiusKm] = useState<number | null>(null);
+  // Raggio condiviso con le altre sezioni (Matchmaking ecc.), salvato tra una visita e l'altra
+  const [effectiveRadius, setRadiusKm] = useSearchRadius();
   const { position, isLoading: geoLoading, requestPosition } = useGeolocation();
 
   // Zone search state
@@ -43,16 +46,6 @@ export default function ExplorePage() {
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
 
   const hasProfileLocation = !!(currentUser?.location?.latitude && currentUser?.location?.longitude);
-  const profileRadius = currentUser?.location?.maxDistanceKm ?? 50;
-
-  // Initialize radius from profile setting
-  useEffect(() => {
-    if (radiusKm === null && currentUser) {
-      setRadiusKm(profileRadius);
-    }
-  }, [currentUser, profileRadius, radiusKm]);
-
-  const effectiveRadius = radiusKm ?? profileRadius;
   // Il cursore aggiorna subito il numero; la ricerca parte quando ci si ferma (niente richieste a ogni passo)
   const [queryRadius, setQueryRadius] = useState(effectiveRadius);
   useEffect(() => {
@@ -197,19 +190,7 @@ export default function ExplorePage() {
         </label>
         <span className="text-xs text-accent font-medium truncate">{source}</span>
       </div>
-      <div className="flex items-center gap-3">
-        <input
-          id="explore-radius"
-          type="range"
-          min={5}
-          max={200}
-          step={5}
-          value={effectiveRadius}
-          onChange={(e) => setRadiusKm(Number(e.target.value))}
-          className="flex-1 accent-primary"
-        />
-        <span className="text-xs font-bold text-primary w-12 text-right">{effectiveRadius} km</span>
-      </div>
+      <RadiusSlider id="explore-radius" value={effectiveRadius} onChange={setRadiusKm} />
     </div>
   );
 
