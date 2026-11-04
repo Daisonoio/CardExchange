@@ -30,6 +30,8 @@ namespace CardExchange.API.Services
         public double Score { get; set; }
         public int MutualCardCount { get; set; }
         public bool IsMutual { get; set; }
+        /// <summary>"Premium" o "Store" se l'utente ha un piano con badge sul profilo.</summary>
+        public string? PlanBadge { get; set; }
     }
 
     public class MatchCard

@@ -6,6 +6,8 @@ namespace CardExchange.API.Authorization
     {
         Task<bool> HasActiveSubscriptionAsync(int userId);
         Task<SubscriptionPlan?> GetUserActivePlanAsync(int userId);
+        /// <summary>Piano a pagamento in corso (il livello più alto) per ciascuno degli utenti indicati che ne ha uno.</summary>
+        Task<Dictionary<int, SubscriptionPlan>> GetActivePaidPlansAsync(IEnumerable<int> userIds);
         Task<bool> CheckLimitAsync(int userId, string limitType, int currentCount);
     }
 }

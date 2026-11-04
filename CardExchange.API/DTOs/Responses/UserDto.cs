@@ -19,6 +19,8 @@
         public bool? EmailConfirmed { get; set; }
         public DateTime CreatedAt { get; set; }
         public UserLocationDto? Location { get; set; }
+        /// <summary>"Premium" o "Store" se l'utente ha un piano con badge sul profilo.</summary>
+        public string? PlanBadge { get; set; }
     }
 
     public class UserLocationDto

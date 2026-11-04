@@ -1,4 +1,6 @@
 using CardExchange.API.Authorization;
+using CardExchange.API.Services.Import;
+using CardExchange.Core.Rules;
 using CardExchange.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +11,10 @@ using System.Text.Json;
 
 namespace CardExchange.API.Controllers
 {
+    /// <summary>
+    /// Esportazione di collezione e wishlist (Premium). Il CSV della collezione usa intestazioni che l'import di
+    /// CardExchange e le principali app (ManaBox, Moxfield) riconoscono, così si può reimportare.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -21,105 +27,77 @@ namespace CardExchange.API.Controllers
             _context = context;
         }
 
-        /// <summary>
-        /// Esporta la collezione in formato CSV (PREMIUM)
-        /// </summary>
         [HttpGet("collection/csv")]
         [RequirePremium]
         public async Task<IActionResult> ExportCollectionCsv()
         {
             var userId = GetCurrentUserId();
             if (userId == 0) return Unauthorized();
+            var cards = await LoadCardsAsync(userId);
 
-            var cards = await _context.Cards
-                .AsNoTracking()
-                .Include(c => c.CardInfo)
-                    .ThenInclude(ci => ci.CardSet)
-                        .ThenInclude(cs => cs.Game)
-                .Where(c => c.UserId == userId)
-                .OrderBy(c => c.CardInfo.CardSet.Game.Name)
-                    .ThenBy(c => c.CardInfo.CardSet.Name)
-                    .ThenBy(c => c.CardInfo.Name)
-                .ToListAsync();
-
-            var sb = new StringBuilder();
-            sb.AppendLine("Gioco,Set,Codice Set,Nome Carta,Numero,Rarità,Tipo,Condizione,Lingua,Finitura,Quantità,Disponibile Scambio,Valore Stimato,Note");
-
-            foreach (var card in cards)
+            var header = new[]
             {
-                var fields = new[]
-                {
-                    EscapeCsv(card.CardInfo.CardSet.Game.Name),
-                    EscapeCsv(card.CardInfo.CardSet.Name),
-                    EscapeCsv(card.CardInfo.CardSet.Code),
-                    EscapeCsv(card.CardInfo.Name),
-                    EscapeCsv(card.CardInfo.CardNumber ?? ""),
-                    EscapeCsv(card.CardInfo.Rarity ?? ""),
-                    EscapeCsv(card.CardInfo.Type ?? ""),
-                    card.Condition.ToString(),
-                    card.Language ?? "",
-                    card.Finish.ToString(),
-                    card.Quantity.ToString(),
-                    card.IsAvailableForTrade ? "Sì" : "No",
-                    card.EstimatedValue?.ToString("F2") ?? "",
-                    EscapeCsv(card.Notes ?? "")
-                };
-                sb.AppendLine(string.Join(",", fields));
-            }
-
-            var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
-            return File(bytes, "text/csv", $"collezione_{DateTime.UtcNow:yyyyMMdd}.csv");
+                "Game", "Name", "Set code", "Set name", "Collector number", "Quantity", "Condition", "Language", "Finish",
+                "Rarity", "For trade", "Market value EUR", "Asking price EUR", "Scryfall ID", "Notes"
+            };
+            var rows = cards.Select(c => new[]
+            {
+                c.CardInfo.CardSet?.Game?.Name,
+                c.CardInfo.Name,
+                c.CardInfo.CardSet?.Code,
+                c.CardInfo.CardSet?.Name,
+                c.CardInfo.CardNumber,
+                c.Quantity.ToString(),
+                c.Condition.ToString(),
+                c.Language,
+                c.Finish.ToString(),
+                c.CardInfo.Rarity,
+                c.IsAvailableForTrade ? "yes" : "no",
+                CsvExport.Number(CardPricing.MarketValueEur(c)),
+                CsvExport.Number(c.AskingPrice),
+                c.CardInfo.ScryfallId,
+                c.Notes
+            });
+            return File(CsvExport.ToBytes(header, rows), "text/csv; charset=utf-8", $"cardexchange_collezione_{DateTime.UtcNow:yyyyMMdd}.csv");
         }
 
-        /// <summary>
-        /// Esporta la collezione in formato JSON (PREMIUM)
-        /// </summary>
         [HttpGet("collection/json")]
         [RequirePremium]
         public async Task<IActionResult> ExportCollectionJson()
         {
             var userId = GetCurrentUserId();
             if (userId == 0) return Unauthorized();
-
-            var cards = await _context.Cards
-                .AsNoTracking()
-                .Include(c => c.CardInfo)
-                    .ThenInclude(ci => ci.CardSet)
-                        .ThenInclude(cs => cs.Game)
-                .Where(c => c.UserId == userId)
-                .ToListAsync();
+            var cards = await LoadCardsAsync(userId);
 
             var export = new
             {
                 exportDate = DateTime.UtcNow,
-                totalCards = cards.Count,
-                totalValue = cards.Where(c => c.EstimatedValue.HasValue).Sum(c => c.EstimatedValue!.Value),
+                totalCards = cards.Sum(c => c.Quantity),
+                uniqueCards = cards.Count,
+                marketValueEur = cards.Sum(c => (CardPricing.MarketValueEur(c) ?? 0) * c.Quantity),
                 cards = cards.Select(c => new
                 {
-                    game = c.CardInfo.CardSet.Game.Name,
-                    cardSet = c.CardInfo.CardSet.Name,
-                    cardSetCode = c.CardInfo.CardSet.Code,
+                    game = c.CardInfo.CardSet?.Game?.Name,
                     name = c.CardInfo.Name,
-                    cardNumber = c.CardInfo.CardNumber,
+                    setCode = c.CardInfo.CardSet?.Code,
+                    setName = c.CardInfo.CardSet?.Name,
+                    collectorNumber = c.CardInfo.CardNumber,
                     rarity = c.CardInfo.Rarity,
-                    type = c.CardInfo.Type,
+                    quantity = c.Quantity,
                     condition = c.Condition.ToString(),
                     language = c.Language,
                     finish = c.Finish.ToString(),
-                    quantity = c.Quantity,
-                    isAvailableForTrade = c.IsAvailableForTrade,
-                    estimatedValue = c.EstimatedValue,
+                    forTrade = c.IsAvailableForTrade,
+                    marketValueEur = CardPricing.MarketValueEur(c),
+                    askingPriceEur = c.AskingPrice,
+                    scryfallId = c.CardInfo.ScryfallId,
                     notes = c.Notes
                 })
             };
-
-            var json = JsonSerializer.Serialize(export, new JsonSerializerOptions { WriteIndented = true });
-            return File(Encoding.UTF8.GetBytes(json), "application/json", $"collezione_{DateTime.UtcNow:yyyyMMdd}.json");
+            var json = JsonSerializer.Serialize(export, new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            return File(Encoding.UTF8.GetBytes(json), "application/json", $"cardexchange_collezione_{DateTime.UtcNow:yyyyMMdd}.json");
         }
 
-        /// <summary>
-        /// Esporta la wishlist in CSV (PREMIUM)
-        /// </summary>
         [HttpGet("wishlist/csv")]
         [RequirePremium]
         public async Task<IActionResult> ExportWishlistCsv()
@@ -129,42 +107,37 @@ namespace CardExchange.API.Controllers
 
             var items = await _context.WishlistItems
                 .AsNoTracking()
-                .Include(w => w.CardInfo)
-                    .ThenInclude(ci => ci.CardSet)
-                        .ThenInclude(cs => cs.Game)
+                .Include(w => w.CardInfo).ThenInclude(ci => ci.CardSet).ThenInclude(cs => cs.Game)
                 .Where(w => w.UserId == userId)
                 .OrderBy(w => w.Priority)
                 .ToListAsync();
 
-            var sb = new StringBuilder();
-            sb.AppendLine("Gioco,Set,Nome Carta,Rarità,Condizione Preferita,Prezzo Max,Priorità,Note");
-
-            foreach (var item in items)
+            var header = new[] { "Game", "Name", "Set code", "Set name", "Collector number", "Quantity", "Condition", "Language", "Finish", "Max price EUR", "Priority", "Notes" };
+            var rows = items.Select(w => new[]
             {
-                var fields = new[]
-                {
-                    EscapeCsv(item.CardInfo.CardSet.Game.Name),
-                    EscapeCsv(item.CardInfo.CardSet.Name),
-                    EscapeCsv(item.CardInfo.Name),
-                    EscapeCsv(item.CardInfo.Rarity ?? ""),
-                    item.PreferredCondition?.ToString() ?? "Qualsiasi",
-                    item.MaxPrice?.ToString("F2") ?? "",
-                    item.Priority.ToString(),
-                    EscapeCsv(item.Notes ?? "")
-                };
-                sb.AppendLine(string.Join(",", fields));
-            }
-
-            var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
-            return File(bytes, "text/csv", $"wishlist_{DateTime.UtcNow:yyyyMMdd}.csv");
+                w.CardInfo.CardSet?.Game?.Name,
+                w.CardInfo.Name,
+                w.CardInfo.CardSet?.Code,
+                w.CardInfo.CardSet?.Name,
+                w.CardInfo.CardNumber,
+                "1",
+                w.PreferredCondition?.ToString(),
+                w.PreferredLanguage,
+                w.PreferredFinish?.ToString(),
+                CsvExport.Number(w.MaxPrice),
+                w.Priority.ToString(),
+                w.Notes
+            });
+            return File(CsvExport.ToBytes(header, rows), "text/csv; charset=utf-8", $"cardexchange_wishlist_{DateTime.UtcNow:yyyyMMdd}.csv");
         }
 
-        private static string EscapeCsv(string value)
-        {
-            if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
-                return $"\"{value.Replace("\"", "\"\"")}\"";
-            return value;
-        }
+        private Task<List<CardExchange.Core.Entities.Card>> LoadCardsAsync(int userId) =>
+            _context.Cards
+                .AsNoTracking()
+                .Include(c => c.CardInfo).ThenInclude(ci => ci.CardSet).ThenInclude(cs => cs.Game)
+                .Where(c => c.UserId == userId)
+                .OrderBy(c => c.CardInfo.CardSet.Game.Name).ThenBy(c => c.CardInfo.CardSet.Name).ThenBy(c => c.CardInfo.Name)
+                .ToListAsync();
 
         private int GetCurrentUserId()
         {

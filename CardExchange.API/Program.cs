@@ -304,7 +304,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5173")
              .AllowAnyMethod()
              .AllowCredentials()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .WithExposedHeaders("Content-Disposition");
     });
 
     options.AddPolicy("ProductionPolicy", policy =>
@@ -317,6 +318,7 @@ builder.Services.AddCors(options =>
             policy.WithOrigins(allowedOrigins)
                   .WithMethods("GET", "POST", "PUT", "DELETE")
                   .WithHeaders("Authorization", "Content-Type")
+                  .WithExposedHeaders("Content-Disposition") // nome dei file esportati
                   .AllowCredentials();
         }
     });

@@ -72,7 +72,7 @@ namespace CardExchange.API.Controllers
         /// </summary>
         [HttpGet("{id}")]
         [RequirePermission("USERS.READ.PUBLIC")]
-        public async Task<ActionResult<UserDto>> GetUserById(int id)
+        public async Task<ActionResult<UserDto>> GetUserById(int id, [FromServices] ISubscriptionService subscriptions)
         {
             try
             {
@@ -83,7 +83,7 @@ namespace CardExchange.API.Controllers
                     return NotFound(new { message = $"Utente con ID {id} non trovato" });
                 }
 
-                return Ok(MapToDto(user));
+                return Ok(await WithBadgeAsync(MapToDto(user), subscriptions));
             }
             catch (Exception ex)
             {
@@ -97,7 +97,7 @@ namespace CardExchange.API.Controllers
         /// </summary>
         [HttpGet("by-username/{username}")]
         [RequirePermission("USERS.READ.PUBLIC")]
-        public async Task<ActionResult<UserDto>> GetUserByUsername(string username)
+        public async Task<ActionResult<UserDto>> GetUserByUsername(string username, [FromServices] ISubscriptionService subscriptions)
         {
             try
             {
@@ -109,7 +109,7 @@ namespace CardExchange.API.Controllers
                 }
 
                 var userWithLocation = await _userRepository.GetWithLocationAsync(user.Id);
-                return Ok(MapToDto(userWithLocation!));
+                return Ok(await WithBadgeAsync(MapToDto(userWithLocation!), subscriptions));
             }
             catch (Exception ex)
             {
@@ -370,12 +370,19 @@ namespace CardExchange.API.Controllers
         }
 
         // Helper methods
-        private static UserDto MapToDto(User user)
+        /// <summary>
+        /// Gli altri utenti non vedono email, CAP e coordinate esatte: la posizione è arrotondata a circa 1 km,
+        /// sufficiente per distanze e mappe ma non per risalire all'indirizzo di casa.
+        /// </summary>
+        private UserDto MapToDto(User user)
         {
+            var viewerId = int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var v) ? v : 0;
+            var full = viewerId == user.Id || User.IsInRole("Admin") || User.IsInRole("SuperAdmin");
+            static decimal? Coarse(decimal? c) => c.HasValue ? Math.Round(c.Value, 2) : null;
             return new UserDto
             {
                 Id = user.Id,
-                Email = user.Email,
+                Email = full ? user.Email : string.Empty,
                 Username = user.Username,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
@@ -393,12 +400,19 @@ namespace CardExchange.API.Controllers
                     City = user.Location.City,
                     Province = user.Location.Province,
                     Country = user.Location.Country,
-                    PostalCode = user.Location.PostalCode,
-                    Latitude = user.Location.Latitude,
-                    Longitude = user.Location.Longitude,
+                    PostalCode = full ? user.Location.PostalCode : null,
+                    Latitude = full ? user.Location.Latitude : Coarse(user.Location.Latitude),
+                    Longitude = full ? user.Location.Longitude : Coarse(user.Location.Longitude),
                     MaxDistanceKm = user.Location.MaxDistanceKm
                 } : null
             };
+        }
+
+        private static async Task<UserDto> WithBadgeAsync(UserDto dto, ISubscriptionService subscriptions)
+        {
+            var plans = await subscriptions.GetActivePaidPlansAsync(new[] { dto.Id });
+            if (plans.TryGetValue(dto.Id, out var plan) && plan.HasVerifiedBadge) dto.PlanBadge = plan.Tier.ToString();
+            return dto;
         }
 
         private static string HashPassword(string password)

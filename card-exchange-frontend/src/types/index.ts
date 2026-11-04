@@ -25,7 +25,10 @@ export interface AuthResponse {
 }
 
 // === User ===
+export type PlanBadge = 'Premium' | 'Store';
+
 export interface User {
+  planBadge?: PlanBadge;
   id: number;
   email: string;
   username: string;
@@ -487,6 +490,8 @@ export interface MatchResult {
   score: number;
   mutualCardCount: number;
   isMutual: boolean;
+  /** 'Premium' o 'Store' se l'utente ha un piano con badge. */
+  planBadge?: PlanBadge;
   theyHaveIWant: MatchCard[];
   iHaveTheyWant: MatchCard[];
 }
@@ -849,4 +854,101 @@ export interface AdminSubscriptionRow {
   autoRenew: boolean;
   adminNote?: string;
   createdAt: string;
+}
+
+// === Statistiche della collezione ===
+export interface BasicStats {
+  totalCards: number;
+  uniqueCards: number;
+  availableForTrade: number;
+  marketValue: number;
+  wishlistItems: number;
+  pendingTrades: number;
+}
+
+export interface StatsCardLine {
+  cardId: number;
+  cardInfoId: number;
+  name: string;
+  setName?: string;
+  imageUrl?: string;
+  finish: string;
+  condition?: string;
+  quantity: number;
+  unitValue: number;
+  totalValue?: number;
+  unitChange?: number;
+  totalChange?: number;
+  percent?: number;
+}
+
+export interface ValueChange { amount: number; percent?: number | null }
+
+export interface CollectionInsights {
+  totals: {
+    totalCards: number;
+    uniqueCards: number;
+    marketValue: number;
+    availableForTrade: number;
+    tradeableValue: number;
+    unpricedCards: number;
+  };
+  change7d: ValueChange;
+  change30d: ValueChange;
+  series: { date: string; value: number }[];
+  topCards: StatsCardLine[];
+  gainers: StatsCardLine[];
+  losers: StatsCardLine[];
+  byGame: { game: string; count: number; value: number }[];
+  byCondition: { condition: string; count: number; value: number }[];
+  trading: { completedTrades: number };
+}
+
+// === Ricerca avanzata ===
+export interface AdvancedSearchParams {
+  searchTerm?: string;
+  gameId?: number;
+  rarity?: string;
+  language?: string;
+  finish?: CardFinish;
+  /** Condizione peggiore accettata (1 = Mint … 8 = Damaged). */
+  maxCondition?: number;
+  minPrice?: number;
+  maxPrice?: number;
+  radiusKm?: number;
+  sortBy?: 'distance' | 'price' | 'newest';
+  page?: number;
+  pageSize?: number;
+}
+
+export interface AdvancedSearchCard {
+  id: number;
+  cardInfoId: number;
+  cardName: string;
+  cardNumber?: string;
+  cardSet: string;
+  cardSetCode?: string;
+  game: string;
+  rarity?: string;
+  condition: string;
+  language?: string;
+  finish: string;
+  quantity: number;
+  price?: number;
+  marketValue?: number;
+  askingPrice?: number;
+  imageUrl?: string;
+  distanceKm?: number;
+  owner: { id: number; username: string; reputationScore: number; totalTradesCompleted: number; planBadge?: PlanBadge };
+  location?: { city: string; province?: string };
+}
+
+export interface AdvancedSearchResponse {
+  totalCount: number;
+  truncated: boolean;
+  page: number;
+  pageSize: number;
+  hasLocation: boolean;
+  sortBy: string;
+  cards: AdvancedSearchCard[];
 }

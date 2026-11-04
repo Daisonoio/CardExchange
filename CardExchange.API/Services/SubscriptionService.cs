@@ -46,6 +46,22 @@ namespace CardExchange.API.Services
                     && !s.IsDeleted);
         }
 
+        public async Task<Dictionary<int, SubscriptionPlan>> GetActivePaidPlansAsync(IEnumerable<int> userIds)
+        {
+            var ids = userIds.Distinct().ToList();
+            if (ids.Count == 0) return new Dictionary<int, SubscriptionPlan>();
+            var now = DateTime.UtcNow;
+            var subs = await _context.Set<UserSubscription>()
+                .AsNoTracking()
+                .Include(s => s.Plan)
+                .Where(s => ids.Contains(s.UserId) && s.Status == SubscriptionStatus.Active
+                            && s.StartDate <= now && s.EndDate > now && !s.IsDeleted)
+                .ToListAsync();
+            return subs
+                .GroupBy(s => s.UserId)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(s => s.Plan.Tier).First().Plan);
+        }
+
         public async Task<SubscriptionPlan?> GetUserActivePlanAsync(int userId)
         {
             var subscription = await _context.Set<UserSubscription>()

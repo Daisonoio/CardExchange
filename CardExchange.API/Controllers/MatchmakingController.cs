@@ -57,6 +57,7 @@ namespace CardExchange.API.Controllers
                         m.Score,
                         m.MutualCardCount,
                         m.IsMutual,
+                        m.PlanBadge,
                         theyHaveIWant = m.TheyHaveIWant.Select(c => new
                         {
                             c.CardId,

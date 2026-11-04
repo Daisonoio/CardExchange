@@ -23,6 +23,8 @@ import ChatPage from './pages/ChatPage';
 import MatchmakingPage from './pages/MatchmakingPage';
 import ModerationPage from './pages/ModerationPage';
 import PremiumPage from './pages/PremiumPage';
+import StatsPage from './pages/StatsPage';
+import SearchPage from './pages/SearchPage';
 import AdminBillingPage from './pages/AdminBillingPage';
 import LocalPage from './pages/LocalPage';
 import StorePage from './pages/StorePage';
@@ -74,6 +76,8 @@ export default function App() {
               <Route path="/profile/edit" element={<EditProfilePage />} />
               <Route path="/moderation" element={<ModerationPage />} />
               <Route path="/premium" element={<PremiumPage />} />
+              <Route path="/stats" element={<StatsPage />} />
+              <Route path="/search" element={<SearchPage />} />
               <Route path="/admin/billing" element={<AdminBillingPage />} />
             </Route>
 

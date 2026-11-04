@@ -276,7 +276,7 @@ namespace CardExchange.Infrastructure.Data
                 new SubscriptionPlan
                 {
                     Name = "Negozio Annuale",
-                    Description = "Per i negozi: scheda negozio in evidenza nella sezione Locale, badge verificato, eventi e collezione senza limiti.",
+                    Description = "Per i negozi: scheda negozio in evidenza nella sezione Locale, badge Negozio sul profilo, più visibilità nei match, nessun limite.",
                     Tier = SubscriptionTier.Store,
                     Cycle = BillingCycle.Annual,
                     Price = 99.00m,

@@ -411,3 +411,30 @@ export const adminBilling = {
   grant: (data: { user: string; planId: number; amountPaid: number; endDate?: string; paymentReference?: string; note?: string }) =>
     client.post<{ message: string }>('/admin/billing/grant', data),
 };
+
+// === Statistiche, export e ricerca avanzata (Premium) ===
+export const statistics = {
+  basic: () => client.get<import('../types').BasicStats>('/statistics/collection/basic'),
+  insights: (days: number) => client.get<import('../types').CollectionInsights>('/statistics/collection/insights', { params: { days } }),
+};
+
+/** Scarica un file dall'API (con il token) e lo salva con il nome indicato dal server. */
+export async function downloadExport(path: 'collection/csv' | 'collection/json' | 'wishlist/csv') {
+  const res = await client.get<Blob>(`/export/${path}`, { responseType: 'blob' });
+  const disposition = String(res.headers['content-disposition'] ?? '');
+  const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition);
+  const name = match ? decodeURIComponent(match[1]) : `cardexchange_${path.replace('/', '.')}`;
+  const url = URL.createObjectURL(res.data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export const advancedSearch = {
+  search: (params: import('../types').AdvancedSearchParams) =>
+    client.post<import('../types').AdvancedSearchResponse>('/search/advanced', params),
+};

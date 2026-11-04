@@ -30,11 +30,11 @@ function planFeatures(p: SubscriptionPlan): string[] {
   if (p.tier === 'Store') f.push('Scheda negozio in evidenza nella sezione Locale');
   f.push('Wishlist, proposte e messaggi senza limiti');
   if (p.hasWishlistAlerts) f.push('Avvisi quando una carta della wishlist è disponibile');
-  if (p.canSearchAdvanced || p.canSearchGeographic) f.push('Ricerca avanzata e per distanza');
+  if (p.canSearchAdvanced || p.canSearchGeographic) f.push('Ricerca avanzata: lingua, foil, condizione, prezzo e distanza');
   if (p.canViewStatistics) f.push('Statistiche e andamento del valore della collezione');
   if (p.canExportCollection) f.push('Esportazione della collezione');
-  if (p.hasPriorityListing) f.push('Più visibilità nei match');
-  if (p.hasVerifiedBadge) f.push('Badge verificato sul profilo');
+  if (p.hasPriorityListing) f.push('Più visibilità nei match degli altri utenti');
+  if (p.hasVerifiedBadge) f.push(p.tier === 'Store' ? 'Badge Negozio sul profilo' : 'Badge Premium sul profilo');
   return f;
 }
 

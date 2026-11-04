@@ -12,14 +12,23 @@ namespace CardExchange.API.Services
         private readonly IUserRepository _userRepository;
         private readonly CardExchange.API.Services.Moderation.IUserBlockService _blocks;
         private readonly ILogger<MatchmakingService> _logger;
+        private readonly CardExchange.API.Authorization.ISubscriptionService? _subscriptions;
+
+        /// <summary>
+        /// Spinta in classifica per chi ha un piano con visibilità prioritaria: vale quanto avvicinarsi di una fascia
+        /// di distanza, quindi non scavalca mai un match reciproco né un match molto più ricco.
+        /// </summary>
+        public const double PriorityListingBonus = 15;
 
         public MatchmakingService(
             ICardRepository cardRepository,
             ICardInfoRepository cardInfoRepository,
             IWishlistRepository wishlistRepository,
             IUserRepository userRepository,
-            CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<MatchmakingService> logger)
+            CardExchange.API.Services.Moderation.IUserBlockService blocks, ILogger<MatchmakingService> logger,
+            CardExchange.API.Authorization.ISubscriptionService? subscriptions = null)
         {
+            _subscriptions = subscriptions;
             _cardRepository = cardRepository;
             _cardInfoRepository = cardInfoRepository;
             _wishlistRepository = wishlistRepository;
@@ -237,6 +246,17 @@ namespace CardExchange.API.Services
                     MutualCardCount = mutualCount,
                     IsMutual = isMutual
                 });
+            }
+
+            if (_subscriptions != null && results.Count > 0)
+            {
+                var plans = await _subscriptions.GetActivePaidPlansAsync(results.Select(r => r.UserId));
+                foreach (var r in results)
+                {
+                    if (!plans.TryGetValue(r.UserId, out var plan)) continue;
+                    if (plan.HasPriorityListing) r.Score = Math.Round(r.Score + PriorityListingBonus, 1);
+                    if (plan.HasVerifiedBadge) r.PlanBadge = plan.Tier.ToString();
+                }
             }
 
             // Sort: mutual first, then by score descending

@@ -10,6 +10,7 @@ import { useGame } from '../context/GameContext';
 import type { MatchResult, MatchCard } from '../types';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
+import PlanBadge from '../components/users/PlanBadge';
 
 export default function MatchmakingPage() {
   const { user } = useAuth();
@@ -231,6 +232,7 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-bold text-sm text-text truncate">{match.username}</span>
+              <PlanBadge badge={match.planBadge} />
               {isMutual && (
                 <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full whitespace-nowrap">
                   <ArrowLeftRight size={10} className="inline mr-0.5" />

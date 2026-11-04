@@ -11,6 +11,7 @@ import UserSafetyMenu from '../components/users/UserSafetyMenu';
 import StarRating from '../components/users/StarRating';
 import EmptyState from '../components/ui/EmptyState';
 import Button from '../components/ui/Button';
+import PlanBadge from '../components/users/PlanBadge';
 
 export default function UserCollectionPage() {
   const { userId } = useParams<{ userId: string }>();
@@ -155,6 +156,7 @@ export default function UserCollectionPage() {
           <h1 className="text-xl font-bold text-text truncate">
             {owner ? `Collezione di ${owner.username}` : 'Collezione utente'}
           </h1>
+          {owner?.planBadge && <PlanBadge badge={owner.planBadge} />}
           <p className="text-sm text-text-secondary">
             {userCards.length} carte disponibili per lo scambio
             {totalValue > 0 && <> &middot; Valore: €{totalValue.toFixed(2)}</>}

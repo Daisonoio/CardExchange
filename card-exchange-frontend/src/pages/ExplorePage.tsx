@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
-import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation, Map, Settings } from 'lucide-react';
+import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation, Map, Settings, SlidersHorizontal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cards, users, favorites } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -194,8 +194,18 @@ export default function ExplorePage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-text mb-1">Esplora</h1>
-      <p className="text-sm text-text-secondary mb-4">Trova carte e collezionisti</p>
+      <div className="flex items-start justify-between gap-2 mb-4">
+        <div>
+          <h1 className="text-xl font-bold text-text mb-1">Esplora</h1>
+          <p className="text-sm text-text-secondary">Trova carte e collezionisti</p>
+        </div>
+        <button
+          onClick={() => navigate('/search')}
+          className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-white text-xs font-semibold text-primary"
+        >
+          <SlidersHorizontal size={13} /> Ricerca avanzata
+        </button>
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-1.5 mb-3">
