@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import {
   Star, ArrowLeftRight, MessageCircle, MapPin, LogOut,
@@ -9,9 +10,11 @@ import ReviewsSheet from '../components/users/ReviewsSheet';
 import BlockedUsersSheet from '../components/users/BlockedUsersSheet';
 import { hasPermission, hasRole } from '../utils/permissions';
 import PushToggle from '../components/notifications/PushToggle';
+import LanguageSwitcher from '../components/ui/LanguageSwitcher';
 import InviteCard from '../components/users/InviteCard';
 
 export default function ProfilePage() {
+  const { t } = useTranslation('profile');
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showReviews, setShowReviews] = useState(false);
@@ -27,17 +30,17 @@ export default function ProfilePage() {
   const initials = `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase();
 
   const menuItems = [
-    { label: 'Modifica Profilo', icon: Pencil, to: '/profile/edit' },
-    { label: 'Il mio piano', icon: Crown, to: '/premium' },
-    { label: 'Statistiche ed esportazione', icon: BarChart3, to: '/stats' },
-    { label: 'Ricerca avanzata', icon: Search, to: '/search' },
-    { label: 'Le mie Carte', icon: Library, to: '/collection' },
-    { label: 'Wishlist', icon: Heart, to: '/wishlist' },
-    { label: 'I miei Scambi', icon: ArrowLeftRight, to: '/trades' },
-    { label: 'Recensioni ricevute', icon: Trophy, to: null, action: () => setShowReviews(true) },
-    { label: 'Utenti bloccati', icon: Ban, to: null, action: () => setShowBlocked(true) },
-    ...(hasPermission('ADMIN.REPORTS.MANAGE') ? [{ label: 'Moderazione', icon: ShieldCheck, to: '/moderation' }] : []),
-    ...(hasRole('Admin', 'SuperAdmin') ? [{ label: 'Abbonamenti', icon: Receipt, to: '/admin/billing' }] : []),
+    { label: t('menu.editProfile'), icon: Pencil, to: '/profile/edit' },
+    { label: t('menu.myPlan'), icon: Crown, to: '/premium' },
+    { label: t('menu.stats'), icon: BarChart3, to: '/stats' },
+    { label: t('menu.advancedSearch'), icon: Search, to: '/search' },
+    { label: t('menu.myCards'), icon: Library, to: '/collection' },
+    { label: t('menu.wishlist'), icon: Heart, to: '/wishlist' },
+    { label: t('menu.myTrades'), icon: ArrowLeftRight, to: '/trades' },
+    { label: t('menu.reviews'), icon: Trophy, to: null, action: () => setShowReviews(true) },
+    { label: t('menu.blockedUsers'), icon: Ban, to: null, action: () => setShowBlocked(true) },
+    ...(hasPermission('ADMIN.REPORTS.MANAGE') ? [{ label: t('menu.moderation'), icon: ShieldCheck, to: '/moderation' }] : []),
+    ...(hasRole('Admin', 'SuperAdmin') ? [{ label: t('menu.subscriptions'), icon: Receipt, to: '/admin/billing' }] : []),
   ] as { label: string; icon: typeof Star; to: string | null; action?: () => void }[];
 
   return (
@@ -69,9 +72,9 @@ export default function ProfilePage() {
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         {[
-          { icon: Star, value: (user.reputationScore ?? 0).toFixed(1), label: 'Reputazione', color: '#f5b800' },
-          { icon: ArrowLeftRight, value: user.totalTradesCompleted ?? 0, label: 'Scambi', color: '#1a3461' },
-          { icon: MessageCircle, value: user.totalReviewsReceived ?? 0, label: 'Recensioni', color: '#10b981' },
+          { icon: Star, value: (user.reputationScore ?? 0).toFixed(1), label: t('stats.reputation'), color: '#f5b800' },
+          { icon: ArrowLeftRight, value: user.totalTradesCompleted ?? 0, label: t('stats.trades'), color: '#1a3461' },
+          { icon: MessageCircle, value: user.totalReviewsReceived ?? 0, label: t('stats.reviews'), color: '#10b981' },
         ].map(({ icon: Icon, value, label, color }) => (
           <div key={label} className="bg-white rounded-2xl p-3 text-center shadow-sm border border-border/50">
             <div className="flex items-center justify-center gap-1 mb-0.5" style={{ color }}>
@@ -83,6 +86,7 @@ export default function ProfilePage() {
         ))}
       </div>
 
+      <LanguageSwitcher />
       <PushToggle />
       <InviteCard />
 
@@ -117,7 +121,7 @@ export default function ProfilePage() {
           <span className="w-9 h-9 rounded-full border-2 border-danger/40 flex items-center justify-center shrink-0 text-danger">
             <LogOut size={16} />
           </span>
-          <span className="flex-1 text-sm font-medium text-danger">Esci dall'account</span>
+          <span className="flex-1 text-sm font-medium text-danger">{t('logout')}</span>
           <ChevronRight size={16} className="text-danger/40" />
         </button>
       </div>

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import i18n from '../i18n';
 
 interface GeoPosition {
   latitude: number;
@@ -12,7 +13,7 @@ export function useGeolocation() {
 
   const requestPosition = useCallback(() => {
     if (!navigator.geolocation) {
-      setError('Geolocalizzazione non supportata dal browser');
+      setError(i18n.t('layout:geolocation.unsupported'));
       return;
     }
 
@@ -30,8 +31,8 @@ export function useGeolocation() {
       (err) => {
         setError(
           err.code === 1
-            ? 'Permesso di geolocalizzazione negato'
-            : 'Impossibile ottenere la posizione'
+            ? i18n.t('layout:geolocation.denied')
+            : i18n.t('layout:geolocation.unavailable')
         );
         setIsLoading(false);
       },

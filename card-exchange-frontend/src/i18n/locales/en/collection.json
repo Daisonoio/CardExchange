@@ -54,7 +54,8 @@
     "changeCard": "Change card",
     "askingPricePlaceholder": "Empty = market value",
     "askingPriceHint": "A guide price, open to negotiation: you and your trade partner can agree freely.",
-    "submit": "Add to collection"
+    "submit": "Add to collection",
+    "scan": "Scan with the camera"
   },
   "user": {
     "title": "{{username}}'s collection",

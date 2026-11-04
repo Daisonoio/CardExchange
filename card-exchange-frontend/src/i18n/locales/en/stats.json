@@ -1,0 +1,72 @@
+{
+  "title": "Statistics",
+  "unavailable": "Statistics unavailable.",
+  "delta": {
+    "unchanged": "unchanged {{period}}"
+  },
+  "periods": {
+    "in7d": "in 7 days",
+    "in30d": "in 30 days"
+  },
+  "cardRow": {
+    "total": "total {{value}}",
+    "now": "now {{value}}"
+  },
+  "export": {
+    "failed": "Export failed.",
+    "title": "Export your data",
+    "description": "The collection CSV can be re-imported into CardExchange and the main apps (ManaBox, Moxfield). It also includes market value and the price you set.",
+    "collectionCsv": "Collection (CSV)",
+    "collectionJson": "Collection (JSON)",
+    "wishlistCsv": "Wishlist (CSV)"
+  },
+  "tiles": {
+    "marketValue": "Market value",
+    "cards": "Cards",
+    "unique_one": "{{formatted}} unique",
+    "unique_other": "{{formatted}} unique",
+    "forTrade": "For trade",
+    "tradeableValue": "worth {{value}}",
+    "wishlist": "Wishlist",
+    "pendingTrades_one": "{{count}} offer in progress",
+    "pendingTrades_other": "{{count}} offers in progress"
+  },
+  "upsell": {
+    "title": "See more with Premium",
+    "trend": "Your collection's value over time",
+    "movers": "The cards that rose or fell the most this week",
+    "topCards": "Your most valuable cards, by game and condition",
+    "export": "Collection and wishlist export",
+    "cta": "Discover Premium"
+  },
+  "chart": {
+    "title": "Value trend",
+    "period": "Period",
+    "oneYear": "1 year",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "ariaLabel_one": "Collection value over the last day",
+    "ariaLabel_other": "Collection value over the last {{count}} days",
+    "value": "Value",
+    "note": "Market value of the cards you own today, taking condition and finish into account. It's only a reference: you're free to agree on any value when trading.",
+    "unpriced_one": "{{count}} card without a price is not counted.",
+    "unpriced_other": "{{count}} cards without a price are not counted."
+  },
+  "movers": {
+    "title": "This week's changes",
+    "up": "Rising",
+    "down": "Falling"
+  },
+  "topCards": "Most valuable cards",
+  "byGame": {
+    "title": "By game",
+    "count_one": "{{count}} card",
+    "count_other": "{{count}} cards"
+  },
+  "byCondition": {
+    "title": "By condition",
+    "condition": "Condition",
+    "cards": "Cards",
+    "value": "Value"
+  }
+}

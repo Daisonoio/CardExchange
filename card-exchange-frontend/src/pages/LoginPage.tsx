@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import { Layers } from 'lucide-react';
 
 export default function LoginPage() {
+  const { t } = useTranslation('auth');
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ usernameOrEmail: '', password: '' });
@@ -21,7 +23,7 @@ export default function LoginPage() {
       navigate('/home');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg || 'Credenziali non valide');
+      setError(msg || t('login.invalidCredentials'));
     } finally {
       setIsLoading(false);
     }
@@ -35,7 +37,7 @@ export default function LoginPage() {
             <Layers size={32} style={{ color: '#1a3461' }} />
           </div>
           <h1 className="text-2xl font-bold text-white">CardExchange</h1>
-          <p className="text-sm text-white/70 mt-1">Accedi al tuo account</p>
+          <p className="text-sm text-white/70 mt-1">{t('login.subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-xl space-y-4">
@@ -46,39 +48,39 @@ export default function LoginPage() {
           )}
 
           <Input
-            label="Email o Username"
+            label={t('login.usernameOrEmail')}
             value={form.usernameOrEmail}
             onChange={(e) => setForm({ ...form, usernameOrEmail: e.target.value })}
-            placeholder="mario@email.com"
+            placeholder={t('emailPlaceholder')}
             autoComplete="username"
             required
           />
 
           <Input
-            label="Password"
+            label={t('password')}
             type="password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
-            placeholder="La tua password"
+            placeholder={t('login.passwordPlaceholder')}
             autoComplete="current-password"
             required
           />
 
           <div className="text-right -mt-2">
             <Link to="/forgot-password" className="text-xs text-primary font-medium hover:underline">
-              Password dimenticata?
+              {t('login.forgotPassword')}
             </Link>
           </div>
 
           <Button type="submit" isLoading={isLoading} className="w-full">
-            Accedi
+            {t('login.submit')}
           </Button>
         </form>
 
         <p className="text-center text-sm text-white/70 mt-6">
-          Non hai un account?{' '}
+          {t('login.noAccount')}{' '}
           <Link to="/register" className="text-secondary font-semibold hover:underline">
-            Registrati
+            {t('login.register')}
           </Link>
         </p>
       </div>

@@ -1,0 +1,54 @@
+{
+  "pageTitles": {
+    "home": "CardExchange",
+    "explore": "Esplora",
+    "collection": "Collezione",
+    "wishlist": "Wishlist",
+    "profile": "Profilo",
+    "trades": "Scambi",
+    "matchmaking": "Matchmaking",
+    "chat": "Chat",
+    "local": "Vicino a te",
+    "editProfile": "Modifica Profilo"
+  },
+  "mobileHeader": {
+    "trades": "Scambi",
+    "matchmaking": "Matchmaking",
+    "chat": "Chat",
+    "local": "Vicino a te: eventi e negozi",
+    "menu": "Menu",
+    "notifications": "Notifiche",
+    "logout": "Esci"
+  },
+  "topBar": {
+    "explore": "Esplora",
+    "collection": "Collezione",
+    "wishlist": "Ricerca",
+    "matchmaking": "Match",
+    "local": "Vicino a te",
+    "trades": "Scambi",
+    "profile": "Profilo",
+    "chat": "Chat",
+    "notifications": "Notifiche",
+    "logout": "Esci"
+  },
+  "gameSelector": {
+    "all": "Tutti"
+  },
+  "verifyEmail": {
+    "message": "Conferma il tuo indirizzo email (<email>{{email}}</email>) per proteggere l'account e ricevere gli avvisi.",
+    "sendFailed": "Invio non riuscito, riprova più tardi.",
+    "sending": "Invio in corso…",
+    "resend": "Invia di nuovo il link"
+  },
+  "errorBoundary": {
+    "title": "Qualcosa è andato storto",
+    "description": "Si è verificato un errore imprevisto. Prova a ricaricare la pagina.",
+    "reload": "Ricarica pagina"
+  },
+  "geolocation": {
+    "unsupported": "Geolocalizzazione non supportata dal browser",
+    "denied": "Permesso di geolocalizzazione negato",
+    "unavailable": "Impossibile ottenere la posizione"
+  }
+}

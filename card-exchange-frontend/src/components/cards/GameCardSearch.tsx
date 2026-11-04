@@ -363,3 +363,8 @@ export async function importGameCard(gameName: string | undefined, externalId: s
     }
   }
 }
+
+/** Ricerca nel catalogo del gioco indicato (usata anche dallo scanner con fotocamera). */
+export function searchGameCards(gameName: string | undefined, catalogKey: string | undefined, query: string): Promise<GameCard[]> {
+  return searchCards(getGameKey(gameName, catalogKey), query);
+}

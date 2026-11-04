@@ -1,0 +1,54 @@
+{
+  "pageTitles": {
+    "home": "CardExchange",
+    "explore": "Explore",
+    "collection": "Collection",
+    "wishlist": "Wishlist",
+    "profile": "Profile",
+    "trades": "Trades",
+    "matchmaking": "Matchmaking",
+    "chat": "Chat",
+    "local": "Near you",
+    "editProfile": "Edit profile"
+  },
+  "mobileHeader": {
+    "trades": "Trades",
+    "matchmaking": "Matchmaking",
+    "chat": "Chat",
+    "local": "Near you: events and stores",
+    "menu": "Menu",
+    "notifications": "Notifications",
+    "logout": "Log out"
+  },
+  "topBar": {
+    "explore": "Explore",
+    "collection": "Collection",
+    "wishlist": "Wanted",
+    "matchmaking": "Match",
+    "local": "Near you",
+    "trades": "Trades",
+    "profile": "Profile",
+    "chat": "Chat",
+    "notifications": "Notifications",
+    "logout": "Log out"
+  },
+  "gameSelector": {
+    "all": "All"
+  },
+  "verifyEmail": {
+    "message": "Confirm your email address (<email>{{email}}</email>) to secure your account and receive alerts.",
+    "sendFailed": "Couldn't send the email. Please try again later.",
+    "sending": "Sending…",
+    "resend": "Resend the link"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Try reloading the page.",
+    "reload": "Reload page"
+  },
+  "geolocation": {
+    "unsupported": "Your browser doesn't support geolocation",
+    "denied": "Location permission denied",
+    "unavailable": "Unable to get your location"
+  }
+}

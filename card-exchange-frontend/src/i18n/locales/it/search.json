@@ -1,0 +1,48 @@
+{
+  "title": "Ricerca avanzata",
+  "failed": "Ricerca non riuscita.",
+  "searchPlaceholder": "Nome della carta o dell'espansione",
+  "result": {
+    "askingPrice": "prezzo indicato",
+    "marketValue": "valore di mercato",
+    "noPrice": "senza prezzo",
+    "propose": "Proponi"
+  },
+  "upsell": {
+    "title": "Funzione Premium",
+    "description": "Cerca tra le carte in scambio vicino a te per lingua, foil, condizione minima, fascia di prezzo e distanza, ordinando per vicinanza o prezzo.",
+    "cta": "Scopri Premium"
+  },
+  "filters": {
+    "toggle": "Filtri",
+    "game": "Gioco",
+    "all": "Tutti",
+    "language": "Lingua",
+    "any": "Qualsiasi",
+    "finish": "Finitura",
+    "minCondition": "Condizione almeno",
+    "distance": "Distanza",
+    "within": "entro {{km}} km",
+    "anywhere": "Ovunque",
+    "minPrice": "Prezzo da €",
+    "maxPrice": "Prezzo fino a €",
+    "sortBy": "Ordina per",
+    "priceNote": "Il prezzo è quello indicato dal proprietario o, se manca, il valore di mercato. È indicativo: vi accordate tra voi.",
+    "reset": "Azzera filtri"
+  },
+  "sort": {
+    "distance": "Più vicine",
+    "price": "Prezzo più basso",
+    "newest": "Più recenti"
+  },
+  "results": {
+    "none": "Nessuna carta trovata",
+    "count_one": "{{count}} carta trovata",
+    "count_other": "{{count}} carte trovate",
+    "noLocation": "imposta la posizione nel profilo per filtrare per distanza",
+    "truncated": "troppi risultati: restringi la ricerca",
+    "emptyTitle": "Nessun risultato",
+    "emptyDescription": "Prova ad allargare la distanza o a togliere qualche filtro.",
+    "more": "Altri risultati"
+  }
+}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { auth } from '../api';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -9,6 +10,7 @@ import { apiErrorMessage } from '../utils/apiError';
 const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation('auth');
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const token = params.get('token') ?? '';
@@ -21,11 +23,11 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setError('');
     if (!PASSWORD_RULE.test(form.newPassword)) {
-      setError('La password deve avere almeno 8 caratteri, con una maiuscola, una minuscola, un numero e un carattere speciale (@$!%*?&).');
+      setError(t('reset.passwordRule'));
       return;
     }
     if (form.newPassword !== form.confirmNewPassword) {
-      setError('Le password non coincidono');
+      setError(t('passwordMismatch'));
       return;
     }
     setIsLoading(true);
@@ -33,7 +35,7 @@ export default function ResetPasswordPage() {
       const { data } = await auth.resetPassword({ token, ...form });
       setDone(data.message);
     } catch (err) {
-      setError(apiErrorMessage(err, 'Impossibile reimpostare la password. Riprova.'));
+      setError(apiErrorMessage(err, t('reset.failed')));
     } finally {
       setIsLoading(false);
     }
@@ -41,24 +43,24 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthShell
-      subtitle="Imposta una nuova password"
-      footer={<Link to="/login" className="text-secondary font-semibold hover:underline">Torna al login</Link>}
+      subtitle={t('reset.subtitle')}
+      footer={<Link to="/login" className="text-secondary font-semibold hover:underline">{t('backToLogin')}</Link>}
     >
       {!token ? (
         <div className="space-y-3 text-sm">
-          <div className="px-4 py-3 rounded-xl bg-red-50 text-danger">Link non valido: manca il codice di reset.</div>
-          <Link to="/forgot-password" className="text-primary font-semibold hover:underline">Richiedi un nuovo link</Link>
+          <div className="px-4 py-3 rounded-xl bg-red-50 text-danger">{t('reset.missingToken')}</div>
+          <Link to="/forgot-password" className="text-primary font-semibold hover:underline">{t('reset.requestNewLink')}</Link>
         </div>
       ) : done ? (
         <div className="space-y-4">
           <div className="px-4 py-3 rounded-xl bg-green-50 text-green-700 text-sm">{done}</div>
-          <Button className="w-full" onClick={() => navigate('/login')}>Vai al login</Button>
+          <Button className="w-full" onClick={() => navigate('/login')}>{t('goToLogin')}</Button>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <div className="px-4 py-3 rounded-xl bg-red-50 text-danger text-sm">{error}</div>}
           <Input
-            label="Nuova password"
+            label={t('reset.newPassword')}
             type="password"
             value={form.newPassword}
             onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
@@ -66,7 +68,7 @@ export default function ResetPasswordPage() {
             required
           />
           <Input
-            label="Conferma nuova password"
+            label={t('reset.confirmNewPassword')}
             type="password"
             value={form.confirmNewPassword}
             onChange={(e) => setForm({ ...form, confirmNewPassword: e.target.value })}
@@ -74,11 +76,11 @@ export default function ResetPasswordPage() {
             required
           />
           <Button type="submit" isLoading={isLoading} className="w-full">
-            Salva nuova password
+            {t('reset.submit')}
           </Button>
-          {error.includes('scaduto') && (
+          {/scaduto|expired/i.test(error) && (
             <Link to="/forgot-password" className="block text-center text-sm text-primary font-semibold hover:underline">
-              Richiedi un nuovo link
+              {t('reset.requestNewLink')}
             </Link>
           )}
         </form>

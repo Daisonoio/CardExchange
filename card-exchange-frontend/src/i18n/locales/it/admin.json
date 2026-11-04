@@ -1,0 +1,97 @@
+{
+  "billing": {
+    "title": "Abbonamenti",
+    "tabs": {
+      "pending": "Bonifici",
+      "active": "Attivi",
+      "all": "Tutti",
+      "grant": "Attiva"
+    },
+    "status": {
+      "pendingPayment": "in attesa",
+      "active": "attivo",
+      "expired": "scaduto",
+      "cancelled": "annullato"
+    },
+    "method": {
+      "stripe": "Carta",
+      "bankTransfer": "Bonifico",
+      "manual": "Manuale",
+      "simulated": "Prova"
+    },
+    "errors": {
+      "noAccess": "Non hai accesso agli abbonamenti.",
+      "invalidAmount": "Importo non valido",
+      "operationFailed": "Operazione non riuscita.",
+      "grantFailed": "Attivazione non riuscita."
+    },
+    "confirmUnderpaid": "L'importo ricevuto ({{amount}}) è inferiore al prezzo del piano ({{price}}). Attivare comunque?",
+    "confirmedFor": "{{message}} per @{{username}}",
+    "confirmReject": "Rifiutare la richiesta di @{{username}}?",
+    "confirmRevoke": "Revocare subito {{plan}} a @{{username}}?",
+    "confirmRevokeStripe": "Il rinnovo su Stripe va annullato anche dalla dashboard Stripe.",
+    "grant": {
+      "intro": "Per pagamenti ricevuti fuori dall'app (fattura, contanti in fiera) o per un periodo di prova. Senza scadenza vale la durata del piano, in coda a un eventuale periodo già attivo dello stesso tipo.",
+      "user": "Username o email",
+      "plan": "Piano",
+      "amount": "Importo ricevuto €",
+      "endDate": "Scadenza (facoltativa)",
+      "reference": "Riferimento (n. fattura…)",
+      "note": "Nota interna",
+      "submit": "Attiva piano"
+    },
+    "searchPlaceholder": "Utente, email o causale",
+    "empty": {
+      "title": "Niente da mostrare",
+      "pending": "Nessun bonifico in attesa.",
+      "other": "Nessun abbonamento trovato."
+    },
+    "results_one": "{{count}} risultato",
+    "results_other": "{{count}} risultati",
+    "row": {
+      "pending": "da pagare {{price}} · richiesto il {{date}}",
+      "autoRenew": "rinnovo automatico",
+      "note": "Nota: {{note}}",
+      "notePlaceholder": "Nota (facoltativa)",
+      "amountReceived": "Importo ricevuto",
+      "confirm": "Bonifico ricevuto",
+      "reject": "Rifiuta",
+      "revoke": "Revoca"
+    }
+  },
+  "moderation": {
+    "title": "Moderazione",
+    "errors": {
+      "noAccess": "Non hai accesso alla moderazione.",
+      "operationFailed": "Operazione non riuscita."
+    },
+    "confirmSuspend": "Sospendere l'account di @{{username}}? Non potrà più accedere.",
+    "tabs": {
+      "open": "Segnalazioni",
+      "closed": "Chiuse",
+      "stores": "Negozi"
+    },
+    "empty": {
+      "title": "Nessuna segnalazione",
+      "open": "Non ci sono segnalazioni da gestire.",
+      "closed": "Nessuna segnalazione chiusa."
+    },
+    "suspended": "sospeso",
+    "reportedBy": "segnalato da @{{username}}",
+    "reputation": "Reputazione {{value}}",
+    "tradesCompleted_one": "{{count}} scambio completato",
+    "tradesCompleted_other": "{{count}} scambi completati",
+    "openReports_one": "<strong>{{count}}</strong> segnalazione aperta",
+    "openReports_other": "<strong>{{count}}</strong> segnalazioni aperte",
+    "trade": "scambio #{{id}}",
+    "notePlaceholder": "Nota interna (facoltativa)",
+    "dismiss": "Archivia",
+    "resolve": "Risolta",
+    "banPermissionRequired": "Serve il permesso USERS.BAN",
+    "suspend": "Sospendi",
+    "resolved": "Risolta",
+    "dismissed": "Archiviata",
+    "closedOn": "il {{date}}",
+    "accountSuspended": "account sospeso"
+  }
+}

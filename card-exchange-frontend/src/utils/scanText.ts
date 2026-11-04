@@ -36,6 +36,8 @@ function isNameLike(line: string): boolean {
   if (letters.length / line.replace(/\s/g, '').length < 0.7) return false;
   const words = line.toLowerCase().split(/[\s,-]+/).filter(Boolean);
   const meaningful = words.filter((w) => w.replace(/[^\p{L}]/gu, '').length >= 2 && !NOISE.has(w.replace(/[^\p{L}]/gu, '')));
+  // Almeno una parola vera (≥ 3 lettere): scarta frammenti come "ox to"
+  if (!meaningful.some((w) => w.replace(/[^\p{L}]/gu, '').length >= 3)) return false;
   return meaningful.length > 0 && meaningful.length >= Math.ceil(words.length / 2);
 }
 
@@ -50,6 +52,8 @@ export function extractNameCandidates(rawLines: string[], limit = 3): string[] {
     const words = line.split(' ').filter((w) => !NOISE.has(w.toLowerCase().replace(/[^\p{L}]/gu, '')));
     // Lettere isolate in coda sono simboli letti male (mana, rarità)
     while (words.length > 1 && words[words.length - 1].length === 1) words.pop();
+    // ...e frammenti minuscoli in testa (bordi o simboli letti come "i", "ll")
+    while (words.length > 1 && words[0].length <= 2 && words[0] === words[0].toLowerCase()) words.shift();
     const candidate = words.join(' ').replace(/^[^\p{L}]+|[^\p{L}!?)']+$/gu, '').trim();
     if (candidate.length < 3) continue;
     if (out.some((o) => o.toLowerCase() === candidate.toLowerCase())) continue;

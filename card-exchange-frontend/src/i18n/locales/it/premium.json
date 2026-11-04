@@ -1,0 +1,94 @@
+{
+  "title": "Il tuo piano",
+  "tier": {
+    "free": "Gratuito",
+    "premium": "Premium",
+    "store": "Negozio"
+  },
+  "method": {
+    "stripe": "carta",
+    "bankTransfer": "bonifico",
+    "manual": "attivazione manuale",
+    "simulated": "prova"
+  },
+  "features": {
+    "free": {
+      "collection": "Collezione e wishlist con lingua, finitura e prezzi",
+      "match": "Match con chi ha le tue carte vicino a te",
+      "stores": "Negozi, eventi e serate di scambio",
+      "limits": "Wishlist fino a 20 carte, 5 proposte attive, 10 messaggi al giorno"
+    },
+    "storeListing": "Scheda negozio in evidenza nella sezione Locale",
+    "unlimited": "Wishlist, proposte e messaggi senza limiti",
+    "wishlistAlerts": "Avvisi quando una carta della wishlist è disponibile",
+    "advancedSearch": "Ricerca avanzata: lingua, foil, condizione, prezzo e distanza",
+    "statistics": "Statistiche e andamento del valore della collezione",
+    "export": "Esportazione della collezione",
+    "priority": "Più visibilità nei match degli altri utenti",
+    "storeBadge": "Badge Negozio sul profilo",
+    "premiumBadge": "Badge Premium sul profilo"
+  },
+  "errors": {
+    "loadPlans": "Impossibile caricare i piani.",
+    "cardUnavailable": "Pagamento con carta non disponibile.",
+    "requestFailed": "Richiesta non riuscita.",
+    "operationFailed": "Operazione non riuscita.",
+    "cancelRenewalFailed": "Disdetta non riuscita.",
+    "portalUnavailable": "Portale di pagamento non disponibile."
+  },
+  "confirmCancelRequest": "Annullare la richiesta di bonifico? Se hai già pagato, non annullarla: contattaci.",
+  "confirmCancelRenewal": "Disdire il rinnovo automatico? Il piano resta attivo fino alla scadenza già pagata.",
+  "pay": {
+    "unavailable": "I pagamenti online non sono ancora attivi: contattaci per attivare il piano.",
+    "card": "Paga con carta",
+    "bank": "Paga con bonifico",
+    "bankInstructions": "Istruzioni per il bonifico",
+    "alreadyAutoRenew": "Hai già un rinnovo automatico: per cambiare piano usa “Gestisci pagamento”."
+  },
+  "checkout": {
+    "success": "Pagamento ricevuto: {{plan}} è attivo. Grazie!",
+    "activating": "Pagamento ricevuto, stiamo attivando il piano…",
+    "cancelled": "Pagamento annullato: non ti è stato addebitato nulla."
+  },
+  "current": {
+    "label": "Piano attuale",
+    "renewsOn": "Si rinnova il <strong>{{date}}</strong>",
+    "activeUntil": "Attivo fino al <strong>{{date}}</strong>",
+    "paidWith": "pagato con {{method}}",
+    "queued": "Rinnovo già pagato: {{plan}} dal {{from}} al {{to}}",
+    "managePayment": "Gestisci pagamento",
+    "cancelRenewal": "Disdici rinnovo"
+  },
+  "pending": {
+    "title": "Bonifico in attesa · {{plan}}",
+    "reference": "Causale <strong>{{reference}}</strong>. Il piano si attiva appena registriamo il pagamento.",
+    "instructions": "Istruzioni",
+    "cancel": "Annulla richiesta"
+  },
+  "audience": {
+    "private": "Collezionisti",
+    "store": "Negozi"
+  },
+  "cycle": {
+    "monthly": "Mensile",
+    "annual": "Annuale",
+    "annualSaving": "Annuale −{{saving}}%",
+    "perYear": "anno",
+    "perMonth": "mese",
+    "monthlyEquivalent": "pari a {{price}} al mese"
+  },
+  "store": {
+    "comingSoon": "Il piano per i negozi arriverà presto.",
+    "verificationNote": "La scheda del negozio deve essere verificata dalla moderazione per comparire in evidenza. Ti serve la fattura? Scegli il bonifico e indicacelo."
+  },
+  "note": "Il piano riguarda solo l'uso di CardExchange. Scambi e pagamenti tra utenti restano accordi diretti tra voi, fuori dall'app.",
+  "bank": {
+    "copy": "Copia {{label}}",
+    "amount": "Importo",
+    "accountHolder": "Intestatario",
+    "bankName": "Banca",
+    "reference": "Causale (obbligatoria)",
+    "referenceNote": "Se la causale manca non possiamo collegare il bonifico al tuo account. La richiesta resta valida 30 giorni.",
+    "gotIt": "Ho capito"
+  }
+}

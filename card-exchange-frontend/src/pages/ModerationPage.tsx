@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, ShieldCheck } from 'lucide-react';
+import { Trans, useTranslation } from 'react-i18next';
 import { moderation } from '../api';
+import { formatDate, formatDateTime } from '../i18n/format';
 import type { ModerationReport } from '../types';
 import { REPORT_REASON_LABELS } from '../types';
 import { apiErrorMessage } from '../utils/apiError';
@@ -14,6 +16,7 @@ type Tab = 'open' | 'closed' | 'stores';
 
 /** Coda delle segnalazioni per moderatori (permesso ADMIN.REPORTS.MANAGE). */
 export default function ModerationPage() {
+  const { t } = useTranslation('admin');
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('open');
   const [items, setItems] = useState<ModerationReport[]>([]);
@@ -31,23 +34,23 @@ export default function ModerationPage() {
       const { data } = await moderation.reports(tab as 'open' | 'closed');
       setItems(data.items);
     } catch (err) {
-      setError(apiErrorMessage(err, 'Non hai accesso alla moderazione.'));
+      setError(apiErrorMessage(err, t('moderation.errors.noAccess')));
       setItems([]);
     } finally {
       setLoading(false);
     }
-  }, [tab]);
+  }, [tab, t]);
 
   useEffect(() => { load(); }, [load]);
 
   const resolve = async (report: ModerationReport, outcome: 'resolved' | 'dismissed', suspendUser = false) => {
-    if (suspendUser && !confirm(`Sospendere l'account di @${report.reportedUser.username}? Non potrà più accedere.`)) return;
+    if (suspendUser && !confirm(t('moderation.confirmSuspend', { username: report.reportedUser.username }))) return;
     setBusyId(report.id);
     try {
       await moderation.resolve(report.id, { outcome, suspendUser, note: notes[report.id]?.trim() || undefined });
       setItems((prev) => prev.filter((r) => r.id !== report.id));
     } catch (err) {
-      setError(apiErrorMessage(err, 'Operazione non riuscita.'));
+      setError(apiErrorMessage(err, t('moderation.errors.operationFailed')));
     } finally {
       setBusyId(null);
     }
@@ -56,20 +59,20 @@ export default function ModerationPage() {
   return (
     <div className="pb-20">
       <div className="flex items-center gap-3 mb-4">
-        <button onClick={() => navigate(-1)} aria-label="Indietro" className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center">
+        <button onClick={() => navigate(-1)} aria-label={t('common:actions.back')} className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center">
           <ArrowLeft size={18} />
         </button>
-        <h1 className="text-xl font-bold text-text flex-1">Moderazione</h1>
+        <h1 className="text-xl font-bold text-text flex-1">{t('moderation.title')}</h1>
       </div>
 
       <div className="flex rounded-xl border border-border overflow-hidden bg-white mb-4">
-        {(['open', 'closed', 'stores'] as Tab[]).map((t) => (
+        {(['open', 'closed', 'stores'] as Tab[]).map((tb) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`flex-1 py-2 text-sm font-medium ${tab === t ? 'bg-primary text-white' : 'text-text-secondary'}`}
+            key={tb}
+            onClick={() => setTab(tb)}
+            className={`flex-1 py-2 text-sm font-medium ${tab === tb ? 'bg-primary text-white' : 'text-text-secondary'}`}
           >
-            {t === 'open' ? 'Segnalazioni' : t === 'closed' ? 'Chiuse' : 'Negozi'}
+            {tb === 'open' ? t('moderation.tabs.open') : tb === 'closed' ? t('moderation.tabs.closed') : t('moderation.tabs.stores')}
           </button>
         ))}
       </div>
@@ -81,7 +84,7 @@ export default function ModerationPage() {
       ) : loading ? (
         <div className="flex justify-center py-10"><Loader2 className="animate-spin text-primary" /></div>
       ) : items.length === 0 ? (
-        <EmptyState icon={ShieldCheck} title="Nessuna segnalazione" description={tab === 'open' ? 'Non ci sono segnalazioni da gestire.' : 'Nessuna segnalazione chiusa.'} />
+        <EmptyState icon={ShieldCheck} title={t('moderation.empty.title')} description={tab === 'open' ? t('moderation.empty.open') : t('moderation.empty.closed')} />
       ) : (
         <ul className="space-y-3">
           {items.map((r) => (
@@ -90,10 +93,10 @@ export default function ModerationPage() {
                 <div>
                   <p className="text-sm font-semibold">
                     @{r.reportedUser.username}
-                    {!r.reportedUser.isActive && <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">sospeso</span>}
+                    {!r.reportedUser.isActive && <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-700">{t('moderation.suspended')}</span>}
                   </p>
                   <p className="text-[11px] text-text-muted">
-                    segnalato da @{r.reporter.username} · {new Date(r.createdAt).toLocaleString('it-IT')}
+                    {t('moderation.reportedBy', { username: r.reporter.username })} · {formatDateTime(r.createdAt, {})}
                   </p>
                 </div>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 shrink-0">
@@ -102,9 +105,9 @@ export default function ModerationPage() {
               </div>
               {r.details && <p className="text-sm text-text bg-surface-dark rounded-xl p-2">{r.details}</p>}
               <p className="text-[11px] text-text-secondary">
-                Reputazione {r.reportedUser.reputationScore.toFixed(1)} · {r.reportedUser.totalTradesCompleted} scambi completati ·{' '}
-                <strong>{r.reportedUser.openReports}</strong> segnalazioni aperte
-                {r.tradeOfferId && <> · scambio #{r.tradeOfferId}</>}
+                {t('moderation.reputation', { value: r.reportedUser.reputationScore.toFixed(1) })} · {t('moderation.tradesCompleted', { count: r.reportedUser.totalTradesCompleted })} ·{' '}
+                <Trans t={t} i18nKey="moderation.openReports" count={r.reportedUser.openReports} components={{ strong: <strong /> }} />
+                {r.tradeOfferId && <> · {t('moderation.trade', { id: r.tradeOfferId })}</>}
               </p>
 
               {r.status === 'Open' ? (
@@ -112,29 +115,29 @@ export default function ModerationPage() {
                   <input
                     value={notes[r.id] ?? ''}
                     onChange={(e) => setNotes({ ...notes, [r.id]: e.target.value })}
-                    placeholder="Nota interna (facoltativa)"
+                    placeholder={t('moderation.notePlaceholder')}
                     maxLength={1000}
                     className="w-full px-3 py-2 rounded-xl border border-border text-xs"
                   />
                   <div className="grid grid-cols-3 gap-1.5">
-                    <Button size="sm" variant="outline" disabled={busyId === r.id} onClick={() => resolve(r, 'dismissed')}>Archivia</Button>
-                    <Button size="sm" disabled={busyId === r.id} onClick={() => resolve(r, 'resolved')}>Risolta</Button>
+                    <Button size="sm" variant="outline" disabled={busyId === r.id} onClick={() => resolve(r, 'dismissed')}>{t('moderation.dismiss')}</Button>
+                    <Button size="sm" disabled={busyId === r.id} onClick={() => resolve(r, 'resolved')}>{t('moderation.resolve')}</Button>
                     <Button
                       size="sm"
                       variant="danger"
                       disabled={busyId === r.id || !canBan || !r.reportedUser.isActive}
-                      title={canBan ? undefined : 'Serve il permesso USERS.BAN'}
+                      title={canBan ? undefined : t('moderation.banPermissionRequired')}
                       onClick={() => resolve(r, 'resolved', true)}
                     >
-                      Sospendi
+                      {t('moderation.suspend')}
                     </Button>
                   </div>
                 </>
               ) : (
                 <p className="text-xs text-text-secondary">
-                  {r.status === 'Resolved' ? 'Risolta' : 'Archiviata'}
-                  {r.resolvedAt && ` il ${new Date(r.resolvedAt).toLocaleDateString('it-IT')}`}
-                  {r.userSuspended && ' · account sospeso'}
+                  {r.status === 'Resolved' ? t('moderation.resolved') : t('moderation.dismissed')}
+                  {r.resolvedAt && ` ${t('moderation.closedOn', { date: formatDate(r.resolvedAt, {}) })}`}
+                  {r.userSuspended && ` · ${t('moderation.accountSuspended')}`}
                   {r.resolutionNote && ` · ${r.resolutionNote}`}
                 </p>
               )}

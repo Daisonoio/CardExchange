@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Crown, Loader2, Lock, MapPin, Search, SlidersHorizontal, Star } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { advancedSearch, billing } from '../api';
+import { formatEuro } from '../i18n/format';
 import { useGame } from '../context/GameContext';
 import type { AdvancedSearchCard, AdvancedSearchParams, AdvancedSearchResponse, CardFinish } from '../types';
 import { CARD_LANGUAGES, CONDITION_LABELS, FINISH_LABELS, finishValue, languageShort } from '../types';
@@ -10,7 +12,7 @@ import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import PlanBadge from '../components/users/PlanBadge';
 
-const euro = (v: number) => v.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
+const euro = (v: number) => formatEuro(v);
 const CONDITION_BY_NAME: Record<string, number> = {
   Mint: 1, NearMint: 2, Excellent: 3, Good: 4, LightlyPlayed: 5, ModeratelyPlayed: 6, HeavilyPlayed: 7, Damaged: 8,
 };
@@ -53,6 +55,7 @@ function toParams(f: Filters, page: number): AdvancedSearchParams {
 }
 
 function ResultCard({ c }: { c: AdvancedSearchCard }) {
+  const { t } = useTranslation('search');
   const finish = finishValue(c.finish);
   const condition = CONDITION_BY_NAME[c.condition] as keyof typeof CONDITION_LABELS | undefined;
   return (
@@ -87,10 +90,10 @@ function ResultCard({ c }: { c: AdvancedSearchCard }) {
         {c.price != null ? (
           <div className="text-right">
             <p className="text-sm font-bold text-text">{euro(c.price)}</p>
-            <p className="text-[10px] text-text-muted">{c.askingPrice != null ? 'prezzo indicato' : 'valore di mercato'}</p>
+            <p className="text-[10px] text-text-muted">{c.askingPrice != null ? t('result.askingPrice') : t('result.marketValue')}</p>
           </div>
-        ) : <span className="text-[10px] text-text-muted">senza prezzo</span>}
-        <Link to={`/trades/new/${c.owner.id}`} className="text-xs font-semibold text-primary hover:underline">Proponi</Link>
+        ) : <span className="text-[10px] text-text-muted">{t('result.noPrice')}</span>}
+        <Link to={`/trades/new/${c.owner.id}`} className="text-xs font-semibold text-primary hover:underline">{t('result.propose')}</Link>
       </div>
     </li>
   );
@@ -98,6 +101,7 @@ function ResultCard({ c }: { c: AdvancedSearchCard }) {
 
 /** Ricerca avanzata (Premium): carte in scambio vicino a te con filtri su lingua, finitura, condizione e prezzo. */
 export default function SearchPage() {
+  const { t } = useTranslation('search');
   const navigate = useNavigate();
   const { games } = useGame();
   const [premium, setPremium] = useState<boolean | null>(null);
@@ -121,7 +125,7 @@ export default function SearchPage() {
       setItems((prev) => (page === 1 ? data.cards : [...prev, ...data.cards]));
       if (page === 1) setShowFilters(false);
     } catch (err) {
-      setError(apiErrorMessage(err, 'Ricerca non riuscita.'));
+      setError(apiErrorMessage(err, t('failed')));
     } finally {
       setLoading(false);
     }
@@ -131,10 +135,10 @@ export default function SearchPage() {
 
   const header = (
     <div className="flex items-center gap-3">
-      <button onClick={() => navigate(-1)} aria-label="Indietro" className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center shrink-0">
+      <button onClick={() => navigate(-1)} aria-label={t('common:actions.back')} className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center shrink-0">
         <ArrowLeft size={18} />
       </button>
-      <h1 className="text-xl font-bold text-text flex-1">Ricerca avanzata</h1>
+      <h1 className="text-xl font-bold text-text flex-1">{t('title')}</h1>
     </div>
   );
 
@@ -147,12 +151,12 @@ export default function SearchPage() {
       <div className="max-w-lg mx-auto space-y-4">
         {header}
         <section className="bg-white rounded-2xl p-4 border-2 border-secondary space-y-2">
-          <h2 className="text-base font-bold text-text flex items-center gap-1.5"><Lock size={16} className="text-amber-700" /> Funzione Premium</h2>
+          <h2 className="text-base font-bold text-text flex items-center gap-1.5"><Lock size={16} className="text-amber-700" /> {t('upsell.title')}</h2>
           <p className="text-sm text-text-secondary">
-            Cerca tra le carte in scambio vicino a te per lingua, foil, condizione minima, fascia di prezzo e distanza, ordinando per vicinanza o prezzo.
+            {t('upsell.description')}
           </p>
           <Link to="/premium" className="inline-flex items-center gap-1.5 mt-1 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold">
-            <Crown size={16} /> Scopri Premium
+            <Crown size={16} /> {t('upsell.cta')}
           </Link>
         </section>
       </div>
@@ -172,8 +176,8 @@ export default function SearchPage() {
             <input
               value={filters.searchTerm}
               onChange={(e) => set('searchTerm', e.target.value)}
-              placeholder="Nome della carta o dell'espansione"
-              aria-label="Cerca"
+              placeholder={t('searchPlaceholder')}
+              aria-label={t('common:actions.search')}
               className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-border bg-white text-sm"
             />
           </div>
@@ -181,7 +185,7 @@ export default function SearchPage() {
             type="button"
             onClick={() => setShowFilters((s) => !s)}
             aria-expanded={showFilters}
-            aria-label="Filtri"
+            aria-label={t('filters.toggle')}
             className={`w-11 rounded-xl border flex items-center justify-center ${showFilters ? 'border-primary text-primary bg-primary/5' : 'border-border text-text-secondary bg-white'}`}
           >
             <SlidersHorizontal size={18} />
@@ -191,72 +195,72 @@ export default function SearchPage() {
         {showFilters && (
           <div className="p-3 rounded-2xl bg-white border border-border grid grid-cols-2 gap-3">
             <label className="col-span-2 sm:col-span-1">
-              <span className="block text-xs text-text-secondary mb-1">Gioco</span>
+              <span className="block text-xs text-text-secondary mb-1">{t('filters.game')}</span>
               <select value={filters.gameId} onChange={(e) => set('gameId', e.target.value)} className={selectCls}>
-                <option value="">Tutti</option>
+                <option value="">{t('filters.all')}</option>
                 {games.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
               </select>
             </label>
             <label>
-              <span className="block text-xs text-text-secondary mb-1">Lingua</span>
+              <span className="block text-xs text-text-secondary mb-1">{t('filters.language')}</span>
               <select value={filters.language} onChange={(e) => set('language', e.target.value)} className={selectCls}>
-                <option value="">Qualsiasi</option>
+                <option value="">{t('filters.any')}</option>
                 {CARD_LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
               </select>
             </label>
             <label>
-              <span className="block text-xs text-text-secondary mb-1">Finitura</span>
+              <span className="block text-xs text-text-secondary mb-1">{t('filters.finish')}</span>
               <select value={filters.finish} onChange={(e) => set('finish', e.target.value)} className={selectCls}>
-                <option value="">Qualsiasi</option>
+                <option value="">{t('filters.any')}</option>
                 {Object.entries(FINISH_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </label>
             <label>
-              <span className="block text-xs text-text-secondary mb-1">Condizione almeno</span>
+              <span className="block text-xs text-text-secondary mb-1">{t('filters.minCondition')}</span>
               <select value={filters.maxCondition} onChange={(e) => set('maxCondition', e.target.value)} className={selectCls}>
-                <option value="">Qualsiasi</option>
+                <option value="">{t('filters.any')}</option>
                 {Object.entries(CONDITION_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </label>
             <label>
-              <span className="block text-xs text-text-secondary mb-1">Distanza</span>
+              <span className="block text-xs text-text-secondary mb-1">{t('filters.distance')}</span>
               <select value={filters.radiusKm} onChange={(e) => set('radiusKm', e.target.value)} className={selectCls}>
-                {RADII.map((r) => <option key={r} value={r}>entro {r} km</option>)}
-                <option value="">Ovunque</option>
+                {RADII.map((r) => <option key={r} value={r}>{t('filters.within', { km: r })}</option>)}
+                <option value="">{t('filters.anywhere')}</option>
               </select>
             </label>
             <label>
-              <span className="block text-xs text-text-secondary mb-1">Prezzo da €</span>
+              <span className="block text-xs text-text-secondary mb-1">{t('filters.minPrice')}</span>
               <input inputMode="decimal" value={filters.minPrice} onChange={(e) => set('minPrice', e.target.value)} className={selectCls} placeholder="0" />
             </label>
             <label>
-              <span className="block text-xs text-text-secondary mb-1">Prezzo fino a €</span>
+              <span className="block text-xs text-text-secondary mb-1">{t('filters.maxPrice')}</span>
               <input inputMode="decimal" value={filters.maxPrice} onChange={(e) => set('maxPrice', e.target.value)} className={selectCls} placeholder="—" />
             </label>
             <label className="col-span-2">
-              <span className="block text-xs text-text-secondary mb-1">Ordina per</span>
+              <span className="block text-xs text-text-secondary mb-1">{t('filters.sortBy')}</span>
               <div className="flex rounded-xl border border-border overflow-hidden">
-                {([['distance', 'Più vicine'], ['price', 'Prezzo più basso'], ['newest', 'Più recenti']] as const).map(([v, l]) => (
+                {([['distance', 'sort.distance'], ['price', 'sort.price'], ['newest', 'sort.newest']] as const).map(([v, l]) => (
                   <button
                     key={v}
                     type="button"
                     onClick={() => set('sortBy', v)}
                     className={`flex-1 py-2 text-xs font-medium ${filters.sortBy === v ? 'bg-primary text-white' : 'bg-white text-text-secondary'}`}
                   >
-                    {l}
+                    {t(l)}
                   </button>
                 ))}
               </div>
             </label>
             <p className="col-span-2 text-[11px] text-text-muted">
-              Il prezzo è quello indicato dal proprietario o, se manca, il valore di mercato. È indicativo: vi accordate tra voi.
+              {t('filters.priceNote')}
             </p>
-            <button type="button" onClick={() => setFilters(EMPTY)} className="text-xs text-text-secondary text-left">Azzera filtri</button>
+            <button type="button" onClick={() => setFilters(EMPTY)} className="text-xs text-text-secondary text-left">{t('filters.reset')}</button>
           </div>
         )}
 
         <Button type="submit" className="w-full" isLoading={loading && items.length === 0}>
-          <Search size={16} /> Cerca
+          <Search size={16} /> {t('common:actions.search')}
         </Button>
       </form>
 
@@ -265,18 +269,18 @@ export default function SearchPage() {
       {result && (
         <>
           <p className="text-xs text-text-muted">
-            {result.totalCount === 0 ? 'Nessuna carta trovata' : `${result.totalCount} carte trovate`}
-            {!result.hasLocation && filters.radiusKm && ' · imposta la posizione nel profilo per filtrare per distanza'}
-            {result.truncated && ' · troppi risultati: restringi la ricerca'}
+            {result.totalCount === 0 ? t('results.none') : t('results.count', { count: result.totalCount })}
+            {!result.hasLocation && filters.radiusKm && ` · ${t('results.noLocation')}`}
+            {result.truncated && ` · ${t('results.truncated')}`}
           </p>
           {items.length === 0 ? (
-            <EmptyState icon={Search} title="Nessun risultato" description="Prova ad allargare la distanza o a togliere qualche filtro." />
+            <EmptyState icon={Search} title={t('results.emptyTitle')} description={t('results.emptyDescription')} />
           ) : (
             <ul className="space-y-2">{items.map((c) => <ResultCard key={c.id} c={c} />)}</ul>
           )}
           {hasMore && (
             <Button variant="outline" className="w-full" onClick={() => run(result.page + 1)} isLoading={loading}>
-              Altri risultati
+              {t('results.more')}
             </Button>
           )}
         </>

@@ -1,0 +1,97 @@
+{
+  "billing": {
+    "title": "Subscriptions",
+    "tabs": {
+      "pending": "Transfers",
+      "active": "Active",
+      "all": "All",
+      "grant": "Grant"
+    },
+    "status": {
+      "pendingPayment": "pending",
+      "active": "active",
+      "expired": "expired",
+      "cancelled": "cancelled"
+    },
+    "method": {
+      "stripe": "Card",
+      "bankTransfer": "Bank transfer",
+      "manual": "Manual",
+      "simulated": "Trial"
+    },
+    "errors": {
+      "noAccess": "You don't have access to subscriptions.",
+      "invalidAmount": "Invalid amount",
+      "operationFailed": "Operation failed.",
+      "grantFailed": "Activation failed."
+    },
+    "confirmUnderpaid": "The amount received ({{amount}}) is lower than the plan price ({{price}}). Activate anyway?",
+    "confirmedFor": "{{message}} for @{{username}}",
+    "confirmReject": "Reject @{{username}}'s request?",
+    "confirmRevoke": "Revoke {{plan}} from @{{username}} immediately?",
+    "confirmRevokeStripe": "The Stripe renewal must also be cancelled from the Stripe dashboard.",
+    "grant": {
+      "intro": "For payments received outside the app (invoice, cash at a fair) or for a trial period. Without an end date the plan's standard duration applies, queued after any active period of the same type.",
+      "user": "Username or email",
+      "plan": "Plan",
+      "amount": "Amount received €",
+      "endDate": "End date (optional)",
+      "reference": "Reference (invoice no.…)",
+      "note": "Internal note",
+      "submit": "Activate plan"
+    },
+    "searchPlaceholder": "User, email or reference",
+    "empty": {
+      "title": "Nothing to show",
+      "pending": "No pending bank transfers.",
+      "other": "No subscriptions found."
+    },
+    "results_one": "{{count}} result",
+    "results_other": "{{count}} results",
+    "row": {
+      "pending": "{{price}} due · requested on {{date}}",
+      "autoRenew": "auto-renewal",
+      "note": "Note: {{note}}",
+      "notePlaceholder": "Note (optional)",
+      "amountReceived": "Amount received",
+      "confirm": "Transfer received",
+      "reject": "Reject",
+      "revoke": "Revoke"
+    }
+  },
+  "moderation": {
+    "title": "Moderation",
+    "errors": {
+      "noAccess": "You don't have access to moderation.",
+      "operationFailed": "Operation failed."
+    },
+    "confirmSuspend": "Suspend @{{username}}'s account? They will no longer be able to sign in.",
+    "tabs": {
+      "open": "Reports",
+      "closed": "Closed",
+      "stores": "Stores"
+    },
+    "empty": {
+      "title": "No reports",
+      "open": "There are no reports to handle.",
+      "closed": "No closed reports."
+    },
+    "suspended": "suspended",
+    "reportedBy": "reported by @{{username}}",
+    "reputation": "Reputation {{value}}",
+    "tradesCompleted_one": "{{count}} trade completed",
+    "tradesCompleted_other": "{{count}} trades completed",
+    "openReports_one": "<strong>{{count}}</strong> open report",
+    "openReports_other": "<strong>{{count}}</strong> open reports",
+    "trade": "trade #{{id}}",
+    "notePlaceholder": "Internal note (optional)",
+    "dismiss": "Dismiss",
+    "resolve": "Resolved",
+    "banPermissionRequired": "Requires the USERS.BAN permission",
+    "suspend": "Suspend",
+    "resolved": "Resolved",
+    "dismissed": "Dismissed",
+    "closedOn": "on {{date}}",
+    "accountSuspended": "account suspended"
+  }
+}

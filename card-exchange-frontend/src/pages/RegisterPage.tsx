@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { referrals } from '../api';
 import { clearStoredReferral, getStoredReferral } from '../utils/referral';
+import { Trans, useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import { Layers } from 'lucide-react';
 
 export default function RegisterPage() {
+  const { t } = useTranslation('auth');
   const { register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -34,12 +36,12 @@ export default function RegisterPage() {
     setError('');
 
     if (form.password !== form.confirmPassword) {
-      setError('Le password non coincidono');
+      setError(t('passwordMismatch'));
       return;
     }
 
     if (form.password.length < 8) {
-      setError('La password deve avere almeno 8 caratteri');
+      setError(t('register.passwordTooShort'));
       return;
     }
 
@@ -58,7 +60,7 @@ export default function RegisterPage() {
       navigate('/home');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg || 'Errore durante la registrazione');
+      setError(msg || t('register.failed'));
     } finally {
       setIsLoading(false);
     }
@@ -74,11 +76,11 @@ export default function RegisterPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
             <Layers size={32} className="text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-text">Crea Account</h1>
-          <p className="text-sm text-text-secondary mt-1">Unisciti alla community</p>
+          <h1 className="text-2xl font-bold text-text">{t('register.title')}</h1>
+          <p className="text-sm text-text-secondary mt-1">{t('register.subtitle')}</p>
           {invitedBy && (
             <p className="mt-3 inline-block px-3 py-1.5 rounded-full bg-secondary/20 text-sm text-text">
-              Ti ha invitato <strong>@{invitedBy}</strong>
+              <Trans t={t} i18nKey="register.invitedBy" values={{ username: invitedBy }} components={{ strong: <strong /> }} />
             </p>
           )}
         </div>
@@ -89,41 +91,41 @@ export default function RegisterPage() {
           )}
 
           <div className="grid grid-cols-2 gap-3">
-            <Input label="Nome" value={form.firstName} onChange={set('firstName')} required />
-            <Input label="Cognome" value={form.lastName} onChange={set('lastName')} required />
+            <Input label={t('register.firstName')} value={form.firstName} onChange={set('firstName')} required />
+            <Input label={t('register.lastName')} value={form.lastName} onChange={set('lastName')} required />
           </div>
 
           <Input
-            label="Username"
+            label={t('register.username')}
             value={form.username}
             onChange={set('username')}
-            placeholder="il_tuo_nick"
+            placeholder={t('register.usernamePlaceholder')}
             autoComplete="username"
             required
           />
 
           <Input
-            label="Email"
+            label={t('email')}
             type="email"
             value={form.email}
             onChange={set('email')}
-            placeholder="mario@email.com"
+            placeholder={t('emailPlaceholder')}
             autoComplete="email"
             required
           />
 
           <Input
-            label="Password"
+            label={t('password')}
             type="password"
             value={form.password}
             onChange={set('password')}
-            placeholder="Almeno 8 caratteri"
+            placeholder={t('register.passwordPlaceholder')}
             autoComplete="new-password"
             required
           />
 
           <Input
-            label="Conferma Password"
+            label={t('register.confirmPassword')}
             type="password"
             value={form.confirmPassword}
             onChange={set('confirmPassword')}
@@ -132,14 +134,14 @@ export default function RegisterPage() {
           />
 
           <Button type="submit" isLoading={isLoading} className="w-full">
-            Registrati
+            {t('register.submit')}
           </Button>
         </form>
 
         <p className="text-center text-sm text-text-secondary mt-6">
-          Hai già un account?{' '}
+          {t('register.haveAccount')}{' '}
           <Link to="/login" className="text-primary font-semibold hover:underline">
-            Accedi
+            {t('register.login')}
           </Link>
         </p>
       </div>

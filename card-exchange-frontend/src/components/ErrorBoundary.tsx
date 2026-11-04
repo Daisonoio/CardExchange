@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
+import i18n from '../i18n';
 
 interface Props {
   children: ReactNode;
@@ -32,16 +33,16 @@ export default class ErrorBoundary extends Component<Props, State> {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: '#1a3461' }}>
               <span className="text-2xl text-white font-bold">!</span>
             </div>
-            <h1 className="text-xl font-bold text-gray-900 mb-2">Qualcosa è andato storto</h1>
+            <h1 className="text-xl font-bold text-gray-900 mb-2">{i18n.t('layout:errorBoundary.title')}</h1>
             <p className="text-sm text-gray-500 mb-6">
-              Si è verificato un errore imprevisto. Prova a ricaricare la pagina.
+              {i18n.t('layout:errorBoundary.description')}
             </p>
             <button
               onClick={() => window.location.reload()}
               className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-colors"
               style={{ background: '#1a3461' }}
             >
-              Ricarica pagina
+              {i18n.t('layout:errorBoundary.reload')}
             </button>
           </div>
         </div>

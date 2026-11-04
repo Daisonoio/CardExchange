@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, NavLink, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Menu, X, Layers, Bell, MessageSquare, Sparkles,
   ArrowLeftRight, LogOut, MapPinned,
@@ -8,27 +9,29 @@ import { useAuth } from '../../context/AuthContext';
 import { useRealtime } from '../../context/RealtimeContext';
 import NotificationCenter from '../notifications/NotificationCenter';
 
+// Chiavi del namespace "layout"
 const PAGE_TITLES: Record<string, string> = {
-  '/home': 'CardExchange',
-  '/explore': 'Esplora',
-  '/collection': 'Collezione',
-  '/wishlist': 'Wishlist',
-  '/profile': 'Profilo',
-  '/trades': 'Scambi',
-  '/matchmaking': 'Matchmaking',
-  '/chat': 'Chat',
-  '/local': 'Vicino a te',
-  '/profile/edit': 'Modifica Profilo',
+  '/home': 'pageTitles.home',
+  '/explore': 'pageTitles.explore',
+  '/collection': 'pageTitles.collection',
+  '/wishlist': 'pageTitles.wishlist',
+  '/profile': 'pageTitles.profile',
+  '/trades': 'pageTitles.trades',
+  '/matchmaking': 'pageTitles.matchmaking',
+  '/chat': 'pageTitles.chat',
+  '/local': 'pageTitles.local',
+  '/profile/edit': 'pageTitles.editProfile',
 };
 
 const SIDEBAR_LINKS = [
-  { to: '/trades', icon: ArrowLeftRight, label: 'Scambi' },
-  { to: '/matchmaking', icon: Sparkles, label: 'Matchmaking' },
-  { to: '/chat', icon: MessageSquare, label: 'Chat' },
-  { to: '/local', icon: MapPinned, label: 'Vicino a te: eventi e negozi' },
+  { to: '/trades', icon: ArrowLeftRight, label: 'mobileHeader.trades' },
+  { to: '/matchmaking', icon: Sparkles, label: 'mobileHeader.matchmaking' },
+  { to: '/chat', icon: MessageSquare, label: 'mobileHeader.chat' },
+  { to: '/local', icon: MapPinned, label: 'mobileHeader.local' },
 ];
 
 export default function MobileHeader() {
+  const { t } = useTranslation('layout');
   const { user, logout } = useAuth();
   const { chatUnread, notifUnread, setNotifUnread } = useRealtime();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -40,7 +43,8 @@ export default function MobileHeader() {
     setDrawerOpen(false);
   }, [location.pathname]);
 
-  const title = PAGE_TITLES[location.pathname] ?? 'CardExchange';
+  const titleKey = PAGE_TITLES[location.pathname];
+  const title = titleKey ? t(titleKey) : 'CardExchange';
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -57,7 +61,7 @@ export default function MobileHeader() {
         <button
           onClick={() => setDrawerOpen(true)}
           className="w-9 h-9 flex items-center justify-center rounded-lg text-text relative"
-          aria-label="Menu"
+          aria-label={t('mobileHeader.menu')}
         >
           <Menu size={22} />
           {chatUnread > 0 && (
@@ -79,7 +83,7 @@ export default function MobileHeader() {
           onClick={() => setShowNotif(true)}
           className="w-9 h-9 flex items-center justify-center rounded-lg relative"
           style={{ color: '#1a3461' }}
-          aria-label="Notifiche"
+          aria-label={t('mobileHeader.notifications')}
         >
           <Bell size={20} />
           {notifUnread > 0 && (
@@ -149,7 +153,7 @@ export default function MobileHeader() {
               }
             >
               <Icon size={18} />
-              <span>{label}</span>
+              <span>{t(label)}</span>
               {to === '/chat' && chatUnread > 0 && (
                 <span className="ml-auto min-w-[20px] h-5 bg-secondary text-primary text-[10px] font-bold rounded-full flex items-center justify-center px-1">
                   {chatUnread}
@@ -166,7 +170,7 @@ export default function MobileHeader() {
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 transition-colors w-full"
           >
             <LogOut size={18} />
-            <span>Esci</span>
+            <span>{t('mobileHeader.logout')}</span>
           </button>
         </div>
       </aside>

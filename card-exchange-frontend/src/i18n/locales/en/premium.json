@@ -1,0 +1,94 @@
+{
+  "title": "Your plan",
+  "tier": {
+    "free": "Free",
+    "premium": "Premium",
+    "store": "Store"
+  },
+  "method": {
+    "stripe": "card",
+    "bankTransfer": "bank transfer",
+    "manual": "manual activation",
+    "simulated": "trial"
+  },
+  "features": {
+    "free": {
+      "collection": "Collection and wishlist with language, finish and prices",
+      "match": "Matches with nearby collectors who have your cards",
+      "stores": "Stores, events and trade nights",
+      "limits": "Wishlist up to 20 cards, 5 active offers, 10 messages a day"
+    },
+    "storeListing": "Featured store listing in the Local section",
+    "unlimited": "Unlimited wishlist, offers and messages",
+    "wishlistAlerts": "Alerts when a wishlist card becomes available",
+    "advancedSearch": "Advanced search: language, foil, condition, price and distance",
+    "statistics": "Statistics and collection value trends",
+    "export": "Collection export",
+    "priority": "More visibility in other users' matches",
+    "storeBadge": "Store badge on your profile",
+    "premiumBadge": "Premium badge on your profile"
+  },
+  "errors": {
+    "loadPlans": "Couldn't load the plans.",
+    "cardUnavailable": "Card payment is not available.",
+    "requestFailed": "Request failed.",
+    "operationFailed": "Operation failed.",
+    "cancelRenewalFailed": "Couldn't cancel the renewal.",
+    "portalUnavailable": "Payment portal is not available."
+  },
+  "confirmCancelRequest": "Cancel the bank transfer request? If you've already paid, don't cancel it: contact us.",
+  "confirmCancelRenewal": "Cancel automatic renewal? Your plan stays active until the end of the period you've already paid for.",
+  "pay": {
+    "unavailable": "Online payments aren't available yet: contact us to activate the plan.",
+    "card": "Pay by card",
+    "bank": "Pay by bank transfer",
+    "bankInstructions": "Bank transfer instructions",
+    "alreadyAutoRenew": "You already have automatic renewal: to change plan use “Manage payment”."
+  },
+  "checkout": {
+    "success": "Payment received: {{plan}} is active. Thank you!",
+    "activating": "Payment received, we're activating your plan…",
+    "cancelled": "Payment cancelled: you haven't been charged."
+  },
+  "current": {
+    "label": "Current plan",
+    "renewsOn": "Renews on <strong>{{date}}</strong>",
+    "activeUntil": "Active until <strong>{{date}}</strong>",
+    "paidWith": "paid by {{method}}",
+    "queued": "Renewal already paid: {{plan}} from {{from}} to {{to}}",
+    "managePayment": "Manage payment",
+    "cancelRenewal": "Cancel renewal"
+  },
+  "pending": {
+    "title": "Bank transfer pending · {{plan}}",
+    "reference": "Reference <strong>{{reference}}</strong>. Your plan will be activated as soon as we record the payment.",
+    "instructions": "Instructions",
+    "cancel": "Cancel request"
+  },
+  "audience": {
+    "private": "Collectors",
+    "store": "Stores"
+  },
+  "cycle": {
+    "monthly": "Monthly",
+    "annual": "Yearly",
+    "annualSaving": "Yearly −{{saving}}%",
+    "perYear": "year",
+    "perMonth": "month",
+    "monthlyEquivalent": "equal to {{price}} per month"
+  },
+  "store": {
+    "comingSoon": "The store plan is coming soon.",
+    "verificationNote": "Your store listing must be verified by our moderators before it is featured. Need an invoice? Choose bank transfer and let us know."
+  },
+  "note": "The plan only covers your use of CardExchange. Trades and payments between users remain direct arrangements between you, outside the app.",
+  "bank": {
+    "copy": "Copy {{label}}",
+    "amount": "Amount",
+    "accountHolder": "Account holder",
+    "bankName": "Bank",
+    "reference": "Payment reference (required)",
+    "referenceNote": "Without the reference we can't link the transfer to your account. The request is valid for 30 days.",
+    "gotIt": "Got it"
+  }
+}

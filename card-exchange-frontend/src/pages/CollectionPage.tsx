@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useFormat } from '../i18n/format';
-import { Plus, Library, Search, TrendingUp, ChevronDown, Loader2, FileUp, CheckSquare, X } from 'lucide-react';
+import { Plus, Library, Search, TrendingUp, ChevronDown, Loader2, FileUp, CheckSquare, X, ScanLine } from 'lucide-react';
 import { cards, priceTracking, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
@@ -12,7 +12,8 @@ import EditCardSheet from '../components/cards/EditCardSheet';
 import LanguageFinishPicker from '../components/cards/LanguageFinishPicker';
 import ImportCollectionSheet from '../components/cards/ImportCollectionSheet';
 import { readLastLanguage, saveLastLanguage } from '../utils/lastLanguage';
-import GameCardSearch, { importGameCard } from '../components/cards/GameCardSearch';
+import GameCardSearch, { importGameCard, searchGameCards } from '../components/cards/GameCardSearch';
+import CardScanner from '../components/cards/CardScanner';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import BottomSheet from '../components/ui/BottomSheet';
@@ -25,6 +26,7 @@ export default function CollectionPage() {
   const [myCards, setMyCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const [editCard, setEditCard] = useState<Card | null>(null);
   const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);
   const [addForm, setAddForm] = useState({
@@ -368,6 +370,14 @@ export default function CollectionPage() {
         spikeInfo={editCard ? spikeCards.find((s) => s.cardId === editCard.id) ?? null : null}
       />
 
+      <CardScanner
+        open={showScanner}
+        onClose={() => setShowScanner(false)}
+        gameKey={selectedGame?.catalogKey}
+        onSearch={(q) => searchGameCards(selectedGame?.name, selectedGame?.catalogKey, q)}
+        onSelect={(card) => { setShowScanner(false); handleSelectCard(card); setShowAddModal(true); }}
+      />
+
       {/* Add Card Bottom Sheet */}
       <BottomSheet
         open={showAddModal}
@@ -380,6 +390,9 @@ export default function CollectionPage() {
               {t('addSheet.searchPrompt')}
             </p>
             <GameCardSearch onSelect={handleSelectCard} />
+            <Button variant="outline" className="w-full mt-3" onClick={() => { setShowAddModal(false); setShowScanner(true); }}>
+              <ScanLine size={16} /> {t('addSheet.scan')}
+            </Button>
           </div>
         ) : (
           <div className="space-y-4">

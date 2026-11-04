@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Navigation, MapPin, TrendingUp } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { users, priceTracking } from '../api';
+import i18n from '../i18n';
 import { useAuth } from '../context/AuthContext';
 import { useGeolocation } from '../hooks/useGeolocation';
 import Button from '../components/ui/Button';
 
 export default function EditProfilePage() {
+  const { t } = useTranslation('profile');
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const { position, isLoading: geoLoading, requestPosition } = useGeolocation();
@@ -74,9 +77,9 @@ export default function EditProfilePage() {
     setMessage(null);
     try {
       await priceTracking.updateSpikeSettings(spikeThreshold);
-      setMessage({ type: 'success', text: 'Soglia spike aggiornata con successo' });
+      setMessage({ type: 'success', text: t('edit.spikeSaved') });
     } catch {
-      setMessage({ type: 'error', text: 'Errore durante il salvataggio della soglia' });
+      setMessage({ type: 'error', text: t('edit.spikeSaveError') });
     } finally {
       setIsSavingSpike(false);
     }
@@ -92,7 +95,7 @@ export default function EditProfilePage() {
     setIsReverseGeocoding(true);
     try {
       const res = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=it`
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=${i18n.resolvedLanguage ?? 'it'}`
       );
       const data = await res.json();
       const addr = data.address || {};
@@ -124,9 +127,9 @@ export default function EditProfilePage() {
     try {
       await users.update(user.id, form);
       await refreshUser();
-      setMessage({ type: 'success', text: 'Profilo aggiornato con successo' });
+      setMessage({ type: 'success', text: t('edit.profileSaved') });
     } catch {
-      setMessage({ type: 'error', text: 'Errore durante il salvataggio del profilo' });
+      setMessage({ type: 'error', text: t('edit.profileSaveError') });
     } finally {
       setIsSaving(false);
     }
@@ -135,7 +138,7 @@ export default function EditProfilePage() {
   const handleSaveLocation = async () => {
     if (!user) return;
     if (!locationForm.city || !locationForm.province || !locationForm.country) {
-      setMessage({ type: 'error', text: 'Compila almeno città, provincia e paese' });
+      setMessage({ type: 'error', text: t('edit.locationRequired') });
       return;
     }
     setIsSavingLocation(true);
@@ -151,9 +154,9 @@ export default function EditProfilePage() {
         maxDistanceKm: locationForm.maxDistanceKm,
       });
       await refreshUser();
-      setMessage({ type: 'success', text: 'Posizione aggiornata con successo' });
+      setMessage({ type: 'success', text: t('edit.locationSaved') });
     } catch {
-      setMessage({ type: 'error', text: 'Errore durante il salvataggio della posizione' });
+      setMessage({ type: 'error', text: t('edit.locationSaveError') });
     } finally {
       setIsSavingLocation(false);
     }
@@ -176,7 +179,7 @@ export default function EditProfilePage() {
         <button onClick={() => navigate('/profile')} className="p-1.5 hover:bg-surface-dark rounded-lg transition">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-lg font-bold">Modifica profilo</h1>
+        <h1 className="text-lg font-bold">{t('edit.title')}</h1>
       </div>
 
       {/* Feedback message */}
@@ -194,11 +197,11 @@ export default function EditProfilePage() {
 
       {/* Profile section */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
-        <h2 className="text-sm font-bold mb-4">Informazioni personali</h2>
+        <h2 className="text-sm font-bold mb-4">{t('edit.personalInfo')}</h2>
 
         <div className="space-y-3">
           <div>
-            <label className={labelClass}>Nome</label>
+            <label className={labelClass}>{t('edit.firstName')}</label>
             <input
               type="text"
               className={inputClass}
@@ -207,7 +210,7 @@ export default function EditProfilePage() {
             />
           </div>
           <div>
-            <label className={labelClass}>Cognome</label>
+            <label className={labelClass}>{t('edit.lastName')}</label>
             <input
               type="text"
               className={inputClass}
@@ -216,37 +219,37 @@ export default function EditProfilePage() {
             />
           </div>
           <div>
-            <label className={labelClass}>Bio</label>
+            <label className={labelClass}>{t('edit.bio')}</label>
             <textarea
               className={`${inputClass} resize-none`}
               rows={3}
               value={form.bio}
               onChange={(e) => setForm({ ...form, bio: e.target.value })}
-              placeholder="Racconta qualcosa di te..."
+              placeholder={t('edit.bioPlaceholder')}
             />
           </div>
           <div>
-            <label className={labelClass}>PayPal username (opzionale)</label>
+            <label className={labelClass}>{t('edit.paypal')}</label>
             <input
               type="text"
               className={inputClass}
               value={form.paypalUsername}
               onChange={(e) => setForm({ ...form, paypalUsername: e.target.value })}
-              placeholder="es. mario.rossi"
+              placeholder={t('edit.paypalPlaceholder')}
             />
           </div>
           <div>
-            <label className={labelClass}>Satispay username (opzionale)</label>
+            <label className={labelClass}>{t('edit.satispay')}</label>
             <input
               type="text"
               className={inputClass}
               value={form.satispayUsername}
               onChange={(e) => setForm({ ...form, satispayUsername: e.target.value })}
-              placeholder="es. @mario.rossi"
+              placeholder={t('edit.satispayPlaceholder')}
             />
           </div>
           <div>
-            <label className={labelClass}>URL QR pagamento (opzionale)</label>
+            <label className={labelClass}>{t('edit.paymentQr')}</label>
             <input
               type="url"
               className={inputClass}
@@ -258,14 +261,14 @@ export default function EditProfilePage() {
         </div>
 
         <Button onClick={handleSaveProfile} isLoading={isSaving} className="w-full mt-4">
-          <Save size={14} /> Salva profilo
+          <Save size={14} /> {t('edit.saveProfile')}
         </Button>
       </div>
 
       {/* Location section */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-bold">Posizione</h2>
+          <h2 className="text-sm font-bold">{t('edit.location')}</h2>
           {locationForm.latitude && locationForm.longitude && (
             <span className="text-xs text-text-muted">
               {locationForm.latitude.toFixed(4)}, {locationForm.longitude.toFixed(4)}
@@ -281,51 +284,51 @@ export default function EditProfilePage() {
           isLoading={geoLoading || isReverseGeocoding}
         >
           <Navigation size={14} />
-          {isReverseGeocoding ? 'Rilevamento indirizzo...' : 'Usa posizione attuale'}
+          {isReverseGeocoding ? t('edit.detectingAddress') : t('edit.useCurrentPosition')}
         </Button>
 
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>Città *</label>
+              <label className={labelClass}>{t('edit.city')}</label>
               <input
                 type="text"
                 className={inputClass}
                 value={locationForm.city}
                 onChange={(e) => setLocationForm({ ...locationForm, city: e.target.value })}
-                placeholder="es. Roma"
+                placeholder={t('edit.cityPlaceholder')}
               />
             </div>
             <div>
-              <label className={labelClass}>Provincia *</label>
+              <label className={labelClass}>{t('edit.province')}</label>
               <input
                 type="text"
                 className={inputClass}
                 value={locationForm.province}
                 onChange={(e) => setLocationForm({ ...locationForm, province: e.target.value })}
-                placeholder="es. RM"
+                placeholder={t('edit.provincePlaceholder')}
               />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClass}>Paese *</label>
+              <label className={labelClass}>{t('edit.country')}</label>
               <input
                 type="text"
                 className={inputClass}
                 value={locationForm.country}
                 onChange={(e) => setLocationForm({ ...locationForm, country: e.target.value })}
-                placeholder="es. Italia"
+                placeholder={t('edit.countryPlaceholder')}
               />
             </div>
             <div>
-              <label className={labelClass}>CAP</label>
+              <label className={labelClass}>{t('edit.postalCode')}</label>
               <input
                 type="text"
                 className={inputClass}
                 value={locationForm.postalCode}
                 onChange={(e) => setLocationForm({ ...locationForm, postalCode: e.target.value })}
-                placeholder="es. 00100"
+                placeholder={t('edit.postalCodePlaceholder')}
               />
             </div>
           </div>
@@ -333,7 +336,7 @@ export default function EditProfilePage() {
           {/* Max distance slider */}
           <div>
             <label className={labelClass}>
-              Raggio di ricerca: {locationForm.maxDistanceKm} km
+              {t('edit.searchRadius', { km: locationForm.maxDistanceKm })}
             </label>
             <input
               type="range"
@@ -354,7 +357,7 @@ export default function EditProfilePage() {
         </div>
 
         <Button onClick={handleSaveLocation} isLoading={isSavingLocation} className="w-full mt-4">
-          <MapPin size={14} /> Salva posizione
+          <MapPin size={14} /> {t('edit.saveLocation')}
         </Button>
       </div>
 
@@ -362,14 +365,14 @@ export default function EditProfilePage() {
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mt-4">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp size={16} className="text-amber-500" />
-          <h2 className="text-sm font-bold">Avvisi Prezzo</h2>
+          <h2 className="text-sm font-bold">{t('edit.priceAlerts')}</h2>
         </div>
         <p className="text-xs text-text-muted mb-3">
-          Ricevi una notifica quando le carte nella tua collezione aumentano di prezzo oltre la soglia impostata negli ultimi 5 giorni.
+          {t('edit.priceAlertsDescription')}
         </p>
         <div>
           <label className={labelClass}>
-            Soglia spike: {spikeThreshold}%
+            {t('edit.spikeThreshold', { value: spikeThreshold })}
           </label>
           <input
             type="range"
@@ -386,7 +389,7 @@ export default function EditProfilePage() {
           </div>
         </div>
         <Button onClick={handleSaveSpikeSettings} isLoading={isSavingSpike} className="w-full mt-4">
-          <TrendingUp size={14} /> Salva soglia
+          <TrendingUp size={14} /> {t('edit.saveThreshold')}
         </Button>
       </div>
     </div>

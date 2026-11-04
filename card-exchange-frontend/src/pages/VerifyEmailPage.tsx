@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { auth } from '../api';
 import { useAuth } from '../context/AuthContext';
 import AuthShell from '../components/layout/AuthShell';
 import { apiErrorMessage } from '../utils/apiError';
 
 export default function VerifyEmailPage() {
+  const { t } = useTranslation('auth');
   const [params] = useSearchParams();
   const token = params.get('token') ?? '';
   const { isAuthenticated, refreshUser } = useAuth();
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>(token ? 'loading' : 'error');
-  const [message, setMessage] = useState(token ? '' : 'Link non valido: manca il codice di verifica.');
+  const [message, setMessage] = useState(token ? '' : t('verify.missingToken'));
   const started = useRef(false);
 
   useEffect(() => {
@@ -26,22 +28,22 @@ export default function VerifyEmailPage() {
       })
       .catch((err) => {
         setStatus('error');
-        setMessage(apiErrorMessage(err, 'Verifica non riuscita.'));
+        setMessage(apiErrorMessage(err, t('verify.failed')));
       });
-  }, [token, isAuthenticated, refreshUser]);
+  }, [token, isAuthenticated, refreshUser, t]);
 
   return (
     <AuthShell
-      subtitle="Verifica email"
+      subtitle={t('verify.subtitle')}
       footer={
         <Link to={isAuthenticated ? '/home' : '/login'} className="text-secondary font-semibold hover:underline">
-          {isAuthenticated ? 'Vai alla home' : 'Vai al login'}
+          {isAuthenticated ? t('verify.goHome') : t('goToLogin')}
         </Link>
       }
     >
       {status === 'loading' && (
         <div className="flex items-center gap-2 text-sm text-text-secondary">
-          <Loader2 size={16} className="animate-spin" /> Verifica in corso…
+          <Loader2 size={16} className="animate-spin" /> {t('verify.verifying')}
         </div>
       )}
       {status === 'ok' && <div className="px-4 py-3 rounded-xl bg-green-50 text-green-700 text-sm">{message}</div>}
@@ -49,7 +51,7 @@ export default function VerifyEmailPage() {
         <div className="space-y-2">
           <div className="px-4 py-3 rounded-xl bg-red-50 text-danger text-sm">{message}</div>
           {isAuthenticated && (
-            <p className="text-xs text-text-secondary">Puoi richiedere un nuovo link dal banner in alto nell'app.</p>
+            <p className="text-xs text-text-secondary">{t('verify.resendHint')}</p>
           )}
         </div>
       )}

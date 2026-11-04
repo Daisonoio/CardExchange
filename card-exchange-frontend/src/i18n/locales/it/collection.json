@@ -54,7 +54,8 @@
     "changeCard": "Cambia carta",
     "askingPricePlaceholder": "Vuoto = valore di mercato",
     "askingPriceHint": "Indicativo e trattabile: con chi scambi potete accordarvi liberamente.",
-    "submit": "Aggiungi alla Collezione"
+    "submit": "Aggiungi alla Collezione",
+    "scan": "Scansiona con la fotocamera"
   },
   "user": {
     "title": "Collezione di {{username}}",

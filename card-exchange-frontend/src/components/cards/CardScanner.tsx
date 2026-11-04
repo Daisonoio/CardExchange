@@ -19,20 +19,24 @@ function getWorker(): Promise<OcrWorker> {
   return workerPromise;
 }
 
-/** Ritaglia l'area della guida, porta a scala di grigi e aumenta il contrasto: l'OCR legge meglio. */
-function prepareCanvas(source: CanvasImageSource, sw: number, sh: number): HTMLCanvasElement {
-  // Area della carta al centro dell'immagine, con le proporzioni della guida
-  let cw = sw * 0.8;
-  let ch = cw / CARD_RATIO;
-  if (ch > sh * 0.9) { ch = sh * 0.9; cw = ch * CARD_RATIO; }
-  const sx = (sw - cw) / 2;
-  const sy = (sh - ch) / 2;
-  const scale = Math.min(1, 1200 / cw) * Math.max(1, 900 / cw);
+type Rect = { x: number; y: number; w: number; h: number };
+
+/** Area della carta nell'inquadratura: la guida al centro, con le proporzioni di una carta. */
+function guideRect(sw: number, sh: number): Rect {
+  let h = sh * 0.86;
+  let w = h * CARD_RATIO;
+  if (w > sw * 0.95) { w = sw * 0.95; h = w / CARD_RATIO; }
+  return { x: (sw - w) / 2, y: (sh - h) / 2, w, h };
+}
+
+/** Ritaglia, ingrandisce, porta a scala di grigi e aumenta il contrasto: l'OCR legge meglio. */
+function prepareCanvas(source: CanvasImageSource, r: Rect, targetWidth: number): HTMLCanvasElement {
+  const scale = targetWidth / r.w;
   const canvas = document.createElement('canvas');
-  canvas.width = Math.round(cw * scale);
-  canvas.height = Math.round(ch * scale);
+  canvas.width = Math.round(r.w * scale);
+  canvas.height = Math.round(r.h * scale);
   const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
-  ctx.drawImage(source, sx, sy, cw, ch, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(source, r.x, r.y, r.w, r.h, 0, 0, canvas.width, canvas.height);
   const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const d = img.data;
   let min = 255, max = 0;
@@ -115,7 +119,16 @@ export default function CardScanner({ open, onClose, onSearch, onSelect, gameKey
     setQuery(q);
     setSearching(true);
     try {
-      setResults(await onSearch(q));
+      // Prima le carte il cui nome coincide con quanto letto, poi quelle che lo contengono
+      const norm = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, '').trim();
+      const target = norm(q);
+      const rank = (name: string) => {
+        const faces = name.split(' // ').map(norm);
+        if (norm(name) === target) return 0;
+        return faces.includes(target) ? 1 : faces.some((f) => f.startsWith(target)) ? 2 : 3;
+      };
+      const found = await onSearch(q);
+      setResults(found.map((card, i) => ({ card, i })).sort((a, b) => rank(a.card.name) - rank(b.card.name) || a.i - b.i).map((x) => x.card));
     } catch {
       setResults([]);
     } finally {
@@ -123,15 +136,19 @@ export default function CardScanner({ open, onClose, onSearch, onSelect, gameKey
     }
   }, [onSearch]);
 
-  const readImage = async (canvas: HTMLCanvasElement) => {
+  /** Legge la carta due volte: la fascia del titolo ingrandita (il nome) e la carta intera (codici, altri testi). */
+  const readImage = async (source: CanvasImageSource, card: Rect) => {
     setPhase('reading');
     setStatus(t('loadingEngine'));
     try {
       const worker = await getWorker();
       setStatus(t('reading'));
-      const { data } = await worker.recognize(canvas);
-      const lines = data.text.split('\n').map((l) => l.trim()).filter(Boolean);
-      const code = findPrintCode(data.text);
+      // Il nome è in alto per Magic, Pokémon, Yu-Gi-Oh!; Lorcana e One Piece lo hanno più in basso: la lettura intera li copre
+      const titleBand = prepareCanvas(source, { x: card.x, y: card.y, w: card.w, h: card.h * 0.13 }, 1600);
+      const whole = prepareCanvas(source, card, 1100);
+      const [title, full] = [await worker.recognize(titleBand), await worker.recognize(whole)];
+      const lines = [...title.data.text.split('\n'), ...full.data.text.split('\n')].map((l) => l.trim()).filter(Boolean);
+      const code = findPrintCode(full.data.text);
       let names = extractNameCandidates(lines, 3);
       // Lorcana: nome e versione sono su due righe ("ELSA" / "Snow Queen")
       if (gameKey === 'lorcana' && names.length >= 2) names = [`${names[0]} ${names[1]}`, ...names];
@@ -148,9 +165,12 @@ export default function CardScanner({ open, onClose, onSearch, onSelect, gameKey
   const capture = async () => {
     const video = videoRef.current;
     if (!video || !video.videoWidth) return;
-    const canvas = prepareCanvas(video, video.videoWidth, video.videoHeight);
+    const frame = document.createElement('canvas');
+    frame.width = video.videoWidth;
+    frame.height = video.videoHeight;
+    frame.getContext('2d')!.drawImage(video, 0, 0);
     stopCamera();
-    await readImage(canvas);
+    await readImage(frame, guideRect(frame.width, frame.height));
   };
 
   const fromFile = async (file: File | undefined) => {
@@ -158,10 +178,9 @@ export default function CardScanner({ open, onClose, onSearch, onSelect, gameKey
     stopCamera();
     const bitmap = await createImageBitmap(file).catch(() => null);
     if (!bitmap) { setPhase('error'); return; }
-    // Una foto caricata di solito contiene solo la carta: si usa quasi tutta l'immagine
-    const canvas = prepareCanvas(bitmap, bitmap.width, bitmap.height);
+    // Una foto caricata di solito contiene solo la carta: si usa tutta l'immagine
+    await readImage(bitmap, { x: 0, y: 0, w: bitmap.width, h: bitmap.height });
     bitmap.close();
-    await readImage(canvas);
   };
 
   const close = () => {

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useGame } from '../../context/GameContext';
 
 /** Short display names and emoji for each game */
@@ -9,6 +10,7 @@ const GAME_META: Record<string, { short: string; color: string }> = {
 };
 
 export default function GameSelector() {
+  const { t } = useTranslation('layout');
   const { games, selectedGameId, setSelectedGameId, isLoading } = useGame();
 
   if (isLoading || games.length === 0) return null;
@@ -26,7 +28,7 @@ export default function GameSelector() {
             }`}
             style={selectedGameId === null ? { background: '#1a3461' } : {}}
           >
-            Tutti
+            {t('gameSelector.all')}
           </button>
           {games.map((game) => {
             const meta = GAME_META[game.name] ?? { short: game.name, color: 'bg-gray-500' };

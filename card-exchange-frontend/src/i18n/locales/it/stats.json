@@ -1,0 +1,72 @@
+{
+  "title": "Statistiche",
+  "unavailable": "Statistiche non disponibili.",
+  "delta": {
+    "unchanged": "invariato {{period}}"
+  },
+  "periods": {
+    "in7d": "in 7 giorni",
+    "in30d": "in 30 giorni"
+  },
+  "cardRow": {
+    "total": "tot. {{value}}",
+    "now": "ora {{value}}"
+  },
+  "export": {
+    "failed": "Esportazione non riuscita.",
+    "title": "Esporta i tuoi dati",
+    "description": "Il CSV della collezione si può reimportare in CardExchange e nelle principali app (ManaBox, Moxfield). Contiene anche valore di mercato e prezzo che hai indicato.",
+    "collectionCsv": "Collezione (CSV)",
+    "collectionJson": "Collezione (JSON)",
+    "wishlistCsv": "Wishlist (CSV)"
+  },
+  "tiles": {
+    "marketValue": "Valore di mercato",
+    "cards": "Carte",
+    "unique_one": "{{formatted}} diversa",
+    "unique_other": "{{formatted}} diverse",
+    "forTrade": "In scambio",
+    "tradeableValue": "valgono {{value}}",
+    "wishlist": "Wishlist",
+    "pendingTrades_one": "{{count}} proposta in corso",
+    "pendingTrades_other": "{{count}} proposte in corso"
+  },
+  "upsell": {
+    "title": "Con Premium vedi di più",
+    "trend": "Andamento del valore della collezione nel tempo",
+    "movers": "Le carte che sono salite o scese di più in settimana",
+    "topCards": "Le tue carte di maggior valore, per gioco e condizione",
+    "export": "Esportazione di collezione e wishlist",
+    "cta": "Scopri Premium"
+  },
+  "chart": {
+    "title": "Andamento del valore",
+    "period": "Periodo",
+    "oneYear": "1 anno",
+    "days_one": "{{count}} gg",
+    "days_other": "{{count}} gg",
+    "ariaLabel_one": "Valore della collezione nell'ultimo giorno",
+    "ariaLabel_other": "Valore della collezione negli ultimi {{count}} giorni",
+    "value": "Valore",
+    "note": "Valore di mercato delle carte che possiedi oggi, con condizione e finitura. È un riferimento: negli scambi vi accordate liberamente.",
+    "unpriced_one": "{{count}} carta senza prezzo non è conteggiata.",
+    "unpriced_other": "{{count}} carte senza prezzo non sono conteggiate."
+  },
+  "movers": {
+    "title": "Variazioni della settimana",
+    "up": "In salita",
+    "down": "In discesa"
+  },
+  "topCards": "Le carte di maggior valore",
+  "byGame": {
+    "title": "Per gioco",
+    "count_one": "{{count}} carta",
+    "count_other": "{{count}} carte"
+  },
+  "byCondition": {
+    "title": "Per condizione",
+    "condition": "Condizione",
+    "cards": "Carte",
+    "value": "Valore"
+  }
+}

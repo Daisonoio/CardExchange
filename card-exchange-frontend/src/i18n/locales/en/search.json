@@ -1,0 +1,48 @@
+{
+  "title": "Advanced search",
+  "failed": "Search failed.",
+  "searchPlaceholder": "Card or set name",
+  "result": {
+    "askingPrice": "asking price",
+    "marketValue": "market value",
+    "noPrice": "no price",
+    "propose": "Make offer"
+  },
+  "upsell": {
+    "title": "Premium feature",
+    "description": "Search cards up for trade near you by language, foil, minimum condition, price range and distance, sorted by proximity or price.",
+    "cta": "Discover Premium"
+  },
+  "filters": {
+    "toggle": "Filters",
+    "game": "Game",
+    "all": "All",
+    "language": "Language",
+    "any": "Any",
+    "finish": "Finish",
+    "minCondition": "Minimum condition",
+    "distance": "Distance",
+    "within": "within {{km}} km",
+    "anywhere": "Anywhere",
+    "minPrice": "Price from €",
+    "maxPrice": "Price up to €",
+    "sortBy": "Sort by",
+    "priceNote": "The price is the one set by the owner or, if missing, the market value. It's only indicative: you agree on it between yourselves.",
+    "reset": "Reset filters"
+  },
+  "sort": {
+    "distance": "Nearest",
+    "price": "Lowest price",
+    "newest": "Newest"
+  },
+  "results": {
+    "none": "No cards found",
+    "count_one": "{{count}} card found",
+    "count_other": "{{count}} cards found",
+    "noLocation": "set your location in your profile to filter by distance",
+    "truncated": "too many results: narrow your search",
+    "emptyTitle": "No results",
+    "emptyDescription": "Try increasing the distance or removing some filters.",
+    "more": "More results"
+  }
+}

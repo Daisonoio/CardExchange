@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Compass, Library, Heart, Sparkles, ArrowLeftRight,
   UserCircle, LogOut, Layers, Bell, MessageSquare, MapPinned,
@@ -9,16 +10,17 @@ import { useRealtime } from '../../context/RealtimeContext';
 import NotificationCenter from '../notifications/NotificationCenter';
 
 const NAV_ITEMS = [
-  { to: '/explore', icon: Compass, label: 'Esplora' },
-  { to: '/collection', icon: Library, label: 'Collezione' },
-  { to: '/wishlist', icon: Heart, label: 'Ricerca' },
-  { to: '/matchmaking', icon: Sparkles, label: 'Match' },
-  { to: '/local', icon: MapPinned, label: 'Vicino a te' },
-  { to: '/trades', icon: ArrowLeftRight, label: 'Scambi' },
-  { to: '/profile', icon: UserCircle, label: 'Profilo' },
+  { to: '/explore', icon: Compass, label: 'topBar.explore' },
+  { to: '/collection', icon: Library, label: 'topBar.collection' },
+  { to: '/wishlist', icon: Heart, label: 'topBar.wishlist' },
+  { to: '/matchmaking', icon: Sparkles, label: 'topBar.matchmaking' },
+  { to: '/local', icon: MapPinned, label: 'topBar.local' },
+  { to: '/trades', icon: ArrowLeftRight, label: 'topBar.trades' },
+  { to: '/profile', icon: UserCircle, label: 'topBar.profile' },
 ];
 
 export default function TopBar() {
+  const { t } = useTranslation('layout');
   const { user, logout } = useAuth();
   const { chatUnread, notifUnread, setNotifUnread } = useRealtime();
   const navigate = useNavigate();
@@ -52,7 +54,7 @@ export default function TopBar() {
                 }
               >
                 <Icon size={18} />
-                <span>{label}</span>
+                <span>{t(label)}</span>
               </NavLink>
             ))}
           </nav>
@@ -68,7 +70,7 @@ export default function TopBar() {
                     : 'text-white/60 hover:bg-white/10 hover:text-white'
                 }`
               }
-              title="Chat"
+              title={t('topBar.chat')}
             >
               <MessageSquare size={20} />
               {chatUnread > 0 && (
@@ -82,7 +84,7 @@ export default function TopBar() {
             <button
               onClick={() => setShowNotif((v) => !v)}
               className="relative p-2 rounded-lg text-white/60 hover:bg-white/10 hover:text-white transition-colors"
-              title="Notifiche"
+              title={t('topBar.notifications')}
             >
               <Bell size={20} />
               {notifUnread > 0 && (
@@ -101,7 +103,7 @@ export default function TopBar() {
             <button
               onClick={handleLogout}
               className="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-              title="Esci"
+              title={t('topBar.logout')}
             >
               <LogOut size={18} />
             </button>
