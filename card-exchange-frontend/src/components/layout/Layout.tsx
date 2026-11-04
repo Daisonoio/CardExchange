@@ -36,11 +36,12 @@ export default function Layout() {
       <GameSelector />
       <main className="flex-1 pb-20 md:pb-4 pt-14 md:pt-0">
         <div className="max-w-2xl mx-auto px-4 py-4">
-          <VerifyEmailBanner />
           <Outlet />
         </div>
       </main>
       <BottomNav />
+      {/* Avviso flottante: non occupa spazio nella pagina */}
+      <VerifyEmailBanner />
     </div>
   );
 }

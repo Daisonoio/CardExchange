@@ -36,10 +36,12 @@
     "all": "All"
   },
   "verifyEmail": {
-    "message": "Confirm your email address (<email>{{email}}</email>) to secure your account and receive alerts.",
+    "message": "Open the link we sent to <email>{{email}}</email> to secure your account and receive alerts.",
     "sendFailed": "Couldn't send the email. Please try again later.",
     "sending": "Sending…",
-    "resend": "Resend the link"
+    "resend": "Resend the link",
+    "title": "Confirm your email",
+    "close": "Dismiss"
   },
   "errorBoundary": {
     "title": "Something went wrong",

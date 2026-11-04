@@ -36,10 +36,12 @@
     "all": "Tutti"
   },
   "verifyEmail": {
-    "message": "Conferma il tuo indirizzo email (<email>{{email}}</email>) per proteggere l'account e ricevere gli avvisi.",
+    "message": "Apri il link che ti abbiamo inviato a <email>{{email}}</email> per proteggere l'account e ricevere gli avvisi.",
     "sendFailed": "Invio non riuscito, riprova più tardi.",
     "sending": "Invio in corso…",
-    "resend": "Invia di nuovo il link"
+    "resend": "Invia di nuovo il link",
+    "title": "Conferma la tua email",
+    "close": "Chiudi l'avviso"
   },
   "errorBoundary": {
     "title": "Qualcosa è andato storto",
