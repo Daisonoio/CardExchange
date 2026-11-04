@@ -1,0 +1,77 @@
+{
+  "fallbackName": "Carta",
+  "unknownCard": "Carta sconosciuta",
+  "priceTag": {
+    "asking": "prezzo indicato",
+    "askingShort": "indicato",
+    "market": "valore di mercato",
+    "marketShort": "mercato",
+    "marketInline": "· mercato {{value}}"
+  },
+  "item": {
+    "edit": "Modifica",
+    "remove": "Rimuovi",
+    "trade": "Scambio"
+  },
+  "gridItem": {
+    "viewPhoto": "Vedi foto",
+    "removeFavorite": "Rimuovi dai preferiti",
+    "addFavorite": "Aggiungi ai preferiti"
+  },
+  "picker": {
+    "language": "Lingua",
+    "languageOptional": "Lingua (opzionale)",
+    "anyLanguage": "Qualsiasi lingua",
+    "notSpecified": "Non specificata",
+    "languageHint": "Indica la lingua: chi cerca una lingua precisa troverà solo le carte con lingua specificata.",
+    "finish": "Finitura",
+    "finishOptional": "Finitura (opzionale)",
+    "any": "Qualsiasi"
+  },
+  "search": {
+    "placeholder": "Cerca una carta...",
+    "noResults": "Nessun risultato trovato"
+  },
+  "priceHistory": {
+    "loadError": "Impossibile caricare lo storico prezzi",
+    "notEnoughData": "Dati insufficienti per il grafico",
+    "last5Days": "ultimi 5 giorni",
+    "last30Days": "ultimi 30 giorni",
+    "price": "Prezzo"
+  },
+  "form": {
+    "condition": "Condizione",
+    "quantity": "Quantità",
+    "askingPrice": "Prezzo a cui la cederesti (facoltativo)",
+    "availableForTrade": "Disponibile per lo scambio",
+    "availableForTradeHint": "Altri utenti potranno trovarla",
+    "notesOptional": "Note (opzionale)",
+    "notesPlaceholder": "Es: Foil, italiano, prima edizione...",
+    "saveChanges": "Salva modifiche"
+  },
+  "editCard": {
+    "titleDetail": "Dettaglio Carta",
+    "titleEdit": "Modifica Carta",
+    "conditionPhoto": "Foto condizione",
+    "removePhoto": "Rimuovi",
+    "uploading": "Caricamento...",
+    "replacePhoto": "Sostituisci",
+    "uploadPhoto": "Carica",
+    "noPhoto": "Nessuna foto disponibile",
+    "noPhotoUpload": "Nessuna foto. Carica una foto della condizione reale.",
+    "priceHistory": "Storico Prezzi",
+    "spike": "+{{percent}}% spike",
+    "askingPricePlaceholderWithValue": "{{value}} (valore di mercato)",
+    "askingPricePlaceholder": "Valore di mercato",
+    "askingPriceHint": "Indicativo e trattabile. Se lo lasci vuoto mostriamo il valore di mercato.",
+    "confirmDelete": "Rimuovere \"{{name}}\" dalla collezione?",
+    "errors": {
+      "save": "Errore durante il salvataggio",
+      "delete": "Errore durante l'eliminazione",
+      "imageTooLarge": "Immagine troppo grande. Massimo 350KB.",
+      "unsupportedFormat": "Formato non supportato. Usa webp, jpeg o png.",
+      "photoUpload": "Errore caricamento foto",
+      "photoDelete": "Errore eliminazione foto"
+    }
+  }
+}

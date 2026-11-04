@@ -1,0 +1,77 @@
+{
+  "fallbackName": "Card",
+  "unknownCard": "Unknown card",
+  "priceTag": {
+    "asking": "asking price",
+    "askingShort": "asking",
+    "market": "market value",
+    "marketShort": "market",
+    "marketInline": "· market {{value}}"
+  },
+  "item": {
+    "edit": "Edit",
+    "remove": "Remove",
+    "trade": "Trade"
+  },
+  "gridItem": {
+    "viewPhoto": "View photo",
+    "removeFavorite": "Remove from favourites",
+    "addFavorite": "Add to favourites"
+  },
+  "picker": {
+    "language": "Language",
+    "languageOptional": "Language (optional)",
+    "anyLanguage": "Any language",
+    "notSpecified": "Not specified",
+    "languageHint": "Set the language: people looking for a specific language will only find cards that have one set.",
+    "finish": "Finish",
+    "finishOptional": "Finish (optional)",
+    "any": "Any"
+  },
+  "search": {
+    "placeholder": "Search for a card...",
+    "noResults": "No results found"
+  },
+  "priceHistory": {
+    "loadError": "Couldn't load price history",
+    "notEnoughData": "Not enough data for a chart",
+    "last5Days": "last 5 days",
+    "last30Days": "last 30 days",
+    "price": "Price"
+  },
+  "form": {
+    "condition": "Condition",
+    "quantity": "Quantity",
+    "askingPrice": "Your asking price (optional)",
+    "availableForTrade": "Available for trade",
+    "availableForTradeHint": "Other users will be able to find it",
+    "notesOptional": "Notes (optional)",
+    "notesPlaceholder": "E.g. Foil, Italian, first edition...",
+    "saveChanges": "Save changes"
+  },
+  "editCard": {
+    "titleDetail": "Card details",
+    "titleEdit": "Edit card",
+    "conditionPhoto": "Condition photo",
+    "removePhoto": "Remove",
+    "uploading": "Uploading...",
+    "replacePhoto": "Replace",
+    "uploadPhoto": "Upload",
+    "noPhoto": "No photo available",
+    "noPhotoUpload": "No photo yet. Upload a photo showing the card's actual condition.",
+    "priceHistory": "Price history",
+    "spike": "+{{percent}}% spike",
+    "askingPricePlaceholderWithValue": "{{value}} (market value)",
+    "askingPricePlaceholder": "Market value",
+    "askingPriceHint": "A guide price, open to negotiation. Leave it empty to show the market value.",
+    "confirmDelete": "Remove \"{{name}}\" from your collection?",
+    "errors": {
+      "save": "Couldn't save changes",
+      "delete": "Couldn't delete",
+      "imageTooLarge": "Image too large. Maximum 350KB.",
+      "unsupportedFormat": "Unsupported format. Use webp, jpeg or png.",
+      "photoUpload": "Couldn't upload photo",
+      "photoDelete": "Couldn't delete photo"
+    }
+  }
+}

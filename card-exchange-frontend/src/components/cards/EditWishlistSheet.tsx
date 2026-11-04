@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Trash2 } from 'lucide-react';
 import { wishlist } from '../../api';
 import type { CardCondition, CardFinish, WishlistItem } from '../../types';
@@ -14,13 +15,13 @@ interface EditWishlistSheetProps {
   onDeleted?: (item: WishlistItem) => void;
 }
 
-const PRIORITY_LABELS = { 1: 'Alta', 2: 'Media', 3: 'Bassa' } as const;
 const CONDITION_MAP: Record<string, number> = {
   Mint: 1, NearMint: 2, Excellent: 3, Good: 4,
   LightlyPlayed: 5, ModeratelyPlayed: 6, HeavilyPlayed: 7, Damaged: 8,
 };
 
 export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted }: EditWishlistSheetProps) {
+  const { t } = useTranslation('wishlist');
   const [priority, setPriority] = useState<1 | 2 | 3>(2);
   const [preferredCondition, setPreferredCondition] = useState<CardCondition | undefined>(undefined);
   const [preferredLanguage, setPreferredLanguage] = useState('');
@@ -66,7 +67,7 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
       onUpdated();
       onClose();
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Errore durante il salvataggio');
+      setError(err?.response?.data?.message || t('errors.save'));
     } finally {
       setIsSaving(false);
     }
@@ -74,14 +75,14 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
 
   const handleDelete = async () => {
     if (!item) return;
-    if (!confirm(`Rimuovere "${item.cardName || item.cardInfo?.name || 'questa carta'}" dalla ricerca?`)) return;
+    if (!confirm(t('editSheet.confirmDelete', { name: item.cardName || item.cardInfo?.name || t('editSheet.thisCard') }))) return;
     setIsDeleting(true);
     try {
       await wishlist.delete(item.id);
       onDeleted?.(item);
       onClose();
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Errore durante l\'eliminazione');
+      setError(err?.response?.data?.message || t('errors.delete'));
     } finally {
       setIsDeleting(false);
     }
@@ -89,13 +90,13 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
 
   if (!item) return null;
 
-  const cardName = item.cardName || item.cardInfo?.name || 'Carta';
+  const cardName = item.cardName || item.cardInfo?.name || t('cards:fallbackName');
   const cardSetName = item.cardSetName || item.cardInfo?.cardSet?.name || '';
   const image = item.imageNormal || item.imageSmall || item.cardInfo?.imageNormal || item.cardInfo?.imageSmall || '';
   const hasPhoto = !!image;
 
   return (
-    <BottomSheet open={!!item} onClose={onClose} title="Modifica Ricerca">
+    <BottomSheet open={!!item} onClose={onClose} title={t('editSheet.title')}>
       <div className="space-y-4">
         <div className="flex gap-4 p-3 bg-surface-dark rounded-xl">
           {image ? (
@@ -112,17 +113,17 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
 
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="rounded-xl bg-white border border-border/60 p-2.5">
-            <p className="text-text-muted">ID ricerca</p>
+            <p className="text-text-muted">{t('editSheet.searchId')}</p>
             <p className="font-semibold text-text">#{item.id}</p>
           </div>
           <div className="rounded-xl bg-white border border-border/60 p-2.5">
-            <p className="text-text-muted">Foto carta</p>
-            <p className="font-semibold text-text">{hasPhoto ? 'Presente' : 'Non presente'}</p>
+            <p className="text-text-muted">{t('editSheet.cardPhoto')}</p>
+            <p className="font-semibold text-text">{hasPhoto ? t('editSheet.photoPresent') : t('editSheet.photoMissing')}</p>
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-text-secondary block mb-1.5">Priorita</label>
+          <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('form.priority')}</label>
           <div className="flex gap-2">
             {([1, 2, 3] as const).map((p) => (
               <button
@@ -134,14 +135,14 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
                     : 'border-border text-text-secondary hover:bg-surface-dark'
                 }`}
               >
-                {PRIORITY_LABELS[p]}
+                {t(`priority.${p}`)}
               </button>
             ))}
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-text-secondary block mb-1.5">Condizione preferita</label>
+          <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('editSheet.preferredCondition')}</label>
           <div className="grid grid-cols-2 gap-1.5">
             <button
               onClick={() => setPreferredCondition(undefined)}
@@ -151,7 +152,7 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
                   : 'border-border text-text-secondary hover:bg-surface-dark'
               }`}
             >
-              Qualsiasi
+              {t('form.any')}
             </button>
             {([1, 2, 3, 4, 5, 6, 7, 8] as CardCondition[]).map((c) => (
               <button
@@ -177,7 +178,7 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
           onFinishChange={setPreferredFinish}
         />
         <div>
-          <label className="text-xs font-semibold text-text-secondary block mb-1.5">Prezzo massimo (opzionale)</label>
+          <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('form.maxPrice')}</label>
           <input
             type="number"
             step="0.01"
@@ -190,11 +191,11 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-text-secondary block mb-1.5">Note (opzionale)</label>
+          <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('form.notesOptional')}</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="es. Cerco versione foil"
+            placeholder={t('form.notesPlaceholder')}
             className="w-full px-4 py-2.5 rounded-xl border border-border text-sm resize-none h-20 focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
@@ -214,7 +215,7 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
             </button>
           )}
           <Button onClick={handleSave} isLoading={isSaving} className="flex-1" size="lg">
-            Salva modifiche
+            {t('editSheet.saveChanges')}
           </Button>
         </div>
       </div>

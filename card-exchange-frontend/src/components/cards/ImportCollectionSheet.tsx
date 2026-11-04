@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { AlertTriangle, CheckCircle2, FileUp, Loader2 } from 'lucide-react';
 import { catalog, collectionImport } from '../../api';
 import { useGame } from '../../context/GameContext';
@@ -12,10 +13,11 @@ import CardVariantBadges from './CardVariantBadges';
 const MAX_FILE_BYTES = 2_000_000;
 const ROWS_PAGE = 100;
 
-const FIELD_LABELS: Record<string, string> = {
-  Name: 'Nome', SetCode: 'Codice set', SetName: 'Nome set', Edition: 'Set', CollectorNumber: 'Numero',
-  ScryfallId: 'Scryfall ID', Quantity: 'Quantità', Condition: 'Condizione', Language: 'Lingua', Finish: 'Foil/Finitura', Game: 'Gioco',
-};
+// Campi riconosciuti: l'etichetta è in collection:import.fields.<campo>
+const FIELD_KEYS = [
+  'Name', 'SetCode', 'SetName', 'Edition', 'CollectorNumber',
+  'ScryfallId', 'Quantity', 'Condition', 'Language', 'Finish', 'Game',
+];
 
 type Step = 'pick' | 'preview' | 'done';
 
@@ -25,6 +27,7 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
   onClose: () => void;
   onImported: () => void;
 }) {
+  const { t } = useTranslation('collection');
   const [step, setStep] = useState<Step>('pick');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +65,7 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
     if (!file) return;
     setError(null);
     if (file.size > MAX_FILE_BYTES) {
-      setError('Il file supera i 2 MB: dividilo in più file.');
+      setError(t('import.errors.fileTooLarge'));
       return;
     }
     setBusy(true);
@@ -71,7 +74,7 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
       setPreview(data);
       setStep('preview');
     } catch (err) {
-      setError(apiErrorMessage(err, 'Impossibile leggere il file.'));
+      setError(apiErrorMessage(err, t('import.errors.readFile')));
     } finally {
       setBusy(false);
     }
@@ -113,21 +116,21 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
       setStep('done');
       onImported();
     } catch (err) {
-      setError(apiErrorMessage(err, "Errore durante l'importazione."));
+      setError(apiErrorMessage(err, t('import.errors.import')));
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <BottomSheet open={open} onClose={close} title="Importa collezione">
+    <BottomSheet open={open} onClose={close} title={t('import.title')}>
       {error && <div className="mb-3 px-4 py-3 rounded-xl bg-red-50 text-danger text-sm">{error}</div>}
 
       {step === 'pick' && (
         <div className="space-y-4">
           {importable.length > 1 && (
             <label className="block">
-              <span className="block text-xs font-medium text-text-secondary mb-1">Gioco del file</span>
+              <span className="block text-xs font-medium text-text-secondary mb-1">{t('import.fileGame')}</span>
               <select
                 value={catalogKey}
                 onChange={(e) => setCatalogKey(e.target.value)}
@@ -139,26 +142,26 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
           )}
           <p className="text-sm text-text-secondary">
             {isMagic
-              ? <>Esporta la tua collezione <strong>Magic</strong> in CSV da ManaBox, Moxfield, Deckbox, Dragon Shield, Cardmarket o da un foglio di calcolo, poi caricala qui.</>
-              : <>Carica il CSV della tua collezione <strong>{gameName}</strong> (da un'app di collezione, da CardExchange o da un foglio di calcolo).</>}
-            {' '}Vedrai un'anteprima prima di confermare.
+              ? <Trans t={t} i18nKey="import.introMagic" components={{ strong: <strong /> }} />
+              : <Trans t={t} i18nKey="import.introOther" values={{ game: gameName }} components={{ strong: <strong /> }} />}
+            {' '}{t('import.previewNote')}
           </p>
           <ul className="text-xs text-text-muted list-disc pl-5 space-y-0.5">
             {isMagic ? (
               <>
-                <li>Serve almeno una colonna con il nome della carta (es. "Name").</li>
-                <li>Con codice set e numero collezionista l'abbinamento è esatto.</li>
+                <li>{t('import.tipNameColumn')}</li>
+                <li>{t('import.tipExactMatch')}</li>
               </>
             ) : (
-              <li>Per riconoscere le carte servono {hints[catalogKey] ?? 'set e numero, oppure il nome'}.</li>
+              <li>{t('import.tipRecognize', { hint: hints[catalogKey] ?? t('import.defaultHint') })}</li>
             )}
-            <li>Condizione, lingua, foil e quantità vengono letti se presenti.</li>
-            {!isMagic && <li>Ogni carta si cerca nel catalogo una alla volta: con file grandi l'anteprima richiede qualche minuto (massimo 1000 righe).</li>}
+            <li>{t('import.tipFields')}</li>
+            {!isMagic && <li>{t('import.tipSlow')}</li>}
           </ul>
           <label className={`flex flex-col items-center justify-center gap-2 p-6 rounded-2xl border-2 border-dashed border-border cursor-pointer hover:bg-surface-dark transition-colors ${busy ? 'opacity-60 pointer-events-none' : ''}`}>
             {busy ? <Loader2 size={28} className="animate-spin text-primary" /> : <FileUp size={28} className="text-primary" />}
-            <span className="text-sm font-semibold text-text">{busy ? 'Analisi in corso…' : 'Scegli il file CSV'}</span>
-            <span className="text-[11px] text-text-muted">Massimo 2 MB, {isMagic ? '5000' : '1000'} righe</span>
+            <span className="text-sm font-semibold text-text">{busy ? t('import.analyzing') : t('import.chooseFile')}</span>
+            <span className="text-[11px] text-text-muted">{t('import.limits', { rows: isMagic ? '5000' : '1000' })}</span>
             <input
               type="file"
               accept=".csv,.txt,text/csv"
@@ -174,36 +177,36 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-xl bg-surface-dark p-2">
               <p className="text-lg font-bold text-text">{preview.readyCount}</p>
-              <p className="text-[10px] text-text-muted">righe pronte</p>
+              <p className="text-[10px] text-text-muted">{t('import.readyRows')}</p>
             </div>
             <div className={`rounded-xl p-2 ${preview.errorCount ? 'bg-red-50' : 'bg-surface-dark'}`}>
               <p className={`text-lg font-bold ${preview.errorCount ? 'text-danger' : 'text-text'}`}>{preview.errorCount}</p>
-              <p className="text-[10px] text-text-muted">con errori</p>
+              <p className="text-[10px] text-text-muted">{t('import.withErrors')}</p>
             </div>
             <div className="rounded-xl bg-surface-dark p-2">
               <p className="text-lg font-bold text-text">{preview.totalQuantity}</p>
-              <p className="text-[10px] text-text-muted">copie totali</p>
+              <p className="text-[10px] text-text-muted">{t('import.totalCopies')}</p>
             </div>
           </div>
 
           <div className="text-xs text-text-secondary space-y-1">
-            <p>Formato riconosciuto: <strong>{preview.detectedFormat}</strong></p>
+            <p><Trans t={t} i18nKey="import.detectedFormat" values={{ format: preview.detectedFormat }} components={{ strong: <strong /> }} /></p>
             <div className="flex flex-wrap gap-1">
               {Object.entries(preview.mapping).map(([field, header]) => (
                 <span key={field} className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px]">
-                  {FIELD_LABELS[field] ?? field} ← {header}
+                  {FIELD_KEYS.includes(field) ? t(`import.fields.${field}`) : field} ← {header}
                 </span>
               ))}
             </div>
             {preview.ignoredColumns.length > 0 && (
-              <p className="text-[10px] text-text-muted">Colonne ignorate: {preview.ignoredColumns.join(', ')}</p>
+              <p className="text-[10px] text-text-muted">{t('import.ignoredColumns', { columns: preview.ignoredColumns.join(', ') })}</p>
             )}
           </div>
 
           <div className="flex items-center justify-between p-3 bg-surface-dark rounded-xl">
             <div>
-              <p className="text-sm font-medium">Metti tutte in scambio</p>
-              <p className="text-xs text-text-muted">Potrai cambiarlo dopo, anche in blocco</p>
+              <p className="text-sm font-medium">{t('import.allToTrade')}</p>
+              <p className="text-xs text-text-muted">{t('import.allToTradeHint')}</p>
             </div>
             <button
               type="button"
@@ -225,15 +228,15 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
                 onClick={() => setVisibleRows((v) => v + ROWS_PAGE)}
                 className="w-full py-2 text-xs font-semibold text-primary hover:underline"
               >
-                Mostra altre {Math.min(ROWS_PAGE, sortedRows.length - visibleRows)} righe
+                {t('import.showMoreRows', { count: Math.min(ROWS_PAGE, sortedRows.length - visibleRows) })}
               </button>
             )}
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" className="flex-1" onClick={reset} disabled={busy}>Cambia file</Button>
+            <Button variant="outline" className="flex-1" onClick={reset} disabled={busy}>{t('import.changeFile')}</Button>
             <Button className="flex-1" onClick={handleCommit} isLoading={busy} disabled={selectedRows.length === 0}>
-              Importa {selectedQuantity} {selectedQuantity === 1 ? 'carta' : 'carte'}
+              {t('import.submit', { count: selectedQuantity })}
             </Button>
           </div>
         </div>
@@ -244,10 +247,10 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
           <div className="flex items-center gap-3 p-4 rounded-xl bg-green-50 text-green-800">
             <CheckCircle2 size={24} className="shrink-0" />
             <div className="text-sm">
-              <p className="font-semibold">Importate {result.totalQuantity} carte</p>
+              <p className="font-semibold">{t('import.imported', { count: result.totalQuantity })}</p>
               <p className="text-xs">
-                {result.createdCopies} nuove voci in collezione
-                {result.mergedIntoExisting > 0 && `, ${result.mergedIntoExisting} aggiunte a copie già presenti`}
+                {t('import.createdEntries', { count: result.createdCopies })}
+                {result.mergedIntoExisting > 0 && t('import.merged', { count: result.mergedIntoExisting })}
               </p>
             </div>
           </div>
@@ -255,17 +258,17 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
             <div className="flex gap-2 p-3 rounded-xl bg-amber-50 text-amber-800 text-xs">
               <AlertTriangle size={16} className="shrink-0 mt-0.5" />
               <p>
-                {result.skippedByPlanLimit} righe non aggiunte: hai raggiunto il limite di {result.planCardLimit} carte del tuo piano.
+                {t('import.planLimit', { count: result.skippedByPlanLimit, limit: result.planCardLimit })}
               </p>
             </div>
           )}
           {result.failed.length > 0 && (
             <div className="p-3 rounded-xl bg-red-50 text-danger text-xs">
-              {result.failed.length} righe non importate: {result.failed.slice(0, 5).join('; ')}
+              {t('import.failed', { count: result.failed.length, list: result.failed.slice(0, 5).join('; ') })}
               {result.failed.length > 5 && '…'}
             </div>
           )}
-          <Button className="w-full" onClick={close}>Fatto</Button>
+          <Button className="w-full" onClick={close}>{t('import.done')}</Button>
         </div>
       )}
     </BottomSheet>
@@ -273,11 +276,12 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
 }
 
 function PreviewRow({ row, excluded, onToggle }: { row: ImportPreviewRow; excluded: boolean; onToggle: () => void }) {
+  const { t } = useTranslation('collection');
   const isError = row.status === 'error';
   return (
     <div className={`flex items-center gap-2 p-2 rounded-xl border ${isError ? 'border-red-200 bg-red-50/50' : excluded ? 'border-border opacity-50' : 'border-border bg-white'}`}>
       {!isError && (
-        <input type="checkbox" checked={!excluded} onChange={onToggle} aria-label={`Includi riga ${row.lineNumber}`} className="accent-primary" />
+        <input type="checkbox" checked={!excluded} onChange={onToggle} aria-label={t('import.includeRow', { line: row.lineNumber })} className="accent-primary" />
       )}
       {row.match?.imageSmall ? (
         <img src={row.match.imageSmall} alt="" className="w-8 h-11 rounded object-cover shrink-0" loading="lazy" />
@@ -287,7 +291,7 @@ function PreviewRow({ row, excluded, onToggle }: { row: ImportPreviewRow; exclud
       <div className="flex-1 min-w-0">
         <p className="text-xs font-semibold truncate">
           {row.match?.name ?? row.inputName ?? '—'}
-          <span className="font-normal text-text-muted"> · riga {row.lineNumber}</span>
+          <span className="font-normal text-text-muted"> · {t('import.line', { line: row.lineNumber })}</span>
         </p>
         {isError ? (
           <p className="text-[10px] text-danger truncate">

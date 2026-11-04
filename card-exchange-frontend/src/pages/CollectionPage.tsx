@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useFormat } from '../i18n/format';
 import { Plus, Library, Search, TrendingUp, ChevronDown, Loader2, FileUp, CheckSquare, X } from 'lucide-react';
 import { cards, priceTracking, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -16,6 +18,8 @@ import EmptyState from '../components/ui/EmptyState';
 import BottomSheet from '../components/ui/BottomSheet';
 
 export default function CollectionPage() {
+  const { t } = useTranslation('collection');
+  const { euro } = useFormat();
   const { user } = useAuth();
   const { selectedGameId, selectedGame } = useGame();
   const [myCards, setMyCards] = useState<Card[]>([]);
@@ -173,7 +177,7 @@ export default function CollectionPage() {
 
   const runBulk = async (action: { isAvailableForTrade?: boolean; delete?: boolean }) => {
     if (selectedIds.size === 0) return;
-    if (action.delete && !confirm(`Eliminare ${selectedIds.size} ${selectedIds.size === 1 ? 'carta' : 'carte'} dalla collezione?`)) return;
+    if (action.delete && !confirm(t('bulk.confirmDelete', { count: selectedIds.size }))) return;
     setBulkBusy(true);
     setBulkError(null);
     try {
@@ -181,7 +185,7 @@ export default function CollectionPage() {
       exitSelectMode();
       loadCards();
     } catch {
-      setBulkError("Operazione non riuscita, riprova.");
+      setBulkError(t('bulk.error'));
     } finally {
       setBulkBusy(false);
     }
@@ -196,27 +200,27 @@ export default function CollectionPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-xl font-bold text-text">La mia Collezione</h1>
+          <h1 className="text-xl font-bold text-text">{t('header.title')}</h1>
           <p className="text-sm text-text-secondary">
-            {myCards.length} carte &middot; Valore: €{totalValue.toFixed(2)}
+            {t('header.cardCount', { count: myCards.length })} &middot; {t('header.value', { value: euro(totalValue) })}
           </p>
         </div>
         <div className="flex items-center gap-1.5">
           {myCards.length > 0 && !selectMode && (
-            <Button onClick={() => setSelectMode(true)} size="sm" variant="ghost" aria-label="Seleziona più carte">
+            <Button onClick={() => setSelectMode(true)} size="sm" variant="ghost" aria-label={t('header.selectAria')}>
               <CheckSquare size={16} />
-              <span className="hidden sm:inline">Seleziona</span>
+              <span className="hidden sm:inline">{t('header.select')}</span>
             </Button>
           )}
           {canImport && (
-            <Button onClick={() => setShowImport(true)} size="sm" variant="outline" aria-label="Importa da CSV">
+            <Button onClick={() => setShowImport(true)} size="sm" variant="outline" aria-label={t('header.importAria')}>
               <FileUp size={16} />
-              <span className="hidden sm:inline">Importa</span>
+              <span className="hidden sm:inline">{t('header.import')}</span>
             </Button>
           )}
           <Button onClick={() => setShowAddModal(true)} size="sm">
             <Plus size={16} />
-            Aggiungi
+            {t('header.add')}
           </Button>
         </div>
       </div>
@@ -225,37 +229,37 @@ export default function CollectionPage() {
       {selectMode && (
         <div className="sticky top-14 md:top-16 z-30 mb-3 p-2.5 rounded-xl bg-primary text-white shadow-lg space-y-2">
           <div className="flex items-center gap-2 text-sm">
-            <button onClick={exitSelectMode} aria-label="Esci dalla selezione" className="p-1 rounded hover:bg-white/10">
+            <button onClick={exitSelectMode} aria-label={t('bulk.exit')} className="p-1 rounded hover:bg-white/10">
               <X size={16} />
             </button>
-            <span className="font-semibold flex-1">{selectedIds.size} selezionate</span>
+            <span className="font-semibold flex-1">{t('bulk.selected', { count: selectedIds.size })}</span>
             <button
               onClick={() => setSelectedIds(allFilteredSelected ? new Set() : new Set(filtered.map((c) => c.id)))}
               className="text-xs underline"
             >
-              {allFilteredSelected ? 'Deseleziona tutte' : 'Seleziona tutte'}
+              {allFilteredSelected ? t('bulk.deselectAll') : t('bulk.selectAll')}
             </button>
             <button
               onClick={() => setSelectedIds(new Set(myCards.filter((c) => c.quantity > 1).map((c) => c.id)))}
               className="text-xs underline"
-              title="Carte con più di una copia"
+              title={t('bulk.duplicatesTitle')}
             >
-              Doppioni
+              {t('bulk.duplicates')}
             </button>
           </div>
           <div className="grid grid-cols-3 gap-1.5">
             {[
-              { label: 'In scambio', action: { isAvailableForTrade: true } },
-              { label: 'Tengo', action: { isAvailableForTrade: false } },
-              { label: 'Elimina', action: { delete: true } },
-            ].map(({ label, action }) => (
+              { key: 'toTrade', action: { isAvailableForTrade: true } },
+              { key: 'keep', action: { isAvailableForTrade: false } },
+              { key: 'delete', action: { delete: true } },
+            ].map(({ key, action }) => (
               <button
-                key={label}
+                key={key}
                 disabled={bulkBusy || selectedIds.size === 0}
                 onClick={() => runBulk(action)}
-                className={`py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 ${label === 'Elimina' ? 'bg-red-500/90 hover:bg-red-500' : 'bg-white/15 hover:bg-white/25'}`}
+                className={`py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 ${key === 'delete' ? 'bg-red-500/90 hover:bg-red-500' : 'bg-white/15 hover:bg-white/25'}`}
               >
-                {label}
+                {t(`bulk.${key}`)}
               </button>
             ))}
           </div>
@@ -275,12 +279,12 @@ export default function CollectionPage() {
         >
           <TrendingUp size={16} className="text-amber-500" />
           <span className="text-sm font-medium flex-1 text-left">
-            {spikeCards.length} {spikeCards.length === 1 ? 'carta sta' : 'carte stanno'} salendo di prezzo!
+            {t('spikes.banner', { count: spikeCards.length })}
           </span>
           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
             showSpikesOnly ? 'bg-amber-200 text-amber-800' : 'bg-amber-100 text-amber-600'
           }`}>
-            {showSpikesOnly ? 'Mostra tutte' : 'Mostra'}
+            {showSpikesOnly ? t('spikes.showAll') : t('spikes.show')}
           </span>
         </button>
       )}
@@ -291,7 +295,7 @@ export default function CollectionPage() {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
-            placeholder="Filtra le tue carte..."
+            placeholder={t('filters.placeholder')}
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -306,7 +310,7 @@ export default function CollectionPage() {
                 filterTrade === f ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-dark'
               }`}
             >
-              {f === 'all' ? 'Tutte' : f === 'trade' ? 'Scambio' : 'Tengo'}
+              {t(`filters.${f}`)}
             </button>
           ))}
         </div>
@@ -322,18 +326,18 @@ export default function CollectionPage() {
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Library}
-          title={myCards.length === 0 ? 'Nessuna carta' : 'Nessun risultato'}
+          title={myCards.length === 0 ? t('empty.noCards') : t('empty.noResults')}
           description={myCards.length === 0
-            ? 'Aggiungi la tua prima carta alla collezione'
-            : 'Prova a modificare i filtri'}
+            ? t('empty.noCardsDescription')
+            : t('empty.noResultsDescription')}
           action={myCards.length === 0 ? (
             <div className="flex flex-col sm:flex-row gap-2 items-center">
               <Button onClick={() => setShowAddModal(true)} size="sm">
-                <Plus size={16} /> Aggiungi carta
+                <Plus size={16} /> {t('empty.addCard')}
               </Button>
               {canImport && (
                 <Button onClick={() => setShowImport(true)} size="sm" variant="outline">
-                  <FileUp size={16} /> Importa da CSV
+                  <FileUp size={16} /> {t('empty.importCsv')}
                 </Button>
               )}
             </div>
@@ -368,12 +372,12 @@ export default function CollectionPage() {
       <BottomSheet
         open={showAddModal}
         onClose={() => { setShowAddModal(false); setSelectedCard(null); setPrintings([]); setShowPrintings(false); }}
-        title="Aggiungi Carta"
+        title={t('addSheet.title')}
       >
         {!selectedCard ? (
           <div>
             <p className="text-sm text-text-secondary mb-3">
-              Cerca la carta da aggiungere alla tua collezione:
+              {t('addSheet.searchPrompt')}
             </p>
             <GameCardSearch onSelect={handleSelectCard} />
           </div>
@@ -408,7 +412,7 @@ export default function CollectionPage() {
 
                 {selectedCard.subtitle && <p className="text-xs text-text-muted mt-0.5">{selectedCard.subtitle}</p>}
                 {selectedCard.priceEur && (
-                  <p className="text-sm font-bold text-accent mt-1">{selectedCard.priceEur} EUR</p>
+                  <p className="text-sm font-bold text-accent mt-1">{euro(Number(selectedCard.priceEur))}</p>
                 )}
               </div>
             </div>
@@ -423,7 +427,7 @@ export default function CollectionPage() {
                 ) : (
                   <>
                     <div className="px-3 py-2 text-xs text-text-muted border-b border-border/50">
-                      {printings.length} edizioni disponibili
+                      {t('addSheet.editions', { count: printings.length })}
                     </div>
                     {printings.map((p) => {
                       const isSelected = getCardId(p) === selectedCard.externalId;
@@ -444,11 +448,11 @@ export default function CollectionPage() {
                               {' '}{getSetName(p)}
                             </p>
                             <p className="text-xs text-text-muted">
-                              {p.rarity}{p.prices?.eur ? ` · ${p.prices.eur} EUR` : ''}
+                              {p.rarity}{p.prices?.eur ? ` · ${euro(Number(p.prices.eur))}` : ''}
                             </p>
                           </div>
                           {isSelected && (
-                            <span className="text-xs font-semibold text-primary shrink-0">Selezionata</span>
+                            <span className="text-xs font-semibold text-primary shrink-0">{t('addSheet.selected')}</span>
                           )}
                         </button>
                       );
@@ -462,12 +466,12 @@ export default function CollectionPage() {
               onClick={() => { setSelectedCard(null); setPrintings([]); setShowPrintings(false); }}
               className="text-sm text-primary hover:underline"
             >
-              Cambia carta
+              {t('addSheet.changeCard')}
             </button>
 
             {/* Condition select */}
             <div>
-              <label className="text-xs font-semibold text-text-secondary block mb-1.5">Condizione</label>
+              <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('cards:form.condition')}</label>
               <div className="grid grid-cols-2 gap-1.5">
                 {([1,2,3,4,5,6,7,8] as CardCondition[]).map((c) => (
                   <button
@@ -494,7 +498,7 @@ export default function CollectionPage() {
 
             {/* Quantity */}
             <div>
-              <label className="text-xs font-semibold text-text-secondary block mb-1.5">Quantità</label>
+              <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('cards:form.quantity')}</label>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setAddForm({ ...addForm, quantity: Math.max(1, addForm.quantity - 1) })}
@@ -515,7 +519,7 @@ export default function CollectionPage() {
             {/* Prezzo indicato (facoltativo) */}
             <div>
               <label htmlFor="add-asking-price" className="text-xs font-semibold text-text-secondary block mb-1.5">
-                Prezzo a cui la cederesti (facoltativo)
+                {t('cards:form.askingPrice')}
               </label>
               <input
                 id="add-asking-price"
@@ -525,17 +529,17 @@ export default function CollectionPage() {
                 step="0.01"
                 value={addForm.askingPrice}
                 onChange={(e) => setAddForm({ ...addForm, askingPrice: e.target.value })}
-                placeholder="Vuoto = valore di mercato"
+                placeholder={t('addSheet.askingPricePlaceholder')}
                 className="w-full px-3 py-2 rounded-xl border border-border text-sm"
               />
-              <p className="text-[10px] text-text-muted mt-1">Indicativo e trattabile: con chi scambi potete accordarvi liberamente.</p>
+              <p className="text-[10px] text-text-muted mt-1">{t('addSheet.askingPriceHint')}</p>
             </div>
 
             {/* Trade toggle */}
             <div className="flex items-center justify-between p-3 bg-surface-dark rounded-xl">
               <div>
-                <p className="text-sm font-medium">Disponibile per lo scambio</p>
-                <p className="text-xs text-text-muted">Altri utenti potranno trovarla</p>
+                <p className="text-sm font-medium">{t('cards:form.availableForTrade')}</p>
+                <p className="text-xs text-text-muted">{t('cards:form.availableForTradeHint')}</p>
               </div>
               <button
                 onClick={() => setAddForm({ ...addForm, isAvailableForTrade: !addForm.isAvailableForTrade })}
@@ -551,17 +555,17 @@ export default function CollectionPage() {
 
             {/* Notes */}
             <div>
-              <label className="text-xs font-semibold text-text-secondary block mb-1.5">Note (opzionale)</label>
+              <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('cards:form.notesOptional')}</label>
               <textarea
                 value={addForm.notes}
                 onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })}
-                placeholder="Es: Foil, italiano, prima edizione..."
+                placeholder={t('cards:form.notesPlaceholder')}
                 className="w-full px-4 py-2.5 rounded-xl border border-border text-sm resize-none h-20 focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
             </div>
 
             <Button onClick={handleAddCard} isLoading={isSaving} className="w-full" size="lg">
-              Aggiungi alla Collezione
+              {t('addSheet.submit')}
             </Button>
           </div>
         )}

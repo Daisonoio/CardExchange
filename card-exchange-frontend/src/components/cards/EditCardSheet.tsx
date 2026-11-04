@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useFormat } from '../../i18n/format';
 import { Trash2, Camera, Upload, TrendingUp } from 'lucide-react';
 import type { Card, CardCondition, CardFinish, PriceSpike } from '../../types';
 import { CONDITION_LABELS, FINISH_LABELS, finishValue, languageLabel } from '../../types';
@@ -24,6 +26,8 @@ const CONDITION_MAP: Record<string, number> = {
 };
 
 export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, readOnly, spikeInfo }: EditCardSheetProps) {
+  const { t } = useTranslation('cards');
+  const { number } = useFormat();
   const [condition, setCondition] = useState<CardCondition>(2);
   const [quantity, setQuantity] = useState(1);
   const [language, setLanguage] = useState('');
@@ -101,7 +105,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
       onUpdated();
       onClose();
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Errore durante il salvataggio');
+      setError(err?.response?.data?.message || t('editCard.errors.save'));
     } finally {
       setIsSaving(false);
     }
@@ -109,14 +113,14 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
 
   const handleDelete = async () => {
     if (!card) return;
-    if (!confirm(`Rimuovere "${card.cardName || card.cardInfo?.name}" dalla collezione?`)) return;
+    if (!confirm(t('editCard.confirmDelete', { name: `${card.cardName || card.cardInfo?.name}` }))) return;
     setIsDeleting(true);
     try {
       await cards.delete(card.id);
       onDeleted?.(card);
       onClose();
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Errore durante l\'eliminazione');
+      setError(err?.response?.data?.message || t('editCard.errors.delete'));
     } finally {
       setIsDeleting(false);
     }
@@ -127,13 +131,13 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
     const file = e.target.files[0];
 
     if (file.size > 350 * 1024) {
-      setError('Immagine troppo grande. Massimo 350KB.');
+      setError(t('editCard.errors.imageTooLarge'));
       return;
     }
 
     const allowedTypes = ['image/webp', 'image/jpeg', 'image/png'];
     if (!allowedTypes.includes(file.type)) {
-      setError('Formato non supportato. Usa webp, jpeg o png.');
+      setError(t('editCard.errors.unsupportedFormat'));
       return;
     }
 
@@ -151,7 +155,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
       }
       onUpdated();
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Errore caricamento foto');
+      setError(err?.response?.data?.message || t('editCard.errors.photoUpload'));
     } finally {
       setUploadingPhoto(false);
     }
@@ -165,18 +169,18 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
       setPhotoId(null);
       onUpdated();
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Errore eliminazione foto');
+      setError(err?.response?.data?.message || t('editCard.errors.photoDelete'));
     }
   };
 
   if (!card) return null;
 
   const image = card.imageNormal || card.imageSmall || card.cardInfo?.imageNormal || card.cardInfo?.imageSmall || '';
-  const cardName = card.cardName || card.cardInfo?.name || 'Carta';
+  const cardName = card.cardName || card.cardInfo?.name || t('fallbackName');
   const cardSetName = card.cardSetName || card.cardInfo?.cardSet?.name || '';
 
   return (
-    <BottomSheet open={!!card} onClose={onClose} title={readOnly ? 'Dettaglio Carta' : 'Modifica Carta'}>
+    <BottomSheet open={!!card} onClose={onClose} title={readOnly ? t('editCard.titleDetail') : t('editCard.titleEdit')}>
       <div className="space-y-4">
         {/* Card preview */}
         <div className="flex gap-4 p-3 bg-surface-dark rounded-xl">
@@ -200,7 +204,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Camera size={14} className="text-text-muted" />
-              <p className="text-xs font-semibold text-text-secondary">Foto condizione</p>
+              <p className="text-xs font-semibold text-text-secondary">{t('editCard.conditionPhoto')}</p>
             </div>
             {!readOnly && (
               <div className="flex gap-1.5">
@@ -209,7 +213,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
                     onClick={handleDeletePhoto}
                     className="text-[10px] text-red-500 hover:text-red-700 px-1.5 py-0.5 rounded border border-red-200"
                   >
-                    Rimuovi
+                    {t('editCard.removePhoto')}
                   </button>
                 )}
                 <button
@@ -218,7 +222,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
                   className="text-[10px] text-primary hover:text-primary/80 px-1.5 py-0.5 rounded border border-primary/30 flex items-center gap-0.5"
                 >
                   <Upload size={10} />
-                  {uploadingPhoto ? 'Caricamento...' : photoUrl ? 'Sostituisci' : 'Carica'}
+                  {uploadingPhoto ? t('editCard.uploading') : photoUrl ? t('editCard.replacePhoto') : t('editCard.uploadPhoto')}
                 </button>
                 <input
                   ref={fileInputRef}
@@ -236,14 +240,14 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
             <div className="relative">
               <img
                 src={photoUrl.startsWith('/') ? `${window.location.origin}${photoUrl}` : photoUrl}
-                alt="Foto condizione"
+                alt={t('editCard.conditionPhoto')}
                 className={`w-full max-h-48 object-contain rounded-lg cursor-pointer border border-border/30 ${showPhoto ? 'max-h-96' : ''}`}
                 onClick={() => setShowPhoto(!showPhoto)}
               />
             </div>
           ) : (
             <p className="text-[11px] text-text-muted text-center py-4">
-              {readOnly ? 'Nessuna foto disponibile' : 'Nessuna foto. Carica una foto della condizione reale.'}
+              {readOnly ? t('editCard.noPhoto') : t('editCard.noPhotoUpload')}
             </p>
           )}
         </div>
@@ -253,10 +257,10 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
           <div className="rounded-xl bg-white border border-border/60 p-2.5">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp size={14} className="text-text-muted" />
-              <p className="text-xs font-semibold text-text-secondary">Storico Prezzi</p>
+              <p className="text-xs font-semibold text-text-secondary">{t('editCard.priceHistory')}</p>
               {spikeInfo && (
                 <span className="ml-auto text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                  +{spikeInfo.changePercentage}% spike
+                  {t('editCard.spike', { percent: number(spikeInfo.changePercentage) })}
                 </span>
               )}
             </div>
@@ -277,19 +281,19 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
           /* Read-only info grid */
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="rounded-xl bg-white border border-border/60 p-2.5">
-              <p className="text-text-muted">Condizione</p>
+              <p className="text-text-muted">{t('form.condition')}</p>
               <p className="font-semibold text-text">{CONDITION_LABELS[condition] || condition}</p>
             </div>
             <div className="rounded-xl bg-white border border-border/60 p-2.5">
-              <p className="text-text-muted">Quantità</p>
+              <p className="text-text-muted">{t('form.quantity')}</p>
               <p className="font-semibold text-text">{quantity}</p>
             </div>
             <div className="rounded-xl bg-white border border-border/60 p-2.5">
-              <p className="text-text-muted">Lingua</p>
-              <p className="font-semibold text-text">{languageLabel(language) ?? 'Non specificata'}</p>
+              <p className="text-text-muted">{t('picker.language')}</p>
+              <p className="font-semibold text-text">{languageLabel(language) ?? t('picker.notSpecified')}</p>
             </div>
             <div className="rounded-xl bg-white border border-border/60 p-2.5">
-              <p className="text-text-muted">Finitura</p>
+              <p className="text-text-muted">{t('picker.finish')}</p>
               <p className="font-semibold text-text">{FINISH_LABELS[finish]}</p>
             </div>
           </div>
@@ -297,7 +301,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
           <>
             {/* Condition */}
             <div>
-              <label className="text-xs font-semibold text-text-secondary block mb-1.5">Condizione</label>
+              <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('form.condition')}</label>
               <div className="grid grid-cols-2 gap-1.5">
                 {([1, 2, 3, 4, 5, 6, 7, 8] as CardCondition[]).map((c) => (
                   <button
@@ -325,7 +329,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
             {/* Prezzo indicato */}
             <div>
               <label htmlFor="asking-price" className="text-xs font-semibold text-text-secondary block mb-1.5">
-                Prezzo a cui la cederesti (facoltativo)
+                {t('form.askingPrice')}
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm">€</span>
@@ -337,18 +341,18 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
                   step="0.01"
                   value={askingPrice}
                   onChange={(e) => setAskingPrice(e.target.value)}
-                  placeholder={card.marketValue != null ? `${card.marketValue.toFixed(2)} (valore di mercato)` : 'Valore di mercato'}
+                  placeholder={card.marketValue != null ? t('editCard.askingPricePlaceholderWithValue', { value: number(card.marketValue, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }) : t('editCard.askingPricePlaceholder')}
                   className="w-full pl-7 pr-3 py-2 rounded-xl border border-border text-sm"
                 />
               </div>
               <p className="text-[10px] text-text-muted mt-1">
-                Indicativo e trattabile. Se lo lasci vuoto mostriamo il valore di mercato.
+                {t('editCard.askingPriceHint')}
               </p>
             </div>
 
             {/* Quantity */}
             <div>
-              <label className="text-xs font-semibold text-text-secondary block mb-1.5">Quantità</label>
+              <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('form.quantity')}</label>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -369,8 +373,8 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
             {/* Trade toggle */}
             <div className="flex items-center justify-between p-3 bg-surface-dark rounded-xl">
               <div>
-                <p className="text-sm font-medium">Disponibile per lo scambio</p>
-                <p className="text-xs text-text-muted">Altri utenti potranno trovarla</p>
+                <p className="text-sm font-medium">{t('form.availableForTrade')}</p>
+                <p className="text-xs text-text-muted">{t('form.availableForTradeHint')}</p>
               </div>
               <button
                 onClick={() => setIsAvailableForTrade(!isAvailableForTrade)}
@@ -386,11 +390,11 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
 
             {/* Notes */}
             <div>
-              <label className="text-xs font-semibold text-text-secondary block mb-1.5">Note (opzionale)</label>
+              <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('form.notesOptional')}</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Es: Foil, italiano, prima edizione..."
+                placeholder={t('form.notesPlaceholder')}
                 className="w-full px-4 py-2.5 rounded-xl border border-border text-sm resize-none h-20 focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
             </div>
@@ -411,7 +415,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
                 </button>
               )}
               <Button onClick={handleSave} isLoading={isSaving} className="flex-1" size="lg">
-                Salva modifiche
+                {t('form.saveChanges')}
               </Button>
             </div>
           </>

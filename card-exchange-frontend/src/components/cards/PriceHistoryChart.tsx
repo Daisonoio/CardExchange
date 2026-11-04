@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { formatDate, useFormat } from '../../i18n/format';
 import { XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { TrendingUp, TrendingDown, Minus, Loader2 } from 'lucide-react';
 import { priceTracking } from '../../api';
@@ -17,6 +19,8 @@ interface PriceHistoryChartProps {
 }
 
 export default function PriceHistoryChart({ cardInfoId, spikeData }: PriceHistoryChartProps) {
+  const { t } = useTranslation('cards');
+  const { euro, number } = useFormat();
   const [dataPoints, setDataPoints] = useState<{ date: string; price: number }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -28,7 +32,7 @@ export default function PriceHistoryChart({ cardInfoId, spikeData }: PriceHistor
       const points = spikeData.last5Days
         .filter((d) => d.priceEur != null)
         .map((d) => ({
-          date: new Date(d.date).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }),
+          date: formatDate(d.date, { day: '2-digit', month: '2-digit' }),
           price: d.priceEur!,
         }));
       setDataPoints(points);
@@ -48,7 +52,7 @@ export default function PriceHistoryChart({ cardInfoId, spikeData }: PriceHistor
         const points = (data.dataPoints || [])
           .filter((p: PricePoint) => p.priceEur != null)
           .map((p: PricePoint) => ({
-            date: new Date(p.date).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' }),
+            date: formatDate(p.date, { day: '2-digit', month: '2-digit' }),
             price: p.priceEur!,
           }));
         setDataPoints(points);
@@ -84,7 +88,7 @@ export default function PriceHistoryChart({ cardInfoId, spikeData }: PriceHistor
     return (
       <div className="text-center py-4">
         <p className="text-[11px] text-text-muted">
-          {error ? 'Impossibile caricare lo storico prezzi' : 'Dati insufficienti per il grafico'}
+          {error ? t('priceHistory.loadError') : t('priceHistory.notEnoughData')}
         </p>
       </div>
     );
@@ -101,13 +105,13 @@ export default function PriceHistoryChart({ cardInfoId, spikeData }: PriceHistor
       <div className="flex items-center gap-2 mb-2">
         <TrendIcon size={14} className={isUp ? 'text-green-500' : isDown ? 'text-red-500' : 'text-gray-500'} />
         <span className={`text-xs font-bold ${isUp ? 'text-green-600' : isDown ? 'text-red-600' : 'text-gray-600'}`}>
-          {isUp ? '+' : ''}{changePct}%
+          {isUp ? '+' : ''}{number(changePct)}%
         </span>
         <span className="text-[11px] text-text-muted">
-          ({isUp ? '+' : ''}{changeAmt.toFixed(2)}€)
+          ({isUp ? '+' : ''}{euro(changeAmt)})
         </span>
         <span className="text-[10px] text-text-muted ml-auto">
-          {spikeData ? 'ultimi 5 giorni' : 'ultimi 30 giorni'}
+          {spikeData ? t('priceHistory.last5Days') : t('priceHistory.last30Days')}
         </span>
       </div>
 
@@ -133,7 +137,7 @@ export default function PriceHistoryChart({ cardInfoId, spikeData }: PriceHistor
               axisLine={false}
               tickLine={false}
               width={35}
-              tickFormatter={(v: number) => `€${v}`}
+              tickFormatter={(v: number) => euro(v, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
             />
             <Tooltip
               contentStyle={{
@@ -142,7 +146,7 @@ export default function PriceHistoryChart({ cardInfoId, spikeData }: PriceHistor
                 border: '1px solid #e5e7eb',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
               }}
-              formatter={(value: unknown) => [`€${Number(value).toFixed(2)}`, 'Prezzo']}
+              formatter={(value: unknown) => [euro(Number(value)), t('priceHistory.price')]}
             />
             <Area
               type="monotone"

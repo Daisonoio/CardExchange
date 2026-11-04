@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, X, Loader2 } from 'lucide-react';
 import { scryfall } from '../../api';
 import type { ScryfallCard } from '../../types';
@@ -8,7 +9,8 @@ interface ScryfallSearchProps {
   placeholder?: string;
 }
 
-export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una carta...' }: ScryfallSearchProps) {
+export default function ScryfallSearch({ onSelect, placeholder }: ScryfallSearchProps) {
+  const { t } = useTranslation('cards');
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [results, setResults] = useState<ScryfallCard[]>([]);
@@ -103,7 +105,7 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
             if (e.key === 'Enter' && query.length >= 2) handleSearch(query);
           }}
           onFocus={() => { if (suggestions.length > 0 || results.length > 0) setIsOpen(true); }}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t('search.placeholder')}
           className="w-full pl-10 pr-10 py-3 rounded-xl border border-border bg-white text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
         />
         {query && (
@@ -122,7 +124,7 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
         disabled={isSearching || query.trim().length < 2}
         className="mt-2 w-full py-2.5 rounded-xl text-sm font-semibold bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Cerca
+        {t('common:actions.search')}
       </button>
 
       {isOpen && (
@@ -150,7 +152,7 @@ export default function ScryfallSearch({ onSelect, placeholder = 'Cerca una cart
 
           {mode === 'results' && !isSearching && results.length === 0 && (
             <div className="py-8 text-center text-sm text-text-muted">
-              Nessun risultato trovato
+              {t('search.noResults')}
             </div>
           )}
 

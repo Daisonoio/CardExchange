@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useFormat } from '../i18n/format';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Search, Library, MapPin, ArrowLeftRight } from 'lucide-react';
 import { cards, users, favorites } from '../api';
@@ -14,6 +16,8 @@ import Button from '../components/ui/Button';
 import PlanBadge from '../components/users/PlanBadge';
 
 export default function UserCollectionPage() {
+  const { t } = useTranslation('collection');
+  const { euro, number } = useFormat();
   const { userId } = useParams<{ userId: string }>();
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
@@ -154,19 +158,19 @@ export default function UserCollectionPage() {
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-text truncate">
-            {owner ? `Collezione di ${owner.username}` : 'Collezione utente'}
+            {owner ? t('user.title', { username: owner.username }) : t('user.titleFallback')}
           </h1>
           {owner?.planBadge && <PlanBadge badge={owner.planBadge} />}
           <p className="text-sm text-text-secondary">
-            {userCards.length} carte disponibili per lo scambio
-            {totalValue > 0 && <> &middot; Valore: €{totalValue.toFixed(2)}</>}
+            {t('user.available', { count: userCards.length })}
+            {totalValue > 0 && <> &middot; {t('header.value', { value: euro(totalValue) })}</>}
           </p>
           {owner && (
             <button type="button" onClick={() => setShowReviews(true)} className="mt-0.5 inline-flex items-center gap-1 text-xs text-text-secondary hover:underline">
               <StarRating value={owner.reputationScore ?? 0} size={12} />
               {(owner.totalReviewsReceived ?? 0) > 0
-                ? `${(owner.reputationScore ?? 0).toFixed(1)} · ${owner.totalReviewsReceived} recensioni`
-                : 'Nessuna recensione'}
+                ? t('user.reviews', { rating: number(owner.reputationScore ?? 0, { minimumFractionDigits: 1, maximumFractionDigits: 1 }), count: owner.totalReviewsReceived })
+                : t('user.noReviews')}
             </button>
           )}
         </div>
@@ -183,7 +187,7 @@ export default function UserCollectionPage() {
             }`}
           >
 
-            {selectedCards.length!=0 ? 'Annulla ' : 'Seleziona'}
+            {selectedCards.length!=0 ? t('common:actions.cancel') : t('user.select')}
           </button>
         )}
       </div>
@@ -206,7 +210,7 @@ export default function UserCollectionPage() {
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
-            placeholder="Cerca nelle carte..."
+            placeholder={t('user.searchPlaceholder')}
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -224,11 +228,11 @@ export default function UserCollectionPage() {
       ) : sortedFiltered.length === 0 ? (
         <EmptyState
           icon={Library}
-          title={userCards.length === 0 ? 'Nessuna carta disponibile' : 'Nessun risultato'}
+          title={userCards.length === 0 ? t('user.noCards') : t('user.noResults')}
           description={
             userCards.length === 0
-              ? 'Questo utente non ha carte disponibili per lo scambio'
-              : 'Prova a modificare la ricerca'
+              ? t('user.noCardsDescription')
+              : t('user.noResultsDescription')
           }
         />
       ) : (
@@ -264,14 +268,14 @@ export default function UserCollectionPage() {
         <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white border-t border-border p-4 z-40 shadow-lg">
           <div className="flex items-center gap-3 max-w-lg mx-auto">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">{selectedCards.length} carte selezionate</p>
+              <p className="text-sm font-semibold">{t('user.selectedCount', { count: selectedCards.length })}</p>
               <p className="text-xs text-text-muted">
-                {selectedCards.reduce((s, c) => s + (c.price ?? c.estimatedValue ?? 0), 0).toFixed(2)} EUR
+                {euro(selectedCards.reduce((s, c) => s + (c.price ?? c.estimatedValue ?? 0), 0))}
               </p>
             </div>
             <Button onClick={handleGoToTradeRequest} size="lg">
               <ArrowLeftRight size={16} />
-              Richiedi
+              {t('user.request')}
             </Button>
           </div>
         </div>
@@ -286,7 +290,7 @@ export default function UserCollectionPage() {
             size="lg"
           >
             <ArrowLeftRight size={16} />
-            Seleziona carte per scambio
+            {t('user.selectForTrade')}
           </Button>
         </div>
       )}

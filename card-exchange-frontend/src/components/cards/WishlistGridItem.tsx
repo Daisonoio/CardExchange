@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Heart, X } from 'lucide-react';
 import type { WishlistItem } from '../../types';
 import CardVariantBadges from './CardVariantBadges';
@@ -15,7 +16,8 @@ const PRIORITY_DOT: Record<number, string> = {
 };
 
 export default function WishlistGridItem({ item, onClick, onDelete }: WishlistGridItemProps) {
-  const cardName = item.cardName || item.cardInfo?.name || 'Carta';
+  const { t } = useTranslation('cards');
+  const cardName = item.cardName || item.cardInfo?.name || t('fallbackName');
   const image = item.imageSmall || item.imageNormal || item.cardInfo?.imageSmall || '';
   const matches = item.availableMatches ?? item.availableMatchesCount ?? 0;
 

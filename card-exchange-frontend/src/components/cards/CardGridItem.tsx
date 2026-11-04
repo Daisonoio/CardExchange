@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ArrowLeftRight, Camera, Heart, TrendingUp } from 'lucide-react';
 import type { Card } from '../../types';
 import { CONDITION_LABELS } from '../../types';
@@ -21,7 +22,8 @@ const CONDITION_MAP: Record<string, number> = {
 };
 
 export default function CardGridItem({ card, onClick, selected, onPhotoClick, isFavorite, onFavoriteToggle, showFavorite, hasPriceSpike }: CardGridItemProps) {
-  const cardName = card.cardName || card.cardInfo?.name || 'Carta';
+  const { t } = useTranslation('cards');
+  const cardName = card.cardName || card.cardInfo?.name || t('fallbackName');
   const image = card.imageSmall || card.imageNormal || card.cardInfo?.imageSmall || card.cardInfo?.imageUrl || '';
   const condNum = typeof card.condition === 'number' ? card.condition : (CONDITION_MAP[card.condition] || 0);
   const conditionLabel = typeof card.condition === 'string'
@@ -86,7 +88,7 @@ export default function CardGridItem({ card, onClick, selected, onPhotoClick, is
               onPhotoClick?.(card);
             }}
             className="absolute bottom-1 left-1 bg-black/60 text-white p-1 rounded-full shadow hover:bg-black/80 transition-colors"
-            title="Vedi foto"
+            title={t('gridItem.viewPhoto')}
           >
             <Camera size={11} />
           </button>
@@ -100,7 +102,7 @@ export default function CardGridItem({ card, onClick, selected, onPhotoClick, is
               onFavoriteToggle?.(card);
             }}
             className="absolute bottom-1 right-7 p-1 rounded-full shadow transition-colors"
-            title={isFavorite ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
+            title={isFavorite ? t('gridItem.removeFavorite') : t('gridItem.addFavorite')}
           >
             <Heart
               size={12}

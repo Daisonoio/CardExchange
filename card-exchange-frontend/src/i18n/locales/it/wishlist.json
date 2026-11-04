@@ -1,0 +1,53 @@
+{
+  "priority": {
+    "1": "Alta",
+    "2": "Media",
+    "3": "Bassa"
+  },
+  "title": "Le mie Ricerche",
+  "searchedCount_one": "{{count}} carta cercata",
+  "searchedCount_other": "{{count}} carte cercate",
+  "add": "Aggiungi",
+  "loadError": "Errore caricamento ({{status}}): {{message}}",
+  "unknownError": "Errore sconosciuto",
+  "groupCount_one": "{{count}} carta",
+  "groupCount_other": "{{count}} carte",
+  "empty": {
+    "title": "Nessuna carta cercata",
+    "description": "Aggiungi le carte che stai cercando per trovare scambi",
+    "action": "Cerca carta"
+  },
+  "addSheet": {
+    "title": "Aggiungi alla Ricerca",
+    "prompt": "Quale carta stai cercando?",
+    "searchPlaceholder": "Cerca la carta desiderata...",
+    "expansions_one": "{{count}} espansione disponibile",
+    "expansions_other": "{{count}} espansioni disponibili",
+    "selected": "Selezionata",
+    "minCondition": "Condizione minima (opzionale)",
+    "changeCard": "Cambia carta",
+    "submit": "Aggiungi alla Ricerca"
+  },
+  "form": {
+    "priority": "Priorità",
+    "any": "Qualsiasi",
+    "maxPrice": "Prezzo massimo (opzionale)",
+    "notesOptional": "Note (opzionale)",
+    "notesPlaceholder": "es. Cerco versione foil"
+  },
+  "errors": {
+    "save": "Errore durante il salvataggio",
+    "delete": "Errore durante l'eliminazione"
+  },
+  "editSheet": {
+    "title": "Modifica Ricerca",
+    "searchId": "ID ricerca",
+    "cardPhoto": "Foto carta",
+    "photoPresent": "Presente",
+    "photoMissing": "Non presente",
+    "preferredCondition": "Condizione preferita",
+    "saveChanges": "Salva modifiche",
+    "confirmDelete": "Rimuovere \"{{name}}\" dalla ricerca?",
+    "thisCard": "questa carta"
+  }
+}

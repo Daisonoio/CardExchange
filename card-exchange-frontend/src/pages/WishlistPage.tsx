@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useFormat } from '../i18n/format';
 import { Plus, Heart, ChevronDown, Loader2 } from 'lucide-react';
 import { wishlist, scryfall } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -13,7 +15,6 @@ import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import BottomSheet from '../components/ui/BottomSheet';
 
-const PRIORITY_LABELS = { 1: 'Alta', 2: 'Media', 3: 'Bassa' } as const;
 const PRIORITY_COLORS = {
   1: 'bg-red-50 text-red-600',
   2: 'bg-amber-50 text-amber-600',
@@ -21,6 +22,8 @@ const PRIORITY_COLORS = {
 } as const;
 
 export default function WishlistPage() {
+  const { t } = useTranslation('wishlist');
+  const { euro } = useFormat();
   const { user } = useAuth();
   const { selectedGameId, selectedGame } = useGame();
   const [items, setItems] = useState<WishlistItem[]>([]);
@@ -65,13 +68,13 @@ export default function WishlistPage() {
       setItems(list);
     } catch (err: any) {
       const status = err?.response?.status;
-      const msg = err?.response?.data?.message || err?.message || 'Errore sconosciuto';
-      setLoadError(`Errore caricamento (${status || '?'}): ${msg}`);
+      const msg = err?.response?.data?.message || err?.message || t('unknownError');
+      setLoadError(t('loadError', { status: status || '?', message: msg }));
       console.error('Errore caricamento wishlist:', err?.response?.status, err?.response?.data, err);
     } finally {
       setIsLoading(false);
     }
-  }, [user, selectedGameId]);
+  }, [user, selectedGameId, t]);
 
   useEffect(() => { loadItems(); }, [loadItems]);
 
@@ -141,7 +144,7 @@ export default function WishlistPage() {
       loadItems();
     } catch (err: any) {
       const msg = err?.response?.data?.message;
-      setSaveError(msg || 'Errore durante il salvataggio');
+      setSaveError(msg || t('errors.save'));
       console.error('Errore aggiunta alla wishlist:', err);
     } finally {
       setIsSaving(false);
@@ -181,19 +184,19 @@ export default function WishlistPage() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-xl font-bold text-text">Le mie Ricerche</h1>
-          <p className="text-sm text-text-secondary">{items.length} carte cercate</p>
+          <h1 className="text-xl font-bold text-text">{t('title')}</h1>
+          <p className="text-sm text-text-secondary">{t('searchedCount', { count: items.length })}</p>
         </div>
         <Button onClick={() => setShowAddModal(true)} size="sm">
           <Plus size={16} />
-          Aggiungi
+          {t('add')}
         </Button>
       </div>
 
       {loadError && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
           {loadError}
-          <button onClick={loadItems} className="ml-2 underline font-medium">Riprova</button>
+          <button onClick={loadItems} className="ml-2 underline font-medium">{t('common:actions.retry')}</button>
         </div>
       )}
 
@@ -207,11 +210,11 @@ export default function WishlistPage() {
       ) : items.length === 0 && !loadError ? (
         <EmptyState
           icon={Heart}
-          title="Nessuna carta cercata"
-          description="Aggiungi le carte che stai cercando per trovare scambi"
+          title={t('empty.title')}
+          description={t('empty.description')}
           action={
             <Button onClick={() => setShowAddModal(true)} size="sm">
-              <Plus size={16} /> Cerca carta
+              <Plus size={16} /> {t('empty.action')}
             </Button>
           }
         />
@@ -222,9 +225,9 @@ export default function WishlistPage() {
               <div key={priority}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${PRIORITY_COLORS[priority]}`}>
-                    {PRIORITY_LABELS[priority]}
+                    {t(`priority.${priority}`)}
                   </span>
-                  <span className="text-xs text-text-muted">{grouped[priority].length} carte</span>
+                  <span className="text-xs text-text-muted">{t('groupCount', { count: grouped[priority].length })}</span>
                 </div>
                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                   {grouped[priority].map((item) => (
@@ -250,13 +253,13 @@ export default function WishlistPage() {
       />
 
       {/* Add Bottom Sheet */}
-      <BottomSheet open={showAddModal} onClose={closeModal} title="Aggiungi alla Ricerca">
+      <BottomSheet open={showAddModal} onClose={closeModal} title={t('addSheet.title')}>
         {!selectedCard ? (
           <div>
             <p className="text-sm text-text-secondary mb-3">
-              Quale carta stai cercando?
+              {t('addSheet.prompt')}
             </p>
-            <GameCardSearch onSelect={handleSelectCard} placeholder="Cerca la carta desiderata..." />
+            <GameCardSearch onSelect={handleSelectCard} placeholder={t('addSheet.searchPlaceholder')} />
           </div>
         ) : (
           <div>
@@ -296,7 +299,7 @@ export default function WishlistPage() {
 
               {/* Price */}
               {selectedCard.priceEur && (
-                <p className="text-sm font-bold text-accent mt-1">{selectedCard.priceEur} EUR</p>
+                <p className="text-sm font-bold text-accent mt-1">{euro(Number(selectedCard.priceEur))}</p>
               )}
 
               {/* Printings dropdown (Magic only) */}
@@ -309,7 +312,7 @@ export default function WishlistPage() {
                   ) : (
                     <>
                       <div className="px-3 py-2 text-xs text-text-muted border-b border-border/50">
-                        {printings.length} espansioni disponibili
+                        {t('addSheet.expansions', { count: printings.length })}
                       </div>
                       {printings.map((p) => {
                         const isSelected = getCardId(p) === (selectedCard?.externalId || '');
@@ -330,11 +333,11 @@ export default function WishlistPage() {
                                 {' '}{getSetName(p)}
                               </p>
                               <p className="text-xs text-text-muted">
-                                {p.rarity}{p.prices?.eur ? ` · ${p.prices.eur} EUR` : ''}
+                                {p.rarity}{p.prices?.eur ? ` · ${euro(Number(p.prices.eur))}` : ''}
                               </p>
                             </div>
                             {isSelected && (
-                              <span className="text-xs font-semibold text-primary shrink-0">Selezionata</span>
+                              <span className="text-xs font-semibold text-primary shrink-0">{t('addSheet.selected')}</span>
                             )}
                           </button>
                         );
@@ -349,7 +352,7 @@ export default function WishlistPage() {
             <div className="pt-4 space-y-4">
               {/* Priority */}
               <div>
-                <label className="text-xs font-semibold text-text-secondary block mb-1.5">Priorità</label>
+                <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('form.priority')}</label>
                 <div className="flex gap-2">
                   {([1, 2, 3] as const).map((p) => (
                     <button
@@ -361,7 +364,7 @@ export default function WishlistPage() {
                           : 'border-border text-text-secondary hover:bg-surface-dark'
                       }`}
                     >
-                      {PRIORITY_LABELS[p]}
+                      {t(`priority.${p}`)}
                     </button>
                   ))}
                 </div>
@@ -369,7 +372,7 @@ export default function WishlistPage() {
 
               {/* Preferred condition */}
               <div>
-                <label className="text-xs font-semibold text-text-secondary block mb-1.5">Condizione minima (opzionale)</label>
+                <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('addSheet.minCondition')}</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   <button
                     onClick={() => setAddForm({ ...addForm, preferredCondition: undefined })}
@@ -379,7 +382,7 @@ export default function WishlistPage() {
                         : 'border-border text-text-secondary hover:bg-surface-dark'
                     }`}
                   >
-                    Qualsiasi
+                    {t('form.any')}
                   </button>
                   {([1,2,3,4,5,6,7,8] as CardCondition[]).map((c) => (
                     <button
@@ -407,7 +410,7 @@ export default function WishlistPage() {
 
               {/* Max price */}
               <div>
-                <label className="text-xs font-semibold text-text-secondary block mb-1.5">Prezzo massimo (opzionale)</label>
+                <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('form.maxPrice')}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -421,12 +424,12 @@ export default function WishlistPage() {
 
               {/* Notes */}
               <div>
-                <label className="text-xs font-semibold text-text-secondary block mb-1.5">Note (opzionale)</label>
+                <label className="text-xs font-semibold text-text-secondary block mb-1.5">{t('form.notesOptional')}</label>
                 <input
                   type="text"
                   value={addForm.notes}
                   onChange={(e) => setAddForm({ ...addForm, notes: e.target.value })}
-                  placeholder="es. Cerco versione foil"
+                  placeholder={t('form.notesPlaceholder')}
                   className="w-full px-4 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
               </div>
@@ -440,10 +443,10 @@ export default function WishlistPage() {
                   onClick={() => { setSelectedCard(null); setPrintings([]); setShowPrintings(false); }}
                   className="px-4 py-2.5 rounded-xl text-sm font-medium text-text-secondary border border-border hover:bg-surface-dark transition-colors"
                 >
-                  Cambia carta
+                  {t('addSheet.changeCard')}
                 </button>
                 <Button onClick={handleAdd} isLoading={isSaving} className="flex-1" size="lg">
-                  Aggiungi alla Ricerca
+                  {t('addSheet.submit')}
                 </Button>
               </div>
             </div>

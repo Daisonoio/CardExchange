@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useFormat } from '../../i18n/format';
 
 export interface CarouselCard {
   cardId: number;
@@ -41,6 +42,7 @@ export default function CardCarousel(props: CardCarouselProps) {
 }
 
 function Carousel({ cards, onCardClick }: CardCarouselProps) {
+  const { euro } = useFormat();
   const [current, setCurrent] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSnapBack, setIsSnapBack] = useState(false);
@@ -298,7 +300,7 @@ function Carousel({ cards, onCardClick }: CardCarouselProps) {
             </div>
             <div className="flex items-center justify-center gap-3 mt-2 flex-wrap">
               <span className="text-base font-bold text-amber-600 bg-amber-50 border border-amber-200/70 px-2.5 py-1 rounded-full">
-                €{currentCard.priceEur.toFixed(2)}
+                {euro(currentCard.priceEur)}
               </span>
               <span className="text-xs text-text-muted bg-white/70 px-2.5 py-1 rounded-full border border-border/60">
                 {currentCard.distanceKm} km · @{currentCard.ownerUsername}

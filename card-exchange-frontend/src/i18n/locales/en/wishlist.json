@@ -1,0 +1,53 @@
+{
+  "priority": {
+    "1": "High",
+    "2": "Medium",
+    "3": "Low"
+  },
+  "title": "My Wishlist",
+  "searchedCount_one": "{{count}} card wanted",
+  "searchedCount_other": "{{count}} cards wanted",
+  "add": "Add",
+  "loadError": "Loading failed ({{status}}): {{message}}",
+  "unknownError": "Unknown error",
+  "groupCount_one": "{{count}} card",
+  "groupCount_other": "{{count}} cards",
+  "empty": {
+    "title": "No cards wanted yet",
+    "description": "Add the cards you're looking for to find trades",
+    "action": "Find a card"
+  },
+  "addSheet": {
+    "title": "Add to Wishlist",
+    "prompt": "Which card are you looking for?",
+    "searchPlaceholder": "Search for the card you want...",
+    "expansions_one": "{{count}} set available",
+    "expansions_other": "{{count}} sets available",
+    "selected": "Selected",
+    "minCondition": "Minimum condition (optional)",
+    "changeCard": "Change card",
+    "submit": "Add to Wishlist"
+  },
+  "form": {
+    "priority": "Priority",
+    "any": "Any",
+    "maxPrice": "Maximum price (optional)",
+    "notesOptional": "Notes (optional)",
+    "notesPlaceholder": "e.g. Looking for the foil version"
+  },
+  "errors": {
+    "save": "Couldn't save",
+    "delete": "Couldn't delete"
+  },
+  "editSheet": {
+    "title": "Edit Wishlist item",
+    "searchId": "Wishlist ID",
+    "cardPhoto": "Card photo",
+    "photoPresent": "Yes",
+    "photoMissing": "No",
+    "preferredCondition": "Preferred condition",
+    "saveChanges": "Save changes",
+    "confirmDelete": "Remove \"{{name}}\" from your Wishlist?",
+    "thisCard": "this card"
+  }
+}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { MoreHorizontal, ArrowLeftRight } from 'lucide-react';
 import type { Card, CardCondition } from '../../types';
 import { CONDITION_LABELS } from '../../types';
@@ -20,7 +21,8 @@ const CONDITION_MAP: Record<string, number> = {
 
 export default function CardItem({ card, onEdit, onDelete, onClick, showUser }: CardItemProps) {
   const info = card.cardInfo;
-  const cardName = card.cardName || info?.name || 'Carta sconosciuta';
+  const { t } = useTranslation('cards');
+  const cardName = card.cardName || info?.name || t('unknownCard');
   const cardSetName = card.cardSetName || info?.cardSet?.name || '';
   const cardRarity = card.rarity || info?.rarity || '';
   const image = card.imageSmall || card.imageNormal || info?.imageSmall || info?.imageUrl || '';
@@ -81,7 +83,7 @@ export default function CardItem({ card, onEdit, onDelete, onClick, showUser }: 
                       onClick={() => onEdit(card)}
                       className="w-full text-left px-3 py-2 text-sm hover:bg-surface-dark"
                     >
-                      Modifica
+                      {t('item.edit')}
                     </button>
                   )}
                   {onDelete && (
@@ -89,7 +91,7 @@ export default function CardItem({ card, onEdit, onDelete, onClick, showUser }: 
                       onClick={() => onDelete(card)}
                       className="w-full text-left px-3 py-2 text-sm hover:bg-red-50 text-danger"
                     >
-                      Rimuovi
+                      {t('item.remove')}
                     </button>
                   )}
                 </div>
@@ -111,7 +113,7 @@ export default function CardItem({ card, onEdit, onDelete, onClick, showUser }: 
             {card.isAvailableForTrade && (
               <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary flex items-center gap-1">
                 <ArrowLeftRight size={10} />
-                Scambio
+                {t('item.trade')}
               </span>
             )}
           </div>

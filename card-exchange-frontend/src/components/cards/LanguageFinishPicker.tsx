@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CARD_LANGUAGES, FINISH_LABELS } from '../../types';
 import type { CardFinish } from '../../types';
 
@@ -19,11 +20,12 @@ const chip = (active: boolean) =>
 
 /** Selettore di lingua e finitura condiviso tra collezione e wishlist. */
 export default function LanguageFinishPicker({ language, onLanguageChange, finish, onFinishChange, anyOption }: Props) {
+  const { t } = useTranslation('cards');
   return (
     <div className="space-y-3">
       <div>
         <label htmlFor="card-language" className="text-xs font-semibold text-text-secondary block mb-1.5">
-          Lingua{anyOption ? ' (opzionale)' : ''}
+          {anyOption ? t('picker.languageOptional') : t('picker.language')}
         </label>
         <select
           id="card-language"
@@ -31,26 +33,26 @@ export default function LanguageFinishPicker({ language, onLanguageChange, finis
           onChange={(e) => onLanguageChange(e.target.value)}
           className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
         >
-          <option value="">{anyOption ? 'Qualsiasi lingua' : 'Non specificata'}</option>
+          <option value="">{anyOption ? t('picker.anyLanguage') : t('picker.notSpecified')}</option>
           {CARD_LANGUAGES.map((l) => (
             <option key={l.code} value={l.code}>{l.label}</option>
           ))}
         </select>
         {!anyOption && !language && (
           <p className="text-[10px] text-text-muted mt-1">
-            Indica la lingua: chi cerca una lingua precisa troverà solo le carte con lingua specificata.
+            {t('picker.languageHint')}
           </p>
         )}
       </div>
 
       <div>
         <span className="text-xs font-semibold text-text-secondary block mb-1.5">
-          Finitura{anyOption ? ' (opzionale)' : ''}
+          {anyOption ? t('picker.finishOptional') : t('picker.finish')}
         </span>
         <div className="grid grid-cols-2 gap-1.5">
           {anyOption && (
             <button type="button" onClick={() => onFinishChange(undefined)} className={chip(finish === undefined)}>
-              Qualsiasi
+              {t('picker.any')}
             </button>
           )}
           {([1, 2, 3, 4] as CardFinish[]).map((f) => (
