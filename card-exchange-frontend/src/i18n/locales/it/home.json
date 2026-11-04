@@ -1,6 +1,4 @@
 {
-  "welcome": "Benvenuto",
-  "greeting": "Ciao, {{name}}!",
   "locationPrompt": {
     "title": "Imposta la tua posizione",
     "description": "Per vedere le carte disponibili nelle tue vicinanze, devi impostare la tua posizione.",

@@ -69,29 +69,6 @@ export default function HomePage() {
 
   return (
     <div>
-      {/* Hero banner */}
-      <div
-        className="rounded-2xl overflow-hidden mb-6 relative"
-        style={{ background: 'linear-gradient(135deg, #1a3461 0%, #2a4d8f 100%)', minHeight: '140px' }}
-      >
-        <div className="p-5 pr-28">
-          <p className="text-white/70 text-xs font-medium mb-1 uppercase tracking-wider">{t('welcome')}</p>
-          <h1 className="text-white text-2xl font-bold leading-tight">
-            {t('greeting', { name: user.firstName })}
-          </h1>
-    
-        </div>
-        {/* Decorative circles */}
-        <div
-          className="absolute -right-8 -top-8 w-36 h-36 rounded-full opacity-20"
-          style={{ background: '#f5b800' }}
-        />
-        <div
-          className="absolute right-8 top-10 w-20 h-20 rounded-full opacity-10"
-          style={{ background: '#ffffff' }}
-        />
-      </div>
-
       {/* Location prompt */}
       {showLocationPrompt && (
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
