@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import { useGeolocation } from '../hooks/useGeolocation';
 import CardCarousel from '../components/cards/CardCarousel';
+import { useSearchRadius } from '../hooks/useSearchRadius';
 import type { CarouselCard } from '../components/cards/CardCarousel';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
@@ -15,6 +16,8 @@ export default function HomePage() {
   const { t } = useTranslation('home');
   const { user } = useAuth();
   const { selectedGameId } = useGame();
+  // Stesso raggio di Esplora e Matchmaking
+  const [radiusKm] = useSearchRadius();
   const navigate = useNavigate();
   const { position, isLoading: geoLoading, requestPosition } = useGeolocation();
 
@@ -41,6 +44,7 @@ export default function HomePage() {
         }
 
         if (selectedGameId) params.gameId = selectedGameId;
+        params.radiusKm = radiusKm;
         const { data } = await wishlist.topNearbyMatches(user.id, params);
         const cardsData = (data as any).cards ?? [];
         setTopCards(cardsData);
@@ -55,7 +59,7 @@ export default function HomePage() {
     };
 
     load();
-  }, [user, position, hasProfileLocation, selectedGameId]);
+  }, [user, position, hasProfileLocation, selectedGameId, radiusKm]);
 
   const handleCardClick = (card: CarouselCard) => {
     navigate(`/collection/${card.ownerId}`, {

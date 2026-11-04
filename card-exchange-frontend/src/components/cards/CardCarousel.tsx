@@ -27,8 +27,11 @@ interface CardCarouselProps {
 /*  Voyage-style 3D carousel – no arrows, click side cards to nav     */
 /* ------------------------------------------------------------------ */
 
-const CARD_W = 'min(52vw, 250px)';
-const CARD_H = 'min(72.5vw, 350px)';
+// Dimensioni legate sia alla larghezza sia all'altezza dello schermo: su desktop la carta
+// (ingrandita del 16% al centro) e le informazioni sotto stanno nella finestra senza far scorrere la pagina.
+// Su telefono decide la larghezza; da md in su anche l'altezza della finestra (variabile CSS impostata sotto).
+const CARD_H = 'var(--carousel-card-h)';
+const CARD_W = `calc(${CARD_H} * 0.714)`;
 const TRANSITION_MS = 460;
 const DRAG_THRESHOLD = 8; // px – below this it's a tap, not a drag
 const SWIPE_DISTANCE = 42;
@@ -216,7 +219,7 @@ function Carousel({ cards, onCardClick }: CardCarouselProps) {
   const renderRange = 3;
 
   return (
-    <div className="w-full select-none">
+    <div className="w-full select-none [--carousel-card-h:min(72.5vw,350px)] md:[--carousel-card-h:min(350px,37dvh)]">
       <style>{`
         @keyframes cardCarouselBreath {
           0%, 100% { box-shadow: 0 30px 56px rgba(15, 23, 42, 0.28), 0 12px 20px rgba(15, 23, 42, 0.2); }

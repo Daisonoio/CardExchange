@@ -897,7 +897,8 @@ namespace CardExchange.API.Controllers
             int userId,
             [FromQuery] int? radiusKm = null,
             [FromQuery] double? latitude = null,
-            [FromQuery] double? longitude = null)
+            [FromQuery] double? longitude = null,
+            [FromQuery] int? gameId = null)
         {
             try
             {
@@ -950,6 +951,10 @@ namespace CardExchange.API.Controllers
 
                         var cardInfo = await _cardInfoRepository.GetByIdAsync(item.CardInfoId);
                         var cardSet = cardInfo != null ? await _cardSetRepository.GetByIdAsync(cardInfo.CardSetId) : null;
+
+                        // Filtro del gioco scelto in alto (es. solo Magic)
+                        if (gameId.HasValue && cardSet?.GameId != gameId.Value)
+                            continue;
 
                         topCards.Add(new
                         {
