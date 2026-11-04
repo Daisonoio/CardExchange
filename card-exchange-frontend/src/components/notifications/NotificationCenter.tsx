@@ -29,7 +29,9 @@ function getNavigationTarget(notification: Notification): string | null {
     case 'TradeOffer': return '/trades';
     case 'Card': return '/collection';
     case 'WishlistItem': return '/wishlist';
-    case 'Conversation': return '/chat';
+    case 'Conversation': return `/chat?conversationId=${referenceId}`;
+    case 'Broadcast': return `/live/${referenceId}`;
+    case 'Follower': return `/collection/${referenceId}`;
     default: return null;
   }
 }

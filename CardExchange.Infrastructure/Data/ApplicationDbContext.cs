@@ -34,6 +34,8 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<TradeOfferItem> TradeOfferItems { get; set; }
         public DbSet<TradeReview> TradeReviews { get; set; }
         public DbSet<UserBlock> UserBlocks { get; set; }
+        public DbSet<Follow> Follows { get; set; }
+        public DbSet<LocationBroadcast> LocationBroadcasts { get; set; }
         public DbSet<UserReport> UserReports { get; set; }
         public DbSet<TradeMeetup> TradeMeetups { get; set; }
         public DbSet<PushSubscription> PushSubscriptions { get; set; }
@@ -298,6 +300,31 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(b => b.BlockedUserId);
                 entity.HasOne(b => b.Blocker).WithMany().HasForeignKey(b => b.BlockerId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(b => b.BlockedUser).WithMany().HasForeignKey(b => b.BlockedUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Chi segue chi: un utente oppure un negozio, mai entrambi né nessuno
+            modelBuilder.Entity<Follow>(entity =>
+            {
+                entity.HasIndex(f => new { f.FollowerId, f.FollowedUserId }).IsUnique().HasFilter("[FollowedUserId] IS NOT NULL");
+                entity.HasIndex(f => new { f.FollowerId, f.FollowedStoreId }).IsUnique().HasFilter("[FollowedStoreId] IS NOT NULL");
+                entity.HasIndex(f => f.FollowedUserId);
+                entity.HasIndex(f => f.FollowedStoreId);
+                entity.ToTable(t => t.HasCheckConstraint("CK_Follow_OneTarget",
+                    "([FollowedUserId] IS NULL AND [FollowedStoreId] IS NOT NULL) OR ([FollowedUserId] IS NOT NULL AND [FollowedStoreId] IS NULL)"));
+                entity.HasOne(f => f.Follower).WithMany().HasForeignKey(f => f.FollowerId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(f => f.FollowedUser).WithMany().HasForeignKey(f => f.FollowedUserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(f => f.FollowedStore).WithMany().HasForeignKey(f => f.FollowedStoreId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Avvisi "Sono qui"
+            modelBuilder.Entity<LocationBroadcast>(entity =>
+            {
+                entity.HasIndex(b => new { b.AuthorId, b.CreatedAt });
+                entity.HasIndex(b => b.EndsAt);
+                entity.HasOne(b => b.Author).WithMany().HasForeignKey(b => b.AuthorId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(b => b.Store).WithMany().HasForeignKey(b => b.StoreId).OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(b => b.Event).WithMany().HasForeignKey(b => b.EventId).OnDelete(DeleteBehavior.SetNull);
+                entity.HasQueryFilter(b => !b.IsDeleted);
             });
 
             modelBuilder.Entity<ProcessedWebhookEvent>().HasIndex(e => new { e.Provider, e.EventId }).IsUnique();

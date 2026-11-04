@@ -182,6 +182,14 @@ namespace CardExchange.API.Controllers
             var savedSearches = await _context.SavedSearches.Where(s => s.UserId == userId).ToListAsync();
             foreach (var s in savedSearches) s.IsDeleted = true;
 
+            // "Segui" in entrambe le direzioni (anche verso i suoi negozi) e avvisi "Sono qui": via del tutto
+            var ownStoreIds = await _context.Stores.Where(s => s.OwnerId == userId).Select(s => s.Id).ToListAsync();
+            _context.Follows.RemoveRange(await _context.Follows
+                .Where(f => f.FollowerId == userId || f.FollowedUserId == userId || (f.FollowedStoreId != null && ownStoreIds.Contains(f.FollowedStoreId.Value)))
+                .ToListAsync());
+            var broadcasts = await _context.LocationBroadcasts.Where(b => b.AuthorId == userId).ToListAsync();
+            foreach (var b in broadcasts) { b.IsDeleted = true; b.EndedAt ??= DateTime.UtcNow; }
+
             var subscriptions = await _context.UserSubscriptions.Where(s => s.UserId == userId).ToListAsync();
             foreach (var s in subscriptions) { s.IsDeleted = true; s.Status = SubscriptionStatus.Cancelled; }
 

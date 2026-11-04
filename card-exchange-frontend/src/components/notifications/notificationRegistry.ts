@@ -10,6 +10,8 @@ import {
   TrendingUp,
   CalendarClock,
   Mail,
+  MapPin,
+  UserPlus,
   type LucideIcon,
 } from 'lucide-react';
 import i18n from '../../i18n';
@@ -54,6 +56,19 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
     color: 'text-emerald-500 bg-emerald-50',
     get label() { return i18n.t('notifications:types.TradeCompleted'); },
     category: 'trade',
+  },
+  // === Seguiti e "Sono qui" ===
+  FollowedNearby: {
+    icon: MapPin,
+    color: 'text-primary bg-primary/10',
+    get label() { return i18n.t('notifications:types.FollowedNearby'); },
+    category: 'social',
+  },
+  NewFollower: {
+    icon: UserPlus,
+    color: 'text-primary bg-primary/10',
+    get label() { return i18n.t('notifications:types.NewFollower'); },
+    category: 'social',
   },
   WeeklyDigest: {
     icon: Mail,

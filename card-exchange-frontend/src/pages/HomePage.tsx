@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
 import { useGeolocation } from '../hooks/useGeolocation';
 import CardCarousel from '../components/cards/CardCarousel';
+import LiveStrip from '../components/social/LiveStrip';
 import { useSearchRadius } from '../hooks/useSearchRadius';
 import type { CarouselCard } from '../components/cards/CardCarousel';
 import Button from '../components/ui/Button';
@@ -73,6 +74,9 @@ export default function HomePage() {
 
   return (
     <div>
+      {/* Dove sono ora i profili che segui ("Sono qui") */}
+      <LiveStrip coords={hasProfileLocation ? null : position} />
+
       {/* Location prompt */}
       {showLocationPrompt && (
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">

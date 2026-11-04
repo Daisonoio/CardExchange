@@ -14,6 +14,7 @@ import StarRating from '../components/users/StarRating';
 import EmptyState from '../components/ui/EmptyState';
 import Button from '../components/ui/Button';
 import PlanBadge from '../components/users/PlanBadge';
+import FollowButton from '../components/social/FollowButton';
 
 export default function UserCollectionPage() {
   const { t } = useTranslation('collection');
@@ -174,6 +175,9 @@ export default function UserCollectionPage() {
             </button>
           )}
         </div>
+        {owner && owner.id !== currentUser?.id && (
+          <FollowButton target={{ userId: owner.id }} />
+        )}
         {owner && owner.id !== currentUser?.id && (
           <UserSafetyMenu userId={owner.id} username={owner.username} onBlockedChange={(b) => b && navigate(-1)} />
         )}

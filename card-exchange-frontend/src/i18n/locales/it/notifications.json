@@ -1,5 +1,10 @@
 {
-  "categories": { "trade": "Scambi", "collection": "Collezione", "social": "Social", "system": "Sistema" },
+  "categories": {
+    "trade": "Scambi",
+    "collection": "Collezione",
+    "social": "Social",
+    "system": "Sistema"
+  },
   "types": {
     "TradeOfferReceived": "Offerta di scambio ricevuta",
     "TradeOfferAccepted": "Offerta accettata",
@@ -17,7 +22,9 @@
     "SubscriptionExpiring": "Abbonamento in scadenza",
     "SubscriptionExpired": "Abbonamento scaduto",
     "SystemAnnouncement": "Annuncio di sistema",
-    "default": "Notifica"
+    "default": "Notifica",
+    "FollowedNearby": "Un profilo che segui è nei paraggi",
+    "NewFollower": "Nuovo follower"
   },
   "center": {
     "title": "Notifiche",
@@ -28,7 +35,10 @@
     "delete": "Elimina",
     "empty": "Nessuna notifica"
   },
-  "preferences": { "title": "Preferenze notifiche", "save": "Salva preferenze" },
+  "preferences": {
+    "title": "Preferenze notifiche",
+    "save": "Salva preferenze"
+  },
   "push": {
     "title": "Notifiche su questo dispositivo",
     "ariaLabel": "Notifiche push",

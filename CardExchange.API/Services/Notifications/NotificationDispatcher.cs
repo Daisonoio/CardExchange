@@ -10,6 +10,12 @@ namespace CardExchange.API.Services.Notifications
     {
         Task DispatchAsync(NotificationType type, Dictionary<string, object> parameters);
         Task DispatchToMultipleAsync(NotificationType type, IEnumerable<int> userIds, Dictionary<string, object> sharedParameters);
+
+        /// <summary>
+        /// Recapita notifiche già composte (testo diverso per ogni destinatario) rispettando le preferenze:
+        /// un solo salvataggio sul database, poi tempo reale e push. Restituisce quante sono state inviate.
+        /// </summary>
+        Task<int> DeliverManyAsync(IReadOnlyList<NotificationPayload> payloads);
     }
 
     public class NotificationDispatcher : INotificationDispatcher
@@ -91,6 +97,39 @@ namespace CardExchange.API.Services.Notifications
                 var notification = await PersistNotificationAsync(payload);
                 await PushToClientAsync(notification);
             }
+        }
+
+        public async Task<int> DeliverManyAsync(IReadOnlyList<NotificationPayload> payloads)
+        {
+            if (payloads.Count == 0) return 0;
+            var userIds = payloads.Select(p => p.UserId).Distinct().ToList();
+            var types = payloads.Select(p => p.Type).Distinct().ToList();
+            var disabled = (await _context.NotificationPreferences
+                    .AsNoTracking()
+                    .Where(p => userIds.Contains(p.UserId) && types.Contains(p.Type) && !p.IsEnabled)
+                    .Select(p => new { p.UserId, p.Type })
+                    .ToListAsync())
+                .Select(p => (p.UserId, p.Type))
+                .ToHashSet();
+
+            var notifications = payloads
+                .Where(p => !disabled.Contains((p.UserId, p.Type)))
+                .Select(p => new Notification
+                {
+                    UserId = p.UserId,
+                    Type = p.Type,
+                    Title = p.Title.Length > 200 ? p.Title[..200] : p.Title,
+                    Body = p.Body,
+                    ReferenceId = p.ReferenceId,
+                    ReferenceType = p.ReferenceType
+                })
+                .ToList();
+            if (notifications.Count == 0) return 0;
+
+            _context.Notifications.AddRange(notifications);
+            await _context.SaveChangesAsync();
+            foreach (var n in notifications) await PushToClientAsync(n);
+            return notifications.Count;
         }
 
         private async Task<bool> IsNotificationEnabledAsync(int userId, NotificationType type)

@@ -1,5 +1,10 @@
 {
-  "categories": { "trade": "Trades", "collection": "Collection", "social": "Social", "system": "System" },
+  "categories": {
+    "trade": "Trades",
+    "collection": "Collection",
+    "social": "Social",
+    "system": "System"
+  },
   "types": {
     "TradeOfferReceived": "Trade offer received",
     "TradeOfferAccepted": "Offer accepted",
@@ -17,7 +22,9 @@
     "SubscriptionExpiring": "Subscription expiring",
     "SubscriptionExpired": "Subscription expired",
     "SystemAnnouncement": "System announcement",
-    "default": "Notification"
+    "default": "Notification",
+    "FollowedNearby": "Someone you follow is nearby",
+    "NewFollower": "New follower"
   },
   "center": {
     "title": "Notifications",
@@ -28,7 +35,10 @@
     "delete": "Delete",
     "empty": "No notifications"
   },
-  "preferences": { "title": "Notification preferences", "save": "Save preferences" },
+  "preferences": {
+    "title": "Notification preferences",
+    "save": "Save preferences"
+  },
   "push": {
     "title": "Notifications on this device",
     "ariaLabel": "Push notifications",

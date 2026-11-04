@@ -9,7 +9,9 @@
     "matchmaking": "Matchmaking",
     "chat": "Chat",
     "local": "Vicino a te",
-    "editProfile": "Modifica Profilo"
+    "editProfile": "Modifica Profilo",
+    "following": "Seguiti",
+    "liveNew": "Sono qui"
   },
   "mobileHeader": {
     "trades": "Scambi",
@@ -18,7 +20,8 @@
     "local": "Vicino a te: eventi e negozi",
     "menu": "Menu",
     "notifications": "Notifiche",
-    "logout": "Esci"
+    "logout": "Esci",
+    "following": "Seguiti e Sono qui"
   },
   "topBar": {
     "explore": "Esplora",

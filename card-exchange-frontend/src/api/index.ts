@@ -462,3 +462,59 @@ export const catalog = {
   importCard: (key: string, externalId: string) =>
     client.post<{ cardInfoId: number; isNew: boolean }>(`/catalog/${key}/import`, { externalId }),
 };
+
+// === "Segui" e avvisi "Sono qui" ===
+export interface FollowStatus { following: boolean; followers: number }
+
+export interface LiveBroadcast {
+  id: number;
+  author: { id: number; username: string; avatarUrl?: string };
+  store?: { id: number; name: string } | null;
+  event?: { id: number; title: string } | null;
+  placeName: string;
+  spotDetail?: string | null;
+  message?: string | null;
+  latitude: number;
+  longitude: number;
+  startsAt: string;
+  endsAt: string;
+  isLive: boolean;
+  isMine: boolean;
+  distanceKm?: number | null;
+  recipientCount?: number | null;
+}
+
+export interface FollowingList {
+  users: { id: number; username: string; avatarUrl?: string; city?: string; live?: { id: number; placeName: string } | null }[];
+  stores: { id: number; name: string; city: string; live?: { id: number; placeName: string } | null }[];
+  followers: number;
+}
+
+export interface CreateBroadcastPayload {
+  storeId?: number;
+  eventId?: number;
+  placeName: string;
+  spotDetail?: string;
+  message?: string;
+  latitude?: number;
+  longitude?: number;
+  durationMinutes: number;
+}
+
+export const follows = {
+  list: () => client.get<FollowingList>('/follows'),
+  userStatus: (id: number) => client.get<FollowStatus>(`/follows/users/${id}`),
+  followUser: (id: number) => client.post<FollowStatus>(`/follows/users/${id}`),
+  unfollowUser: (id: number) => client.delete<FollowStatus>(`/follows/users/${id}`),
+  storeStatus: (id: number) => client.get<FollowStatus>(`/follows/stores/${id}`),
+  followStore: (id: number) => client.post<FollowStatus>(`/follows/stores/${id}`),
+  unfollowStore: (id: number) => client.delete<FollowStatus>(`/follows/stores/${id}`),
+};
+
+export const broadcasts = {
+  create: (payload: CreateBroadcastPayload) => client.post<LiveBroadcast>('/broadcasts', payload),
+  live: (coords?: { latitude: number; longitude: number }) => client.get<LiveBroadcast[]>('/broadcasts/live', { params: coords }),
+  mine: () => client.get<{ items: LiveBroadcast[]; remainingToday: number; maxPerDay: number; followers: number }>('/broadcasts/mine'),
+  get: (id: number) => client.get<LiveBroadcast>(`/broadcasts/${id}`),
+  end: (id: number) => client.post<LiveBroadcast>(`/broadcasts/${id}/end`),
+};

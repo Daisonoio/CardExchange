@@ -35,6 +35,9 @@ import MapPreview from './proto/MapPreview';
 import CollectionPreview from './proto/CollectionPreview';
 import LocalPage from './pages/LocalPage';
 import StorePage from './pages/StorePage';
+import LivePage from './pages/LivePage';
+import LiveComposePage from './pages/LiveComposePage';
+import FollowingPage from './pages/FollowingPage';
 import StoreFormPage from './pages/StoreFormPage';
 import EventPage from './pages/EventPage';
 import EventFormPage from './pages/EventFormPage';
@@ -85,6 +88,9 @@ export default function App() {
               <Route path="/events/:id" element={<EventPage />} />
               <Route path="/stores/new" element={<StoreFormPage />} />
               <Route path="/stores/:id" element={<StorePage />} />
+              <Route path="/live/new" element={<LiveComposePage />} />
+              <Route path="/live/:id" element={<LivePage />} />
+              <Route path="/following" element={<FollowingPage />} />
               <Route path="/stores/:id/edit" element={<StoreFormPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />

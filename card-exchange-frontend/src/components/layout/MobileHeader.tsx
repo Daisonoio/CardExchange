@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Menu, X, Bell, MessageSquare, Sparkles,
+  Menu, X, Bell, MessageSquare, Sparkles, Radio,
   ArrowLeftRight, LogOut, MapPinned,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -22,6 +22,8 @@ const PAGE_TITLES: Record<string, string> = {
   '/chat': 'pageTitles.chat',
   '/local': 'pageTitles.local',
   '/profile/edit': 'pageTitles.editProfile',
+  '/following': 'pageTitles.following',
+  '/live/new': 'pageTitles.liveNew',
 };
 
 const SIDEBAR_LINKS = [
@@ -29,6 +31,7 @@ const SIDEBAR_LINKS = [
   { to: '/matchmaking', icon: Sparkles, label: 'mobileHeader.matchmaking' },
   { to: '/chat', icon: MessageSquare, label: 'mobileHeader.chat' },
   { to: '/local', icon: MapPinned, label: 'mobileHeader.local' },
+  { to: '/following', icon: Radio, label: 'mobileHeader.following' },
 ];
 
 export default function MobileHeader() {

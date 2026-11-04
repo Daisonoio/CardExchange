@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Compass, Library, Heart, Sparkles, ArrowLeftRight,
-  UserCircle, LogOut, Bell, MessageSquare, MapPinned,
+  UserCircle, LogOut, Bell, MessageSquare, MapPinned, Radio,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useRealtime } from '../../context/RealtimeContext';
@@ -60,6 +60,20 @@ export default function TopBar() {
           </nav>
 
           <div className="flex items-center gap-1 shrink-0">
+            {/* Seguiti e "Sono qui" */}
+            <NavLink
+              to="/following"
+              className={({ isActive }) =>
+                `relative p-2 rounded-lg transition-colors ${
+                  isActive ? 'bg-white/15 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'
+                }`
+              }
+              title={t('mobileHeader.following')}
+              aria-label={t('mobileHeader.following')}
+            >
+              <Radio size={20} />
+            </NavLink>
+
             {/* Chat icon */}
             <NavLink
               to="/chat"

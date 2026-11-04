@@ -21,7 +21,11 @@ namespace CardExchange.Core.Entities
         /// <summary>Proposta, conferma, annullamento o promemoria di un appuntamento di scambio.</summary>
         MeetupUpdate = 15,
         /// <summary>Riepilogo settimanale via email (usato solo come preferenza: disattivabile).</summary>
-        WeeklyDigest = 16
+        WeeklyDigest = 16,
+        /// <summary>Un profilo seguito (utente o negozio) fa sapere dove si trova ("Sono qui").</summary>
+        FollowedNearby = 17,
+        /// <summary>Qualcuno ha iniziato a seguirti.</summary>
+        NewFollower = 18
     }
 
     public class Notification : BaseEntity

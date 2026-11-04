@@ -40,6 +40,13 @@
   input, select, textarea {
     font-family: inherit;
   }
+
+  /* Le mappe Leaflet usano z-index fino a 1000: le isoliamo perché scorrendo
+     non passino sopra la barra in alto, quella in basso o i pannelli */
+  .leaflet-container {
+    isolation: isolate;
+    z-index: 0;
+  }
 }
 
 @layer utilities {

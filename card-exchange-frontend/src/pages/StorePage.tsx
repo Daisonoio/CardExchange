@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, CalendarDays, Clock, Globe, Instagram, Loader2, MapPin, Phone, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, Globe, Instagram, Loader2, MapPin, Phone, Radio, ShieldCheck, Sparkles } from 'lucide-react';
 import { events, stores } from '../api';
 import type { CardEvent, Store } from '../types';
 import { EVENT_TYPE_LABELS } from '../types';
@@ -9,6 +9,7 @@ import { formatEventDate } from '../utils/eventDate';
 import { useGame } from '../context/GameContext';
 import StoresMap from '../components/stores/StoresMap';
 import EmptyState from '../components/ui/EmptyState';
+import FollowButton from '../components/social/FollowButton';
 
 const STATUS_LABEL: Record<Store['status'], { textKey: string; cls: string }> = {
   Pending: { textKey: 'page.status.Pending', cls: 'bg-amber-50 text-amber-700' },
@@ -53,7 +54,18 @@ export default function StorePage() {
         {store.isOwner && (
           <Link to={`/stores/${store.id}/edit`} className="text-xs font-semibold text-primary hover:underline shrink-0">{t('page.edit')}</Link>
         )}
+        {!store.isOwner && store.status === 'Verified' && <FollowButton target={{ storeId: store.id }} showCount />}
       </div>
+
+      {store.isOwner && store.status === 'Verified' && (
+        <Link to={`/live/new?storeId=${store.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-primary text-white hover:bg-primary-light">
+          <Radio size={18} className="shrink-0" />
+          <span className="min-w-0">
+            <strong className="block text-sm">{t('live:compose.title')}</strong>
+            <span className="text-xs text-white/80">{t('live:follow.hint')}</span>
+          </span>
+        </Link>
+      )}
 
       {(store.isOwner || store.status !== 'Verified') && (
         <div className={`p-3 rounded-xl text-sm ${STATUS_LABEL[store.status].cls}`}>

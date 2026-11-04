@@ -913,6 +913,52 @@ namespace CardExchange.Infrastructure.Migrations
                     b.ToTable("FavoriteCards");
                 });
 
+            modelBuilder.Entity("CardExchange.Core.Entities.Follow", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("FollowedStoreId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FollowedUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FollowerId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FollowedStoreId");
+
+                    b.HasIndex("FollowedUserId");
+
+                    b.HasIndex("FollowerId", "FollowedStoreId")
+                        .IsUnique()
+                        .HasFilter("[FollowedStoreId] IS NOT NULL");
+
+                    b.HasIndex("FollowerId", "FollowedUserId")
+                        .IsUnique()
+                        .HasFilter("[FollowedUserId] IS NOT NULL");
+
+                    b.ToTable("Follows", t =>
+                        {
+                            t.HasCheckConstraint("CK_Follow_OneTarget", "([FollowedUserId] IS NULL AND [FollowedStoreId] IS NOT NULL) OR ([FollowedUserId] IS NOT NULL AND [FollowedStoreId] IS NULL)");
+                        });
+                });
+
             modelBuilder.Entity("CardExchange.Core.Entities.Game", b =>
                 {
                     b.Property<int>("Id")
@@ -957,6 +1003,76 @@ namespace CardExchange.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Games");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.LocationBroadcast", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AuthorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("EventId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Latitude")
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<decimal>("Longitude")
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(280)
+                        .HasColumnType("nvarchar(280)");
+
+                    b.Property<string>("PlaceName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("RecipientCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SpotDetail")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EndsAt");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("StoreId");
+
+                    b.HasIndex("AuthorId", "CreatedAt");
+
+                    b.ToTable("LocationBroadcasts");
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.Message", b =>
@@ -2441,6 +2557,56 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Navigation("Card");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.Follow", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.Store", "FollowedStore")
+                        .WithMany()
+                        .HasForeignKey("FollowedStoreId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CardExchange.Core.Entities.User", "FollowedUser")
+                        .WithMany()
+                        .HasForeignKey("FollowedUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CardExchange.Core.Entities.User", "Follower")
+                        .WithMany()
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FollowedStore");
+
+                    b.Navigation("FollowedUser");
+
+                    b.Navigation("Follower");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.LocationBroadcast", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CardExchange.Core.Entities.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CardExchange.Core.Entities.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Event");
+
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.Message", b =>
