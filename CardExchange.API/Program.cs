@@ -201,6 +201,7 @@ builder.Services.AddScoped<INotificationHandler, SystemNotificationHandler>();
 
 builder.Services.AddScoped<IPriceTrackingService, PriceTrackingService>();
 builder.Services.AddScoped<IMatchmakingService, MatchmakingService>();
+builder.Services.AddScoped<CardSearchService>();
 builder.Services.AddScoped<IWishlistAlertService, WishlistAlertService>();
 builder.Services.AddScoped<CardExchange.API.Services.Moderation.IUserBlockService, CardExchange.API.Services.Moderation.UserBlockService>();
 builder.Services.AddScoped<CardExchange.API.Services.Import.IMagicCatalogService, CardExchange.API.Services.Import.MagicCatalogService>();

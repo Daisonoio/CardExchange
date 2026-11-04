@@ -28,6 +28,11 @@ import PremiumPage from './pages/PremiumPage';
 import StatsPage from './pages/StatsPage';
 import SearchPage from './pages/SearchPage';
 import AdminBillingPage from './pages/AdminBillingPage';
+import ProtoShell from './proto/ProtoShell';
+import ExplorePreview from './proto/ExplorePreview';
+import CardPreview from './proto/CardPreview';
+import MapPreview from './proto/MapPreview';
+import CollectionPreview from './proto/CollectionPreview';
 import LocalPage from './pages/LocalPage';
 import StorePage from './pages/StorePage';
 import StoreFormPage from './pages/StoreFormPage';
@@ -88,6 +93,14 @@ export default function App() {
               <Route path="/stats" element={<StatsPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/admin/billing" element={<AdminBillingPage />} />
+            </Route>
+
+            {/* Anteprima della nuova grafica (stesso login, pagine reali) */}
+            <Route path="/preview" element={<ProtoShell />}>
+              <Route index element={<ExplorePreview />} />
+              <Route path="map" element={<MapPreview />} />
+              <Route path="card/:id" element={<CardPreview />} />
+              <Route path="collection" element={<CollectionPreview />} />
             </Route>
 
             {/* Default redirect */}

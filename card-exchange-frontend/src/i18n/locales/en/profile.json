@@ -10,7 +10,8 @@
     "reviews": "Reviews received",
     "blockedUsers": "Blocked users",
     "moderation": "Moderation",
-    "subscriptions": "Subscriptions"
+    "subscriptions": "Subscriptions",
+    "newDesignPreview": "Try the new design (preview)"
   },
   "stats": {
     "reputation": "Reputation",

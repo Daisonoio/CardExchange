@@ -1,0 +1,107 @@
+{
+  "nav": {
+    "label": "Navigazione anteprima",
+    "explore": "Esplora",
+    "nearby": "Vicino a te",
+    "add": "Aggiungi una carta",
+    "collection": "Collezione",
+    "profile": "Profilo"
+  },
+  "theme": {
+    "auto": "Tema: automatico",
+    "dark": "Tema: scuro",
+    "light": "Tema: chiaro"
+  },
+  "noLocation": "Imposta la zona",
+  "backToCurrent": "Versione attuale",
+  "clear": "Cancella",
+  "close": "Chiudi",
+  "back": "Indietro",
+  "showMore": "Mostra altre",
+  "distance": "~{{km}} km",
+  "wantedHint": "È nella tua wishlist",
+  "price": {
+    "asking": "prezzo indicativo",
+    "market": "valore di mercato",
+    "none": "senza prezzo"
+  },
+  "errors": {
+    "load": "Non è stato possibile caricare le carte.",
+    "card": "Carta non disponibile."
+  },
+  "sort": {
+    "label": "Ordina",
+    "distance": "Più vicine",
+    "price": "Prezzo più basso",
+    "newest": "Più recenti"
+  },
+  "explore": {
+    "titleLine1": "Trova la tua",
+    "titleLine2": "prossima carta.",
+    "searchPlaceholder": "Cerca carte o espansioni…",
+    "allGames": "Tutti",
+    "results_one": "{{count}} carta vicino a te",
+    "results_other": "{{count}} carte vicino a te",
+    "setLocation": "Imposta la tua zona nel profilo per vedere le carte vicine.",
+    "emptyTitle": "Nessuna carta qui intorno",
+    "emptyBody": "Allarga la distanza nei filtri o prova un altro gioco.",
+    "priceNote": "I prezzi sono indicativi: vi accordate liberamente, anche scambiando più carte. Nessun pagamento passa dall'app."
+  },
+  "filters": {
+    "title": "Filtri",
+    "distance": "Distanza",
+    "within": "entro {{km}} km",
+    "price": "Prezzo (€)",
+    "min": "Min",
+    "max": "Max",
+    "condition": "Condizione",
+    "foilOnly": "Solo foil",
+    "conditions": {
+      "nm": "Near Mint o meglio",
+      "ex": "Excellent o meglio",
+      "gd": "Good o meglio",
+      "lp": "Lightly Played o meglio"
+    },
+    "unlock": "Sblocca i filtri avanzati con Premium",
+    "apply": "Mostra le carte",
+    "reset": "Azzera filtri"
+  },
+  "badge": {
+    "store": "Negozio"
+  },
+  "card": {
+    "marketRef": "Valore di mercato di riferimento: {{value}}",
+    "rating_one": "{{score}} ({{count}} recensione)",
+    "rating_other": "{{score}} ({{count}} recensioni)",
+    "noReviews": "Nessuna recensione",
+    "memberSince": "dal {{date}}",
+    "ownerWants_one": "{{user}} cerca {{count}} carta che hai in scambio: potete fare uno scambio alla pari.",
+    "ownerWants_other": "{{user}} cerca {{count}} carte che hai in scambio: potete fare uno scambio alla pari.",
+    "own": "Questa è una tua carta.",
+    "proposeTrade": "Proponi uno scambio",
+    "message": "Scrivi a {{user}}",
+    "notes": "Note del proprietario",
+    "offlineNote": "Il prezzo è indicativo e non garantito. Vi accordate direttamente; l'incontro e l'eventuale pagamento avvengono fuori dall'app."
+  },
+  "map": {
+    "title": "Carte vicine a te",
+    "count_one": "{{count}} carta",
+    "count_other": "{{count}} carte",
+    "area_one": "{{count}} carta in questa zona",
+    "area_other": "{{count}} carte in questa zona",
+    "privacy": "Le carte sono raggruppate per zone di circa 2 km: nessuno vede dove abiti."
+  },
+  "collection": {
+    "title": "La mia collezione",
+    "value": "Valore di mercato",
+    "copies_one": "carta",
+    "copies_other": "carte",
+    "inTrade": "in scambio",
+    "have": "Le ho ({{count}})",
+    "want": "Le cerco ({{count}})",
+    "tradeable": "In scambio",
+    "emptyHave": "La collezione è vuota: tocca + per aggiungere la prima carta.",
+    "emptyWant": "La wishlist è vuota.",
+    "findNearby": "Cerca vicino"
+  }
+}

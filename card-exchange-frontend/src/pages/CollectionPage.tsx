@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { useFormat } from '../i18n/format';
 import { Plus, Library, Search, TrendingUp, ChevronDown, Loader2, FileUp, CheckSquare, X, ScanLine } from 'lucide-react';
 import { cards, priceTracking, scryfall } from '../api';
@@ -25,7 +26,12 @@ export default function CollectionPage() {
   const { selectedGameId, selectedGame } = useGame();
   const [myCards, setMyCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
+  // ?add=1 (dal "+" dell'anteprima): apre subito la finestra di aggiunta
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [showAddModal, setShowAddModal] = useState(() => searchParams.get('add') === '1');
+  useEffect(() => {
+    if (searchParams.get('add') === '1') setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
   const [showScanner, setShowScanner] = useState(false);
   const [editCard, setEditCard] = useState<Card | null>(null);
   const [selectedCard, setSelectedCard] = useState<GameCard | null>(null);

@@ -1,0 +1,107 @@
+{
+  "nav": {
+    "label": "Preview navigation",
+    "explore": "Explore",
+    "nearby": "Nearby",
+    "add": "Add a card",
+    "collection": "Collection",
+    "profile": "Profile"
+  },
+  "theme": {
+    "auto": "Theme: automatic",
+    "dark": "Theme: dark",
+    "light": "Theme: light"
+  },
+  "noLocation": "Set your area",
+  "backToCurrent": "Current version",
+  "clear": "Clear",
+  "close": "Close",
+  "back": "Back",
+  "showMore": "Show more",
+  "distance": "~{{km}} km",
+  "wantedHint": "It's on your wishlist",
+  "price": {
+    "asking": "asking price",
+    "market": "market value",
+    "none": "no price"
+  },
+  "errors": {
+    "load": "The cards couldn't be loaded.",
+    "card": "Card not available."
+  },
+  "sort": {
+    "label": "Sort",
+    "distance": "Closest",
+    "price": "Lowest price",
+    "newest": "Newest"
+  },
+  "explore": {
+    "titleLine1": "Find your",
+    "titleLine2": "next card.",
+    "searchPlaceholder": "Search cards or sets…",
+    "allGames": "All",
+    "results_one": "{{count}} card near you",
+    "results_other": "{{count}} cards near you",
+    "setLocation": "Set your area in your profile to see cards nearby.",
+    "emptyTitle": "No cards around here",
+    "emptyBody": "Widen the distance in the filters or try another game.",
+    "priceNote": "Prices are indicative: you agree freely, even trading several cards. No payment goes through the app."
+  },
+  "filters": {
+    "title": "Filters",
+    "distance": "Distance",
+    "within": "within {{km}} km",
+    "price": "Price (€)",
+    "min": "Min",
+    "max": "Max",
+    "condition": "Condition",
+    "foilOnly": "Foil only",
+    "conditions": {
+      "nm": "Near Mint or better",
+      "ex": "Excellent or better",
+      "gd": "Good or better",
+      "lp": "Lightly Played or better"
+    },
+    "unlock": "Unlock advanced filters with Premium",
+    "apply": "Show cards",
+    "reset": "Reset filters"
+  },
+  "badge": {
+    "store": "Store"
+  },
+  "card": {
+    "marketRef": "Reference market value: {{value}}",
+    "rating_one": "{{score}} ({{count}} review)",
+    "rating_other": "{{score}} ({{count}} reviews)",
+    "noReviews": "No reviews yet",
+    "memberSince": "since {{date}}",
+    "ownerWants_one": "{{user}} is looking for {{count}} card you have up for trade: you could swap.",
+    "ownerWants_other": "{{user}} is looking for {{count}} cards you have up for trade: you could swap.",
+    "own": "This is one of your cards.",
+    "proposeTrade": "Propose a trade",
+    "message": "Message {{user}}",
+    "notes": "Owner's notes",
+    "offlineNote": "The price is indicative and not guaranteed. You agree directly; the meetup and any payment happen outside the app."
+  },
+  "map": {
+    "title": "Cards near you",
+    "count_one": "{{count}} card",
+    "count_other": "{{count}} cards",
+    "area_one": "{{count}} card in this area",
+    "area_other": "{{count}} cards in this area",
+    "privacy": "Cards are grouped into areas of about 2 km: nobody can see where you live."
+  },
+  "collection": {
+    "title": "My collection",
+    "value": "Market value",
+    "copies_one": "card",
+    "copies_other": "cards",
+    "inTrade": "up for trade",
+    "have": "I have ({{count}})",
+    "want": "I want ({{count}})",
+    "tradeable": "Up for trade",
+    "emptyHave": "Your collection is empty: tap + to add your first card.",
+    "emptyWant": "Your wishlist is empty.",
+    "findNearby": "Find nearby"
+  }
+}

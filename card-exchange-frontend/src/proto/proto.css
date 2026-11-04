@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+/*
+ * Anteprima nuova grafica. Variabili limitate al contenitore .cx: il resto dell'app non cambia.
+ * Tema scuro e chiaro; il lime è solo sfondo di pulsanti/badge (con testo scuro) o accento sul tema scuro,
+ * mai testo su fondo chiaro (contrasto insufficiente).
+ */
+.cx {
+  --cx-bg: #0d0b1e;
+  --cx-bg-grad: radial-gradient(120% 60% at 50% 0%, #241a52 0%, #0d0b1e 60%);
+  --cx-surface: #17142f;
+  --cx-surface-2: #211c42;
+  --cx-border: #2e2858;
+  --cx-text: #f5f3ff;
+  --cx-text-2: #b9b3dc;
+  --cx-muted: #8a84b3;
+  --cx-accent: #c8f53c;
+  --cx-on-accent: #141029;
+  --cx-accent-text: #c8f53c;
+  --cx-accent-soft: rgba(200, 245, 60, 0.14);
+  --cx-danger: #ff6b7a;
+  --cx-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --cx-nav: rgba(23, 20, 47, 0.92);
+  --cx-map-filter: brightness(0.7) contrast(1.1) saturate(0.6) hue-rotate(200deg);
+  font-family: 'Plus Jakarta Sans', var(--font-sans);
+  color: var(--cx-text);
+  background: var(--cx-bg-grad), var(--cx-bg);
+  min-height: 100dvh;
+}
+
+@media (prefers-color-scheme: light) {
+  .cx:not([data-theme='dark']) {
+    --cx-bg: #f3f2fa;
+    --cx-bg-grad: radial-gradient(120% 60% at 50% 0%, #e7e3ff 0%, #f3f2fa 60%);
+    --cx-surface: #ffffff;
+    --cx-surface-2: #f0eef9;
+    --cx-border: #e2def3;
+    --cx-text: #15122b;
+    --cx-text-2: #4b4668;
+    --cx-muted: #77729a;
+    --cx-accent-text: #4a7a00;
+    --cx-accent-soft: rgba(132, 186, 0, 0.16);
+    --cx-danger: #d93448;
+    --cx-shadow: 0 8px 24px rgba(30, 20, 80, 0.10);
+    --cx-nav: rgba(255, 255, 255, 0.94);
+    --cx-map-filter: none;
+  }
+}
+
+.cx[data-theme='light'] {
+  --cx-bg: #f3f2fa;
+  --cx-bg-grad: radial-gradient(120% 60% at 50% 0%, #e7e3ff 0%, #f3f2fa 60%);
+  --cx-surface: #ffffff;
+  --cx-surface-2: #f0eef9;
+  --cx-border: #e2def3;
+  --cx-text: #15122b;
+  --cx-text-2: #4b4668;
+  --cx-muted: #77729a;
+  --cx-accent-text: #4a7a00;
+  --cx-accent-soft: rgba(132, 186, 0, 0.16);
+  --cx-danger: #d93448;
+  --cx-shadow: 0 8px 24px rgba(30, 20, 80, 0.10);
+  --cx-nav: rgba(255, 255, 255, 0.94);
+  --cx-map-filter: none;
+}
+
+.cx-card { background: var(--cx-surface); border: 1px solid var(--cx-border); border-radius: 20px; }
+.cx-chip { background: var(--cx-surface-2); color: var(--cx-text-2); border-radius: 999px; }
+.cx-chip[aria-pressed='true'] { background: var(--cx-accent); color: var(--cx-on-accent); }
+.cx-btn { background: var(--cx-accent); color: var(--cx-on-accent); border-radius: 999px; font-weight: 700; }
+.cx-btn:active { transform: scale(0.98); }
+.cx-btn-outline { border: 1.5px solid var(--cx-text); color: var(--cx-text); border-radius: 999px; font-weight: 700; }
+.cx-input { background: var(--cx-surface); border: 1px solid var(--cx-border); color: var(--cx-text); border-radius: 16px; }
+.cx-input::placeholder { color: var(--cx-muted); }
+.cx-muted { color: var(--cx-muted); }
+.cx-text-2 { color: var(--cx-text-2); }
+.cx-accent-text { color: var(--cx-accent-text); }
+.cx-badge { background: var(--cx-accent); color: var(--cx-on-accent); border-radius: 999px; font-weight: 700; }
+.cx-glass { background: var(--cx-nav); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.cx-map .leaflet-tile-pane { filter: var(--cx-map-filter); }
+.cx-map .leaflet-container { background: var(--cx-surface-2); font-family: inherit; }
+.cx-sheet { background: var(--cx-surface); border-top-left-radius: 28px; border-top-right-radius: 28px; box-shadow: var(--cx-shadow); }
+.cx-range { accent-color: #8fc01a; }

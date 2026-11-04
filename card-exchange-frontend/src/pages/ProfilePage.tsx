@@ -3,8 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import {
   Star, ArrowLeftRight, MessageCircle, MapPin, LogOut,
-  ChevronRight, Pencil, Library, Heart, Trophy, Ban, ShieldCheck, Crown, Receipt, BarChart3, Search,
-} from 'lucide-react';
+  ChevronRight, Pencil, Library, Heart, Trophy, Ban, ShieldCheck, Crown, Receipt, BarChart3, Search, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ReviewsSheet from '../components/users/ReviewsSheet';
 import BlockedUsersSheet from '../components/users/BlockedUsersSheet';
@@ -32,6 +31,7 @@ export default function ProfilePage() {
   const menuItems = [
     { label: t('menu.editProfile'), icon: Pencil, to: '/profile/edit' },
     { label: t('menu.myPlan'), icon: Crown, to: '/premium' },
+    { label: t('menu.newDesignPreview'), icon: Sparkles, to: '/preview' },
     { label: t('menu.stats'), icon: BarChart3, to: '/stats' },
     { label: t('menu.advancedSearch'), icon: Search, to: '/search' },
     { label: t('menu.myCards'), icon: Library, to: '/collection' },
