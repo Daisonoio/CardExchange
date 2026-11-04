@@ -54,6 +54,31 @@ namespace CardExchange.API.Services
             return card;
         }
 
+        public async Task<YuGiOhCard?> GetCardBySetCodeAsync(string setCode)
+        {
+            await RateLimitAsync();
+            try
+            {
+                using var response = await _httpClient.GetAsync($"/api/v7/cardsetsinfo.php?setcode={Uri.EscapeDataString(setCode.Trim())}");
+                if (!response.IsSuccessStatusCode) return null;
+                using var doc = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                return doc.RootElement.TryGetProperty("id", out var id) && id.TryGetInt32(out var passcode)
+                    ? await GetCardByIdAsync(passcode)
+                    : null;
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException)
+            {
+                _logger.LogWarning(ex, "YuGiOh: codice di stampa {SetCode} non risolto", setCode);
+                return null;
+            }
+        }
+
+        public async Task<YuGiOhCard?> GetCardByNameAsync(string name)
+        {
+            var cards = await GetCardsAsync($"/api/v7/cardinfo.php?name={Uri.EscapeDataString(name.Trim())}");
+            return cards?.FirstOrDefault();
+        }
+
         public async Task<List<YuGiOhCard>> SearchCardsAsync(string query, int offset = 0, int num = 20)
         {
             var encoded = Uri.EscapeDataString(query);

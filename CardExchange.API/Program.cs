@@ -170,6 +170,25 @@ builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.Configure<CardExchange.API.Configuration.BillingOptions>(builder.Configuration.GetSection("Billing"));
 builder.Services.AddScoped<CardExchange.API.Services.Billing.IBillingService, CardExchange.API.Services.Billing.BillingService>();
 builder.Services.AddScoped<CardExchange.API.Services.Billing.IStripeBilling, CardExchange.API.Services.Billing.StripeBilling>();
+
+// Catalogo multi-gioco: un provider per gioco. Per aggiungere un gioco: implementare ICatalogProvider e registrarlo qui.
+builder.Services.AddHttpClient<CardExchange.API.Services.Catalog.IExchangeRates, CardExchange.API.Services.Catalog.EcbExchangeRates>(c =>
+    c.Timeout = TimeSpan.FromSeconds(10));
+builder.Services.AddScoped<CardExchange.API.Services.Catalog.CatalogStore>();
+builder.Services.AddHttpClient<CardExchange.API.Services.Catalog.LorcanaProvider>(c =>
+{
+    c.BaseAddress = new Uri(CardExchange.API.Services.Catalog.LorcanaProvider.BaseUrl);
+    c.Timeout = TimeSpan.FromSeconds(15);
+    c.DefaultRequestHeaders.UserAgent.ParseAdd("CardExchange/1.0");
+});
+builder.Services.AddScoped<CardExchange.API.Services.Catalog.PokemonCatalogProvider>();
+builder.Services.AddScoped<CardExchange.API.Services.Catalog.YuGiOhCatalogProvider>();
+builder.Services.AddScoped<CardExchange.API.Services.Catalog.OnePieceCatalogProvider>();
+builder.Services.AddScoped<CardExchange.API.Services.Catalog.ICatalogProvider>(sp => sp.GetRequiredService<CardExchange.API.Services.Catalog.PokemonCatalogProvider>());
+builder.Services.AddScoped<CardExchange.API.Services.Catalog.ICatalogProvider>(sp => sp.GetRequiredService<CardExchange.API.Services.Catalog.YuGiOhCatalogProvider>());
+builder.Services.AddScoped<CardExchange.API.Services.Catalog.ICatalogProvider>(sp => sp.GetRequiredService<CardExchange.API.Services.Catalog.OnePieceCatalogProvider>());
+builder.Services.AddScoped<CardExchange.API.Services.Catalog.ICatalogProvider>(sp => sp.GetRequiredService<CardExchange.API.Services.Catalog.LorcanaProvider>());
+builder.Services.AddScoped<CardExchange.API.Services.Catalog.ICatalogRegistry, CardExchange.API.Services.Catalog.CatalogRegistry>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
 

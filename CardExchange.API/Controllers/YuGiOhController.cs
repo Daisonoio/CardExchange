@@ -17,6 +17,7 @@ namespace CardExchange.API.Controllers
     [Route("api/[controller]")]
     public class YuGiOhController : ControllerBase
     {
+        private readonly CardExchange.API.Services.Catalog.YuGiOhCatalogProvider _catalogProvider;
         private readonly IYuGiOhService _yugioh;
         private readonly ApplicationDbContext _context;
         private readonly CardExchange.API.Services.Prices.ICatalogPriceRefresher _priceRefresher;
@@ -26,11 +27,13 @@ namespace CardExchange.API.Controllers
         private const int PriceStalenessHours = 12;
 
         public YuGiOhController(
+            CardExchange.API.Services.Catalog.YuGiOhCatalogProvider catalogProvider,
             IYuGiOhService yugioh,
             ApplicationDbContext context,
             CardExchange.API.Services.Prices.ICatalogPriceRefresher priceRefresher,
             ILogger<YuGiOhController> logger)
         {
+            _catalogProvider = catalogProvider;
             _yugioh = yugioh;
             _context = context;
             _priceRefresher = priceRefresher;
@@ -143,58 +146,16 @@ namespace CardExchange.API.Controllers
             if (request.YuGiOhId <= 0)
                 return BadRequest(new { message = "YuGiOhId è obbligatorio e deve essere un numero positivo" });
 
-            // Verifica se esiste già nel DB
-            var existingCardInfo = await _context.CardInfos
-                .FirstOrDefaultAsync(ci => ci.YuGiOhId == request.YuGiOhId);
+            // La logica di import è nel provider di catalogo, condivisa con import CSV e catalogo generico
+            var result = await _catalogProvider.ImportAsync(request.YuGiOhId.ToString());
+            if (result == null)
+                return NotFound(new { message = "Carta non trovata nel catalogo" });
 
-            if (existingCardInfo != null && !IsStale(existingCardInfo.YuGiOhUpdatedAt))
+            return Ok(new
             {
-                return Ok(new
-                {
-                    message = "Carta già presente nel DB",
-                    cardInfoId = existingCardInfo.Id,
-                    isNew = false
-                });
-            }
-
-            // Chiama API
-            var apiCard = await _yugioh.GetCardByIdAsync(request.YuGiOhId);
-            if (apiCard == null)
-                return NotFound(new { message = $"Carta con ID '{request.YuGiOhId}' non trovata nell'API YGOProDeck" });
-
-            // Trova o crea il Game Yu-Gi-Oh!
-            var yugiohGame = await EnsureYuGiOhGameAsync();
-
-            // Trova o crea il CardSet (dal primo set della carta)
-            var cardSet = await EnsureCardSetAsync(apiCard, yugiohGame.Id);
-
-            if (existingCardInfo != null)
-            {
-                _yugioh.MapToCardInfo(apiCard, existingCardInfo);
-                await _context.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    message = "Carta aggiornata",
-                    cardInfoId = existingCardInfo.Id,
-                    isNew = false
-                });
-            }
-
-            // Crea nuova CardInfo
-            var cardInfo = new CardInfo { CardSetId = cardSet.Id };
-            _yugioh.MapToCardInfo(apiCard, cardInfo);
-            _context.CardInfos.Add(cardInfo);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Carta Yu-Gi-Oh! importata: {Name} (ID {YuGiOhId}) -> CardInfo ID {Id}",
-                apiCard.Name, apiCard.Id, cardInfo.Id);
-
-            return CreatedAtAction(nameof(GetCard), new { yugiohId = request.YuGiOhId }, new
-            {
-                message = "Carta importata con successo",
-                cardInfoId = cardInfo.Id,
-                isNew = true
+                message = result.IsNew ? "Carta importata con successo" : "Carta già presente nel DB",
+                cardInfoId = result.CardInfoId,
+                isNew = result.IsNew
             });
         }
 
@@ -362,31 +323,6 @@ namespace CardExchange.API.Controllers
             _context.Games.Add(game);
             await _context.SaveChangesAsync();
             return game;
-        }
-
-        private async Task<CardSet> EnsureCardSetAsync(YuGiOhCard apiCard, int gameId)
-        {
-            // Prendi il primo set della carta (o crea un set generico)
-            var firstSet = apiCard.CardSets?.FirstOrDefault();
-            var setCode = firstSet?.SetCode ?? "MISC";
-            var setName = firstSet?.SetName ?? "Miscellaneous";
-
-            var cardSet = await _context.CardSets
-                .FirstOrDefaultAsync(cs => cs.YuGiOhSetCode == setCode && cs.GameId == gameId);
-
-            if (cardSet != null) return cardSet;
-
-            cardSet = new CardSet
-            {
-                GameId = gameId,
-                Name = setName,
-                Code = setCode.ToUpperInvariant(),
-                YuGiOhSetCode = setCode,
-                YuGiOhUpdatedAt = DateTime.UtcNow
-            };
-            _context.CardSets.Add(cardSet);
-            await _context.SaveChangesAsync();
-            return cardSet;
         }
 
         private static bool IsStale(DateTime? lastUpdate)

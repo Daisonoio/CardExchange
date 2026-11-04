@@ -158,6 +158,8 @@ namespace CardExchange.Infrastructure.Data
                 if (!isSqlite) ciYuGiOhIdx.HasFilter("[YuGiOhId] IS NOT NULL");
                 var ciOnePieceIdx = entity.HasIndex(ci => ci.OnePieceTcgId).IsUnique();
                 if (!isSqlite) ciOnePieceIdx.HasFilter("[OnePieceTcgId] IS NOT NULL");
+                var ciCatalogIdx = entity.HasIndex(ci => new { ci.CatalogSource, ci.ExternalId }).IsUnique();
+                if (!isSqlite) ciCatalogIdx.HasFilter("[CatalogSource] IS NOT NULL AND [ExternalId] IS NOT NULL");
                 entity.Property(ci => ci.Cmc).HasPrecision(5, 2);
                 entity.Property(ci => ci.PriceUsd).HasPrecision(10, 2);
                 entity.Property(ci => ci.PriceUsdFoil).HasPrecision(10, 2);

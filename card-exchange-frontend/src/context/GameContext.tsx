@@ -7,6 +7,8 @@ export interface GameInfo {
   description?: string;
   publisher: string;
   isActive: boolean;
+  /** Provider del catalogo: magic, pokemon, yugioh, onepiece, lorcana… */
+  catalogKey?: string;
 }
 
 interface GameContextType {

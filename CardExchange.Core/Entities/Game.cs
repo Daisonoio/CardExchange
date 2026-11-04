@@ -17,6 +17,10 @@ namespace CardExchange.Core.Entities
 
         public bool IsActive { get; set; } = true;
 
+        /// <summary>Chiave del provider di catalogo che gestisce il gioco (magic, pokemon, yugioh, onepiece, lorcana…).</summary>
+        [MaxLength(30)]
+        public string? CatalogKey { get; set; }
+
         // Relazioni
         public virtual ICollection<CardSet> CardSets { get; set; } = new List<CardSet>();
     }

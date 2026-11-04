@@ -122,7 +122,7 @@ export default function WishlistPage() {
     setIsSaving(true);
     setSaveError(null);
     try {
-      const cardInfoId = await importGameCard(selectedGame?.name, selectedCard.externalId);
+      const cardInfoId = await importGameCard(selectedGame?.name, selectedCard.externalId, selectedGame?.catalogKey);
 
       await wishlist.create(user!.id, {
         cardInfoId,

@@ -205,6 +205,13 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<int>("CardSetId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CatalogSource")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime?>("CatalogUpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<decimal?>("Cmc")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
@@ -227,6 +234,13 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<string>("EvolvesFrom")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("GameData")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Hp")
                         .HasMaxLength(10)
@@ -501,6 +515,10 @@ namespace CardExchange.Infrastructure.Migrations
                         .HasFilter("[YuGiOhId] IS NOT NULL");
 
                     b.HasIndex("CardSetId", "Name");
+
+                    b.HasIndex("CatalogSource", "ExternalId")
+                        .IsUnique()
+                        .HasFilter("[CatalogSource] IS NOT NULL AND [ExternalId] IS NOT NULL");
 
                     b.ToTable("CardInfos");
                 });
@@ -902,6 +920,10 @@ namespace CardExchange.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CatalogKey")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");

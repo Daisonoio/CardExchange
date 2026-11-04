@@ -571,6 +571,8 @@ export interface ImportPreviewRow {
   warnings: string[];
   match?: {
     scryfallId: string;
+    catalogKey?: string;
+    externalId?: string;
     name: string;
     setCode: string;
     setName: string;
@@ -592,7 +594,9 @@ export interface ImportPreview {
 }
 
 export interface ImportCommitRow {
-  scryfallId: string;
+  scryfallId?: string;
+  catalogKey?: string;
+  externalId?: string;
   quantity: number;
   condition: CardCondition;
   language?: string;

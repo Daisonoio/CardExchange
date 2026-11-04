@@ -15,6 +15,8 @@ namespace CardExchange.API.Services.Prices
         public int MaxPokemonPerRun { get; set; } = 500;
         /// <summary>Limite di carte Yu-Gi-Oh! aggiornate per notte.</summary>
         public int MaxYuGiOhPerRun { get; set; } = 1000;
+        /// <summary>Limite di carte per notte per ciascun gioco gestito da un provider generico (es. Lorcana).</summary>
+        public int MaxCatalogPerRun { get; set; } = 1000;
     }
 
     public record DailyMaintenanceReport(int ExpiredOffers, int MagicUpdated, int PokemonUpdated, int YuGiOhUpdated, int Snapshots, int UsersWithAlertsChecked);
@@ -30,10 +32,13 @@ namespace CardExchange.API.Services.Prices
         private readonly ICatalogPriceRefresher _refresher;
         private readonly IPriceTrackingService _priceTracking;
         private readonly ILogger<DailyMaintenance> _logger;
+        private readonly CardExchange.API.Services.Catalog.ICatalogRegistry? _catalog;
 
         public DailyMaintenance(ApplicationDbContext context, ICatalogPriceRefresher refresher,
-            IPriceTrackingService priceTracking, ILogger<DailyMaintenance> logger)
+            IPriceTrackingService priceTracking, ILogger<DailyMaintenance> logger,
+            CardExchange.API.Services.Catalog.ICatalogRegistry? catalog = null)
         {
+            _catalog = catalog;
             _context = context;
             _refresher = refresher;
             _priceTracking = priceTracking;
@@ -44,6 +49,7 @@ namespace CardExchange.API.Services.Prices
         {
             var expired = await ExpireOffersAsync(ct);
             var (magic, pokemon, yugioh) = await RefreshPricesAsync(options, ct);
+            await RefreshCatalogProvidersAsync(options, ct);
             var snapshots = await SnapshotPricesAsync(ct);
             var alertUsers = await CheckPriceAlertsAsync(ct);
 
@@ -114,6 +120,31 @@ namespace CardExchange.API.Services.Prices
             }
 
             return (magic, pokemon, yugioh);
+        }
+
+        /// <summary>Giochi dei provider generici (es. Lorcana): prima le schede aggiornate da più tempo.</summary>
+        public async Task<int> RefreshCatalogProvidersAsync(DailyMaintenanceOptions options, CancellationToken ct = default)
+        {
+            if (_catalog == null) return 0;
+            var total = 0;
+            foreach (var provider in _catalog.All.OfType<CardExchange.API.Services.Catalog.GenericCatalogProvider>())
+            {
+                try
+                {
+                    var key = provider.Key;
+                    var infos = await CardInfosInUse().Where(ci => ci.CatalogSource == key)
+                        .OrderBy(ci => ci.CatalogUpdatedAt).Take(options.MaxCatalogPerRun).ToListAsync(ct);
+                    var updated = await provider.RefreshAsync(infos, ct);
+                    await _context.SaveChangesAsync(ct);
+                    _logger.LogInformation("Prezzi {Game}: {Updated} carte aggiornate", provider.GameName, updated);
+                    total += updated;
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    _logger.LogError(ex, "Aggiornamento prezzi {Game} non riuscito", provider.GameName);
+                }
+            }
+            return total;
         }
 
         /// <summary>Una riga di storico per carta in uso e per giorno (aggiornata se già presente).</summary>

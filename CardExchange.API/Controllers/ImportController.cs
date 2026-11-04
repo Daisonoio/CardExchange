@@ -31,7 +31,7 @@ namespace CardExchange.API.Controllers
         {
             try
             {
-                return Ok(await _import.PreviewAsync(request.Csv ?? string.Empty));
+                return Ok(await _import.PreviewAsync(request.Csv ?? string.Empty, request.CatalogKey));
             }
             catch (ImportException ex)
             {

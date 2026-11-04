@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, FileUp, Loader2 } from 'lucide-react';
-import { collectionImport } from '../../api';
+import { catalog, collectionImport } from '../../api';
+import { useGame } from '../../context/GameContext';
 import type { ImportCommitResult, ImportPreview, ImportPreviewRow } from '../../types';
 import { CONDITION_LABELS } from '../../types';
 import { apiErrorMessage } from '../../utils/apiError';
@@ -13,12 +14,12 @@ const ROWS_PAGE = 100;
 
 const FIELD_LABELS: Record<string, string> = {
   Name: 'Nome', SetCode: 'Codice set', SetName: 'Nome set', Edition: 'Set', CollectorNumber: 'Numero',
-  ScryfallId: 'Scryfall ID', Quantity: 'Quantità', Condition: 'Condizione', Language: 'Lingua', Finish: 'Foil/Finitura',
+  ScryfallId: 'Scryfall ID', Quantity: 'Quantità', Condition: 'Condizione', Language: 'Lingua', Finish: 'Foil/Finitura', Game: 'Gioco',
 };
 
 type Step = 'pick' | 'preview' | 'done';
 
-/** Import della collezione Magic da CSV: scelta file → anteprima → conferma. */
+/** Import della collezione da CSV (tutti i giochi): scelta gioco e file → anteprima → conferma. */
 export default function ImportCollectionSheet({ open, onClose, onImported }: {
   open: boolean;
   onClose: () => void;
@@ -32,6 +33,24 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
   const [makeTradeable, setMakeTradeable] = useState(false);
   const [visibleRows, setVisibleRows] = useState(ROWS_PAGE);
   const [result, setResult] = useState<ImportCommitResult | null>(null);
+  const { games, selectedGame } = useGame();
+  const importable = games.filter((g) => g.catalogKey);
+  const [catalogKey, setCatalogKey] = useState<string>('magic');
+  const [hints, setHints] = useState<Record<string, string>>({});
+
+  // Gioco proposto: quello selezionato in alto, altrimenti Magic
+  useEffect(() => {
+    if (open) setCatalogKey(selectedGame?.catalogKey ?? 'magic');
+  }, [open, selectedGame?.catalogKey]);
+
+  useEffect(() => {
+    if (!open) return;
+    catalog.providers()
+      .then(({ data }) => setHints(Object.fromEntries(data.map((p) => [p.key, p.importHint]))))
+      .catch(() => setHints({}));
+  }, [open]);
+  const isMagic = catalogKey === 'magic';
+  const gameName = importable.find((g) => g.catalogKey === catalogKey)?.name ?? 'Magic: The Gathering';
 
   const reset = () => {
     setStep('pick'); setBusy(false); setError(null); setPreview(null);
@@ -48,7 +67,7 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
     }
     setBusy(true);
     try {
-      const { data } = await collectionImport.preview(await file.text());
+      const { data } = await collectionImport.preview(await file.text(), isMagic ? undefined : catalogKey);
       setPreview(data);
       setStep('preview');
     } catch (err) {
@@ -81,7 +100,9 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
     setError(null);
     try {
       const rows = selectedRows.map((r) => ({
-        scryfallId: r.match!.scryfallId,
+        scryfallId: r.match!.scryfallId || undefined,
+        catalogKey: r.match!.catalogKey,
+        externalId: r.match!.externalId,
         quantity: r.quantity,
         condition: r.condition,
         language: r.language,
@@ -104,19 +125,40 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
 
       {step === 'pick' && (
         <div className="space-y-4">
+          {importable.length > 1 && (
+            <label className="block">
+              <span className="block text-xs font-medium text-text-secondary mb-1">Gioco del file</span>
+              <select
+                value={catalogKey}
+                onChange={(e) => setCatalogKey(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm text-text"
+              >
+                {importable.map((g) => <option key={g.id} value={g.catalogKey}>{g.name}</option>)}
+              </select>
+            </label>
+          )}
           <p className="text-sm text-text-secondary">
-            Esporta la tua collezione <strong>Magic</strong> in CSV da ManaBox, Moxfield, Deckbox, Dragon Shield,
-            Cardmarket o da un foglio di calcolo, poi caricala qui. Vedrai un'anteprima prima di confermare.
+            {isMagic
+              ? <>Esporta la tua collezione <strong>Magic</strong> in CSV da ManaBox, Moxfield, Deckbox, Dragon Shield, Cardmarket o da un foglio di calcolo, poi caricala qui.</>
+              : <>Carica il CSV della tua collezione <strong>{gameName}</strong> (da un'app di collezione, da CardExchange o da un foglio di calcolo).</>}
+            {' '}Vedrai un'anteprima prima di confermare.
           </p>
           <ul className="text-xs text-text-muted list-disc pl-5 space-y-0.5">
-            <li>Serve almeno una colonna con il nome della carta (es. "Name").</li>
-            <li>Con codice set e numero collezionista l'abbinamento è esatto.</li>
+            {isMagic ? (
+              <>
+                <li>Serve almeno una colonna con il nome della carta (es. "Name").</li>
+                <li>Con codice set e numero collezionista l'abbinamento è esatto.</li>
+              </>
+            ) : (
+              <li>Per riconoscere le carte servono {hints[catalogKey] ?? 'set e numero, oppure il nome'}.</li>
+            )}
             <li>Condizione, lingua, foil e quantità vengono letti se presenti.</li>
+            {!isMagic && <li>Ogni carta si cerca nel catalogo una alla volta: con file grandi l'anteprima richiede qualche minuto (massimo 1000 righe).</li>}
           </ul>
           <label className={`flex flex-col items-center justify-center gap-2 p-6 rounded-2xl border-2 border-dashed border-border cursor-pointer hover:bg-surface-dark transition-colors ${busy ? 'opacity-60 pointer-events-none' : ''}`}>
             {busy ? <Loader2 size={28} className="animate-spin text-primary" /> : <FileUp size={28} className="text-primary" />}
             <span className="text-sm font-semibold text-text">{busy ? 'Analisi in corso…' : 'Scegli il file CSV'}</span>
-            <span className="text-[11px] text-text-muted">Massimo 2 MB, 5000 righe</span>
+            <span className="text-[11px] text-text-muted">Massimo 2 MB, {isMagic ? '5000' : '1000'} righe</span>
             <input
               type="file"
               accept=".csv,.txt,text/csv"

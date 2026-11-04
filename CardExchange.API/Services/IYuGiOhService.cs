@@ -8,6 +8,10 @@ namespace CardExchange.API.Services
         // Lookup
         Task<YuGiOhCard?> GetCardByIdAsync(int yugiohId);
         Task<List<YuGiOhCard>> SearchCardsAsync(string query, int offset = 0, int num = 20);
+        /// <summary>Carta dal codice di stampa (es. "LOB-EN001").</summary>
+        Task<YuGiOhCard?> GetCardBySetCodeAsync(string setCode);
+        /// <summary>Carta dal nome esatto.</summary>
+        Task<YuGiOhCard?> GetCardByNameAsync(string name);
 
         // Set
         Task<List<YuGiOhCardSet>> GetAllSetsAsync();

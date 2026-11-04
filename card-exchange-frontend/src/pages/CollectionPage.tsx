@@ -36,6 +36,8 @@ export default function CollectionPage() {
   const [loadingPrintings, setLoadingPrintings] = useState(false);
   const [showPrintings, setShowPrintings] = useState(false);
   const isMagic = !selectedGame || selectedGame.name.toLowerCase().includes('magic');
+  // Import CSV per tutti i giochi con un catalogo (Magic, Pokémon, Yu-Gi-Oh!, One Piece, Lorcana…)
+  const canImport = isMagic || !!selectedGame?.catalogKey;
   const [isSaving, setIsSaving] = useState(false);
   const [showImport, setShowImport] = useState(false);
   // Modalità selezione per le azioni di massa
@@ -118,7 +120,7 @@ export default function CollectionPage() {
     if (!selectedCard) return;
     setIsSaving(true);
     try {
-      const cardInfoId = await importGameCard(selectedGame?.name, selectedCard.externalId);
+      const cardInfoId = await importGameCard(selectedGame?.name, selectedCard.externalId, selectedGame?.catalogKey);
 
       await cards.create(user!.id, {
         cardInfoId,
@@ -206,8 +208,8 @@ export default function CollectionPage() {
               <span className="hidden sm:inline">Seleziona</span>
             </Button>
           )}
-          {isMagic && (
-            <Button onClick={() => setShowImport(true)} size="sm" variant="outline">
+          {canImport && (
+            <Button onClick={() => setShowImport(true)} size="sm" variant="outline" aria-label="Importa da CSV">
               <FileUp size={16} />
               <span className="hidden sm:inline">Importa</span>
             </Button>
@@ -329,7 +331,7 @@ export default function CollectionPage() {
               <Button onClick={() => setShowAddModal(true)} size="sm">
                 <Plus size={16} /> Aggiungi carta
               </Button>
-              {isMagic && (
+              {canImport && (
                 <Button onClick={() => setShowImport(true)} size="sm" variant="outline">
                   <FileUp size={16} /> Importa da CSV
                 </Button>

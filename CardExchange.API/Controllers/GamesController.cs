@@ -214,6 +214,7 @@ namespace CardExchange.API.Controllers
             return new GameDto
             {
                 Id = game.Id,
+                CatalogKey = game.CatalogKey,
                 Name = game.Name,
                 Description = game.Description,
                 Publisher = game.Publisher,

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
-import { scryfall, pokemontcg, yugioh, onepiece } from '../../api';
+import { scryfall, pokemontcg, yugioh, onepiece, catalog, type CatalogCardDto } from '../../api';
 import { useGame } from '../../context/GameContext';
 import type { GameCard } from '../../types';
 
@@ -65,9 +65,25 @@ function normalizeOnePieceCards(cards: any[]): GameCard[] {
   }));
 }
 
-type GameKey = 'magic' | 'pokemon' | 'yugioh' | 'onepiece' | 'generic';
+// Giochi gestiti dal catalogo comune (provider lato server): basta la chiave, nessun codice dedicato
+function normalizeCatalogCards(cards: CatalogCardDto[]): GameCard[] {
+  return cards.map((c) => ({
+    externalId: c.externalId,
+    name: c.name,
+    setName: [c.setName, c.number ? `#${c.number}` : null].filter(Boolean).join(' '),
+    rarity: c.rarity,
+    imageSmall: c.imageSmall || '',
+    imageLarge: c.imageLarge || c.imageSmall || '',
+    priceEur: c.priceEur != null ? String(c.priceEur) : c.priceEurFoil != null ? String(c.priceEurFoil) : undefined,
+    subtitle: c.subtitle,
+  }));
+}
 
-function getGameKey(gameName: string | undefined): GameKey {
+type GameKey = 'magic' | 'pokemon' | 'yugioh' | 'onepiece' | 'generic' | `catalog:${string}`;
+const LEGACY_KEYS = ['magic', 'pokemon', 'yugioh', 'onepiece'];
+
+function getGameKey(gameName: string | undefined, catalogKey?: string): GameKey {
+  if (catalogKey && !LEGACY_KEYS.includes(catalogKey)) return `catalog:${catalogKey}`;
   if (!gameName) return 'generic';
   const lower = gameName.toLowerCase();
   if (lower.includes('magic')) return 'magic';
@@ -78,6 +94,10 @@ function getGameKey(gameName: string | undefined): GameKey {
 }
 
 async function searchCards(gameKey: GameKey, query: string): Promise<GameCard[]> {
+  if (gameKey.startsWith('catalog:')) {
+    const { data } = await catalog.search(gameKey.slice('catalog:'.length), query);
+    return normalizeCatalogCards(data.cards ?? []);
+  }
   switch (gameKey) {
     case 'pokemon': {
       const { data } = await pokemontcg.search(query);
@@ -112,7 +132,7 @@ async function autocompleteCards(gameKey: GameKey, query: string): Promise<strin
 
 export default function GameCardSearch({ onSelect, placeholder = 'Cerca una carta...' }: GameCardSearchProps) {
   const { selectedGame } = useGame();
-  const gameKey = getGameKey(selectedGame?.name);
+  const gameKey = getGameKey(selectedGame?.name, selectedGame?.catalogKey);
 
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -312,8 +332,12 @@ export default function GameCardSearch({ onSelect, placeholder = 'Cerca una cart
 }
 
 // Helper: import a card using the correct API for the current game
-export async function importGameCard(gameName: string | undefined, externalId: string): Promise<number> {
-  const gameKey = getGameKey(gameName);
+export async function importGameCard(gameName: string | undefined, externalId: string, catalogKey?: string): Promise<number> {
+  const gameKey = getGameKey(gameName, catalogKey);
+  if (gameKey.startsWith('catalog:')) {
+    const { data } = await catalog.importCard(gameKey.slice('catalog:'.length), externalId);
+    return data.cardInfoId;
+  }
   switch (gameKey) {
     case 'pokemon': {
       const { data } = await pokemontcg.importCard(externalId);

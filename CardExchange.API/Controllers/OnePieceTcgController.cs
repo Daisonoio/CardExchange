@@ -17,6 +17,7 @@ namespace CardExchange.API.Controllers
     [Route("api/[controller]")]
     public class OnePieceTcgController : ControllerBase
     {
+        private readonly CardExchange.API.Services.Catalog.OnePieceCatalogProvider _catalogProvider;
         private readonly IOnePieceTcgService _onePiece;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<OnePieceTcgController> _logger;
@@ -24,10 +25,12 @@ namespace CardExchange.API.Controllers
         private const int StalenessHours = 24;
 
         public OnePieceTcgController(
+            CardExchange.API.Services.Catalog.OnePieceCatalogProvider catalogProvider,
             IOnePieceTcgService onePiece,
             ApplicationDbContext context,
             ILogger<OnePieceTcgController> logger)
         {
+            _catalogProvider = catalogProvider;
             _onePiece = onePiece;
             _context = context;
             _logger = logger;
@@ -141,58 +144,16 @@ namespace CardExchange.API.Controllers
             if (string.IsNullOrWhiteSpace(request.Code))
                 return BadRequest(new { message = "Il codice carta è obbligatorio (es. 'OP06-014')" });
 
-            // Verifica se esiste già nel DB
-            var existingCardInfo = await _context.CardInfos
-                .FirstOrDefaultAsync(ci => ci.OnePieceTcgId == request.Code);
+            // La logica di import è nel provider di catalogo, condivisa con import CSV e catalogo generico
+            var result = await _catalogProvider.ImportAsync(request.Code.Trim());
+            if (result == null)
+                return NotFound(new { message = "Carta non trovata nel catalogo" });
 
-            if (existingCardInfo != null && !IsStale(existingCardInfo.OnePieceTcgUpdatedAt))
+            return Ok(new
             {
-                return Ok(new
-                {
-                    message = "Carta già presente nel DB",
-                    cardInfoId = existingCardInfo.Id,
-                    isNew = false
-                });
-            }
-
-            // Chiama API
-            var apiCard = await _onePiece.GetCardByCodeAsync(request.Code);
-            if (apiCard == null)
-                return NotFound(new { message = $"Carta '{request.Code}' non trovata nell'API One Piece TCG" });
-
-            // Trova o crea il Game One Piece TCG
-            var onePieceGame = await EnsureOnePieceGameAsync();
-
-            // Trova o crea il CardSet
-            var cardSet = await EnsureCardSetAsync(apiCard, onePieceGame.Id);
-
-            if (existingCardInfo != null)
-            {
-                _onePiece.MapToCardInfo(apiCard, existingCardInfo);
-                await _context.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    message = "Carta aggiornata",
-                    cardInfoId = existingCardInfo.Id,
-                    isNew = false
-                });
-            }
-
-            // Crea nuova CardInfo
-            var cardInfo = new CardInfo { CardSetId = cardSet.Id };
-            _onePiece.MapToCardInfo(apiCard, cardInfo);
-            _context.CardInfos.Add(cardInfo);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Carta One Piece importata: {Name} ({Code}) -> CardInfo ID {Id}",
-                apiCard.Name, apiCard.Code, cardInfo.Id);
-
-            return CreatedAtAction(nameof(GetCard), new { code = request.Code }, new
-            {
-                message = "Carta importata con successo",
-                cardInfoId = cardInfo.Id,
-                isNew = true
+                message = result.IsNew ? "Carta importata con successo" : "Carta già presente nel DB",
+                cardInfoId = result.CardInfoId,
+                isNew = result.IsNew
             });
         }
 
@@ -206,61 +167,6 @@ namespace CardExchange.API.Controllers
                 .AsNoTracking()
                 .FirstOrDefaultAsync(g => g.Name == "One Piece TCG");
             return game?.Id;
-        }
-
-        private async Task<Game> EnsureOnePieceGameAsync()
-        {
-            var game = await _context.Games.FirstOrDefaultAsync(g => g.Name == "One Piece TCG");
-            if (game != null) return game;
-
-            game = new Game
-            {
-                Name = "One Piece TCG",
-                Publisher = "Bandai",
-                Description = "Il gioco di carte collezionabili basato sul manga e anime One Piece"
-            };
-            _context.Games.Add(game);
-            await _context.SaveChangesAsync();
-            return game;
-        }
-
-        private async Task<CardSet> EnsureCardSetAsync(OnePieceCard apiCard, int gameId)
-        {
-            // Estrai il prefisso del set dal codice carta (es. "OP06" da "OP06-014")
-            var setCode = ExtractSetCode(apiCard.Code);
-            var setName = apiCard.Set?.Name ?? setCode;
-
-            var cardSet = await _context.CardSets
-                .FirstOrDefaultAsync(cs => cs.Code == setCode && cs.GameId == gameId);
-
-            if (cardSet != null)
-            {
-                if (apiCard.Set?.Name != null)
-                {
-                    cardSet.OnePieceTcgSetName = apiCard.Set.Name;
-                    cardSet.OnePieceTcgUpdatedAt = DateTime.UtcNow;
-                }
-                return cardSet;
-            }
-
-            cardSet = new CardSet
-            {
-                GameId = gameId,
-                Name = setName,
-                Code = setCode,
-                OnePieceTcgSetName = apiCard.Set?.Name,
-                OnePieceTcgUpdatedAt = DateTime.UtcNow
-            };
-            _context.CardSets.Add(cardSet);
-            await _context.SaveChangesAsync();
-            return cardSet;
-        }
-
-        private static string ExtractSetCode(string cardCode)
-        {
-            // "OP06-014" -> "OP06", "ST01-001" -> "ST01", "P-001" -> "P"
-            var dashIndex = cardCode.IndexOf('-');
-            return dashIndex > 0 ? cardCode[..dashIndex] : cardCode;
         }
 
         private static bool IsStale(DateTime? lastUpdate)

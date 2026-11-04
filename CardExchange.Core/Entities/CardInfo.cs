@@ -12,6 +12,22 @@ namespace CardExchange.Core.Entities
         [MaxLength(200)]
         public string Name { get; set; } = string.Empty;
 
+        // === Catalogo generico (giochi aggiunti tramite provider, es. Lorcana) ===
+        // Un nuovo gioco non richiede nuove colonne: fonte + id esterno, attributi specifici in GameData (JSON).
+
+        /// <summary>Chiave del provider di catalogo (es. "lorcana"). Null per le carte dei giochi storici.</summary>
+        [MaxLength(30)]
+        public string? CatalogSource { get; set; }
+
+        /// <summary>Id della carta presso la fonte del catalogo.</summary>
+        [MaxLength(100)]
+        public string? ExternalId { get; set; }
+
+        /// <summary>Attributi specifici del gioco (JSON), per la scheda carta.</summary>
+        public string? GameData { get; set; }
+
+        public DateTime? CatalogUpdatedAt { get; set; }
+
         [MaxLength(50)]
         public string? CardNumber { get; set; }
 

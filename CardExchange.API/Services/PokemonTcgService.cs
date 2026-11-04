@@ -212,7 +212,7 @@ namespace CardExchange.API.Services
 
             try
             {
-                var response = await _httpClient.GetAsync(path);
+                var response = await GetWithRetryAsync(path);
 
                 if (response.StatusCode == HttpStatusCode.NotFound)
                     return null;
@@ -243,6 +243,22 @@ namespace CardExchange.API.Services
             }
         }
 
+        /// <summary>
+        /// L'API pubblica Pokémon TCG restituisce spesso errori 5xx temporanei: fino a due nuovi tentativi.
+        /// </summary>
+        private async Task<HttpResponseMessage> GetWithRetryAsync(string path)
+        {
+            var delays = new[] { TimeSpan.FromMilliseconds(400), TimeSpan.FromMilliseconds(1200) };
+            for (var attempt = 0; ; attempt++)
+            {
+                var response = await _httpClient.GetAsync(path);
+                if ((int)response.StatusCode < 500 || attempt >= delays.Length) return response;
+                _logger.LogInformation("PokemonTCG GET {Path} -> {Status}, nuovo tentativo", path, (int)response.StatusCode);
+                response.Dispose();
+                await Task.Delay(delays[attempt]);
+            }
+        }
+
         private async Task<PokemonTcgResponse<List<T>>?> GetListAsync<T>(string path)
         {
             await ApplyApiKeyAsync();
@@ -250,7 +266,7 @@ namespace CardExchange.API.Services
 
             try
             {
-                var response = await _httpClient.GetAsync(path);
+                var response = await GetWithRetryAsync(path);
 
                 if (!response.IsSuccessStatusCode)
                 {

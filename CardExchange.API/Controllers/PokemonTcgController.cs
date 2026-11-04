@@ -17,6 +17,7 @@ namespace CardExchange.API.Controllers
     [Route("api/[controller]")]
     public class PokemonTcgController : ControllerBase
     {
+        private readonly CardExchange.API.Services.Catalog.PokemonCatalogProvider _catalogProvider;
         private readonly IPokemonTcgService _pokemonTcg;
         private readonly ApplicationDbContext _context;
         private readonly CardExchange.API.Services.Prices.ICatalogPriceRefresher _priceRefresher;
@@ -27,11 +28,13 @@ namespace CardExchange.API.Controllers
         private const int PriceStalenessHours = 12;
 
         public PokemonTcgController(
+            CardExchange.API.Services.Catalog.PokemonCatalogProvider catalogProvider,
             IPokemonTcgService pokemonTcg,
             ApplicationDbContext context,
             CardExchange.API.Services.Prices.ICatalogPriceRefresher priceRefresher,
             ILogger<PokemonTcgController> logger)
         {
+            _catalogProvider = catalogProvider;
             _pokemonTcg = pokemonTcg;
             _context = context;
             _priceRefresher = priceRefresher;
@@ -146,59 +149,16 @@ namespace CardExchange.API.Controllers
             if (string.IsNullOrWhiteSpace(request.PokemonTcgId))
                 return BadRequest(new { message = "PokemonTcgId è obbligatorio" });
 
-            // Verifica se esiste già nel DB
-            var existingCardInfo = await _context.CardInfos
-                .FirstOrDefaultAsync(ci => ci.PokemonTcgId == request.PokemonTcgId);
+            // La logica di import è nel provider di catalogo, condivisa con import CSV e catalogo generico
+            var result = await _catalogProvider.ImportAsync(request.PokemonTcgId);
+            if (result == null)
+                return NotFound(new { message = "Carta non trovata nel catalogo" });
 
-            if (existingCardInfo != null && !IsStale(existingCardInfo.PokemonTcgUpdatedAt))
+            return Ok(new
             {
-                return Ok(new
-                {
-                    message = "Carta già presente nel DB",
-                    cardInfoId = existingCardInfo.Id,
-                    isNew = false
-                });
-            }
-
-            // Chiama API
-            var apiCard = await _pokemonTcg.GetCardByIdAsync(request.PokemonTcgId);
-            if (apiCard == null)
-                return NotFound(new { message = $"Carta '{request.PokemonTcgId}' non trovata nell'API Pokémon TCG" });
-
-            // Trova o crea il Game Pokémon TCG
-            var pokemonGame = await EnsurePokemonGameAsync();
-
-            // Trova o crea il CardSet
-            var cardSet = await EnsureCardSetAsync(apiCard, pokemonGame.Id);
-
-            if (existingCardInfo != null)
-            {
-                // Aggiorna
-                _pokemonTcg.MapToCardInfo(apiCard, existingCardInfo);
-                await _context.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    message = "Carta aggiornata",
-                    cardInfoId = existingCardInfo.Id,
-                    isNew = false
-                });
-            }
-
-            // Crea nuova CardInfo
-            var cardInfo = new CardInfo { CardSetId = cardSet.Id };
-            _pokemonTcg.MapToCardInfo(apiCard, cardInfo);
-            _context.CardInfos.Add(cardInfo);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Carta Pokémon importata: {Name} ({SetId} #{Number}) -> CardInfo ID {Id}",
-                apiCard.Name, apiCard.Set?.Id, apiCard.Number, cardInfo.Id);
-
-            return CreatedAtAction(nameof(GetCard), new { pokemonTcgId = request.PokemonTcgId }, new
-            {
-                message = "Carta importata con successo",
-                cardInfoId = cardInfo.Id,
-                isNew = true
+                message = result.IsNew ? "Carta importata con successo" : "Carta già presente nel DB",
+                cardInfoId = result.CardInfoId,
+                isNew = result.IsNew
             });
         }
 
@@ -438,29 +398,6 @@ namespace CardExchange.API.Controllers
             _context.Games.Add(game);
             await _context.SaveChangesAsync();
             return game;
-        }
-
-        private async Task<CardSet> EnsureCardSetAsync(PokemonTcgCard apiCard, int gameId)
-        {
-            if (apiCard.Set == null)
-                throw new ArgumentException("La carta non ha informazioni sul set");
-
-            var setId = apiCard.Set.Id;
-            var cardSet = await _context.CardSets
-                .FirstOrDefaultAsync(cs => cs.PokemonTcgId == setId && cs.GameId == gameId);
-
-            if (cardSet != null)
-            {
-                _pokemonTcg.MapToCardSet(apiCard.Set, cardSet);
-                await _context.SaveChangesAsync();
-                return cardSet;
-            }
-
-            cardSet = new CardSet { GameId = gameId };
-            _pokemonTcg.MapToCardSet(apiCard.Set, cardSet);
-            _context.CardSets.Add(cardSet);
-            await _context.SaveChangesAsync();
-            return cardSet;
         }
 
         private async Task<CardSet?> EnsureCardSetFromApiAsync(string setId, int gameId)

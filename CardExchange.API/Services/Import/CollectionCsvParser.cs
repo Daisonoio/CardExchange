@@ -6,7 +6,7 @@ using CardExchange.Core.Entities;
 
 namespace CardExchange.API.Services.Import
 {
-    public enum ImportField { Name, SetCode, SetName, Edition, CollectorNumber, ScryfallId, Quantity, Condition, Language, Finish }
+    public enum ImportField { Name, SetCode, SetName, Edition, CollectorNumber, ScryfallId, Quantity, Condition, Language, Finish, Game }
 
     public class ParsedCollectionRow
     {
@@ -16,6 +16,8 @@ namespace CardExchange.API.Services.Import
         public string? SetName { get; set; }
         public string? CollectorNumber { get; set; }
         public string? ScryfallId { get; set; }
+        /// <summary>Gioco indicato nel file (es. export di CardExchange con più giochi).</summary>
+        public string? Game { get; set; }
         public int Quantity { get; set; } = 1;
         public CardCondition Condition { get; set; } = CardCondition.NearMint;
         public string? Language { get; set; }
@@ -56,6 +58,7 @@ namespace CardExchange.API.Services.Import
             ["quantity"] = ImportField.Quantity, ["count"] = ImportField.Quantity, ["qty"] = ImportField.Quantity, ["quantita"] = ImportField.Quantity, ["amount"] = ImportField.Quantity,
             ["condition"] = ImportField.Condition, ["condizione"] = ImportField.Condition,
             ["language"] = ImportField.Language, ["lang"] = ImportField.Language, ["lingua"] = ImportField.Language,
+            ["game"] = ImportField.Game, ["gioco"] = ImportField.Game,
             ["foil"] = ImportField.Finish, ["isfoil"] = ImportField.Finish, ["printing"] = ImportField.Finish, ["finish"] = ImportField.Finish, ["finitura"] = ImportField.Finish,
         };
 
@@ -160,6 +163,7 @@ namespace CardExchange.API.Services.Import
                     SetName = Get(ImportField.SetName),
                     CollectorNumber = Get(ImportField.CollectorNumber),
                     ScryfallId = Get(ImportField.ScryfallId)?.ToLowerInvariant(),
+                    Game = Get(ImportField.Game),
                 };
 
                 // "Set"/"Edition" può essere un codice (neo) o un nome (Kamigawa: Neon Dynasty)
@@ -201,7 +205,9 @@ namespace CardExchange.API.Services.Import
                 var finish = Get(ImportField.Finish);
                 if (finish != null) row.Finish = ParseFinish(finish);
 
-                if (row.Name == null && row.ScryfallId == null)
+                // Senza nome bastano altri riferimenti (set + numero, codice di stampa come LOB-EN001 o OP01-001):
+                // decide il catalogo del gioco se sono sufficienti
+                if (row.Name == null && row.ScryfallId == null && row.SetCode == null && row.SetName == null && row.CollectorNumber == null)
                     row.Error ??= "Nome della carta mancante";
 
                 result.Rows.Add(row);

@@ -320,8 +320,8 @@ export const priceTracking = {
 
 // === Import collezione (CSV, Magic) ===
 export const collectionImport = {
-  preview: (csv: string) =>
-    client.post<import('../types').ImportPreview>('/import/collection/preview', { csv }, { timeout: 180_000 }),
+  preview: (csv: string, catalogKey?: string) =>
+    client.post<import('../types').ImportPreview>('/import/collection/preview', { csv, catalogKey }, { timeout: 300_000 }),
   commit: (rows: import('../types').ImportCommitRow[], isAvailableForTrade: boolean) =>
     client.post<import('../types').ImportCommitResult>('/import/collection/commit', { rows, isAvailableForTrade }, { timeout: 300_000 }),
 };
@@ -437,4 +437,27 @@ export async function downloadExport(path: 'collection/csv' | 'collection/json' 
 export const advancedSearch = {
   search: (params: import('../types').AdvancedSearchParams) =>
     client.post<import('../types').AdvancedSearchResponse>('/search/advanced', params),
+};
+
+// === Catalogo comune ai giochi gestiti da provider (es. Lorcana) ===
+export interface CatalogCardDto {
+  externalId: string;
+  name: string;
+  subtitle?: string;
+  setCode?: string;
+  setName?: string;
+  number?: string;
+  rarity?: string;
+  imageSmall?: string;
+  imageLarge?: string;
+  priceEur?: number;
+  priceEurFoil?: number;
+  priceConverted?: boolean;
+}
+
+export const catalog = {
+  providers: () => client.get<{ key: string; gameName: string; importHint: string }[]>('/catalog/providers'),
+  search: (key: string, q: string) => client.get<{ cards: CatalogCardDto[] }>(`/catalog/${key}/search`, { params: { q } }),
+  importCard: (key: string, externalId: string) =>
+    client.post<{ cardInfoId: number; isNew: boolean }>(`/catalog/${key}/import`, { externalId }),
 };
