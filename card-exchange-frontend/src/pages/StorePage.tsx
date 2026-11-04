@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, CalendarDays, Clock, Globe, Instagram, Loader2, MapPin, Phone, ShieldCheck, Sparkles } from 'lucide-react';
 import { events, stores } from '../api';
 import type { CardEvent, Store } from '../types';
@@ -9,15 +10,16 @@ import { useGame } from '../context/GameContext';
 import StoresMap from '../components/stores/StoresMap';
 import EmptyState from '../components/ui/EmptyState';
 
-const STATUS_LABEL: Record<Store['status'], { text: string; cls: string }> = {
-  Pending: { text: 'In attesa di verifica', cls: 'bg-amber-50 text-amber-700' },
-  Verified: { text: 'Verificato', cls: 'bg-green-50 text-green-700' },
-  Rejected: { text: 'Non approvato', cls: 'bg-red-50 text-red-700' },
-  Suspended: { text: 'Sospeso', cls: 'bg-gray-100 text-gray-600' },
+const STATUS_LABEL: Record<Store['status'], { textKey: string; cls: string }> = {
+  Pending: { textKey: 'page.status.Pending', cls: 'bg-amber-50 text-amber-700' },
+  Verified: { textKey: 'page.status.Verified', cls: 'bg-green-50 text-green-700' },
+  Rejected: { textKey: 'page.status.Rejected', cls: 'bg-red-50 text-red-700' },
+  Suspended: { textKey: 'page.status.Suspended', cls: 'bg-gray-100 text-gray-600' },
 };
 
 /** Scheda pubblica di un negozio. */
 export default function StorePage() {
+  const { t } = useTranslation('stores');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { games } = useGame();
@@ -30,7 +32,7 @@ export default function StorePage() {
   }, [id]);
 
   if (store === undefined) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>;
-  if (store === null) return <EmptyState icon={MapPin} title="Negozio non trovato" description="La scheda non esiste o non è ancora verificata." />;
+  if (store === null) return <EmptyState icon={MapPin} title={t('page.notFoundTitle')} description={t('page.notFoundDescription')} />;
 
   const gameNames = games.filter((g) => store.gameIds.includes(g.id)).map((g) => g.name);
   const directions = `https://www.openstreetmap.org/directions?to=${store.latitude}%2C${store.longitude}`;
@@ -38,40 +40,40 @@ export default function StorePage() {
   return (
     <div className="pb-24 space-y-4">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} aria-label="Indietro" className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center shrink-0">
+        <button onClick={() => navigate(-1)} aria-label={t('common:actions.back')} className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center shrink-0">
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-text truncate">{store.name}</h1>
           {store.isFeatured && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700"><Sparkles size={12} /> Negozio in evidenza</span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700"><Sparkles size={12} /> {t('page.featured')}</span>
           )}
           <p className="text-sm text-text-secondary truncate">{store.city}{store.province ? ` (${store.province})` : ''}</p>
         </div>
         {store.isOwner && (
-          <Link to={`/stores/${store.id}/edit`} className="text-xs font-semibold text-primary hover:underline shrink-0">Modifica</Link>
+          <Link to={`/stores/${store.id}/edit`} className="text-xs font-semibold text-primary hover:underline shrink-0">{t('page.edit')}</Link>
         )}
       </div>
 
       {(store.isOwner || store.status !== 'Verified') && (
         <div className={`p-3 rounded-xl text-sm ${STATUS_LABEL[store.status].cls}`}>
-          <strong>{STATUS_LABEL[store.status].text}</strong>
+          <strong>{t(STATUS_LABEL[store.status].textKey)}</strong>
           {store.reviewNote && <span> · {store.reviewNote}</span>}
-          {store.status === 'Pending' && <span className="block text-xs mt-0.5">Finché non è verificato, il negozio è visibile solo a te.</span>}
+          {store.status === 'Pending' && <span className="block text-xs mt-0.5">{t('page.pendingNote')}</span>}
         </div>
       )}
 
       {store.isOwner && store.status === 'Verified' && !store.isFeatured && (
         <Link to="/premium?for=store" className="block p-3 rounded-xl bg-secondary/10 text-sm text-text hover:bg-secondary/20">
-          <strong className="flex items-center gap-1"><Sparkles size={14} className="text-amber-700" /> Metti il negozio in evidenza</strong>
-          <span className="text-xs text-text-secondary">Con il piano Negozio la tua scheda compare in cima all'elenco dei negozi vicini.</span>
+          <strong className="flex items-center gap-1"><Sparkles size={14} className="text-amber-700" /> {t('page.promoteTitle')}</strong>
+          <span className="text-xs text-text-secondary">{t('page.promoteDescription')}</span>
         </Link>
       )}
 
       {store.isSafeMeetupSpot && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-green-50 text-green-800 text-sm">
           <ShieldCheck size={18} className="shrink-0" />
-          Punto d'incontro consigliato per gli scambi di persona
+          {t('page.safeMeetupSpot')}
         </div>
       )}
 
@@ -84,7 +86,7 @@ export default function StorePage() {
           <MapPin size={16} className="mt-0.5 text-primary shrink-0" />
           <div className="flex-1">
             {store.address}, {store.postalCode ? `${store.postalCode} ` : ''}{store.city}
-            <a href={directions} target="_blank" rel="noopener noreferrer" className="block text-xs font-semibold text-primary hover:underline">Indicazioni stradali</a>
+            <a href={directions} target="_blank" rel="noopener noreferrer" className="block text-xs font-semibold text-primary hover:underline">{t('page.directions')}</a>
           </div>
         </li>
         {store.openingHours && <li className="flex items-start gap-3 p-3"><Clock size={16} className="mt-0.5 text-primary shrink-0" />{store.openingHours}</li>}
@@ -101,20 +103,20 @@ export default function StorePage() {
 
       <section className="bg-white rounded-2xl border border-border p-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold flex items-center gap-2"><CalendarDays size={16} className="text-primary" /> Eventi in programma</h2>
+          <h2 className="text-sm font-semibold flex items-center gap-2"><CalendarDays size={16} className="text-primary" /> {t('page.upcomingEvents')}</h2>
           {store.isOwner && store.status === 'Verified' && (
-            <Link to="/events/new" className="text-xs font-semibold text-primary hover:underline">Crea evento</Link>
+            <Link to="/events/new" className="text-xs font-semibold text-primary hover:underline">{t('page.createEvent')}</Link>
           )}
         </div>
         {storeEvents.length === 0 ? (
-          <p className="text-xs text-text-muted mt-1">Nessun evento in programma.</p>
+          <p className="text-xs text-text-muted mt-1">{t('page.noEvents')}</p>
         ) : (
           <ul className="mt-2 space-y-1">
             {storeEvents.map((e) => (
               <li key={e.id}>
                 <Link to={`/events/${e.id}`} className="block p-2 rounded-xl hover:bg-surface-dark">
                   <span className="block text-sm font-medium">{e.title}</span>
-                  <span className="block text-xs text-text-muted">{EVENT_TYPE_LABELS[e.type] ?? e.type} · {formatEventDate(e.startDate)} · {e.participantCount} partecipanti</span>
+                  <span className="block text-xs text-text-muted">{EVENT_TYPE_LABELS[e.type] ?? e.type} · {formatEventDate(e.startDate)} · {t('page.participants', { count: e.participantCount })}</span>
                 </Link>
               </li>
             ))}

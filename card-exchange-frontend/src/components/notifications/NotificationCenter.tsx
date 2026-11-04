@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Bell, Check, CheckCheck, Trash2, Settings, X } from 'lucide-react';
 import { notifications } from '../../api';
 import type { Notification } from '../../types';
@@ -8,6 +9,7 @@ import { usePolling } from '../../hooks/usePolling';
 import { useSignalR } from '../../hooks/useSignalR';
 import NotificationPreferences from './NotificationPreferences';
 import BottomSheet from '../ui/BottomSheet';
+import { useFormat } from '../../i18n/format';
 
 const POLL_INTERVAL = 10_000;
 
@@ -38,6 +40,8 @@ export default function NotificationCenter({
   onUnreadCountChange,
   variant = 'sheet',
 }: NotificationCenterProps) {
+  const { t } = useTranslation('notifications');
+  const { date } = useFormat();
   const navigate = useNavigate();
   const [items, setItems] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -126,7 +130,7 @@ export default function NotificationCenter({
     <div className="space-y-2">
       <div className="flex items-center justify-between mb-2">
         {unreadCount > 0 && (
-          <span className="text-xs text-text-muted">{unreadCount} non lette</span>
+          <span className="text-xs text-text-muted">{t('center.unread', { count: unreadCount })}</span>
         )}
         <div className="flex items-center gap-2 ml-auto">
           {unreadCount > 0 && (
@@ -134,13 +138,13 @@ export default function NotificationCenter({
               onClick={handleMarkAllRead}
               className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
             >
-              <CheckCheck size={12} /> Segna tutte
+              <CheckCheck size={12} /> {t('center.markAll')}
             </button>
           )}
           <button
             onClick={() => setShowPreferences(true)}
             className="p-1.5 rounded-lg text-text-muted hover:bg-gray-100 hover:text-text"
-            title="Preferenze notifiche"
+            title={t('preferences.title')}
           >
             <Settings size={14} />
           </button>
@@ -156,7 +160,7 @@ export default function NotificationCenter({
       ) : items.length === 0 ? (
         <div className="text-center py-8">
           <Bell size={32} className="mx-auto text-text-muted mb-2" />
-          <p className="text-sm text-text-muted">Nessuna notifica</p>
+          <p className="text-sm text-text-muted">{t('center.empty')}</p>
         </div>
       ) : (
         items.map((notification) => {
@@ -187,7 +191,7 @@ export default function NotificationCenter({
                   <p className="text-[11px] text-text-muted mt-0.5 line-clamp-2">{notification.body}</p>
                 )}
                 <p className="text-[10px] text-text-muted mt-1">
-                  {new Date(notification.createdAt).toLocaleDateString('it-IT', {
+                  {date(notification.createdAt, {
                     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
                   })}
                 </p>
@@ -197,7 +201,7 @@ export default function NotificationCenter({
                   <button
                     onClick={() => handleMarkAsRead(notification.id)}
                     className="p-1 rounded text-primary hover:bg-primary/10"
-                    title="Segna come letta"
+                    title={t('center.markRead')}
                   >
                     <Check size={12} />
                   </button>
@@ -205,7 +209,7 @@ export default function NotificationCenter({
                 <button
                   onClick={() => handleDelete(notification.id)}
                   className="p-1 rounded text-text-muted hover:bg-red-50 hover:text-red-500"
-                  title="Elimina"
+                  title={t('center.delete')}
                 >
                   <Trash2 size={12} />
                 </button>
@@ -231,7 +235,7 @@ export default function NotificationCenter({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 shrink-0">
-                <h2 className="text-base font-bold text-text">Notifiche</h2>
+                <h2 className="text-base font-bold text-text">{t('center.title')}</h2>
                 <button
                   onClick={onClose}
                   className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-surface-dark transition-colors"
@@ -246,7 +250,7 @@ export default function NotificationCenter({
           </>
         ) : null
       ) : (
-        <BottomSheet open={open} onClose={onClose} title="Notifiche">
+        <BottomSheet open={open} onClose={onClose} title={t('center.title')}>
           {listContent}
         </BottomSheet>
       )}

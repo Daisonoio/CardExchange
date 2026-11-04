@@ -1,0 +1,19 @@
+{
+  "welcome": "Benvenuto",
+  "greeting": "Ciao, {{name}}!",
+  "locationPrompt": {
+    "title": "Imposta la tua posizione",
+    "description": "Per vedere le carte disponibili nelle tue vicinanze, devi impostare la tua posizione.",
+    "setInProfile": "Imposta nel profilo",
+    "useCurrent": "Usa posizione attuale"
+  },
+  "nearby": {
+    "title": "Nelle vicinanze",
+    "results_one": "{{count}} risultato",
+    "results_other": "{{count}} risultati"
+  },
+  "empty": {
+    "title": "Nessuna carta trovata",
+    "description": "Non ci sono carte dalla tua wishlist disponibili nel raggio di ricerca. Prova ad aggiungere carte alla wishlist o ad aumentare il raggio."
+  }
+}

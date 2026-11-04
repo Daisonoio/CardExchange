@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
 import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation, Map, Settings, SlidersHorizontal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { cards, users, favorites } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { useGame } from '../context/GameContext';
@@ -15,6 +16,7 @@ const LocationPicker = lazy(() => import('../components/map/LocationPicker'));
 type Tab = 'cards' | 'users' | 'zone';
 
 export default function ExplorePage() {
+  const { t } = useTranslation('explore');
   const { user: currentUser } = useAuth();
   const { selectedGameId } = useGame();
   const navigate = useNavigate();
@@ -174,19 +176,19 @@ export default function ExplorePage() {
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
       <div className="flex items-center gap-2 mb-2">
         <MapPin size={16} className="text-primary" />
-        <h2 className="text-sm font-bold text-text">Imposta la tua posizione</h2>
+        <h2 className="text-sm font-bold text-text">{t('locationPrompt.title')}</h2>
       </div>
       <p className="text-sm text-text-secondary mb-4">
-        Per vedere le carte disponibili nelle tue vicinanze, devi impostare la tua posizione.
+        {t('locationPrompt.description')}
       </p>
       <div className="space-y-2.5">
         <Button onClick={() => navigate('/profile/edit')} variant="outline" className="w-full">
           <Settings size={14} />
-          Imposta nel profilo
+          {t('locationPrompt.setInProfile')}
         </Button>
         <Button onClick={requestPosition} className="w-full" isLoading={geoLoading}>
           <Navigation size={14} />
-          Usa posizione attuale
+          {t('locationPrompt.useCurrent')}
         </Button>
       </div>
     </div>
@@ -196,14 +198,14 @@ export default function ExplorePage() {
     <div>
       <div className="flex items-start justify-between gap-2 mb-4">
         <div>
-          <h1 className="text-xl font-bold text-text mb-1">Esplora</h1>
-          <p className="text-sm text-text-secondary">Trova carte e collezionisti</p>
+          <h1 className="text-xl font-bold text-text mb-1">{t('title')}</h1>
+          <p className="text-sm text-text-secondary">{t('subtitle')}</p>
         </div>
         <button
           onClick={() => navigate('/search')}
           className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-white text-xs font-semibold text-primary"
         >
-          <SlidersHorizontal size={13} /> Ricerca avanzata
+          <SlidersHorizontal size={13} /> {t('advancedSearch')}
         </button>
       </div>
 
@@ -218,7 +220,7 @@ export default function ExplorePage() {
           }`}
         >
           <ArrowLeftRight size={12} />
-          Carte
+          {t('tabs.cards')}
         </button>
         <button
           onClick={() => setTab('zone')}
@@ -229,7 +231,7 @@ export default function ExplorePage() {
           }`}
         >
           <Map size={12} />
-          Zona
+          {t('tabs.zone')}
         </button>
         <button
           onClick={() => setTab('users')}
@@ -240,7 +242,7 @@ export default function ExplorePage() {
           }`}
         >
           <MapPin size={12} />
-          Utenti
+          {t('tabs.users')}
         </button>
       </div>
 
@@ -254,10 +256,10 @@ export default function ExplorePage() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Navigation size={16} className="text-primary" />
-                    <span className="text-sm font-medium">Raggio di ricerca</span>
+                    <span className="text-sm font-medium">{t('cards.radius')}</span>
                   </div>
                   <span className="text-xs text-accent font-medium">
-                    {hasProfileLocation ? 'Posizione profilo' : 'Posizione attuale'}
+                    {hasProfileLocation ? t('cards.profileLocation') : t('cards.currentLocation')}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -278,7 +280,7 @@ export default function ExplorePage() {
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
-                  placeholder="Cerca tra le carte nelle vicinanze..."
+                  placeholder={t('cards.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -292,17 +294,17 @@ export default function ExplorePage() {
               ) : filteredCards.length === 0 ? (
                 <EmptyState
                   icon={Compass}
-                  title="Nessuna carta trovata"
+                  title={t('cards.emptyTitle')}
                   description={
                     searchTerm
-                      ? `Nessuna carta "${searchTerm}" trovata entro ${effectiveRadius} km`
-                      : `Nessuna carta disponibile entro ${effectiveRadius} km. Prova ad aumentare il raggio.`
+                      ? t('cards.emptySearch', { term: searchTerm, radius: effectiveRadius })
+                      : t('cards.emptyDescription', { radius: effectiveRadius })
                   }
                 />
               ) : (
                 <div className="space-y-2">
                   <p className="text-xs text-text-muted mb-2">
-                    {filteredCards.length} carte disponibili entro {effectiveRadius} km
+                    {t('cards.count', { count: filteredCards.length, radius: effectiveRadius })}
                   </p>
                   {filteredCards.map((card) => (
                     <CardItem key={card.id} card={card} showUser onClick={handleCardClick} />
@@ -340,7 +342,7 @@ export default function ExplorePage() {
               disabled={!zoneCoords}
             >
               <Search size={16} />
-              Cerca carte in questa zona
+              {t('zone.search')}
             </Button>
           </div>
 
@@ -353,7 +355,7 @@ export default function ExplorePage() {
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     type="text"
-                    placeholder="Filtra risultati..."
+                    placeholder={t('zone.filterPlaceholder')}
                     value={zoneSearchTerm}
                     onChange={(e) => setZoneSearchTerm(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
@@ -368,14 +370,16 @@ export default function ExplorePage() {
               ) : filteredZoneCards.length === 0 ? (
                 <EmptyState
                   icon={Map}
-                  title="Nessuna carta trovata"
-                  description={`Nessuna carta disponibile entro ${zoneRadius} km${zoneLabel ? ` da ${zoneLabel}` : ''}. Prova ad aumentare il raggio.`}
+                  title={t('cards.emptyTitle')}
+                  description={zoneLabel
+                    ? t('zone.emptyDescriptionFrom', { radius: zoneRadius, place: zoneLabel })
+                    : t('zone.emptyDescription', { radius: zoneRadius })}
                 />
               ) : (
                 <div className="space-y-2">
                   <p className="text-xs text-text-muted mb-2">
-                    {filteredZoneCards.length} carte trovate entro {zoneRadius} km
-                    {zoneLabel && ` da ${zoneLabel}`}
+                    {t('zone.count', { count: filteredZoneCards.length, radius: zoneRadius })}
+                    {zoneLabel && t('zone.fromPlace', { place: zoneLabel })}
                   </p>
                   {filteredZoneCards.map((card) => (
                     <CardItem key={card.id} card={card} showUser onClick={handleCardClick} />
@@ -398,13 +402,13 @@ export default function ExplorePage() {
           ) : nearbyUsers.length === 0 ? (
             <EmptyState
               icon={MapPin}
-              title="Nessun utente trovato"
-              description={`Nessun collezionista trovato entro ${effectiveRadius} km. Prova ad aumentare il raggio.`}
+              title={t('users.emptyTitle')}
+              description={t('users.emptyDescription', { radius: effectiveRadius })}
             />
           ) : (
             <div className="space-y-2">
               <p className="text-xs text-text-muted mb-2">
-                {nearbyUsers.length} utenti entro {effectiveRadius} km
+                {t('users.count', { count: nearbyUsers.length, radius: effectiveRadius })}
               </p>
               {nearbyUsers.map((user) => (
                 <div key={user.id} className="bg-white rounded-2xl p-4 shadow-sm border border-border/50">
@@ -425,7 +429,7 @@ export default function ExplorePage() {
                       </p>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="text-xs text-text-muted">
-                          {user.totalTradesCompleted ?? 0} scambi
+                          {t('users.trades', { count: user.totalTradesCompleted ?? 0 })}
                         </span>
                         <span className="text-xs text-secondary font-medium">
                           {(user.reputationScore ?? 0).toFixed(1)} rep

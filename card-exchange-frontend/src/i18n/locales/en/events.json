@@ -1,0 +1,79 @@
+{
+  "local": {
+    "title": "Near you",
+    "tabs": { "events": "Events", "stores": "Stores" }
+  },
+  "list": {
+    "loadError": "Couldn't load events.",
+    "modes": { "nearby": "Near me", "all": "All upcoming" },
+    "organize": "Organise an event",
+    "unavailable": "Nearby events unavailable",
+    "emptyTitle": "No upcoming events",
+    "emptyDescription": "Organise one: all a trade night needs is a table and a few collectors.",
+    "participants_one": "{{count}} participant",
+    "participants_other": "{{count}} participants",
+    "participantsMax_one": "{{count}}/{{max}} participants",
+    "participantsMax_other": "{{count}}/{{max}} participants",
+    "joined": "· Joined"
+  },
+  "detail": {
+    "notFoundTitle": "Event not found",
+    "notFoundDescription": "It may have been cancelled.",
+    "actionError": "Something went wrong.",
+    "organizedBy": "organised by @{{username}}",
+    "cancelled": "Event cancelled",
+    "openMap": "Open in map",
+    "participants_one": "{{count}} participant",
+    "participants_other": "{{count}} participants",
+    "participantsMax_one": "{{count}} of {{max}} participants",
+    "participantsMax_other": "{{count}} of {{max}} participants",
+    "leave": "Cancel my attendance",
+    "full": "Fully booked",
+    "join": "Join",
+    "cancelConfirm": "Cancel the event? Participants will be notified.",
+    "cancel": "Cancel event",
+    "shareText": "Come to \"{{title}}\" with me on CardExchange!",
+    "linkCopied": "Event link copied to clipboard",
+    "invite": "Invite friends to this event",
+    "whoIsGoing": "Who's going"
+  },
+  "form": {
+    "title": "Organise an event",
+    "createError": "Couldn't create the event.",
+    "fields": {
+      "title": "Title",
+      "titlePlaceholder": "e.g. Pokémon trade night",
+      "type": "Type",
+      "description": "Description",
+      "descriptionPlaceholder": "Schedule, entry fee, what to bring…",
+      "start": "Start",
+      "duration": "Duration (hours)",
+      "maxParticipants": "Max spots (optional)"
+    },
+    "where": "Where",
+    "place": "Venue",
+    "otherPlace": "Other venue…",
+    "games": "Games",
+    "publish": "Publish event"
+  },
+  "tradeNight": {
+    "actionError": "Something went wrong.",
+    "title": "Trade night",
+    "present_one": "{{count}} here",
+    "present_other": "{{count}} here",
+    "opensAt": "Check-in opens at {{time}}: once you're there, check in to see who's around and who you can trade with.",
+    "ended": "The trade night is over.",
+    "checkInHint": "Are you there? Check in to see who's here and which cards you can trade. Others will only see you after you check in.",
+    "checkIn": "I'm here, check in",
+    "first": "You're the first! Other attendees will show up here.",
+    "mutual": "Mutual trade",
+    "noMatch": "No cards in common with your wishlists.",
+    "theyHave_one": "Has {{count}} card you're looking for",
+    "theyHave_other": "Has {{count}} cards you're looking for",
+    "iHave_one": "Looking for one of your cards: {{names}}",
+    "iHave_other": "Looking for {{count}} of your cards: {{names}}",
+    "propose": "Propose trade",
+    "autoRefresh": "Auto-refreshes every 30 seconds",
+    "checkOut": "Leave trade night"
+  }
+}

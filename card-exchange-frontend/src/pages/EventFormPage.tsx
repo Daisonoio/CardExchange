@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import { events, stores } from '../api';
 import type { Store } from '../types';
@@ -17,6 +18,7 @@ const toLocalInput = (d: Date) => {
 
 /** Creazione di un evento: in un proprio negozio verificato o in un luogo indicato sulla mappa. */
 export default function EventFormPage() {
+  const { t } = useTranslation('events');
   const navigate = useNavigate();
   const { games } = useGame();
   const [myStores, setMyStores] = useState<Store[]>([]);
@@ -65,7 +67,7 @@ export default function EventFormPage() {
       });
       navigate(`/events/${data.id}`, { replace: true });
     } catch (err) {
-      setError(apiErrorMessage(err, 'Creazione non riuscita.'));
+      setError(apiErrorMessage(err, t('form.createError')));
     } finally {
       setBusy(false);
     }
@@ -77,44 +79,44 @@ export default function EventFormPage() {
   return (
     <div className="pb-24 space-y-4">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} aria-label="Indietro" className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center">
+        <button onClick={() => navigate(-1)} aria-label={t('common:actions.back')} className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center">
           <ArrowLeft size={18} />
         </button>
-        <h1 className="text-xl font-bold text-text">Organizza un evento</h1>
+        <h1 className="text-xl font-bold text-text">{t('form.title')}</h1>
       </div>
 
       <section className="space-y-2 bg-white rounded-2xl border border-border p-3">
-        <label className={label}>Titolo
-          <input value={form.title} maxLength={200} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Es. Serata di scambio Pokémon" className={inputCls} />
+        <label className={label}>{t('form.fields.title')}
+          <input value={form.title} maxLength={200} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('form.fields.titlePlaceholder')} className={inputCls} />
         </label>
-        <label className={label}>Tipo
+        <label className={label}>{t('form.fields.type')}
           <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className={inputCls}>
             {Object.entries(EVENT_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         </label>
-        <label className={label}>Descrizione
-          <textarea value={form.description} maxLength={2000} rows={3} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Programma, costo d'ingresso, cosa portare…" className={`${inputCls} resize-none`} />
+        <label className={label}>{t('form.fields.description')}
+          <textarea value={form.description} maxLength={2000} rows={3} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder={t('form.fields.descriptionPlaceholder')} className={`${inputCls} resize-none`} />
         </label>
         <div className="grid grid-cols-3 gap-2">
-          <label className={`${label} col-span-2`}>Inizio
+          <label className={`${label} col-span-2`}>{t('form.fields.start')}
             <input type="datetime-local" value={form.start} min={toLocalInput(new Date())} onChange={(e) => setForm({ ...form, start: e.target.value })} className={inputCls} />
           </label>
-          <label className={label}>Durata (ore)
+          <label className={label}>{t('form.fields.duration')}
             <input type="number" min={1} max={72} value={form.durationHours} onChange={(e) => setForm({ ...form, durationHours: Math.max(1, Number(e.target.value)) })} className={inputCls} />
           </label>
         </div>
-        <label className={label}>Posti massimi (facoltativo)
+        <label className={label}>{t('form.fields.maxParticipants')}
           <input type="number" min={2} value={form.maxParticipants} onChange={(e) => setForm({ ...form, maxParticipants: e.target.value })} className={inputCls} />
         </label>
       </section>
 
       <section className="space-y-2 bg-white rounded-2xl border border-border p-3">
-        <h2 className="text-sm font-semibold">Dove</h2>
+        <h2 className="text-sm font-semibold">{t('form.where')}</h2>
         {myStores.length > 0 && (
-          <label className={label}>Luogo
+          <label className={label}>{t('form.place')}
             <select value={form.storeId} onChange={(e) => setForm({ ...form, storeId: Number(e.target.value) })} className={inputCls}>
               {myStores.map((s) => <option key={s.id} value={s.id}>{s.name} — {s.city}</option>)}
-              <option value={0}>Altro luogo…</option>
+              <option value={0}>{t('form.otherPlace')}</option>
             </select>
           </label>
         )}
@@ -126,7 +128,7 @@ export default function EventFormPage() {
       </section>
 
       <section className="space-y-2 bg-white rounded-2xl border border-border p-3">
-        <h2 className="text-sm font-semibold">Giochi</h2>
+        <h2 className="text-sm font-semibold">{t('form.games')}</h2>
         <div className="flex flex-wrap gap-1.5">
           {games.map((g) => {
             const on = form.gameIds.includes(g.id);
@@ -143,7 +145,7 @@ export default function EventFormPage() {
 
       {error && <p className="text-sm text-danger">{error}</p>}
       <Button className="w-full" onClick={submit} isLoading={busy} disabled={!form.title.trim() || !form.start || !hasPlace}>
-        Pubblica evento
+        {t('form.publish')}
       </Button>
     </div>
   );

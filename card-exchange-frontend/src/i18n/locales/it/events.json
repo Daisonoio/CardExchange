@@ -1,0 +1,79 @@
+{
+  "local": {
+    "title": "Vicino a te",
+    "tabs": { "events": "Eventi", "stores": "Negozi" }
+  },
+  "list": {
+    "loadError": "Impossibile caricare gli eventi.",
+    "modes": { "nearby": "Vicino a me", "all": "Tutti i prossimi" },
+    "organize": "Organizza un evento",
+    "unavailable": "Eventi vicini non disponibili",
+    "emptyTitle": "Nessun evento in programma",
+    "emptyDescription": "Organizzane uno: una serata di scambio basta un tavolo e qualche collezionista.",
+    "participants_one": "{{count}} partecipante",
+    "participants_other": "{{count}} partecipanti",
+    "participantsMax_one": "{{count}}/{{max}} partecipanti",
+    "participantsMax_other": "{{count}}/{{max}} partecipanti",
+    "joined": "· Iscritto"
+  },
+  "detail": {
+    "notFoundTitle": "Evento non trovato",
+    "notFoundDescription": "Potrebbe essere stato annullato.",
+    "actionError": "Operazione non riuscita.",
+    "organizedBy": "organizzato da @{{username}}",
+    "cancelled": "Evento annullato",
+    "openMap": "Apri nella mappa",
+    "participants_one": "{{count}} partecipante",
+    "participants_other": "{{count}} partecipanti",
+    "participantsMax_one": "{{count}} su {{max}} partecipanti",
+    "participantsMax_other": "{{count}} su {{max}} partecipanti",
+    "leave": "Annulla la partecipazione",
+    "full": "Posti esauriti",
+    "join": "Partecipa",
+    "cancelConfirm": "Annullare l'evento? I partecipanti riceveranno una notifica.",
+    "cancel": "Annulla evento",
+    "shareText": "Vieni a \"{{title}}\" con me su CardExchange!",
+    "linkCopied": "Link dell'evento copiato negli appunti",
+    "invite": "Invita amici a questo evento",
+    "whoIsGoing": "Chi partecipa"
+  },
+  "form": {
+    "title": "Organizza un evento",
+    "createError": "Creazione non riuscita.",
+    "fields": {
+      "title": "Titolo",
+      "titlePlaceholder": "Es. Serata di scambio Pokémon",
+      "type": "Tipo",
+      "description": "Descrizione",
+      "descriptionPlaceholder": "Programma, costo d'ingresso, cosa portare…",
+      "start": "Inizio",
+      "duration": "Durata (ore)",
+      "maxParticipants": "Posti massimi (facoltativo)"
+    },
+    "where": "Dove",
+    "place": "Luogo",
+    "otherPlace": "Altro luogo…",
+    "games": "Giochi",
+    "publish": "Pubblica evento"
+  },
+  "tradeNight": {
+    "actionError": "Operazione non riuscita.",
+    "title": "Serata di scambio",
+    "present_one": "{{count}} presente",
+    "present_other": "{{count}} presenti",
+    "opensAt": "Il check-in apre alle {{time}}: quando sei sul posto fai check-in per vedere chi c'è e con chi puoi scambiare.",
+    "ended": "La serata è terminata.",
+    "checkInHint": "Sei sul posto? Fai check-in: vedrai chi è presente e le carte che potete scambiarvi. Gli altri ti vedranno solo dopo il tuo check-in.",
+    "checkIn": "Sono qui, fai check-in",
+    "first": "Sei il primo! Gli altri presenti compariranno qui.",
+    "mutual": "Scambio reciproco",
+    "noMatch": "Nessuna carta in comune con le vostre wishlist.",
+    "theyHave_one": "Ha {{count}} carta che cerchi",
+    "theyHave_other": "Ha {{count}} carte che cerchi",
+    "iHave_one": "Cerca una tua carta: {{names}}",
+    "iHave_other": "Cerca {{count}} tue carte: {{names}}",
+    "propose": "Proponi scambio",
+    "autoRefresh": "Aggiornamento automatico ogni 30 secondi",
+    "checkOut": "Esci dalla serata"
+  }
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Circle, useMap, useMapEvents } from 'react-leaflet';
+import { useTranslation } from 'react-i18next';
 import { Search, MapPin, Loader2 } from 'lucide-react';
 import './leafletSetup';
 
@@ -45,6 +46,7 @@ export default function LocationPicker({
   initialRadius = 20,
   onLocationChange,
 }: LocationPickerProps) {
+  const { t } = useTranslation('map');
   const [lat, setLat] = useState(initialLat);
   const [lng, setLng] = useState(initialLng);
   const [radius, setRadius] = useState(initialRadius);
@@ -179,7 +181,7 @@ export default function LocationPicker({
               value={query}
               onChange={(e) => handleQueryChange(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Cerca una città (es. Pavia, Milano...)"
+              placeholder={t('location.searchPlaceholder')}
               className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
             {searching && (
@@ -246,7 +248,7 @@ export default function LocationPicker({
       {/* Radius slider */}
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="text-xs font-semibold text-text-secondary">Raggio di ricerca</label>
+          <label className="text-xs font-semibold text-text-secondary">{t('location.radius')}</label>
           <span className="text-xs font-bold text-primary">{radius} km</span>
         </div>
         <input

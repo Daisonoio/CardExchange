@@ -1,0 +1,19 @@
+{
+  "welcome": "Welcome",
+  "greeting": "Hi, {{name}}!",
+  "locationPrompt": {
+    "title": "Set your location",
+    "description": "To see cards available near you, you need to set your location.",
+    "setInProfile": "Set in profile",
+    "useCurrent": "Use current location"
+  },
+  "nearby": {
+    "title": "Nearby",
+    "results_one": "{{count}} result",
+    "results_other": "{{count}} results"
+  },
+  "empty": {
+    "title": "No cards found",
+    "description": "None of the cards on your wishlist are available within your search radius. Try adding cards to your wishlist or increasing the radius."
+  }
+}

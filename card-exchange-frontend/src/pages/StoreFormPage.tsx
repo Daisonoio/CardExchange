@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { stores } from '../api';
 import type { StoreInput } from '../types';
@@ -15,6 +16,7 @@ const EMPTY: StoreInput = {
 
 /** Inserimento (in attesa di verifica) o modifica della scheda di un negozio. */
 export default function StoreFormPage() {
+  const { t } = useTranslation('stores');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { games } = useGame();
@@ -31,9 +33,9 @@ export default function StoreFormPage() {
         const input = Object.fromEntries(Object.keys(EMPTY).map((k) => [k, data[k as keyof StoreInput] ?? EMPTY[k as keyof StoreInput]]));
         setForm(input as unknown as StoreInput);
       })
-      .catch(() => setError('Negozio non trovato'))
+      .catch(() => setError(t('form.notFound')))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, t]);
 
   const set = <K extends keyof StoreInput>(key: K, value: StoreInput[K]) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -44,7 +46,7 @@ export default function StoreFormPage() {
       const { data } = id ? await stores.update(Number(id), form) : await stores.create(form);
       navigate(`/stores/${data.id}`, { replace: true });
     } catch (err) {
-      setError(apiErrorMessage(err, 'Salvataggio non riuscito.'));
+      setError(apiErrorMessage(err, t('form.saveError')));
     } finally {
       setBusy(false);
     }
@@ -67,34 +69,34 @@ export default function StoreFormPage() {
   return (
     <div className="pb-24 space-y-4">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} aria-label="Indietro" className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center">
+        <button onClick={() => navigate(-1)} aria-label={t('common:actions.back')} className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center">
           <ArrowLeft size={18} />
         </button>
-        <h1 className="text-xl font-bold text-text">{id ? 'Modifica negozio' : 'Inserisci il tuo negozio'}</h1>
+        <h1 className="text-xl font-bold text-text">{id ? t('form.editTitle') : t('form.createTitle')}</h1>
       </div>
       {!id && (
         <p className="text-sm text-text-secondary">
-          Dopo l'invio un moderatore verifica la scheda: finché non è verificata è visibile solo a te.
+          {t('form.reviewNote')}
         </p>
       )}
 
       <section className="space-y-2 bg-white rounded-2xl border border-border p-3">
-        {input('name', 'Nome del negozio', 'Es. Games Corner')}
+        {input('name', t('form.fields.name'), t('form.fields.namePlaceholder'))}
         <label className="block text-xs font-semibold text-text-secondary">
-          Descrizione
+          {t('form.fields.description')}
           <textarea
             value={form.description ?? ''}
             onChange={(e) => set('description', e.target.value)}
             rows={3}
             maxLength={1000}
-            placeholder="Cosa offrite, tornei settimanali, area gioco…"
+            placeholder={t('form.fields.descriptionPlaceholder')}
             className="mt-1 w-full px-3 py-2 rounded-xl border border-border text-sm font-normal text-text resize-none"
           />
         </label>
       </section>
 
       <section className="bg-white rounded-2xl border border-border p-3">
-        <h2 className="text-sm font-semibold mb-2">Dove si trova</h2>
+        <h2 className="text-sm font-semibold mb-2">{t('form.location')}</h2>
         <AddressPicker
           value={{ address: form.address, city: form.city, province: form.province, postalCode: form.postalCode, latitude: form.latitude, longitude: form.longitude }}
           onChange={(v) => setForm((f) => ({ ...f, ...v }))}
@@ -102,15 +104,15 @@ export default function StoreFormPage() {
       </section>
 
       <section className="space-y-2 bg-white rounded-2xl border border-border p-3">
-        <h2 className="text-sm font-semibold">Contatti e orari</h2>
-        {input('openingHours', 'Orari', 'Lun-Sab 10-19, giovedì serata fino alle 23')}
-        {input('phone', 'Telefono')}
-        {input('website', 'Sito web', 'www.esempio.it')}
-        {input('instagram', 'Instagram', '@negozio')}
+        <h2 className="text-sm font-semibold">{t('form.contacts')}</h2>
+        {input('openingHours', t('form.fields.openingHours'), t('form.fields.openingHoursPlaceholder'))}
+        {input('phone', t('form.fields.phone'))}
+        {input('website', t('form.fields.website'), t('form.fields.websitePlaceholder'))}
+        {input('instagram', 'Instagram', t('form.fields.instagramPlaceholder'))}
       </section>
 
       <section className="space-y-2 bg-white rounded-2xl border border-border p-3">
-        <h2 className="text-sm font-semibold">Giochi trattati</h2>
+        <h2 className="text-sm font-semibold">{t('form.games')}</h2>
         <div className="flex flex-wrap gap-1.5">
           {games.map((g) => {
             const on = form.gameIds.includes(g.id);
@@ -134,8 +136,8 @@ export default function StoreFormPage() {
             onChange={(e) => set('isSafeMeetupSpot', e.target.checked)}
           />
           <span>
-            <span className="font-medium">Punto d'incontro per gli scambi</span>
-            <span className="block text-xs text-text-muted">Gli utenti potranno proporre il negozio come luogo sicuro per scambiarsi le carte.</span>
+            <span className="font-medium">{t('form.safeMeetupSpot')}</span>
+            <span className="block text-xs text-text-muted">{t('form.safeMeetupSpotHint')}</span>
           </span>
         </label>
       </section>
@@ -147,10 +149,10 @@ export default function StoreFormPage() {
         isLoading={busy}
         disabled={!form.name.trim() || !form.address.trim() || !form.city.trim() || (form.latitude === 0 && form.longitude === 0)}
       >
-        {id ? 'Salva modifiche' : 'Invia per la verifica'}
+        {id ? t('form.saveChanges') : t('form.submit')}
       </Button>
       {!id && form.latitude === 0 && form.longitude === 0 && (
-        <p className="text-[11px] text-center text-text-muted">Usa "Trova sulla mappa" per indicare la posizione.</p>
+        <p className="text-[11px] text-center text-text-muted">{t('form.locationHint')}</p>
       )}
     </div>
   );

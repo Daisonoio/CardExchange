@@ -12,6 +12,7 @@ import {
   Mail,
   type LucideIcon,
 } from 'lucide-react';
+import i18n from '../../i18n';
 
 export interface NotificationTypeConfig {
   icon: LucideIcon;
@@ -20,11 +21,12 @@ export interface NotificationTypeConfig {
   category: string;
 }
 
+// Le etichette sono getter: vengono tradotte nella lingua corrente a ogni lettura
 export const NOTIFICATION_CATEGORIES: Record<string, string> = {
-  trade: 'Scambi',
-  collection: 'Collezione',
-  social: 'Social',
-  system: 'Sistema',
+  get trade() { return i18n.t('notifications:categories.trade'); },
+  get collection() { return i18n.t('notifications:categories.collection'); },
+  get social() { return i18n.t('notifications:categories.social'); },
+  get system() { return i18n.t('notifications:categories.system'); },
 };
 
 export const notificationRegistry: Record<string, NotificationTypeConfig> = {
@@ -32,43 +34,43 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
   TradeOfferReceived: {
     icon: ArrowLeftRight,
     color: 'text-blue-500 bg-blue-50',
-    label: 'Offerta di scambio ricevuta',
+    get label() { return i18n.t('notifications:types.TradeOfferReceived'); },
     category: 'trade',
   },
   TradeOfferAccepted: {
     icon: Check,
     color: 'text-green-500 bg-green-50',
-    label: 'Offerta accettata',
+    get label() { return i18n.t('notifications:types.TradeOfferAccepted'); },
     category: 'trade',
   },
   TradeOfferRejected: {
     icon: X,
     color: 'text-red-500 bg-red-50',
-    label: 'Offerta rifiutata',
+    get label() { return i18n.t('notifications:types.TradeOfferRejected'); },
     category: 'trade',
   },
   TradeCompleted: {
     icon: CheckCheck,
     color: 'text-emerald-500 bg-emerald-50',
-    label: 'Scambio completato',
+    get label() { return i18n.t('notifications:types.TradeCompleted'); },
     category: 'trade',
   },
   WeeklyDigest: {
     icon: Mail,
     color: 'text-sky-600 bg-sky-50',
-    label: 'Riepilogo settimanale via email',
+    get label() { return i18n.t('notifications:types.WeeklyDigest'); },
     category: 'system',
   },
   MeetupUpdate: {
     icon: CalendarClock,
     color: 'text-indigo-500 bg-indigo-50',
-    label: 'Appuntamento di scambio',
+    get label() { return i18n.t('notifications:types.MeetupUpdate'); },
     category: 'trade',
   },
   CounterOfferReceived: {
     icon: ArrowLeftRight,
     color: 'text-purple-500 bg-purple-50',
-    label: 'Controproposta ricevuta',
+    get label() { return i18n.t('notifications:types.CounterOfferReceived'); },
     category: 'trade',
   },
 
@@ -76,19 +78,19 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
   FavoritePriceChanged: {
     icon: Heart,
     color: 'text-amber-500 bg-amber-50',
-    label: 'Prezzo preferito aggiornato',
+    get label() { return i18n.t('notifications:types.FavoritePriceChanged'); },
     category: 'collection',
   },
   FavoriteCardTraded: {
     icon: Heart,
     color: 'text-red-500 bg-red-50',
-    label: 'Carta preferita scambiata',
+    get label() { return i18n.t('notifications:types.FavoriteCardTraded'); },
     category: 'collection',
   },
   WishlistMatch: {
     icon: Heart,
     color: 'text-pink-500 bg-pink-50',
-    label: 'Carta trovata in wishlist',
+    get label() { return i18n.t('notifications:types.WishlistMatch'); },
     category: 'collection',
   },
 
@@ -96,13 +98,13 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
   NewMessage: {
     icon: MessageSquare,
     color: 'text-indigo-500 bg-indigo-50',
-    label: 'Nuovo messaggio',
+    get label() { return i18n.t('notifications:types.NewMessage'); },
     category: 'social',
   },
   NewReview: {
     icon: Check,
     color: 'text-teal-500 bg-teal-50',
-    label: 'Nuova recensione',
+    get label() { return i18n.t('notifications:types.NewReview'); },
     category: 'social',
   },
 
@@ -110,7 +112,7 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
   PriceSpike: {
     icon: TrendingUp,
     color: 'text-amber-500 bg-amber-50',
-    label: 'Carte in aumento di prezzo',
+    get label() { return i18n.t('notifications:types.PriceSpike'); },
     category: 'collection',
   },
 
@@ -118,19 +120,19 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
   SubscriptionExpiring: {
     icon: AlertTriangle,
     color: 'text-orange-500 bg-orange-50',
-    label: 'Abbonamento in scadenza',
+    get label() { return i18n.t('notifications:types.SubscriptionExpiring'); },
     category: 'system',
   },
   SubscriptionExpired: {
     icon: AlertTriangle,
     color: 'text-red-500 bg-red-50',
-    label: 'Abbonamento scaduto',
+    get label() { return i18n.t('notifications:types.SubscriptionExpired'); },
     category: 'system',
   },
   SystemAnnouncement: {
     icon: AlertTriangle,
     color: 'text-gray-500 bg-gray-50',
-    label: 'Annuncio di sistema',
+    get label() { return i18n.t('notifications:types.SystemAnnouncement'); },
     category: 'system',
   },
 };
@@ -138,7 +140,7 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
 const defaultConfig: NotificationTypeConfig = {
   icon: Bell,
   color: 'text-gray-500 bg-gray-50',
-  label: 'Notifica',
+  get label() { return i18n.t('notifications:types.default'); },
   category: 'system',
 };
 

@@ -1,0 +1,79 @@
+{
+  "page": {
+    "status": {
+      "Pending": "Awaiting verification",
+      "Verified": "Verified",
+      "Rejected": "Not approved",
+      "Suspended": "Suspended"
+    },
+    "notFoundTitle": "Store not found",
+    "notFoundDescription": "This listing doesn't exist or hasn't been verified yet.",
+    "featured": "Featured store",
+    "edit": "Edit",
+    "pendingNote": "Until it's verified, the store is only visible to you.",
+    "promoteTitle": "Feature your store",
+    "promoteDescription": "With the Store plan, your listing appears at the top of the nearby stores list.",
+    "safeMeetupSpot": "Recommended meetup spot for in-person trades",
+    "directions": "Directions",
+    "upcomingEvents": "Upcoming events",
+    "createEvent": "Create event",
+    "noEvents": "No upcoming events.",
+    "participants_one": "{{count}} participant",
+    "participants_other": "{{count}} participants"
+  },
+  "form": {
+    "notFound": "Store not found",
+    "saveError": "Couldn't save.",
+    "editTitle": "Edit store",
+    "createTitle": "Add your store",
+    "reviewNote": "Once submitted, a moderator will review the listing: until it's verified, only you can see it.",
+    "fields": {
+      "name": "Store name",
+      "namePlaceholder": "e.g. Games Corner",
+      "description": "Description",
+      "descriptionPlaceholder": "What you offer, weekly tournaments, play area…",
+      "openingHours": "Opening hours",
+      "openingHoursPlaceholder": "Mon-Sat 10-19, Thursday game night until 23",
+      "phone": "Phone",
+      "website": "Website",
+      "websitePlaceholder": "www.example.com",
+      "instagramPlaceholder": "@yourstore"
+    },
+    "location": "Location",
+    "contacts": "Contacts and hours",
+    "games": "Games stocked",
+    "safeMeetupSpot": "Trade meetup spot",
+    "safeMeetupSpotHint": "Users will be able to suggest your store as a safe place to trade cards.",
+    "saveChanges": "Save changes",
+    "submit": "Submit for verification",
+    "locationHint": "Use \"Find on map\" to set the location."
+  },
+  "moderation": {
+    "accessDenied": "Access denied.",
+    "actionError": "Something went wrong.",
+    "emptyTitle": "No stores to review",
+    "emptyDescription": "New requests will appear here.",
+    "submittedBy": "submitted by @{{username}} on {{date}}",
+    "noContacts": "No contact details provided",
+    "notePlaceholder": "Reason (required if rejecting; the owner will see it)",
+    "reject": "Reject",
+    "verify": "Verify"
+  },
+  "tab": {
+    "mine": "Your stores",
+    "status": {
+      "verified": "Verified",
+      "pending": "Under review",
+      "rejected": "Not approved",
+      "suspended": "Suspended"
+    },
+    "meetupOnly": "Trade meetup spots only",
+    "emptyTitle": "No stores nearby",
+    "emptyDescription": "Set your location in your profile, or add the store where you usually play.",
+    "featured": "Featured",
+    "meetupSpot": "Meetup spot",
+    "events_one": "{{count}} event",
+    "events_other": "{{count}} events",
+    "addStore": "Own a store? Add it to CardExchange"
+  }
+}

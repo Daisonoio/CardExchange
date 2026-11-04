@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, CalendarDays, Loader2, MapPin, Store as StoreIcon, Users } from 'lucide-react';
 import { events, referrals } from '../api';
 import { shareLink } from '../utils/referral';
@@ -11,12 +12,14 @@ import { apiErrorMessage } from '../utils/apiError';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import TradeNightPanel from '../components/events/TradeNightPanel';
+import { formatDateTime, formatTime } from '../i18n/format';
 
 const fmt = (iso: string) =>
-  new Date(iso).toLocaleString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+  formatDateTime(iso, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 
 /** Dettaglio evento: informazioni, luogo, partecipanti, iscrizione. */
 export default function EventPage() {
+  const { t } = useTranslation('events');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -32,7 +35,7 @@ export default function EventPage() {
   useEffect(() => { load(); }, [load]);
 
   if (event === undefined) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>;
-  if (event === null) return <EmptyState icon={CalendarDays} title="Evento non trovato" description="Potrebbe essere stato annullato." />;
+  if (event === null) return <EmptyState icon={CalendarDays} title={t('detail.notFoundTitle')} description={t('detail.notFoundDescription')} />;
 
   const isOrganizer = user?.id === event.organizer.id;
   const isFull = !!event.maxParticipants && event.participantCount >= event.maxParticipants;
@@ -49,7 +52,7 @@ export default function EventPage() {
       await fn();
       load();
     } catch (err) {
-      setError(apiErrorMessage(err, 'Operazione non riuscita.'));
+      setError(apiErrorMessage(err, t('detail.actionError')));
     } finally {
       setBusy(false);
     }
@@ -58,33 +61,35 @@ export default function EventPage() {
   return (
     <div className="pb-24 space-y-4">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} aria-label="Indietro" className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center shrink-0">
+        <button onClick={() => navigate(-1)} aria-label={t('common:actions.back')} className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center shrink-0">
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-text">{event.title}</h1>
-          <p className="text-sm text-text-secondary">{EVENT_TYPE_LABELS[event.type] ?? event.type} · organizzato da @{event.organizer.username}</p>
+          <p className="text-sm text-text-secondary">{EVENT_TYPE_LABELS[event.type] ?? event.type} · {t('detail.organizedBy', { username: event.organizer.username })}</p>
         </div>
       </div>
 
-      {event.status === 'Cancelled' && <div className="p-3 rounded-xl bg-red-50 text-red-700 text-sm font-medium">Evento annullato</div>}
+      {event.status === 'Cancelled' && <div className="p-3 rounded-xl bg-red-50 text-red-700 text-sm font-medium">{t('detail.cancelled')}</div>}
 
       <ul className="bg-white rounded-2xl border border-border divide-y divide-border/60 text-sm">
         <li className="flex items-start gap-3 p-3">
           <CalendarDays size={16} className="mt-0.5 text-primary shrink-0" />
-          <span className="first-letter:uppercase">{fmt(event.startDate)}{event.endDate ? ` – ${new Date(event.endDate).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
+          <span className="first-letter:uppercase">{fmt(event.startDate)}{event.endDate ? ` – ${formatTime(event.endDate, { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
         </li>
         <li className="flex items-start gap-3 p-3">
           {event.storeId ? <StoreIcon size={16} className="mt-0.5 text-primary shrink-0" /> : <MapPin size={16} className="mt-0.5 text-primary shrink-0" />}
           <div>
             {event.storeId && <Link to={`/stores/${event.storeId}`} className="font-semibold hover:underline block">{event.storeName}</Link>}
             {event.address}, {event.city}
-            <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="block text-xs font-semibold text-primary hover:underline">Apri nella mappa</a>
+            <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="block text-xs font-semibold text-primary hover:underline">{t('detail.openMap')}</a>
           </div>
         </li>
         <li className="flex items-center gap-3 p-3">
           <Users size={16} className="text-primary shrink-0" />
-          {event.participantCount}{event.maxParticipants ? ` su ${event.maxParticipants}` : ''} partecipanti
+          {event.maxParticipants
+            ? t('detail.participantsMax', { count: event.participantCount, max: event.maxParticipants })
+            : t('detail.participants', { count: event.participantCount })}
         </li>
       </ul>
 
@@ -101,10 +106,10 @@ export default function EventPage() {
 
       {event.status === 'Published' && !ended && !isOrganizer && (
         event.isParticipating ? (
-          <Button variant="outline" className="w-full" isLoading={busy} onClick={() => act(() => events.leave(event.id))}>Annulla la partecipazione</Button>
+          <Button variant="outline" className="w-full" isLoading={busy} onClick={() => act(() => events.leave(event.id))}>{t('detail.leave')}</Button>
         ) : (
           <Button className="w-full" isLoading={busy} disabled={isFull} onClick={() => act(() => events.join(event.id))}>
-            {isFull ? 'Posti esauriti' : 'Partecipa'}
+            {isFull ? t('detail.full') : t('detail.join')}
           </Button>
         )
       )}
@@ -112,10 +117,10 @@ export default function EventPage() {
         <button
           type="button"
           disabled={busy}
-          onClick={() => confirm('Annullare l\'evento? I partecipanti riceveranno una notifica.') && act(() => events.cancel(event.id))}
+          onClick={() => confirm(t('detail.cancelConfirm')) && act(() => events.cancel(event.id))}
           className="w-full text-sm text-danger hover:underline"
         >
-          Annulla evento
+          {t('detail.cancel')}
         </button>
       )}
 
@@ -126,19 +131,19 @@ export default function EventPage() {
             // Il link porta il codice invito: chi non è iscritto lo userà alla registrazione
             const code = await referrals.mine().then(({ data }) => data.code).catch(() => null);
             const url = `${window.location.origin}/events/${event.id}${code ? `?ref=${code}` : ''}`;
-            const r = await shareLink(url, event.title, `Vieni a "${event.title}" con me su CardExchange!`);
-            setShareInfo(r === 'copied' ? 'Link dell\'evento copiato negli appunti' : null);
+            const r = await shareLink(url, event.title, t('detail.shareText', { title: event.title }));
+            setShareInfo(r === 'copied' ? t('detail.linkCopied') : null);
           }}
           className="w-full text-sm font-semibold text-primary hover:underline"
         >
-          Invita amici a questo evento
+          {t('detail.invite')}
         </button>
       )}
       {shareInfo && <p className="text-xs text-center text-text-secondary">{shareInfo}</p>}
 
       {event.participants.length > 0 && (
         <section className="bg-white rounded-2xl border border-border p-3">
-          <h2 className="text-sm font-semibold mb-2">Chi partecipa</h2>
+          <h2 className="text-sm font-semibold mb-2">{t('detail.whoIsGoing')}</h2>
           <div className="flex flex-wrap gap-1.5">
             {event.participants.map((p) => (
               <Link key={p.userId} to={`/collection/${p.userId}`} className="px-2.5 py-1 rounded-full bg-surface-dark text-xs hover:underline">

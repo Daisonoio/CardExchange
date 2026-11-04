@@ -1,0 +1,40 @@
+{
+  "title": "Esplora",
+  "subtitle": "Trova carte e collezionisti",
+  "advancedSearch": "Ricerca avanzata",
+  "tabs": { "cards": "Carte", "zone": "Zona", "users": "Utenti" },
+  "locationPrompt": {
+    "title": "Imposta la tua posizione",
+    "description": "Per vedere le carte disponibili nelle tue vicinanze, devi impostare la tua posizione.",
+    "setInProfile": "Imposta nel profilo",
+    "useCurrent": "Usa posizione attuale"
+  },
+  "cards": {
+    "radius": "Raggio di ricerca",
+    "profileLocation": "Posizione profilo",
+    "currentLocation": "Posizione attuale",
+    "searchPlaceholder": "Cerca tra le carte nelle vicinanze...",
+    "emptyTitle": "Nessuna carta trovata",
+    "emptySearch": "Nessuna carta \"{{term}}\" trovata entro {{radius}} km",
+    "emptyDescription": "Nessuna carta disponibile entro {{radius}} km. Prova ad aumentare il raggio.",
+    "count_one": "{{count}} carta disponibile entro {{radius}} km",
+    "count_other": "{{count}} carte disponibili entro {{radius}} km"
+  },
+  "zone": {
+    "search": "Cerca carte in questa zona",
+    "filterPlaceholder": "Filtra risultati...",
+    "emptyDescription": "Nessuna carta disponibile entro {{radius}} km. Prova ad aumentare il raggio.",
+    "emptyDescriptionFrom": "Nessuna carta disponibile entro {{radius}} km da {{place}}. Prova ad aumentare il raggio.",
+    "count_one": "{{count}} carta trovata entro {{radius}} km",
+    "count_other": "{{count}} carte trovate entro {{radius}} km",
+    "fromPlace": " da {{place}}"
+  },
+  "users": {
+    "emptyTitle": "Nessun utente trovato",
+    "emptyDescription": "Nessun collezionista trovato entro {{radius}} km. Prova ad aumentare il raggio.",
+    "count_one": "{{count}} utente entro {{radius}} km",
+    "count_other": "{{count}} utenti entro {{radius}} km",
+    "trades_one": "{{count}} scambio",
+    "trades_other": "{{count}} scambi"
+  }
+}

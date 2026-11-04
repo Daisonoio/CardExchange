@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronRight, Loader2, Plus, ShieldCheck, Sparkles, Store as StoreIcon } from 'lucide-react';
 import { stores } from '../../api';
 import type { Store } from '../../types';
@@ -9,6 +10,7 @@ import StoresMap from './StoresMap';
 
 /** Negozi verificati vicini (in base alla posizione del profilo) e negozi gestiti dall'utente. */
 export default function StoresTab() {
+  const { t } = useTranslation('stores');
   const { selectedGameId } = useGame();
   const [items, setItems] = useState<Store[] | null>(null);
   const [mine, setMine] = useState<Store[]>([]);
@@ -30,12 +32,12 @@ export default function StoresTab() {
     <div className="space-y-4">
       {mine.length > 0 && (
         <section className="bg-white rounded-2xl border border-border p-3 space-y-1.5">
-          <h2 className="text-sm font-semibold">I tuoi negozi</h2>
+          <h2 className="text-sm font-semibold">{t('tab.mine')}</h2>
           {mine.map((s) => (
             <Link key={s.id} to={`/stores/${s.id}`} className="flex items-center justify-between p-2 rounded-xl hover:bg-surface-dark text-sm">
               <span className="truncate">{s.name}</span>
               <span className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 ${s.status === 'Verified' ? 'bg-green-50 text-green-700' : s.status === 'Pending' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'}`}>
-                {s.status === 'Verified' ? 'Verificato' : s.status === 'Pending' ? 'In verifica' : s.status === 'Rejected' ? 'Non approvato' : 'Sospeso'}
+                {s.status === 'Verified' ? t('tab.status.verified') : s.status === 'Pending' ? t('tab.status.pending') : s.status === 'Rejected' ? t('tab.status.rejected') : t('tab.status.suspended')}
               </span>
             </Link>
           ))}
@@ -44,7 +46,7 @@ export default function StoresTab() {
 
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" className="w-4 h-4 accent-primary" checked={meetupOnly} onChange={(e) => setMeetupOnly(e.target.checked)} />
-        Solo punti d'incontro per gli scambi
+        {t('tab.meetupOnly')}
       </label>
 
       {items === null ? (
@@ -52,8 +54,8 @@ export default function StoresTab() {
       ) : items.length === 0 ? (
         <EmptyState
           icon={StoreIcon}
-          title="Nessun negozio qui vicino"
-          description="Imposta la tua posizione nel profilo, oppure inserisci il negozio dove giochi di solito."
+          title={t('tab.emptyTitle')}
+          description={t('tab.emptyDescription')}
         />
       ) : (
         <>
@@ -69,9 +71,9 @@ export default function StoresTab() {
                       {s.distanceKm != null ? `${s.distanceKm} km · ` : ''}{s.address}, {s.city}
                     </span>
                     <span className="flex gap-2 mt-0.5 text-[10px]">
-                      {s.isFeatured && <span className="inline-flex items-center gap-0.5 font-semibold text-amber-700"><Sparkles size={11} /> In evidenza</span>}
-                      {s.isSafeMeetupSpot && <span className="inline-flex items-center gap-0.5 text-green-700"><ShieldCheck size={11} /> Punto d'incontro</span>}
-                      {s.upcomingEventsCount > 0 && <span className="text-primary">{s.upcomingEventsCount} eventi</span>}
+                      {s.isFeatured && <span className="inline-flex items-center gap-0.5 font-semibold text-amber-700"><Sparkles size={11} /> {t('tab.featured')}</span>}
+                      {s.isSafeMeetupSpot && <span className="inline-flex items-center gap-0.5 text-green-700"><ShieldCheck size={11} /> {t('tab.meetupSpot')}</span>}
+                      {s.upcomingEventsCount > 0 && <span className="text-primary">{t('tab.events', { count: s.upcomingEventsCount })}</span>}
                     </span>
                   </span>
                   <ChevronRight size={16} className="text-text-muted shrink-0" />
@@ -83,7 +85,7 @@ export default function StoresTab() {
       )}
 
       <Link to="/stores/new" className="flex items-center justify-center gap-2 p-3 rounded-2xl border-2 border-dashed border-border text-sm font-semibold text-primary hover:bg-surface-dark">
-        <Plus size={16} /> Hai un negozio? Inseriscilo su CardExchange
+        <Plus size={16} /> {t('tab.addStore')}
       </Link>
     </div>
   );

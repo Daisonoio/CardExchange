@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { MapPin, Navigation, Loader2, Settings, Sparkles } from 'lucide-react';
 import { wishlist } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +12,7 @@ import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 
 export default function HomePage() {
+  const { t } = useTranslation('home');
   const { user } = useAuth();
   const { selectedGameId } = useGame();
   const navigate = useNavigate();
@@ -73,9 +75,9 @@ export default function HomePage() {
         style={{ background: 'linear-gradient(135deg, #1a3461 0%, #2a4d8f 100%)', minHeight: '140px' }}
       >
         <div className="p-5 pr-28">
-          <p className="text-white/70 text-xs font-medium mb-1 uppercase tracking-wider">Benvenuto</p>
+          <p className="text-white/70 text-xs font-medium mb-1 uppercase tracking-wider">{t('welcome')}</p>
           <h1 className="text-white text-2xl font-bold leading-tight">
-            Ciao, {user.firstName}!
+            {t('greeting', { name: user.firstName })}
           </h1>
     
         </div>
@@ -95,19 +97,19 @@ export default function HomePage() {
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
           <div className="flex items-center gap-2 mb-2">
             <MapPin size={16} style={{ color: '#1a3461' }} />
-            <h2 className="text-sm font-bold text-text">Imposta la tua posizione</h2>
+            <h2 className="text-sm font-bold text-text">{t('locationPrompt.title')}</h2>
           </div>
           <p className="text-sm text-text-secondary mb-4">
-            Per vedere le carte disponibili nelle tue vicinanze, devi impostare la tua posizione.
+            {t('locationPrompt.description')}
           </p>
           <div className="space-y-2.5">
             <Button onClick={() => navigate('/profile/edit')} variant="outline" className="w-full">
               <Settings size={14} />
-              Imposta nel profilo
+              {t('locationPrompt.setInProfile')}
             </Button>
             <Button onClick={requestPosition} className="w-full" isLoading={geoLoading}>
               <Navigation size={14} />
-              Usa posizione attuale
+              {t('locationPrompt.useCurrent')}
             </Button>
           </div>
         </div>
@@ -124,8 +126,8 @@ export default function HomePage() {
       {!isLoading && !showLocationPrompt && topCards.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-text">Nelle vicinanze</h2>
-            <span className="text-xs text-text-muted">{topCards.length} risultati</span>
+            <h2 className="text-base font-bold text-text">{t('nearby.title')}</h2>
+            <span className="text-xs text-text-muted">{t('nearby.results', { count: topCards.length })}</span>
           </div>
           <div className="w-full -mx-4" style={{ width: 'calc(100% + 2rem)' }}>
             <CardCarousel cards={topCards} onCardClick={handleCardClick} />
@@ -137,15 +139,15 @@ export default function HomePage() {
       {!isLoading && !showLocationPrompt && (hasProfileLocation || position) && topCards.length === 0 && (
         <EmptyState
           icon={Sparkles}
-          title="Nessuna carta trovata"
-          description="Non ci sono carte dalla tua wishlist disponibili nel raggio di ricerca. Prova ad aggiungere carte alla wishlist o ad aumentare il raggio."
+          title={t('empty.title')}
+          description={t('empty.description')}
           action={
             <div className="flex gap-2">
               <Button onClick={() => navigate('/wishlist')} size="sm" variant="outline">
                 Wishlist
               </Button>
               <Button onClick={() => navigate('/explore')} size="sm">
-                Esplora
+                {t('common:nav.explore')}
               </Button>
             </div>
           }

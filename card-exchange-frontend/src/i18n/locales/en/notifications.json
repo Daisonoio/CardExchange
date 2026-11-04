@@ -1,0 +1,47 @@
+{
+  "categories": { "trade": "Trades", "collection": "Collection", "social": "Social", "system": "System" },
+  "types": {
+    "TradeOfferReceived": "Trade offer received",
+    "TradeOfferAccepted": "Offer accepted",
+    "TradeOfferRejected": "Offer declined",
+    "TradeCompleted": "Trade completed",
+    "WeeklyDigest": "Weekly email digest",
+    "MeetupUpdate": "Trade meetup",
+    "CounterOfferReceived": "Counter-offer received",
+    "FavoritePriceChanged": "Favourite price updated",
+    "FavoriteCardTraded": "Favourite card traded",
+    "WishlistMatch": "Wishlist card found",
+    "NewMessage": "New message",
+    "NewReview": "New review",
+    "PriceSpike": "Cards rising in price",
+    "SubscriptionExpiring": "Subscription expiring",
+    "SubscriptionExpired": "Subscription expired",
+    "SystemAnnouncement": "System announcement",
+    "default": "Notification"
+  },
+  "center": {
+    "title": "Notifications",
+    "unread_one": "{{count}} unread",
+    "unread_other": "{{count}} unread",
+    "markAll": "Mark all read",
+    "markRead": "Mark as read",
+    "delete": "Delete",
+    "empty": "No notifications"
+  },
+  "preferences": { "title": "Notification preferences", "save": "Save preferences" },
+  "push": {
+    "title": "Notifications on this device",
+    "ariaLabel": "Push notifications",
+    "descriptions": {
+      "on": "You'll get alerts for nearby matches, offers, messages and meetups, even when the app is closed.",
+      "off": "Turn them on to know right away when someone near you has a card you're looking for.",
+      "denied": "Notifications are blocked for this site in your browser settings.",
+      "unsupported": "This browser doesn't support push notifications.",
+      "disabledServer": "Push notifications aren't available yet.",
+      "iosNeedsInstall": "On iPhone: tap Share → 'Add to Home Screen', then open the app from there to turn them on."
+    },
+    "toggleError": "Couldn't update notifications, please try again.",
+    "testSent": "Test notification sent: it should arrive in a few seconds.",
+    "sendTest": "Send a test notification"
+  }
+}

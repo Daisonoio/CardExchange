@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BellRing } from 'lucide-react';
 import { pushApi } from '../../api';
 import { disablePush, enablePush, getPushState } from '../../utils/push';
 import type { PushState } from '../../utils/push';
 
-const DESCRIPTIONS: Record<PushState, string> = {
-  on: 'Riceverai avvisi per match vicini, offerte, messaggi e appuntamenti anche ad app chiusa.',
-  off: 'Attivale per sapere subito quando qualcuno vicino a te ha una carta che cerchi.',
-  denied: 'Le notifiche sono bloccate nelle impostazioni del browser per questo sito.',
-  unsupported: 'Questo browser non supporta le notifiche push.',
-  'disabled-server': 'Le notifiche push non sono ancora disponibili.',
-  'ios-needs-install': "Su iPhone: tocca Condividi → 'Aggiungi alla schermata Home', poi apri l'app da lì per attivarle.",
+const DESCRIPTION_KEYS: Record<PushState, string> = {
+  on: 'push.descriptions.on',
+  off: 'push.descriptions.off',
+  denied: 'push.descriptions.denied',
+  unsupported: 'push.descriptions.unsupported',
+  'disabled-server': 'push.descriptions.disabledServer',
+  'ios-needs-install': 'push.descriptions.iosNeedsInstall',
 };
 
 /** Interruttore per le notifiche push su questo dispositivo. */
 export default function PushToggle() {
+  const { t } = useTranslation('notifications');
   const [state, setState] = useState<PushState | null>(null);
   const [busy, setBusy] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export default function PushToggle() {
     try {
       setState(state === 'on' ? await disablePush() : await enablePush());
     } catch {
-      setInfo('Non è stato possibile cambiare le notifiche, riprova.');
+      setInfo(t('push.toggleError'));
     } finally {
       setBusy(false);
     }
@@ -45,15 +47,15 @@ export default function PushToggle() {
           <BellRing size={16} />
         </span>
         <div className="flex-1">
-          <p className="text-sm font-medium text-text">Notifiche su questo dispositivo</p>
-          <p className="text-xs text-text-muted">{DESCRIPTIONS[state]}</p>
+          <p className="text-sm font-medium text-text">{t('push.title')}</p>
+          <p className="text-xs text-text-muted">{t(DESCRIPTION_KEYS[state])}</p>
         </div>
         {canToggle && (
           <button
             type="button"
             role="switch"
             aria-checked={state === 'on'}
-            aria-label="Notifiche push"
+            aria-label={t('push.ariaLabel')}
             disabled={busy}
             onClick={toggle}
             className={`w-12 h-7 rounded-full transition-colors relative shrink-0 disabled:opacity-60 ${state === 'on' ? 'bg-primary' : 'bg-gray-300'}`}
@@ -65,10 +67,10 @@ export default function PushToggle() {
       {state === 'on' && (
         <button
           type="button"
-          onClick={() => pushApi.test().then(() => setInfo('Notifica di prova inviata: dovrebbe arrivare tra pochi secondi.'))}
+          onClick={() => pushApi.test().then(() => setInfo(t('push.testSent')))}
           className="mt-2 text-xs font-semibold text-primary hover:underline"
         >
-          Invia una notifica di prova
+          {t('push.sendTest')}
         </button>
       )}
       {info && <p className="mt-1 text-xs text-text-secondary">{info}</p>}

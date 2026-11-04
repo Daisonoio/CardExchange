@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import { notifications } from '../../api';
 import type { NotificationPreference } from '../../types';
@@ -11,6 +12,7 @@ interface NotificationPreferencesProps {
 }
 
 export default function NotificationPreferences({ open, onClose }: NotificationPreferencesProps) {
+  const { t } = useTranslation('notifications');
   const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -57,7 +59,7 @@ export default function NotificationPreferences({ open, onClose }: NotificationP
   })).filter((g) => g.items.length > 0);
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="Preferenze notifiche">
+    <BottomSheet open={open} onClose={onClose} title={t('preferences.title')}>
       <div className="space-y-4">
         {isLoading ? (
           <div className="flex justify-center py-8">
@@ -111,7 +113,7 @@ export default function NotificationPreferences({ open, onClose }: NotificationP
               className="w-full py-2.5 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isSaving && <Loader2 size={14} className="animate-spin" />}
-              Salva preferenze
+              {t('preferences.save')}
             </button>
           </>
         )}

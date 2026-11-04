@@ -1,0 +1,40 @@
+{
+  "title": "Explore",
+  "subtitle": "Find cards and collectors",
+  "advancedSearch": "Advanced search",
+  "tabs": { "cards": "Cards", "zone": "Area", "users": "Users" },
+  "locationPrompt": {
+    "title": "Set your location",
+    "description": "To see cards available near you, you need to set your location.",
+    "setInProfile": "Set in profile",
+    "useCurrent": "Use current location"
+  },
+  "cards": {
+    "radius": "Search radius",
+    "profileLocation": "Profile location",
+    "currentLocation": "Current location",
+    "searchPlaceholder": "Search cards nearby...",
+    "emptyTitle": "No cards found",
+    "emptySearch": "No \"{{term}}\" cards found within {{radius}} km",
+    "emptyDescription": "No cards available within {{radius}} km. Try increasing the radius.",
+    "count_one": "{{count}} card available within {{radius}} km",
+    "count_other": "{{count}} cards available within {{radius}} km"
+  },
+  "zone": {
+    "search": "Search cards in this area",
+    "filterPlaceholder": "Filter results...",
+    "emptyDescription": "No cards available within {{radius}} km. Try increasing the radius.",
+    "emptyDescriptionFrom": "No cards available within {{radius}} km of {{place}}. Try increasing the radius.",
+    "count_one": "{{count}} card found within {{radius}} km",
+    "count_other": "{{count}} cards found within {{radius}} km",
+    "fromPlace": " of {{place}}"
+  },
+  "users": {
+    "emptyTitle": "No users found",
+    "emptyDescription": "No collectors found within {{radius}} km. Try increasing the radius.",
+    "count_one": "{{count}} user within {{radius}} km",
+    "count_other": "{{count}} users within {{radius}} km",
+    "trades_one": "{{count}} trade",
+    "trades_other": "{{count}} trades"
+  }
+}

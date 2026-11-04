@@ -1,0 +1,22 @@
+{
+  "address": {
+    "notFound": "Indirizzo non trovato: controllalo o sposta il marker a mano dopo aver cercato la città.",
+    "searchError": "Ricerca non riuscita, riprova.",
+    "fields": {
+      "address": "Indirizzo",
+      "addressPlaceholder": "Via Roma 1",
+      "city": "Città",
+      "cityPlaceholder": "Milano",
+      "province": "Provincia",
+      "provincePlaceholder": "MI",
+      "postalCode": "CAP",
+      "postalCodePlaceholder": "20121"
+    },
+    "findOnMap": "Trova sulla mappa",
+    "dragHint": "Trascina il marker se la posizione non è precisa."
+  },
+  "location": {
+    "searchPlaceholder": "Cerca una città (es. Pavia, Milano...)",
+    "radius": "Raggio di ricerca"
+  }
+}

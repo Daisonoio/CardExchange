@@ -1,0 +1,79 @@
+{
+  "page": {
+    "status": {
+      "Pending": "In attesa di verifica",
+      "Verified": "Verificato",
+      "Rejected": "Non approvato",
+      "Suspended": "Sospeso"
+    },
+    "notFoundTitle": "Negozio non trovato",
+    "notFoundDescription": "La scheda non esiste o non è ancora verificata.",
+    "featured": "Negozio in evidenza",
+    "edit": "Modifica",
+    "pendingNote": "Finché non è verificato, il negozio è visibile solo a te.",
+    "promoteTitle": "Metti il negozio in evidenza",
+    "promoteDescription": "Con il piano Negozio la tua scheda compare in cima all'elenco dei negozi vicini.",
+    "safeMeetupSpot": "Punto d'incontro consigliato per gli scambi di persona",
+    "directions": "Indicazioni stradali",
+    "upcomingEvents": "Eventi in programma",
+    "createEvent": "Crea evento",
+    "noEvents": "Nessun evento in programma.",
+    "participants_one": "{{count}} partecipante",
+    "participants_other": "{{count}} partecipanti"
+  },
+  "form": {
+    "notFound": "Negozio non trovato",
+    "saveError": "Salvataggio non riuscito.",
+    "editTitle": "Modifica negozio",
+    "createTitle": "Inserisci il tuo negozio",
+    "reviewNote": "Dopo l'invio un moderatore verifica la scheda: finché non è verificata è visibile solo a te.",
+    "fields": {
+      "name": "Nome del negozio",
+      "namePlaceholder": "Es. Games Corner",
+      "description": "Descrizione",
+      "descriptionPlaceholder": "Cosa offrite, tornei settimanali, area gioco…",
+      "openingHours": "Orari",
+      "openingHoursPlaceholder": "Lun-Sab 10-19, giovedì serata fino alle 23",
+      "phone": "Telefono",
+      "website": "Sito web",
+      "websitePlaceholder": "www.esempio.it",
+      "instagramPlaceholder": "@negozio"
+    },
+    "location": "Dove si trova",
+    "contacts": "Contatti e orari",
+    "games": "Giochi trattati",
+    "safeMeetupSpot": "Punto d'incontro per gli scambi",
+    "safeMeetupSpotHint": "Gli utenti potranno proporre il negozio come luogo sicuro per scambiarsi le carte.",
+    "saveChanges": "Salva modifiche",
+    "submit": "Invia per la verifica",
+    "locationHint": "Usa \"Trova sulla mappa\" per indicare la posizione."
+  },
+  "moderation": {
+    "accessDenied": "Accesso negato.",
+    "actionError": "Operazione non riuscita.",
+    "emptyTitle": "Nessun negozio da verificare",
+    "emptyDescription": "Le nuove richieste compariranno qui.",
+    "submittedBy": "inserito da @{{username}} il {{date}}",
+    "noContacts": "Nessun contatto indicato",
+    "notePlaceholder": "Motivo (obbligatorio se non approvi, lo vedrà il proprietario)",
+    "reject": "Non approvare",
+    "verify": "Verifica"
+  },
+  "tab": {
+    "mine": "I tuoi negozi",
+    "status": {
+      "verified": "Verificato",
+      "pending": "In verifica",
+      "rejected": "Non approvato",
+      "suspended": "Sospeso"
+    },
+    "meetupOnly": "Solo punti d'incontro per gli scambi",
+    "emptyTitle": "Nessun negozio qui vicino",
+    "emptyDescription": "Imposta la tua posizione nel profilo, oppure inserisci il negozio dove giochi di solito.",
+    "featured": "In evidenza",
+    "meetupSpot": "Punto d'incontro",
+    "events_one": "{{count}} evento",
+    "events_other": "{{count}} eventi",
+    "addStore": "Hai un negozio? Inseriscilo su CardExchange"
+  }
+}

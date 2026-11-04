@@ -1,0 +1,22 @@
+{
+  "address": {
+    "notFound": "Address not found: check it, or search for the city and move the marker by hand.",
+    "searchError": "Search failed, please try again.",
+    "fields": {
+      "address": "Address",
+      "addressPlaceholder": "Via Roma 1",
+      "city": "City",
+      "cityPlaceholder": "Milan",
+      "province": "Province",
+      "provincePlaceholder": "MI",
+      "postalCode": "Postcode",
+      "postalCodePlaceholder": "20121"
+    },
+    "findOnMap": "Find on map",
+    "dragHint": "Drag the marker if the position isn't accurate."
+  },
+  "location": {
+    "searchPlaceholder": "Search for a city (e.g. Pavia, Milan...)",
+    "radius": "Search radius"
+  }
+}

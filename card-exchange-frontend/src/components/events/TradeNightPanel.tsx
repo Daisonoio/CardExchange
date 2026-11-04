@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeftRight, Radio, RefreshCw, Users } from 'lucide-react';
 import { events } from '../../api';
 import type { Card, EventLive, LiveMatchCard } from '../../types';
@@ -7,12 +8,14 @@ import { apiErrorMessage } from '../../utils/apiError';
 import Button from '../ui/Button';
 import CardVariantBadges from '../cards/CardVariantBadges';
 import PriceTag from '../cards/PriceTag';
+import { formatTime } from '../../i18n/format';
 
 const REFRESH_MS = 30_000;
-const time = (iso: string) => new Date(iso).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+const time = (iso: string) => formatTime(iso, { hour: '2-digit', minute: '2-digit' });
 
 /** Serata di scambio: check-in, presenti e match con ciascuno, aggiornati ogni 30 secondi. */
 export default function TradeNightPanel({ eventId }: { eventId: number }) {
+  const { t } = useTranslation('events');
   const navigate = useNavigate();
   const [live, setLive] = useState<EventLive | null>(null);
   const [busy, setBusy] = useState(false);
@@ -37,7 +40,7 @@ export default function TradeNightPanel({ eventId }: { eventId: number }) {
       await fn();
       load();
     } catch (err) {
-      setError(apiErrorMessage(err, 'Operazione non riuscita.'));
+      setError(apiErrorMessage(err, t('tradeNight.actionError')));
     } finally {
       setBusy(false);
     }
@@ -58,42 +61,42 @@ export default function TradeNightPanel({ eventId }: { eventId: number }) {
     <section className="rounded-2xl border-2 border-primary/30 bg-white p-3 space-y-3">
       <div className="flex items-center gap-2">
         <Radio size={16} className={live.isOpen ? 'text-red-500 animate-pulse' : 'text-text-muted'} />
-        <h2 className="text-sm font-semibold flex-1">Serata di scambio</h2>
-        <span className="text-xs text-text-secondary flex items-center gap-1"><Users size={13} /> {live.presentCount} presenti</span>
+        <h2 className="text-sm font-semibold flex-1">{t('tradeNight.title')}</h2>
+        <span className="text-xs text-text-secondary flex items-center gap-1"><Users size={13} /> {t('tradeNight.present', { count: live.presentCount })}</span>
       </div>
 
       {!live.isOpen ? (
         <p className="text-xs text-text-secondary">
           {notStarted
-            ? `Il check-in apre alle ${time(live.opensAt)}: quando sei sul posto fai check-in per vedere chi c'è e con chi puoi scambiare.`
-            : 'La serata è terminata.'}
+            ? t('tradeNight.opensAt', { time: time(live.opensAt) })
+            : t('tradeNight.ended')}
         </p>
       ) : !live.checkedIn ? (
         <div className="space-y-2">
           <p className="text-xs text-text-secondary">
-            Sei sul posto? Fai check-in: vedrai chi è presente e le carte che potete scambiarvi. Gli altri ti vedranno solo dopo il tuo check-in.
+            {t('tradeNight.checkInHint')}
           </p>
-          <Button className="w-full" isLoading={busy} onClick={() => act(() => events.checkIn(eventId))}>Sono qui, fai check-in</Button>
+          <Button className="w-full" isLoading={busy} onClick={() => act(() => events.checkIn(eventId))}>{t('tradeNight.checkIn')}</Button>
         </div>
       ) : (
         <div className="space-y-2">
           {live.attendees.length === 0 ? (
-            <p className="text-xs text-text-muted text-center py-3">Sei il primo! Gli altri presenti compariranno qui.</p>
+            <p className="text-xs text-text-muted text-center py-3">{t('tradeNight.first')}</p>
           ) : live.attendees.map((a) => {
             const hasMatch = a.theyHaveCount + a.iHaveCount > 0;
             return (
               <div key={a.userId} className={`p-3 rounded-xl border ${a.isMutual ? 'border-green-300 bg-green-50/50' : 'border-border'}`}>
                 <div className="flex items-center justify-between gap-2">
                   <Link to={`/collection/${a.userId}`} className="text-sm font-semibold hover:underline">@{a.username}</Link>
-                  {a.isMutual && <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-800 font-semibold">Scambio reciproco</span>}
+                  {a.isMutual && <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 text-green-800 font-semibold">{t('tradeNight.mutual')}</span>}
                 </div>
                 {!hasMatch ? (
-                  <p className="text-[11px] text-text-muted mt-0.5">Nessuna carta in comune con le vostre wishlist.</p>
+                  <p className="text-[11px] text-text-muted mt-0.5">{t('tradeNight.noMatch')}</p>
                 ) : (
                   <div className="mt-1.5 space-y-1.5 text-xs">
                     {a.theyHaveCount > 0 && (
                       <div>
-                        <p className="text-text-secondary font-medium">Ha {a.theyHaveCount} {a.theyHaveCount === 1 ? 'carta che cerchi' : 'carte che cerchi'}</p>
+                        <p className="text-text-secondary font-medium">{t('tradeNight.theyHave', { count: a.theyHaveCount })}</p>
                         <ul className="mt-0.5 space-y-0.5">
                           {a.theyHave.map((c) => (
                             <li key={c.cardId} className="flex items-center gap-1.5">
@@ -107,7 +110,7 @@ export default function TradeNightPanel({ eventId }: { eventId: number }) {
                     )}
                     {a.iHaveCount > 0 && (
                       <p className="text-text-secondary">
-                        Cerca {a.iHaveCount === 1 ? 'una tua carta' : `${a.iHaveCount} tue carte`}: {a.iHave.map((c) => c.name).join(', ')}
+                        {t('tradeNight.iHave', { count: a.iHaveCount, names: a.iHave.map((c) => c.name).join(', ') })}
                       </p>
                     )}
                     {a.theyHaveCount > 0 && (
@@ -116,7 +119,7 @@ export default function TradeNightPanel({ eventId }: { eventId: number }) {
                         onClick={() => proposeTrade(a.userId, a.theyHave)}
                         className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                       >
-                        <ArrowLeftRight size={13} /> Proponi scambio
+                        <ArrowLeftRight size={13} /> {t('tradeNight.propose')}
                       </button>
                     )}
                   </div>
@@ -125,8 +128,8 @@ export default function TradeNightPanel({ eventId }: { eventId: number }) {
             );
           })}
           <div className="flex items-center justify-between text-[11px] text-text-muted">
-            <span className="inline-flex items-center gap-1"><RefreshCw size={11} /> Aggiornamento automatico ogni 30 secondi</span>
-            <button type="button" disabled={busy} onClick={() => act(() => events.checkOut(eventId))} className="text-danger hover:underline">Esci dalla serata</button>
+            <span className="inline-flex items-center gap-1"><RefreshCw size={11} /> {t('tradeNight.autoRefresh')}</span>
+            <button type="button" disabled={busy} onClick={() => act(() => events.checkOut(eventId))} className="text-danger hover:underline">{t('tradeNight.checkOut')}</button>
           </div>
         </div>
       )}

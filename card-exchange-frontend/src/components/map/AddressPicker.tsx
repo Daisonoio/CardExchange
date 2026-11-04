@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet';
+import { useTranslation } from 'react-i18next';
 import { Loader2, MapPin } from 'lucide-react';
 import './leafletSetup';
 
@@ -23,6 +24,7 @@ function Recenter({ lat, lng }: { lat: number; lng: number }) {
  * e il marker si può trascinare per correggere la posizione.
  */
 export default function AddressPicker({ value, onChange }: { value: AddressValue; onChange: (v: AddressValue) => void }) {
+  const { t } = useTranslation('map');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const hasPosition = value.latitude !== 0 || value.longitude !== 0;
@@ -37,7 +39,7 @@ export default function AddressPicker({ value, onChange }: { value: AddressValue
       });
       const data = await res.json();
       if (!data.length) {
-        setError('Indirizzo non trovato: controllalo o sposta il marker a mano dopo aver cercato la città.');
+        setError(t('address.notFound'));
         return;
       }
       const a = data[0].address ?? {};
@@ -49,7 +51,7 @@ export default function AddressPicker({ value, onChange }: { value: AddressValue
         province: value.province || a.county?.replace(/^Provincia di /, ''),
       });
     } catch {
-      setError('Ricerca non riuscita, riprova.');
+      setError(t('address.searchError'));
     } finally {
       setBusy(false);
     }
@@ -69,19 +71,19 @@ export default function AddressPicker({ value, onChange }: { value: AddressValue
 
   return (
     <div className="space-y-2">
-      {field('address', 'Indirizzo', 'Via Roma 1')}
+      {field('address', t('address.fields.address'), t('address.fields.addressPlaceholder'))}
       <div className="grid grid-cols-3 gap-2">
-        {field('city', 'Città', 'Milano', 'col-span-2')}
-        {field('province', 'Provincia', 'MI')}
+        {field('city', t('address.fields.city'), t('address.fields.cityPlaceholder'), 'col-span-2')}
+        {field('province', t('address.fields.province'), t('address.fields.provincePlaceholder'))}
       </div>
-      {field('postalCode', 'CAP', '20121')}
+      {field('postalCode', t('address.fields.postalCode'), t('address.fields.postalCodePlaceholder'))}
       <button
         type="button"
         onClick={geocode}
         disabled={busy || !value.address || !value.city}
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary disabled:opacity-50"
       >
-        {busy ? <Loader2 size={14} className="animate-spin" /> : <MapPin size={14} />} Trova sulla mappa
+        {busy ? <Loader2 size={14} className="animate-spin" /> : <MapPin size={14} />} {t('address.findOnMap')}
       </button>
       {error && <p className="text-xs text-danger">{error}</p>}
       {hasPosition && (
@@ -102,7 +104,7 @@ export default function AddressPicker({ value, onChange }: { value: AddressValue
               />
             </MapContainer>
           </div>
-          <p className="text-[10px] text-text-muted">Trascina il marker se la posizione non è precisa.</p>
+          <p className="text-[10px] text-text-muted">{t('address.dragHint')}</p>
         </div>
       )}
     </div>

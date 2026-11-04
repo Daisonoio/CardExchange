@@ -1,0 +1,47 @@
+{
+  "categories": { "trade": "Scambi", "collection": "Collezione", "social": "Social", "system": "Sistema" },
+  "types": {
+    "TradeOfferReceived": "Offerta di scambio ricevuta",
+    "TradeOfferAccepted": "Offerta accettata",
+    "TradeOfferRejected": "Offerta rifiutata",
+    "TradeCompleted": "Scambio completato",
+    "WeeklyDigest": "Riepilogo settimanale via email",
+    "MeetupUpdate": "Appuntamento di scambio",
+    "CounterOfferReceived": "Controproposta ricevuta",
+    "FavoritePriceChanged": "Prezzo preferito aggiornato",
+    "FavoriteCardTraded": "Carta preferita scambiata",
+    "WishlistMatch": "Carta trovata in wishlist",
+    "NewMessage": "Nuovo messaggio",
+    "NewReview": "Nuova recensione",
+    "PriceSpike": "Carte in aumento di prezzo",
+    "SubscriptionExpiring": "Abbonamento in scadenza",
+    "SubscriptionExpired": "Abbonamento scaduto",
+    "SystemAnnouncement": "Annuncio di sistema",
+    "default": "Notifica"
+  },
+  "center": {
+    "title": "Notifiche",
+    "unread_one": "{{count}} non lette",
+    "unread_other": "{{count}} non lette",
+    "markAll": "Segna tutte",
+    "markRead": "Segna come letta",
+    "delete": "Elimina",
+    "empty": "Nessuna notifica"
+  },
+  "preferences": { "title": "Preferenze notifiche", "save": "Salva preferenze" },
+  "push": {
+    "title": "Notifiche su questo dispositivo",
+    "ariaLabel": "Notifiche push",
+    "descriptions": {
+      "on": "Riceverai avvisi per match vicini, offerte, messaggi e appuntamenti anche ad app chiusa.",
+      "off": "Attivale per sapere subito quando qualcuno vicino a te ha una carta che cerchi.",
+      "denied": "Le notifiche sono bloccate nelle impostazioni del browser per questo sito.",
+      "unsupported": "Questo browser non supporta le notifiche push.",
+      "disabledServer": "Le notifiche push non sono ancora disponibili.",
+      "iosNeedsInstall": "Su iPhone: tocca Condividi → 'Aggiungi alla schermata Home', poi apri l'app da lì per attivarle."
+    },
+    "toggleError": "Non è stato possibile cambiare le notifiche, riprova.",
+    "testSent": "Notifica di prova inviata: dovrebbe arrivare tra pochi secondi.",
+    "sendTest": "Invia una notifica di prova"
+  }
+}
