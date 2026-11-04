@@ -169,6 +169,7 @@ builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 // Abbonamenti alla piattaforma: carta (Stripe) e bonifico confermato dall'amministratore
 builder.Services.Configure<CardExchange.API.Configuration.BillingOptions>(builder.Configuration.GetSection("Billing"));
 builder.Services.AddScoped<CardExchange.API.Services.Billing.IBillingService, CardExchange.API.Services.Billing.BillingService>();
+builder.Services.AddScoped<CardExchange.API.Services.Billing.IStripeBilling, CardExchange.API.Services.Billing.StripeBilling>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
 

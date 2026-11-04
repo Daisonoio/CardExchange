@@ -25,6 +25,7 @@ namespace CardExchange.API.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ISubscriptionService _subscriptionService;
         private readonly IBillingService _billing;
+        private readonly IStripeBilling _stripe;
         private readonly BillingOptions _billingOptions;
         private readonly IConfiguration _configuration;
         private readonly ILogger<SubscriptionsController> _logger;
@@ -33,6 +34,7 @@ namespace CardExchange.API.Controllers
             ApplicationDbContext context,
             ISubscriptionService subscriptionService,
             IBillingService billing,
+            IStripeBilling stripe,
             IOptions<BillingOptions> billingOptions,
             IConfiguration configuration,
             ILogger<SubscriptionsController> logger)
@@ -40,6 +42,7 @@ namespace CardExchange.API.Controllers
             _context = context;
             _subscriptionService = subscriptionService;
             _billing = billing;
+            _stripe = stripe;
             _billingOptions = billingOptions.Value;
             _configuration = configuration;
             _logger = logger;
@@ -256,6 +259,22 @@ namespace CardExchange.API.Controllers
                 .FirstOrDefaultAsync();
             if (subscription == null)
                 return NotFound(new { message = "Nessun rinnovo automatico attivo da disdire" });
+
+            if (subscription.PaymentMethod == SubscriptionPaymentMethod.Stripe && subscription.ExternalSubscriptionId != null)
+            {
+                if (!_stripe.IsEnabled)
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Il servizio di pagamento non è disponibile, riprova più tardi." });
+                try
+                {
+                    // Stripe conferma poi con customer.subscription.updated
+                    await _stripe.CancelAtPeriodEndAsync(subscription.ExternalSubscriptionId);
+                }
+                catch (Stripe.StripeException ex)
+                {
+                    _logger.LogError(ex, "Disdetta Stripe fallita per l'abbonamento {SubscriptionId}", subscription.Id);
+                    return StatusCode(StatusCodes.Status502BadGateway, new { message = "Il servizio di pagamento non risponde, riprova tra poco." });
+                }
+            }
 
             subscription.AutoRenew = false;
             subscription.CancelledAt = DateTime.UtcNow;
