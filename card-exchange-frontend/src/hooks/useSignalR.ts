@@ -30,7 +30,7 @@ export function useSignalR(
         transport: HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling,
       })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
-      .configureLogging(LogLevel.Warning)
+      .configureLogging(LogLevel.Critical) // gli errori di avvio sono già gestiti sotto (con ripiego sul polling)
       .build();
 
     connection.on('ReceiveNotification', (notification: any) => {

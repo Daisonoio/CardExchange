@@ -22,11 +22,14 @@ export default function WishlistGridItem({ item, onClick, onDelete }: WishlistGr
   const matches = item.availableMatches ?? item.availableMatchesCount ?? 0;
 
   return (
-    <button
-      type="button"
-      onClick={() => onClick?.(item)}
-      className="relative w-full bg-white rounded-xl overflow-hidden shadow-sm border border-border/50 text-left transition-shadow hover:shadow-md"
-    >
+    // Nessun pulsante dentro un altro: un pulsante trasparente copre la carta, "elimina" sta sopra
+    <div className="relative w-full bg-white rounded-xl overflow-hidden shadow-sm border border-border/50 text-left transition-shadow hover:shadow-md">
+      <button
+        type="button"
+        onClick={() => onClick?.(item)}
+        aria-label={cardName}
+        className="absolute inset-0 z-10 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+      />
       {/* Image */}
       <div className="aspect-[5/7] bg-gray-100 relative">
         {image ? (
@@ -52,8 +55,10 @@ export default function WishlistGridItem({ item, onClick, onDelete }: WishlistGr
         {/* Delete button */}
         {onDelete && (
           <button
+            type="button"
             onClick={(e) => { e.stopPropagation(); onDelete(item); }}
-            className="absolute bottom-1 right-1 bg-white/80 backdrop-blur p-1 rounded-full shadow hover:bg-red-50 text-text-muted hover:text-red-500"
+            aria-label={t('common:actions.delete')}
+            className="absolute z-20 bottom-1 right-1 bg-white/80 backdrop-blur p-1 rounded-full shadow hover:bg-red-50 text-text-muted hover:text-red-500"
           >
             <X size={12} />
           </button>
@@ -66,6 +71,6 @@ export default function WishlistGridItem({ item, onClick, onDelete }: WishlistGr
         <p className="text-[10px] text-text-muted truncate">{item.cardSetName || item.cardInfo?.cardSet?.name || ''}</p>
         <CardVariantBadges language={item.preferredLanguage} finish={item.preferredFinish} className="mt-0.5" />
       </div>
-    </button>
+    </div>
   );
 }

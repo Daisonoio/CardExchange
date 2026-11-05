@@ -1,6 +1,29 @@
 {
-  "nav": { "home": "Home", "explore": "Explore", "collection": "Collection", "wishlist": "Wishlist", "profile": "Profile" },
-  "actions": { "back": "Back", "cancel": "Cancel", "save": "Save", "close": "Close", "confirm": "Confirm", "retry": "Try again", "search": "Search", "loading": "Loading…", "showMore": "Show more" },
-  "errors": { "generic": "Something went wrong. Please try again.", "network": "No connection or the server can't be reached." },
-  "language": { "title": "Language", "description": "App language" }
+  "nav": {
+    "home": "Home",
+    "explore": "Explore",
+    "collection": "Collection",
+    "wishlist": "Wishlist",
+    "profile": "Profile"
+  },
+  "actions": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "confirm": "Confirm",
+    "retry": "Try again",
+    "search": "Search",
+    "loading": "Loading…",
+    "showMore": "Show more",
+    "delete": "Delete"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "No connection or the server can't be reached."
+  },
+  "language": {
+    "title": "Language",
+    "description": "App language"
+  }
 }

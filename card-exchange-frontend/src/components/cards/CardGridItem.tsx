@@ -39,8 +39,8 @@ export default function CardGridItem({ card, onClick, selected, onPhotoClick, is
   const hasPhoto = !!card.hasUserPhotos;
 
   return (
-    <button
-      onClick={() => onClick?.(card)}
+    // Nessun pulsante dentro un altro: un pulsante trasparente copre la carta, le azioni piccole stanno sopra
+    <div
       className={`relative bg-white rounded-xl overflow-hidden shadow-sm border-2 transition-all text-left ${
         selected
           ? 'ring-2 ring-primary border-primary'
@@ -49,6 +49,13 @@ export default function CardGridItem({ card, onClick, selected, onPhotoClick, is
           : 'border-border/50 hover:shadow-md'
       }`}
     >
+      <button
+        type="button"
+        onClick={() => onClick?.(card)}
+        aria-label={cardName}
+        aria-pressed={selected ?? undefined}
+        className="absolute inset-0 z-10 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+      />
       {/* Image */}
       <div className="aspect-[5/7] bg-gray-100 relative">
         {image ? (
@@ -87,8 +94,10 @@ export default function CardGridItem({ card, onClick, selected, onPhotoClick, is
               e.stopPropagation();
               onPhotoClick?.(card);
             }}
-            className="absolute bottom-1 left-1 bg-black/60 text-white p-1 rounded-full shadow hover:bg-black/80 transition-colors"
+            type="button"
+            className="absolute z-20 bottom-1 left-1 bg-black/60 text-white p-1 rounded-full shadow hover:bg-black/80 transition-colors"
             title={t('gridItem.viewPhoto')}
+            aria-label={t('gridItem.viewPhoto')}
           >
             <Camera size={11} />
           </button>
@@ -101,8 +110,11 @@ export default function CardGridItem({ card, onClick, selected, onPhotoClick, is
               e.stopPropagation();
               onFavoriteToggle?.(card);
             }}
-            className="absolute bottom-1 right-7 p-1 rounded-full shadow transition-colors"
+            type="button"
+            className="absolute z-20 bottom-1 right-7 p-1 rounded-full shadow transition-colors"
             title={isFavorite ? t('gridItem.removeFavorite') : t('gridItem.addFavorite')}
+            aria-label={isFavorite ? t('gridItem.removeFavorite') : t('gridItem.addFavorite')}
+            aria-pressed={!!isFavorite}
           >
             <Heart
               size={12}
@@ -136,6 +148,6 @@ export default function CardGridItem({ card, onClick, selected, onPhotoClick, is
       {selected && (
         <div className="absolute inset-0 bg-primary/10 pointer-events-none" />
       )}
-    </button>
+    </div>
   );
 }

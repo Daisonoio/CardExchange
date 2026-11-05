@@ -1,6 +1,29 @@
 {
-  "nav": { "home": "Home", "explore": "Esplora", "collection": "Collezione", "wishlist": "Wishlist", "profile": "Profilo" },
-  "actions": { "back": "Indietro", "cancel": "Annulla", "save": "Salva", "close": "Chiudi", "confirm": "Conferma", "retry": "Riprova", "search": "Cerca", "loading": "Caricamento…", "showMore": "Mostra altri" },
-  "errors": { "generic": "Qualcosa è andato storto. Riprova.", "network": "Connessione assente o server non raggiungibile." },
-  "language": { "title": "Lingua", "description": "Lingua dell'app" }
+  "nav": {
+    "home": "Home",
+    "explore": "Esplora",
+    "collection": "Collezione",
+    "wishlist": "Wishlist",
+    "profile": "Profilo"
+  },
+  "actions": {
+    "back": "Indietro",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "close": "Chiudi",
+    "confirm": "Conferma",
+    "retry": "Riprova",
+    "search": "Cerca",
+    "loading": "Caricamento…",
+    "showMore": "Mostra altri",
+    "delete": "Elimina"
+  },
+  "errors": {
+    "generic": "Qualcosa è andato storto. Riprova.",
+    "network": "Connessione assente o server non raggiungibile."
+  },
+  "language": {
+    "title": "Lingua",
+    "description": "Lingua dell'app"
+  }
 }

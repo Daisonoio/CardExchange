@@ -55,5 +55,10 @@
     "unsupported": "Geolocalizzazione non supportata dal browser",
     "denied": "Permesso di geolocalizzazione negato",
     "unavailable": "Impossibile ottenere la posizione"
+  },
+  "connection": {
+    "title": "Non riesco a collegarmi",
+    "description": "Controlla la connessione: il tuo accesso resta attivo, non devi rientrare.",
+    "retry": "Riprova"
   }
 }

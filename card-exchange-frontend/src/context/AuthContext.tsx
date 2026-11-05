@@ -10,7 +10,14 @@ interface AuthContextType {
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  /** Il server non risponde all'avvio (rete assente, server sovraccarico): la sessione resta, si può riprovare. */
+  connectionError: boolean;
+  retryConnection: () => void;
 }
+
+type LoadResult = 'ok' | 'unauthorized' | 'unavailable';
+
+const RETRY_DELAYS_MS = [1000, 2500];
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -18,25 +25,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const refreshUser = useCallback(async () => {
+  const [connectionError, setConnectionError] = useState(false);
+
+  /**
+   * Carica l'utente. La sessione si chiude solo se il server dice che non è più valida (401/403):
+   * con la rete assente o il server momentaneamente non disponibile si resta collegati.
+   */
+  const loadUser = useCallback(async (): Promise<LoadResult> => {
     try {
       const { data } = await auth.me();
       setUser(data);
-    } catch {
-      setUser(null);
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
+      return 'ok';
+    } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401 || status === 403) {
+        setUser(null);
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        return 'unauthorized';
+      }
+      return 'unavailable';
     }
   }, []);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      refreshUser().finally(() => setIsLoading(false));
-    } else {
+  const refreshUser = useCallback(async () => {
+    await loadUser();
+  }, [loadUser]);
+
+  const bootstrap = useCallback(async () => {
+    if (!localStorage.getItem('token')) {
       setIsLoading(false);
+      return;
     }
-  }, [refreshUser]);
+    setIsLoading(true);
+    setConnectionError(false);
+    let result = await loadUser();
+    for (const delay of RETRY_DELAYS_MS) {
+      if (result !== 'unavailable') break;
+      await new Promise((r) => setTimeout(r, delay));
+      result = await loadUser();
+    }
+    setConnectionError(result === 'unavailable');
+    setIsLoading(false);
+  }, [loadUser]);
+
+  useEffect(() => {
+    void bootstrap();
+  }, [bootstrap]);
 
   const login = async (data: LoginRequest) => {
     const res = await auth.login(data);
@@ -69,6 +104,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         refreshUser,
+        connectionError,
+        retryConnection: () => { void bootstrap(); },
       }}
     >
       {children}

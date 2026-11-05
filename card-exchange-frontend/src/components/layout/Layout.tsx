@@ -6,9 +6,10 @@ import GameSelector from './GameSelector';
 import MobileHeader from './MobileHeader';
 import VerifyEmailBanner from './VerifyEmailBanner';
 import AgeGate from './AgeGate';
+import ConnectionErrorScreen from './ConnectionErrorScreen';
 
 export default function Layout() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, connectionError, retryConnection } = useAuth();
   const { pathname } = useLocation();
   // Pagine a schermo intero (chat): occupano esattamente lo spazio tra le barre, senza scorrere la pagina
   const fullHeight = pathname.startsWith('/chat');
@@ -19,6 +20,11 @@ export default function Layout() {
         <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
+  }
+
+  // Sessione ancora valida ma server irraggiungibile: niente rimando al login
+  if (!isAuthenticated && connectionError) {
+    return <ConnectionErrorScreen onRetry={retryConnection} />;
   }
 
   if (!isAuthenticated) {

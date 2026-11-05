@@ -203,6 +203,7 @@ builder.Services.AddScoped<IPriceTrackingService, PriceTrackingService>();
 builder.Services.AddScoped<IMatchmakingService, MatchmakingService>();
 builder.Services.AddScoped<CardSearchService>();
 builder.Services.AddScoped<CardExchange.API.Services.Social.BroadcastService>();
+builder.Services.AddSingleton<CardExchange.API.Services.Security.LoginAttemptGuard>();
 
 // Monitoraggio: errori (anche quelli solo registrati nei log) e stato dei cataloghi esterni
 builder.Services.AddSingleton<CardExchange.API.Services.Monitoring.IErrorTracker, CardExchange.API.Services.Monitoring.ErrorTracker>();
@@ -316,11 +317,21 @@ builder.Services.AddRateLimiter(options =>
         QueueLimit = 0
     }));
 
-    // Policy per autenticazione: 20 richieste/15 minuti per IP
+    // Accesso e recupero password: 60 richieste/15 minuti per IP. Il limite è largo perché più persone
+    // possono condividere la stessa rete (es. Wi-Fi di un negozio); contro i tentativi di indovinare la
+    // password c'è il blocco per account (LoginAttemptGuard: 5 errori in 15 minuti).
     options.AddPolicy("AuthPolicy", ctx => RateLimitPartition.GetFixedWindowLimiter(ClientIp(ctx), _ => new FixedWindowRateLimiterOptions
     {
-        PermitLimit = 20,
+        PermitLimit = 60,
         Window = TimeSpan.FromMinutes(15),
+        QueueLimit = 0
+    }));
+
+    // Registrazioni: 100/ora per IP, così una serata di scambio in negozio può iscriversi tutta dal QR
+    options.AddPolicy("SignupPolicy", ctx => RateLimitPartition.GetFixedWindowLimiter(ClientIp(ctx), _ => new FixedWindowRateLimiterOptions
+    {
+        PermitLimit = 100,
+        Window = TimeSpan.FromHours(1),
         QueueLimit = 0
     }));
 

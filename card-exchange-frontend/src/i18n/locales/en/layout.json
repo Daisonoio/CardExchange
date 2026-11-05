@@ -55,5 +55,10 @@
     "unsupported": "Your browser doesn't support geolocation",
     "denied": "Location permission denied",
     "unavailable": "Unable to get your location"
+  },
+  "connection": {
+    "title": "Can't connect",
+    "description": "Check your connection: you're still signed in, no need to log in again.",
+    "retry": "Try again"
   }
 }

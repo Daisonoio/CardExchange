@@ -69,7 +69,7 @@ namespace CardExchange.API.Controllers
         //}
         /// </summary>
         [HttpPost("register")]
-        [EnableRateLimiting("AuthPolicy")]
+        [EnableRateLimiting("SignupPolicy")]
         [AllowAnonymous]
         public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request,
             [FromServices] IConfiguration? configuration = null)
@@ -197,10 +197,16 @@ namespace CardExchange.API.Controllers
         [HttpPost("login")]
         [EnableRateLimiting("AuthPolicy")]
         [AllowAnonymous]
-        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
+        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request,
+            [FromServices] CardExchange.API.Services.Security.LoginAttemptGuard? loginGuard = null)
         {
             try
             {
+                var guard = loginGuard ?? FallbackLoginGuard;
+                var lockedFor = guard.LockedForMinutes(request.UsernameOrEmail, DateTime.UtcNow);
+                if (lockedFor != null)
+                    return StatusCode(StatusCodes.Status429TooManyRequests, new { message = $"Troppi tentativi con password errata per questo account. Riprova tra {lockedFor} minuti o recupera la password." });
+
                 // Cerca l'utente per email o username
                 User? user = null;
 
@@ -224,6 +230,7 @@ namespace CardExchange.API.Controllers
                             return Unauthorized(new { message = $"Per usare CardExchange devi avere almeno {MinimumAge(null)} anni. Per cancellare i tuoi dati scrivi al supporto.", code = "UNDERAGE" });
                         return Unauthorized(new { message = "Account sospeso. Contatta il supporto se pensi sia un errore." });
                     }
+                    guard.RecordFailure(request.UsernameOrEmail, DateTime.UtcNow);
                     return Unauthorized(new { message = "Credenziali non valide" });
                 }
 
@@ -236,8 +243,10 @@ namespace CardExchange.API.Controllers
                 // Verifica la password
                 if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 {
+                    guard.RecordFailure(request.UsernameOrEmail, DateTime.UtcNow);
                     return Unauthorized(new { message = "Credenziali non valide" });
                 }
+                guard.Reset(request.UsernameOrEmail);
 
                 // Genera nuovo refresh token
                 user.RefreshToken = _tokenService.GenerateRefreshToken();
@@ -645,6 +654,9 @@ namespace CardExchange.API.Controllers
                 return StatusCode(500, new { message = "Errore interno del server" });
             }
         }
+
+        private static readonly CardExchange.API.Services.Security.LoginAttemptGuard FallbackLoginGuard =
+            new(new Microsoft.Extensions.Caching.Memory.MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions()));
 
         /// <summary>
         /// Lega il nuovo utente al negozio del QR (solo negozi verificati, mai il proprietario stesso) e glielo fa seguire.

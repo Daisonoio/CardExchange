@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useId } from 'react';
 import { X } from 'lucide-react';
 
 interface BottomSheetProps {
@@ -14,6 +14,7 @@ interface BottomSheetProps {
  * Uses z-[60] to sit above the BottomNav (z-50).
  */
 export default function BottomSheet({ open, onClose, title, children }: BottomSheetProps) {
+  const titleId = useId();
   const [visible, setVisible] = useState(false);
   const [animating, setAnimating] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -65,6 +66,9 @@ export default function BottomSheet({ open, onClose, title, children }: BottomSh
       {/* Mobile: bottom sheet | Desktop: centered dialog */}
       <div
         ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className={`
           absolute inset-x-0 bottom-0
           md:static md:absolute md:inset-0 md:m-auto md:max-w-lg md:h-fit md:max-h-[85vh]
@@ -87,7 +91,7 @@ export default function BottomSheet({ open, onClose, title, children }: BottomSh
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-border/50 shrink-0">
-          <h2 className="text-lg font-bold text-text">{title}</h2>
+          <h2 id={titleId} className="text-lg font-bold text-text">{title}</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-dark transition-colors"
