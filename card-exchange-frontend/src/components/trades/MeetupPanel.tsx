@@ -212,7 +212,7 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
                         <span className="text-sm font-semibold text-text truncate">{s.name}</span>
                         {s.isPartner && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 shrink-0">{t('meetup.form.partner')}</span>}
                       </span>
-                      <span className="block text-[11px] text-text-muted truncate">
+                      <span className="block text-[11px] text-text-muted">
                         {s.address}, {s.city}
                         {s.distanceFromMeKm != null && <> · {t('meetup.form.fromYou', { km: s.distanceFromMeKm })}</>}
                         {s.distanceFromOtherKm != null && <> · {t('meetup.form.fromOther', { km: s.distanceFromOtherKm, username: otherUsername })}</>}
