@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, CalendarDays, Clock, Globe, Instagram, Loader2, MapPin, Phone, Radio, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, Globe, Instagram, Loader2, MapPin, Phone, QrCode, Radio, ShieldCheck, Sparkles } from 'lucide-react';
 import { events, stores } from '../api';
 import type { CardEvent, Store } from '../types';
 import { EVENT_TYPE_LABELS } from '../types';
@@ -26,11 +26,18 @@ export default function StorePage() {
   const { games } = useGame();
   const [store, setStore] = useState<Store | null | undefined>(undefined);
   const [storeEvents, setStoreEvents] = useState<CardEvent[]>([]);
+  const [attributions, setAttributions] = useState<{ total: number; last30Days: number } | null>(null);
 
   useEffect(() => {
     stores.get(Number(id)).then(({ data }) => setStore(data)).catch(() => setStore(null));
     events.byStore(Number(id)).then(({ data }) => setStoreEvents(data)).catch(() => setStoreEvents([]));
   }, [id]);
+
+  const isOwner = !!store?.isOwner;
+  useEffect(() => {
+    if (!isOwner) return;
+    stores.attributions(Number(id)).then(({ data }) => setAttributions(data)).catch(() => setAttributions(null));
+  }, [id, isOwner]);
 
   if (store === undefined) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>;
   if (store === null) return <EmptyState icon={MapPin} title={t('page.notFoundTitle')} description={t('page.notFoundDescription')} />;
@@ -56,6 +63,18 @@ export default function StorePage() {
         )}
         {!store.isOwner && store.status === 'Verified' && <FollowButton target={{ storeId: store.id }} showCount />}
       </div>
+
+      {store.isOwner && store.status === 'Verified' && (
+        <Link to={`/qr/store/${store.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
+          <QrCode size={18} className="shrink-0 text-primary" />
+          <span className="min-w-0">
+            <strong className="block text-sm text-text">{t('qr:store.entry')}</strong>
+            <span className="text-xs text-text-secondary">
+              {attributions ? t('qr:store.registered', { count: attributions.total, recent: attributions.last30Days }) : t('qr:store.entryHint')}
+            </span>
+          </span>
+        </Link>
+      )}
 
       {store.isOwner && store.status === 'Verified' && (
         <Link to={`/live/new?storeId=${store.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-primary text-white hover:bg-primary-light">

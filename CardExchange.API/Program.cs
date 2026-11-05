@@ -389,6 +389,19 @@ using (var scope = app.Services.CreateScope())
         await RBACSeeder.SeedRolesAndPermissions(context);
         await RBACSeeder.SeedSubscriptionPlans(context);
         await GameSeeder.SeedGames(context);
+
+        // Negozi creati prima dei link e QR: assegna lo slug mancante
+        var withoutSlug = await context.Stores.IgnoreQueryFilters().Where(s => s.Slug == null).ToListAsync();
+        if (withoutSlug.Count > 0)
+        {
+            var used = (await context.Stores.IgnoreQueryFilters().Where(s => s.Slug != null).Select(s => s.Slug!).ToListAsync()).ToHashSet();
+            foreach (var store in withoutSlug)
+            {
+                store.Slug = CardExchange.Core.Rules.Slugs.Unique(CardExchange.Core.Rules.Slugs.From($"{store.Name} {store.City}"), used.Contains);
+                used.Add(store.Slug);
+            }
+            await context.SaveChangesAsync();
+        }
     }
     catch (Exception ex)
     {

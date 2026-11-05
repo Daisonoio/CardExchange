@@ -1,0 +1,38 @@
+{
+  "title": "Your QR code",
+  "print": "Print",
+  "downloadPng": "Download PNG",
+  "copyLink": "Copy link",
+  "copied": "Link copied",
+  "qrAlt": "QR code that opens {{url}}",
+  "unavailable": "QR code not available",
+  "unavailableDescription": "QR codes are available for your profile, your verified stores and your live \"I'm here\" updates.",
+  "me": {
+    "menu": "My QR code",
+    "hint": "Show it or print it: whoever scans it sees your cards.",
+    "subtitle": "My cards for trade and for sale",
+    "cta": "Scan to see my cards"
+  },
+  "store": {
+    "entry": "QR material for your store",
+    "entryHint": "Print it for the counter and tournaments: people who sign up here follow you automatically.",
+    "registered_one": "{{count}} person signed up from your QR ({{recent}} in the last 30 days)",
+    "registered_other": "{{count}} people signed up from your QR ({{recent}} in the last 30 days)",
+    "hint": "Put it at the counter and at tournaments: people who sign up here follow the store.",
+    "subtitle": "Trade and find cards near you",
+    "cta": "Scan, sign up and follow the store"
+  },
+  "live": {
+    "entry": "QR code to display",
+    "hint": "Put it on your stand: whoever scans it sees where you are and your cards.",
+    "cta": "Scan to follow me and see my cards"
+  },
+  "link": {
+    "subtitle": "This store invites you to CardExchange",
+    "pitch": "Sign up for free: you'll follow the store, hear about its tournaments and find traders near you.",
+    "register": "Sign up for free",
+    "login": "I already have an account",
+    "notFound": "Store not found",
+    "notFoundDescription": "This link is no longer valid, but you can still sign up."
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Il tuo QR",
+  "print": "Stampa",
+  "downloadPng": "Scarica PNG",
+  "copyLink": "Copia link",
+  "copied": "Link copiato",
+  "qrAlt": "Codice QR che apre {{url}}",
+  "unavailable": "QR non disponibile",
+  "unavailableDescription": "Il QR è disponibile per il tuo profilo, per i tuoi negozi verificati e per i tuoi avvisi \"Sono qui\" in corso.",
+  "me": {
+    "menu": "Il mio QR",
+    "hint": "Da mostrare o stampare: chi lo inquadra apre le tue carte.",
+    "subtitle": "Le mie carte in scambio e in vendita",
+    "cta": "Inquadra e guarda le mie carte"
+  },
+  "store": {
+    "entry": "Materiale con QR per il negozio",
+    "entryHint": "Stampalo per la cassa e i tornei: chi si iscrive da qui ti segue in automatico.",
+    "registered_one": "{{count}} persona iscritta dal tuo QR ({{recent}} negli ultimi 30 giorni)",
+    "registered_other": "{{count}} persone iscritte dal tuo QR ({{recent}} negli ultimi 30 giorni)",
+    "hint": "Da esporre in cassa e ai tornei: chi si iscrive da qui segue il negozio.",
+    "subtitle": "Scambia e trova carte vicino a te",
+    "cta": "Inquadra, iscriviti e segui il negozio"
+  },
+  "live": {
+    "entry": "QR da esporre",
+    "hint": "Da mettere sul banco: chi lo inquadra vede dove sei e le tue carte.",
+    "cta": "Inquadra per seguirmi e vedere le mie carte"
+  },
+  "link": {
+    "subtitle": "Il negozio ti invita su CardExchange",
+    "pitch": "Iscriviti gratis: seguirai il negozio, saprai dei suoi tornei e troverai chi scambia carte vicino a te.",
+    "register": "Iscriviti gratis",
+    "login": "Ho già un account",
+    "notFound": "Negozio non trovato",
+    "notFoundDescription": "Il link non è più valido, ma puoi iscriverti comunque."
+  }
+}

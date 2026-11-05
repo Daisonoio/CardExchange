@@ -373,6 +373,8 @@ export const stores = {
     client.get<import('../types').Store[]>('/stores', { params }),
   get: (id: number) => client.get<import('../types').Store>(`/stores/${id}`),
   mine: () => client.get<import('../types').Store[]>('/stores/mine'),
+  bySlug: (slug: string) => client.get<{ id: number; name: string; city: string; slug: string }>(`/stores/by-slug/${encodeURIComponent(slug)}`),
+  attributions: (id: number) => client.get<{ total: number; last30Days: number }>(`/stores/${id}/attributions`),
   create: (data: import('../types').StoreInput) => client.post<import('../types').Store>('/stores', data),
   update: (id: number, data: import('../types').StoreInput) => client.put<import('../types').Store>(`/stores/${id}`, data),
   pending: (status: 'pending' | 'verified' | 'rejected' | 'suspended' = 'pending') =>

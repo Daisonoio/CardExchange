@@ -35,6 +35,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<TradeReview> TradeReviews { get; set; }
         public DbSet<UserBlock> UserBlocks { get; set; }
         public DbSet<Follow> Follows { get; set; }
+        public DbSet<StoreAttribution> StoreAttributions { get; set; }
         public DbSet<LocationBroadcast> LocationBroadcasts { get; set; }
         public DbSet<UserReport> UserReports { get; set; }
         public DbSet<TradeMeetup> TradeMeetups { get; set; }
@@ -316,6 +317,15 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(f => f.FollowedStore).WithMany().HasForeignKey(f => f.FollowedStoreId).OnDelete(DeleteBehavior.Restrict);
             });
 
+            // Negozio di provenienza: uno per utente
+            modelBuilder.Entity<StoreAttribution>(entity =>
+            {
+                entity.HasIndex(a => a.UserId).IsUnique();
+                entity.HasIndex(a => a.StoreId);
+                entity.HasOne(a => a.User).WithMany().HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(a => a.Store).WithMany().HasForeignKey(a => a.StoreId).OnDelete(DeleteBehavior.Restrict);
+            });
+
             // Avvisi "Sono qui"
             modelBuilder.Entity<LocationBroadcast>(entity =>
             {
@@ -335,6 +345,7 @@ namespace CardExchange.Infrastructure.Data
             {
                 entity.HasIndex(s => new { s.Status, s.City });
                 entity.HasIndex(s => s.OwnerId);
+                entity.HasIndex(s => s.Slug).IsUnique().HasFilter("[Slug] IS NOT NULL");
                 entity.HasOne(s => s.Owner).WithMany().HasForeignKey(s => s.OwnerId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasMany(s => s.Events).WithOne(e => e.Store!).HasForeignKey(e => e.StoreId).OnDelete(DeleteBehavior.SetNull);
             });

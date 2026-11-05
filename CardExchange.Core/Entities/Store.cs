@@ -77,6 +77,10 @@ namespace CardExchange.Core.Entities
         public string? ReviewNote { get; set; }
 
         [ForeignKey(nameof(OwnerId))]
+        /// <summary>Identificativo leggibile per link e QR (es. "games-corner-milano"), univoco.</summary>
+        [MaxLength(80)]
+        public string? Slug { get; set; }
+
         public virtual User Owner { get; set; } = null!;
 
         public virtual ICollection<Event> Events { get; set; } = new List<Event>();

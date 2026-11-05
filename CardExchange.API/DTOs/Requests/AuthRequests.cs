@@ -38,6 +38,10 @@ namespace CardExchange.API.DTOs.Requests
         [MaxLength(12)]
         public string? ReferralCode { get; set; }
 
+        /// <summary>Negozio dal cui QR o link arriva la registrazione (es. "games-corner-milano").</summary>
+        [MaxLength(80)]
+        public string? StoreSlug { get; set; }
+
         [Required(ErrorMessage = "La conferma password è obbligatoria")]
         [Compare("Password", ErrorMessage = "Le password non coincidono")]
         public string ConfirmPassword { get; set; } = string.Empty;

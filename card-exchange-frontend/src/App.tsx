@@ -36,6 +36,8 @@ import CollectionPreview from './proto/CollectionPreview';
 import LocalPage from './pages/LocalPage';
 import StorePage from './pages/StorePage';
 import LivePage from './pages/LivePage';
+import QrPage from './pages/QrPage';
+import StoreLinkPage from './pages/StoreLinkPage';
 import LiveComposePage from './pages/LiveComposePage';
 import FollowingPage from './pages/FollowingPage';
 import StoreFormPage from './pages/StoreFormPage';
@@ -67,6 +69,8 @@ export default function App() {
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            {/* Link breve stampato nel QR del negozio */}
+            <Route path="/s/:slug" element={<StoreLinkPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
@@ -91,6 +95,7 @@ export default function App() {
               <Route path="/live/new" element={<LiveComposePage />} />
               <Route path="/live/:id" element={<LivePage />} />
               <Route path="/following" element={<FollowingPage />} />
+              <Route path="/qr/:kind/:id?" element={<QrPage />} />
               <Route path="/stores/:id/edit" element={<StoreFormPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />

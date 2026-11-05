@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { referrals } from '../api';
+import { referrals, stores } from '../api';
 import { clearStoredReferral, getStoredReferral } from '../utils/referral';
+import { clearStoredStoreSlug, getStoredStoreSlug } from '../utils/storeAttribution';
 import { MINIMUM_AGE, ageFromIsoDate, todayIso } from '../utils/age';
 import { USERNAME_RULE, passwordProblem } from '../utils/accountRules';
 import { apiErrorMessage } from '../utils/apiError';
@@ -28,6 +29,13 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   // Invito: il codice è stato salvato all'apertura del link (?ref=)
   const [referralCode] = useState(() => getStoredReferral());
+  // Arrivo dal QR di un negozio (/s/:slug): ci si iscrive "da" quel negozio e lo si segue
+  const [storeSlug] = useState(() => getStoredStoreSlug());
+  const [fromStore, setFromStore] = useState<string | null>(null);
+  useEffect(() => {
+    if (!storeSlug) return;
+    stores.bySlug(storeSlug).then(({ data }) => setFromStore(data.name)).catch(() => clearStoredStoreSlug());
+  }, [storeSlug]);
   const [invitedBy, setInvitedBy] = useState<string | null>(null);
 
   useEffect(() => {
@@ -75,8 +83,10 @@ export default function RegisterPage() {
         confirmPassword: form.confirmPassword,
         birthDate: form.birthDate,
         referralCode: invitedBy && referralCode ? referralCode : undefined,
+        storeSlug: fromStore && storeSlug ? storeSlug : undefined,
       });
       clearStoredReferral();
+      clearStoredStoreSlug();
       navigate('/home');
     } catch (err: unknown) {
       // Il server spiega il motivo (email già usata, password non valida…): si mostra quello
@@ -98,6 +108,11 @@ export default function RegisterPage() {
           </div>
           <h1 className="text-2xl font-bold text-text">{t('register.title')}</h1>
           <p className="text-sm text-text-secondary mt-1">{t('register.subtitle')}</p>
+          {fromStore && (
+            <p className="mt-3 inline-block px-3 py-1.5 rounded-full bg-primary/10 text-sm text-text">
+              <Trans t={t} i18nKey="register.fromStore" values={{ store: fromStore }} components={{ strong: <strong /> }} />
+            </p>
+          )}
           {invitedBy && (
             <p className="mt-3 inline-block px-3 py-1.5 rounded-full bg-secondary/20 text-sm text-text">
               <Trans t={t} i18nKey="register.invitedBy" values={{ username: invitedBy }} components={{ strong: <strong /> }} />

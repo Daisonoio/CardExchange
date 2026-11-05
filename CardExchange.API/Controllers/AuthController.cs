@@ -147,6 +147,9 @@ namespace CardExchange.API.Controllers
 
                 _logger.LogInformation("Nuovo utente registrato: {UserId} - {Username}", user.Id, user.Username);
 
+                // Registrazione dal QR di un negozio: l'utente è legato al negozio e lo segue
+                await AttributeToStoreAsync(user.Id, request.StoreSlug);
+
                 await SendVerificationEmailAsync(user);
 
                 if (referrer != null)
@@ -638,6 +641,33 @@ namespace CardExchange.API.Controllers
             {
                 _logger.LogError(ex, "Errore durante il reset della password");
                 return StatusCode(500, new { message = "Errore interno del server" });
+            }
+        }
+
+        /// <summary>
+        /// Lega il nuovo utente al negozio del QR (solo negozi verificati, mai il proprietario stesso) e glielo fa seguire.
+        /// Un errore qui non deve bloccare la registrazione.
+        /// </summary>
+        private async Task AttributeToStoreAsync(int userId, string? storeSlug)
+        {
+            if (string.IsNullOrWhiteSpace(storeSlug)) return;
+            try
+            {
+                var slug = storeSlug.Trim().ToLowerInvariant();
+                var store = await _context.Stores.AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.Slug == slug && s.Status == StoreStatus.Verified);
+                if (store == null || store.OwnerId == userId) return;
+                if (await _context.StoreAttributions.AnyAsync(a => a.UserId == userId)) return;
+
+                _context.StoreAttributions.Add(new StoreAttribution { UserId = userId, StoreId = store.Id, Source = AttributionSource.Qr });
+                if (!await _context.Follows.AnyAsync(f => f.FollowerId == userId && f.FollowedStoreId == store.Id))
+                    _context.Follows.Add(new Follow { FollowerId = userId, FollowedStoreId = store.Id });
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Utente {UserId} registrato dal QR del negozio {StoreId}", userId, store.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Attribuzione al negozio '{Slug}' non riuscita per l'utente {UserId}", storeSlug, userId);
             }
         }
 

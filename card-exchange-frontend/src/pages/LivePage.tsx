@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MapContainer, Marker, TileLayer } from 'react-leaflet';
-import { ArrowLeft, CalendarDays, Clock, Layers, Loader2, MapPin, MessageSquare, Navigation, Radio, Store as StoreIcon, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, Layers, Loader2, MapPin, MessageSquare, Navigation, QrCode, Radio, Store as StoreIcon, Users } from 'lucide-react';
 import { broadcasts, type LiveBroadcast } from '../api';
 import { useFormat } from '../i18n/format';
 import EmptyState from '../components/ui/EmptyState';
@@ -100,6 +100,11 @@ export default function LivePage() {
         {!item.isMine && (
           <Link to={`/chat?userId=${item.author.id}`} className="col-span-2 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white border border-border text-sm font-semibold text-text hover:border-primary/40">
             <MessageSquare size={16} /> {t('page.message')}
+          </Link>
+        )}
+        {item.isMine && item.isLive && (
+          <Link to={`/qr/live/${item.id}`} className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white border border-border text-sm font-semibold text-text hover:border-primary/40">
+            <QrCode size={16} /> {t('qr:live.entry')}
           </Link>
         )}
         {item.isMine && item.isLive && (

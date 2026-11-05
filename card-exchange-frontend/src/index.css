@@ -43,6 +43,14 @@
 
   /* Le mappe Leaflet usano z-index fino a 1000: le isoliamo perché scorrendo
      non passino sopra la barra in alto, quella in basso o i pannelli */
+  /* Stampa dei QR: si stampa solo il cartello */
+  @media print {
+    body * { visibility: hidden; }
+    .print-area, .print-area * { visibility: visible; }
+    .print-area { position: absolute; left: 0; right: 0; top: 0; margin: 0 auto; border: 0; box-shadow: none; }
+    .no-print { display: none !important; }
+  }
+
   .leaflet-container {
     isolation: isolate;
     z-index: 0;

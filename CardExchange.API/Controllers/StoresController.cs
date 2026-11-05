@@ -91,6 +91,16 @@ namespace CardExchange.API.Controllers
             public int UpcomingEventsCount { get; set; }
             /// <summary>Il proprietario ha il piano Negozio attivo: scheda in evidenza in cima all'elenco.</summary>
             public bool IsFeatured { get; set; }
+            /// <summary>Identificativo per link e QR (/s/{slug}).</summary>
+            public string? Slug { get; set; }
+        }
+
+        public class StorePublicDto
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string City { get; set; } = string.Empty;
+            public string Slug { get; set; } = string.Empty;
         }
 
         // ---------------- Pubblico ----------------
@@ -192,6 +202,7 @@ namespace CardExchange.API.Controllers
 
             var store = new Store { OwnerId = userId };
             Apply(store, request);
+            store.Slug = await UniqueSlugAsync(store.Name, store.City);
             _context.Stores.Add(store);
             await _context.SaveChangesAsync();
 
@@ -375,8 +386,48 @@ namespace CardExchange.API.Controllers
             IsOwner = currentUserId != 0 && s.OwnerId == currentUserId,
             DistanceKm = distanceKm.HasValue ? Math.Round(distanceKm.Value, 1) : null,
             UpcomingEventsCount = eventCounts.GetValueOrDefault(s.Id),
-            IsFeatured = s.Status == StoreStatus.Verified && featuredOwners != null && featuredOwners.Contains(s.OwnerId)
+            IsFeatured = s.Status == StoreStatus.Verified && featuredOwners != null && featuredOwners.Contains(s.OwnerId),
+            Slug = s.Slug
         };
+
+        /// <summary>Slug libero a partire da nome e città ("Games Corner", "Milano" -> "games-corner-milano").</summary>
+        private async Task<string> UniqueSlugAsync(string name, string city)
+        {
+            var baseSlug = Slugs.From($"{name} {city}");
+            var taken = await _context.Stores.IgnoreQueryFilters()
+                .Where(s => s.Slug != null && s.Slug.StartsWith(baseSlug))
+                .Select(s => s.Slug!)
+                .ToListAsync();
+            return Slugs.Unique(baseSlug, taken.Contains);
+        }
+
+        // ---------------- Link e QR del negozio ----------------
+
+        /// <summary>Negozio dal link breve /s/{slug} stampato nel QR (anche senza accesso, per la pagina di registrazione).</summary>
+        [HttpGet("api/stores/by-slug/{slug}")]
+        [AllowAnonymous]
+        public async Task<ActionResult<StorePublicDto>> BySlug(string slug)
+        {
+            var store = await _context.Stores.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Slug == slug.ToLower() && s.Status == StoreStatus.Verified);
+            if (store == null) return NotFound(new { message = "Negozio non trovato" });
+            return new StorePublicDto { Id = store.Id, Name = store.Name, City = store.City, Slug = store.Slug! };
+        }
+
+        /// <summary>Quanti utenti si sono registrati dal QR del negozio (solo il proprietario, solo il numero).</summary>
+        [HttpGet("api/stores/{id:int}/attributions")]
+        public async Task<IActionResult> Attributions(int id)
+        {
+            var store = await _context.Stores.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+            if (store == null) return NotFound(new { message = "Negozio non trovato" });
+            if (store.OwnerId != CurrentUserId() && !IsModerator()) return Forbid();
+            var since = DateTime.UtcNow.AddDays(-30);
+            return Ok(new
+            {
+                total = await _context.StoreAttributions.CountAsync(a => a.StoreId == id),
+                last30Days = await _context.StoreAttributions.CountAsync(a => a.StoreId == id && a.CreatedAt >= since)
+            });
+        }
 
         private bool IsModerator() => User.HasClaim("Permission", "ADMIN.REPORTS.MANAGE");
 

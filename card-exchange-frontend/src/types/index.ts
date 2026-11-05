@@ -16,6 +16,8 @@ export interface RegisterRequest {
   birthDate: string;
   /** Codice invito facoltativo. */
   referralCode?: string;
+  /** Negozio dal cui QR arriva la registrazione */
+  storeSlug?: string;
 }
 
 export interface AuthResponse {
@@ -726,9 +728,11 @@ export interface Store {
   upcomingEventsCount: number;
   /** Il proprietario ha il piano Negozio attivo. */
   isFeatured?: boolean;
+  /** Identificativo per link e QR (/s/{slug}) */
+  slug?: string;
 }
 
-export type StoreInput = Omit<Store, 'id' | 'status' | 'reviewNote' | 'isOwner' | 'distanceKm' | 'upcomingEventsCount' | 'isFeatured'>;
+export type StoreInput = Omit<Store, 'id' | 'status' | 'reviewNote' | 'isOwner' | 'distanceKm' | 'upcomingEventsCount' | 'isFeatured' | 'slug'>;
 
 // === Serata di scambio ===
 export interface LiveMatchCard {

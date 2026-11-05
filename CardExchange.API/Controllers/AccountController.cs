@@ -187,6 +187,7 @@ namespace CardExchange.API.Controllers
             _context.Follows.RemoveRange(await _context.Follows
                 .Where(f => f.FollowerId == userId || f.FollowedUserId == userId || (f.FollowedStoreId != null && ownStoreIds.Contains(f.FollowedStoreId.Value)))
                 .ToListAsync());
+            _context.StoreAttributions.RemoveRange(await _context.StoreAttributions.Where(a => a.UserId == userId).ToListAsync());
             var broadcasts = await _context.LocationBroadcasts.Where(b => b.AuthorId == userId).ToListAsync();
             foreach (var b in broadcasts) { b.IsDeleted = true; b.EndedAt ??= DateTime.UtcNow; }
 
