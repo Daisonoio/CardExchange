@@ -29,7 +29,9 @@ namespace CardExchange.Core.Entities
         /// <summary>Attività per il proprietario di un negozio (es. scambi fissati in negozio oggi).</summary>
         StoreActivity = 19,
         /// <summary>Iscrizioni agli eventi: lista d'attesa, posto liberato, promemoria.</summary>
-        EventUpdate = 20
+        EventUpdate = 20,
+        /// <summary>Un negozio vicino ha una carta della wishlist (disattivabile).</summary>
+        StoreOffer = 21
     }
 
     public class Notification : BaseEntity

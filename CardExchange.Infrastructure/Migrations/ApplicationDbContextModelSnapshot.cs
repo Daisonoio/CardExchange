@@ -1858,6 +1858,54 @@ namespace CardExchange.Infrastructure.Migrations
                     b.ToTable("StoreAttributions");
                 });
 
+            modelBuilder.Entity("CardExchange.Core.Entities.StoreDemandSnapshot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ActiveUsersInRadius")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ComputedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InStockJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("InterestedUsers")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MissingJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RadiusKm")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId")
+                        .IsUnique();
+
+                    b.ToTable("StoreDemandSnapshots");
+                });
+
             modelBuilder.Entity("CardExchange.Core.Entities.StoreMonthlyReport", b =>
                 {
                     b.Property<int>("Id")
@@ -1894,6 +1942,35 @@ namespace CardExchange.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("StoreMonthlyReports");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.StoreStockAlert", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("CardInfoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId", "SentAt");
+
+                    b.HasIndex("UserId", "SentAt");
+
+                    b.ToTable("StoreStockAlerts");
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.SubscriptionPlan", b =>
@@ -3044,6 +3121,17 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CardExchange.Core.Entities.StoreDemandSnapshot", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
+                });
+
             modelBuilder.Entity("CardExchange.Core.Entities.StoreMonthlyReport", b =>
                 {
                     b.HasOne("CardExchange.Core.Entities.Store", "Store")
@@ -3053,6 +3141,15 @@ namespace CardExchange.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.StoreStockAlert", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.TradeMeetup", b =>

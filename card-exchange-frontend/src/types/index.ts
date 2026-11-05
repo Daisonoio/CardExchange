@@ -985,6 +985,26 @@ export interface StoreStats {
   eventCheckIns: number;
 }
 
+export interface DemandCard {
+  cardInfoId: number;
+  name: string;
+  setName: string;
+  imageUrl?: string | null;
+  users: number;
+  avgMaxPriceEur?: number | null;
+  marketPriceEur?: number | null;
+  copiesInStock: number;
+}
+
+export interface StoreDemand {
+  computedAt: string;
+  radiusKm: number;
+  activeUsersInRadius: number;
+  interestedUsers: number;
+  inStock: DemandCard[];
+  missing: DemandCard[];
+}
+
 export interface StoreReports {
   store: { id: number; name: string };
   current: { month: string; stats: StoreStats };

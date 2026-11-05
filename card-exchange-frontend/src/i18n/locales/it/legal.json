@@ -42,7 +42,8 @@
       {
         "title": "Cosa vedono gli altri utenti",
         "body": [
-          "Gli altri utenti vedono il tuo username, la città, la distanza arrotondata al chilometro, le carte che metti a disposizione, le recensioni ricevute e, se li pubblichi, i tuoi avvisi \"Sono qui\". Non vedono mai la tua email, il CAP o la posizione esatta."
+          "Gli altri utenti vedono il tuo username, la città, la distanza arrotondata al chilometro, le carte che metti a disposizione, le recensioni ricevute e, se li pubblichi, i tuoi avvisi \"Sono qui\". Non vedono mai la tua email, il CAP o la posizione esatta.",
+          "I negozi vedono solo dati aggregati e anonimi sulle carte cercate nella loro zona (mai nomi né wishlist individuali; una carta compare solo se la cercano almeno 3 persone). Possono chiederci di avvisare chi cerca una carta che hanno: l'avviso non arriva ai minorenni e si può disattivare nelle preferenze delle notifiche (\"Proposte dai negozi vicini\")."
         ]
       },
       {

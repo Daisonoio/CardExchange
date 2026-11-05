@@ -40,6 +40,8 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<StoreActivity> StoreActivities { get; set; }
         public DbSet<StoreMonthlyReport> StoreMonthlyReports { get; set; }
         public DbSet<UserActiveDay> UserActiveDays { get; set; }
+        public DbSet<StoreDemandSnapshot> StoreDemandSnapshots { get; set; }
+        public DbSet<StoreStockAlert> StoreStockAlerts { get; set; }
         public DbSet<CatalogStatus> CatalogStatuses { get; set; }
         public DbSet<LocationBroadcast> LocationBroadcasts { get; set; }
         public DbSet<UserReport> UserReports { get; set; }
@@ -329,6 +331,18 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(e => new { e.IsResolved, e.LastSeenAt });
             });
             modelBuilder.Entity<CatalogStatus>().HasIndex(c => c.Key).IsUnique();
+
+            modelBuilder.Entity<StoreDemandSnapshot>(entity =>
+            {
+                entity.HasIndex(s => s.StoreId).IsUnique();
+                entity.HasOne(s => s.Store).WithMany().HasForeignKey(s => s.StoreId).OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<StoreStockAlert>(entity =>
+            {
+                entity.HasIndex(a => new { a.UserId, a.SentAt });
+                entity.HasIndex(a => new { a.StoreId, a.SentAt });
+                entity.HasOne<User>().WithMany().HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
 
             modelBuilder.Entity<UserActiveDay>(entity =>
             {

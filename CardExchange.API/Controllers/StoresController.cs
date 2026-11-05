@@ -489,6 +489,55 @@ namespace CardExchange.API.Controllers
             });
         }
 
+        /// <summary>Domanda locale: serve il piano Negozio attivo (o un moderatore).</summary>
+        private async Task<(Store? Store, IActionResult? Error)> DemandAccessAsync(int id)
+        {
+            var store = await _context.Stores.FirstOrDefaultAsync(s => s.Id == id);
+            if (store == null) return (null, NotFound(new { message = "Negozio non trovato" }));
+            if (store.OwnerId != CurrentUserId() && !IsModerator()) return (null, Forbid());
+            if (store.Status != StoreStatus.Verified) return (null, BadRequest(new { message = "Il negozio deve essere verificato" }));
+            if (!IsModerator())
+            {
+                var now = DateTime.UtcNow;
+                var hasPlan = await _context.UserSubscriptions.AnyAsync(s => s.UserId == store.OwnerId && s.Status == SubscriptionStatus.Active
+                    && s.StartDate <= now && s.EndDate > now && s.Plan.Tier == SubscriptionTier.Store);
+                if (!hasPlan) return (null, StatusCode(402, new { code = "PLAN_REQUIRED", message = "La domanda locale è inclusa nel piano Negozio" }));
+            }
+            return (store, null);
+        }
+
+        /// <summary>
+        /// Domanda locale: cosa cercano i collezionisti attivi entro 10 km, tra le carte del negozio e tra quelle che non ha.
+        /// Solo numeri, mai nomi; ogni carta compare solo se la cercano almeno 3 persone. Ricalcolata ogni notte
+        /// (o subito, se l'ultimo calcolo ha più di 6 ore).
+        /// </summary>
+        [HttpGet("api/stores/{id:int}/demand")]
+        public async Task<IActionResult> Demand(int id, [FromServices] StoreDemandService demand)
+        {
+            var (store, error) = await DemandAccessAsync(id);
+            if (store == null) return error!;
+            var snap = await _context.StoreDemandSnapshots.AsNoTracking().FirstOrDefaultAsync(s => s.StoreId == id);
+            var result = snap != null && snap.ComputedAt > DateTime.UtcNow.AddHours(-6)
+                ? StoreDemandService.FromSnapshot(snap)
+                : await demand.RefreshAsync(store, DateTime.UtcNow);
+            return Ok(result);
+        }
+
+        public record NotifyInterestedRequest(int CardInfoId);
+
+        /// <summary>Avvisa chi nella zona cerca una carta disponibile nel negozio (con limiti, esclusi i minorenni).</summary>
+        [HttpPost("api/stores/{id:int}/demand/notify")]
+        public async Task<IActionResult> NotifyInterested(int id, [FromBody] NotifyInterestedRequest request,
+            [FromServices] StoreDemandService demand, [FromServices] CardExchange.API.Services.Notifications.INotificationDispatcher dispatcher)
+        {
+            var (store, error) = await DemandAccessAsync(id);
+            if (store == null) return error!;
+            if (store.OwnerId != CurrentUserId()) return Forbid();
+            var result = await demand.NotifyInterestedAsync(store, request.CardInfoId, DateTime.UtcNow, dispatcher);
+            if (result.Error != null) return BadRequest(new { message = result.Error });
+            return Ok(new { sent = result.Sent, skipped = result.Skipped });
+        }
+
         /// <summary>Quanti utenti si sono registrati dal QR del negozio (solo il proprietario, solo il numero).</summary>
         [HttpGet("api/stores/{id:int}/attributions")]
         public async Task<IActionResult> Attributions(int id)

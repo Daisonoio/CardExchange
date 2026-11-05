@@ -42,7 +42,8 @@
       {
         "title": "What other users see",
         "body": [
-          "Other users see your username, city, distance rounded to the kilometre, the cards you make available, your reviews and, if you publish them, your \"I'm here\" updates. They never see your email, postal code or exact position."
+          "Other users see your username, city, distance rounded to the kilometre, the cards you make available, your reviews and, if you publish them, your \"I'm here\" updates. They never see your email, postal code or exact position.",
+          "Stores only see aggregated, anonymous data about the cards wanted in their area (never names or individual wishlists; a card appears only if at least 3 people want it). They can ask us to notify people who want a card they have: minors never receive these alerts, and you can turn them off in notification preferences (\"Offers from nearby stores\")."
         ]
       },
       {

@@ -36,6 +36,7 @@ import CollectionPreview from './proto/CollectionPreview';
 import LocalPage from './pages/LocalPage';
 import StorePage from './pages/StorePage';
 import StoreResultsPage from './pages/StoreResultsPage';
+import StoreDemandPage from './pages/StoreDemandPage';
 import NotificationsGuidePage from './pages/NotificationsGuidePage';
 import LivePage from './pages/LivePage';
 import QrPage from './pages/QrPage';
@@ -112,6 +113,7 @@ export default function App() {
               <Route path="/profile/privacy" element={<AccountPrivacyPage />} />
               <Route path="/stores/:id/edit" element={<StoreFormPage />} />
               <Route path="/stores/:id/results" element={<StoreResultsPage />} />
+              <Route path="/stores/:id/demand" element={<StoreDemandPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />
               <Route path="/moderation" element={<ModerationPage />} />

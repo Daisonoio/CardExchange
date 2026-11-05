@@ -26,7 +26,8 @@
     "FollowedNearby": "Un profilo che segui è nei paraggi",
     "NewFollower": "Nuovo follower",
     "StoreActivity": "Attività del tuo negozio",
-    "EventUpdate": "Iscrizioni agli eventi"
+    "EventUpdate": "Iscrizioni agli eventi",
+    "StoreOffer": "Proposte dai negozi vicini"
   },
   "center": {
     "title": "Notifiche",

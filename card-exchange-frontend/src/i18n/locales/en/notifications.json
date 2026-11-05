@@ -26,7 +26,8 @@
     "FollowedNearby": "Someone you follow is nearby",
     "NewFollower": "New follower",
     "StoreActivity": "Activity at your store",
-    "EventUpdate": "Event registrations"
+    "EventUpdate": "Event registrations",
+    "StoreOffer": "Offers from nearby stores"
   },
   "center": {
     "title": "Notifications",

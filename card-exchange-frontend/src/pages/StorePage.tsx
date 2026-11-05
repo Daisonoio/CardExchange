@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, ArrowLeftRight, BarChart3, CalendarDays, Clock, Globe, Instagram, Loader2, MapPin, Phone, QrCode, Radio, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowLeftRight, BarChart3, CalendarDays, Target, Clock, Globe, Instagram, Loader2, MapPin, Phone, QrCode, Radio, ShieldCheck, Sparkles } from 'lucide-react';
 import { events, stores } from '../api';
 import type { CardEvent, Store } from '../types';
 import { EVENT_TYPE_LABELS } from '../types';
@@ -90,6 +90,16 @@ export default function StorePage() {
           <span className="min-w-0">
             <strong className="block text-sm text-text">{t('results.entry')}</strong>
             <span className="text-xs text-text-secondary">{t('results.entryHint')}</span>
+          </span>
+        </Link>
+      )}
+
+      {store.isOwner && store.status === 'Verified' && (
+        <Link to={`/stores/${store.id}/demand`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
+          <Target size={18} className="shrink-0 text-primary" />
+          <span className="min-w-0">
+            <strong className="block text-sm text-text">{t('demand.entry')}</strong>
+            <span className="text-xs text-text-secondary">{t('demand.entryHint')}</span>
           </span>
         </Link>
       )}

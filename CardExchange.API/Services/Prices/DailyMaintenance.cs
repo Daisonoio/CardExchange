@@ -269,6 +269,12 @@ namespace CardExchange.API.Services.Prices
                         expired, reminded, stale);
                 }
 
+                // Domanda locale dei negozi
+                using (var demandScope = _scopeFactory.CreateScope())
+                {
+                    await demandScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Stores.StoreDemandService>().RefreshAllAsync(DateTime.UtcNow, ct);
+                }
+
                 // Riepilogo mensile dei negozi (crea solo quelli del mese appena concluso non ancora fatti)
                 using (var reportScope = _scopeFactory.CreateScope())
                 {
