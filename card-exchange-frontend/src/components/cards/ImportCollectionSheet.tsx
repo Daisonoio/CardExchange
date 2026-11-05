@@ -156,6 +156,7 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
               <li>{t('import.tipRecognize', { hint: hints[catalogKey] ?? t('import.defaultHint') })}</li>
             )}
             <li>{t('import.tipFields')}</li>
+            <li>{t('import.tipMultiGame')}</li>
             {!isMagic && <li>{t('import.tipSlow')}</li>}
           </ul>
           <label className={`flex flex-col items-center justify-center gap-2 p-6 rounded-2xl border-2 border-dashed border-border cursor-pointer hover:bg-surface-dark transition-colors ${busy ? 'opacity-60 pointer-events-none' : ''}`}>

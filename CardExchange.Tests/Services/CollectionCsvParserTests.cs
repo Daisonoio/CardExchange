@@ -142,4 +142,53 @@ public class CollectionCsvParserTests
         var rows = CollectionCsvParser.Parse("Name\nOpt\n\n,\nShock\n").Rows;
         rows.Select(r => r.Name).Should().Equal("Opt", "Shock");
     }
+
+    [Fact]
+    public void Collectr_PortfolioExport()
+    {
+        var csv = "Portfolio Name,Category,Set,Product Name,Card Number,Rarity,Variance,Grade,Card Condition,Average Cost Paid,Quantity,Market Price,Price Override,Watchlist,Date Added,Notes\n" +
+                  "Main,Pokemon,Scarlet & Violet 151,Charizard ex - 199/165,,Special Illustration Rare,Holofoil,Ungraded,Near Mint,0,1,250,,false,2026-01-02,\n" +
+                  "Main,One Piece Card Game,Romance Dawn,Monkey.D.Luffy,OP01-024,Super Rare,Normal,PSA 10,Near Mint,0,2,30,,false,2026-01-02,\n" +
+                  "Main,Lorcana,The First Chapter,Elsa - Spirit of Winter,42/204,Legendary,Cold Foil,Ungraded,Lightly Played,0,1,10,,false,2026-01-02,\n";
+
+        var r = CollectionCsvParser.Parse(csv);
+
+        r.Error.Should().BeNull();
+        r.DetectedFormat.Should().Be("Collectr");
+        r.Rows[0].Should().BeEquivalentTo(new { Name = "Charizard ex", CollectorNumber = "199/165", SetName = "Scarlet & Violet 151", Game = "Pokemon", Finish = CardFinish.Foil, Condition = CardCondition.NearMint }, o => o.ExcludingMissingMembers());
+        r.Rows[1].Should().BeEquivalentTo(new { Name = "Monkey.D.Luffy", CollectorNumber = "OP01-024", Quantity = 2, Condition = CardCondition.Mint, Finish = CardFinish.Normal }, o => o.ExcludingMissingMembers());
+        r.Rows[1].Warnings.Should().Contain(w => w.Contains("PSA 10"));
+        r.Rows[2].Should().BeEquivalentTo(new { Name = "Elsa - Spirit of Winter", CollectorNumber = "42/204", Finish = CardFinish.Foil, Condition = CardCondition.LightlyPlayed }, o => o.ExcludingMissingMembers());
+    }
+
+    [Fact]
+    public void TcgPlayer_ConditionWithFoil()
+    {
+        var csv = "Quantity,Name,Simple Name,Set,Card Number,Set Code,Printing,Condition,Language,Rarity,Product ID,SKU\n" +
+                  "3,Pikachu,Pikachu,Base Set,58/102,BS,Unlimited,Near Mint Holofoil,English,Common,42,99\n" +
+                  "1,Sol Ring,Sol Ring,Commander Masters,410,CMM,Foil,Lightly Played,Italian,Uncommon,43,100\n";
+
+        var r = CollectionCsvParser.Parse(csv);
+
+        r.DetectedFormat.Should().Be("TCGplayer");
+        r.Rows[0].Should().BeEquivalentTo(new { Name = "Pikachu", Quantity = 3, SetCode = "bs", SetName = "Base Set", Condition = CardCondition.NearMint, Finish = CardFinish.Foil, Language = "en" }, o => o.ExcludingMissingMembers());
+        r.Rows[1].Should().BeEquivalentTo(new { Finish = CardFinish.Foil, Condition = CardCondition.LightlyPlayed, Language = "it" }, o => o.ExcludingMissingMembers());
+        r.IgnoredColumns.Should().Contain("Simple Name");
+    }
+
+    [Fact]
+    public void Dreamborn_Lorcana()
+    {
+        var r = CollectionCsvParser.Parse("Set Number,Card Number,Variant,Count\n1,207,foil,2\n2,15,normal,1\n");
+        r.DetectedFormat.Should().Be("Dreamborn");
+        r.Rows[0].Should().BeEquivalentTo(new { SetCode = "1", CollectorNumber = "207", Finish = CardFinish.Foil, Quantity = 2 }, o => o.ExcludingMissingMembers());
+        r.Rows[1].Error.Should().BeNull("set e numero bastano");
+    }
+
+    [Theory]
+    [InlineData("1st Edition Holofoil", CardFinish.Foil)]
+    [InlineData("Reverse Holofoil", CardFinish.ReverseHolo)]
+    [InlineData("Enchanted", CardFinish.Foil)]
+    [InlineData("Unlimited", CardFinish.Normal)]
+    public void Finish_Variants(string value, CardFinish expected) => CollectionCsvParser.ParseFinish(value).Should().Be(expected);
 }

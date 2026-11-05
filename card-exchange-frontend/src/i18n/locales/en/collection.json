@@ -80,7 +80,7 @@
     "title": "Import collection",
     "fileGame": "Game in the file",
     "introMagic": "Export your <strong>Magic</strong> collection as CSV from ManaBox, Moxfield, Deckbox, Dragon Shield, Cardmarket or a spreadsheet, then upload it here.",
-    "introOther": "Upload the CSV of your <strong>{{game}}</strong> collection (from a collection app, from CardExchange or from a spreadsheet).",
+    "introOther": "Upload your <strong>{{game}}</strong> collection CSV from Collectr, TCGplayer, Dreamborn (Lorcana), CardExchange or a spreadsheet.",
     "previewNote": "You'll see a preview before confirming.",
     "tipNameColumn": "You need at least a column with the card name (e.g. \"Name\").",
     "tipExactMatch": "With set code and collector number, matching is exact.",
@@ -133,6 +133,7 @@
       "Language": "Language",
       "Finish": "Foil/Finish",
       "Game": "Game"
-    }
+    },
+    "tipMultiGame": "Collectr exports with several games: each card goes to its own game automatically, even if you picked another game here."
   }
 }

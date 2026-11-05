@@ -65,8 +65,17 @@ namespace CardExchange.API.Services.Catalog
 
         public async Task<IReadOnlyList<CatalogCard>> SearchAsync(string query, int limit, CancellationToken ct = default)
         {
-            var res = await _api.SearchCardsAsync($"name:\"{query.Replace("\"", "")}*\"", 1, limit);
+            var res = await SearchWithRetryAsync($"name:\"{query.Replace("\"", "")}*\"", 1, limit);
             return res?.Data?.Select(Map).ToList() ?? new List<CatalogCard>();
+        }
+
+        /// <summary>Il catalogo Pokémon a volte risponde con un errore temporaneo (500): si riprova una volta.</summary>
+        private async Task<PokemonTcgResponse<List<PokemonTcgCard>>?> SearchWithRetryAsync(string query, int page, int pageSize)
+        {
+            var res = await _api.SearchCardsAsync(query, page, pageSize);
+            if (res != null) return res;
+            await Task.Delay(400);
+            return await _api.SearchCardsAsync(query, page, pageSize);
         }
 
         public async Task<CatalogCard?> ResolveAsync(CatalogLookup lookup, CancellationToken ct = default)
@@ -77,15 +86,59 @@ namespace CardExchange.API.Services.Catalog
                 var number = NormalizeNumber(lookup.Number);
                 foreach (var q in new[] { $"set.id:\"{set}\" number:\"{number}\"", $"set.ptcgoCode:\"{set}\" number:\"{number}\"" })
                 {
-                    var hit = (await _api.SearchCardsAsync(q, 1, 1))?.Data?.FirstOrDefault();
+                    var hit = (await SearchWithRetryAsync(q, 1, 1))?.Data?.FirstOrDefault();
                     if (hit != null) return Map(hit);
+                }
+            }
+            // Collectr, TCGplayer: nome e "199/165" con il nome commerciale dell'espansione ("Base Set", "Scarlet & Violet 151"),
+            // che spesso non coincide con quello del catalogo: decide il totale stampato sulla carta
+            if (!string.IsNullOrWhiteSpace(lookup.Number))
+            {
+                var parts = lookup.Number.Split('/');
+                var number = NormalizeNumber(parts[0]);
+                int? printedTotal = parts.Length > 1 && int.TryParse(parts[1].Trim(), out var t) ? t : null;
+                string? q = !string.IsNullOrWhiteSpace(lookup.Name)
+                    ? $"name:\"{lookup.Name.Trim().Replace("\"", "")}\" number:\"{number}\""
+                    : !string.IsNullOrWhiteSpace(lookup.SetName) ? $"set.name:\"{lookup.SetName.Trim().Replace("\"", "")}\" number:\"{number}\"" : null;
+                if (q != null)
+                {
+                    var hits = (await SearchWithRetryAsync(q, 1, 30))?.Data ?? new List<PokemonTcgCard>();
+                    var best = PickPrint(hits, printedTotal, lookup.SetName);
+                    if (best != null) return Map(best);
                 }
             }
             if (string.IsNullOrWhiteSpace(lookup.Name)) return null;
             var nameQuery = $"name:\"{lookup.Name.Trim().Replace("\"", "")}\"";
             if (!string.IsNullOrWhiteSpace(lookup.SetName)) nameQuery += $" set.name:\"{lookup.SetName.Trim().Replace("\"", "")}\"";
-            var byName = (await _api.SearchCardsAsync(nameQuery, 1, 1))?.Data?.FirstOrDefault();
+            var byName = (await SearchWithRetryAsync(nameQuery, 1, 1))?.Data?.FirstOrDefault();
             return byName == null ? null : Map(byName);
+        }
+
+        /// <summary>
+        /// Tra le stampe con lo stesso nome e numero sceglie quella con il totale stampato indicato ("58/102" → set da 102),
+        /// poi quella con il nome dell'espansione più simile; se resta ambiguità non sceglie.
+        /// </summary>
+        public static PokemonTcgCard? PickPrint(IReadOnlyList<PokemonTcgCard> hits, int? printedTotal, string? setName)
+        {
+            IEnumerable<PokemonTcgCard> pool = hits;
+            if (printedTotal.HasValue)
+            {
+                var byTotal = hits.Where(h => h.Set?.PrintedTotal == printedTotal || h.Set?.Total == printedTotal).ToList();
+                if (byTotal.Count > 0) pool = byTotal;
+                else if (hits.Count > 1) return null;
+            }
+            var list = pool.ToList();
+            if (list.Count <= 1) return list.FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(setName))
+            {
+                static string Simple(string s) => new string(s.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+                var wanted = Simple(setName);
+                var exact = list.Where(h => h.Set?.Name != null && Simple(h.Set.Name) == wanted).ToList();
+                if (exact.Count == 1) return exact[0];
+                var partial = list.Where(h => h.Set?.Name != null && (wanted.EndsWith(Simple(h.Set.Name)) || Simple(h.Set.Name).EndsWith(wanted))).ToList();
+                if (partial.Count == 1) return partial[0];
+            }
+            return null;
         }
 
         public async Task<CatalogImportResult?> ImportAsync(string externalId, CancellationToken ct = default)

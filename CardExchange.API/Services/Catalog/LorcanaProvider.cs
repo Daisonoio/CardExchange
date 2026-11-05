@@ -57,13 +57,33 @@ namespace CardExchange.API.Services.Catalog
             return card == null ? null : Map(card, await _fx.UsdToEurAsync(ct));
         }
 
+        /// <summary>Codice dell'espansione dal nome ("The First Chapter" → "1"), con l'elenco dei set in cache.</summary>
+        private async Task<string?> SetCodeForNameAsync(string? setName, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(setName)) return null;
+            if (!_cache.TryGetValue("lorcast:sets", out Dictionary<string, string>? sets) || sets == null)
+            {
+                var list = await GetJsonAsync<LorcastSetList>("sets", ct);
+                sets = (list?.Results ?? new List<LorcastSet>())
+                    .Where(x => x.Code != null && x.Name != null)
+                    .GroupBy(x => Simplify(x.Name!)).ToDictionary(g => g.Key, g => g.First().Code!);
+                _cache.Set("lorcast:sets", sets, TimeSpan.FromHours(12));
+            }
+            return sets.TryGetValue(Simplify(setName), out var code) ? code : null;
+        }
+
+        private static string Simplify(string s) => new string(s.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+
         public override async Task<CatalogCard?> ResolveAsync(CatalogLookup lookup, CancellationToken ct = default)
         {
             var rate = await _fx.UsdToEurAsync(ct);
-            if (!string.IsNullOrWhiteSpace(lookup.SetCode) && !string.IsNullOrWhiteSpace(lookup.Number))
+            var setCode = !string.IsNullOrWhiteSpace(lookup.SetCode) && lookup.SetCode.Trim().All(char.IsDigit)
+                ? lookup.SetCode.Trim()
+                : await SetCodeForNameAsync(lookup.SetName, ct) ?? lookup.SetCode;
+            if (!string.IsNullOrWhiteSpace(setCode) && !string.IsNullOrWhiteSpace(lookup.Number))
             {
                 var number = lookup.Number.Split('/')[0].Trim().TrimStart('0');
-                var card = await GetJsonAsync<LorcastCard>($"cards/{Uri.EscapeDataString(lookup.SetCode.Trim())}/{Uri.EscapeDataString(number)}", ct);
+                var card = await GetJsonAsync<LorcastCard>($"cards/{Uri.EscapeDataString(setCode.Trim())}/{Uri.EscapeDataString(number)}", ct);
                 if (card != null) return Map(card, rate);
             }
             if (string.IsNullOrWhiteSpace(lookup.Name)) return null;
@@ -180,6 +200,11 @@ namespace CardExchange.API.Services.Catalog
             [JsonPropertyName("small")] public string? Small { get; set; }
             [JsonPropertyName("normal")] public string? Normal { get; set; }
             [JsonPropertyName("large")] public string? Large { get; set; }
+        }
+
+        public class LorcastSetList
+        {
+            [JsonPropertyName("results")] public List<LorcastSet>? Results { get; set; }
         }
 
         public class LorcastSet

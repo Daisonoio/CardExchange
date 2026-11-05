@@ -1,3 +1,4 @@
+using CardExchange.API.DTOs.PokemonTcg;
 using System.Text.Json;
 using CardExchange.API.Authorization;
 using CardExchange.API.Services;
@@ -131,7 +132,7 @@ public class CatalogTests : IDisposable
         preview.ReadyCount.Should().Be(2);
         preview.Rows[0].Match!.ExternalId.Should().Be("c1");
         preview.Rows[0].Match!.PriceEur.Should().Be(30m, "foil");
-        preview.Rows[2].Error.Should().Contain("altro gioco");
+        preview.Rows[2].Error.Should().Contain("Scryfall", "la riga Magic passa dal catalogo Magic anche in un file misto");
         preview.Rows[3].Error.Should().Contain("non trovata");
 
         var commit = await service.CommitAsync(user.Id, new ImportCommitRequest
@@ -148,6 +149,37 @@ public class CatalogTests : IDisposable
         var cards = await _context.Cards.Include(c => c.CardInfo).Where(c => c.UserId == user.Id).ToListAsync();
         cards.Should().HaveCount(2);
         cards.Single(c => c.CardInfo.ExternalId == "c1").Should().Match<Card>(c => c.Quantity == 2 && c.Finish == CardFinish.Foil && c.IsAvailableForTrade);
+    }
+
+    [Fact]
+    public async Task CsvImport_GameColumn_RoutesRowsWithoutChoosingTheGame()
+    {
+        var registry = new CatalogRegistry(new ICatalogProvider[] { _provider });
+        var service = new CollectionImportService(_context, new Mock<IScryfallService>().Object, new Mock<IMagicCatalogService>().Object,
+            new Mock<ISubscriptionService>().Object, new Mock<IWishlistAlertService>().Object, new Mock<ILogger<CollectionImportService>>().Object, registry);
+
+        var csv = "Portfolio Name,Category,Set,Product Name,Card Number,Quantity\n" +
+                  "Main,Fake Game,,Stitch - Rock Star,,1\n" +
+                  "Main,Sports Cards,,Michael Jordan,,1\n";
+
+        var preview = await service.PreviewAsync(csv, null);   // l'utente ha lasciato "Magic"
+
+        preview.DetectedFormat.Should().Be("Collectr");
+        preview.Rows.Select(r => r.LineNumber).Should().BeInAscendingOrder();
+        preview.Rows[0].Match!.CatalogKey.Should().Be("fake");
+        preview.Rows[1].Error.Should().Contain("Gioco non supportato");
+        preview.ReadyCount.Should().Be(1);
+    }
+
+    [Fact]
+    public void PokemonPrint_ChosenByPrintedTotal_ThenSetName()
+    {
+        PokemonTcgCard Card(string id, string set, int total) => new() { Id = id, Name = "Pikachu", Set = new PokemonTcgSet { Name = set, PrintedTotal = total, Total = total } };
+        var hits = new List<PokemonTcgCard> { Card("base2-87", "Base Set 2", 130), Card("base1-58", "Base", 102), Card("bp-58", "Promo", 50) };
+        PokemonCatalogProvider.PickPrint(hits, 102, "Base Set")!.Id.Should().Be("base1-58");
+        PokemonCatalogProvider.PickPrint(hits, 999, null).Should().BeNull("nessun set con quel totale: meglio non indovinare");
+        PokemonCatalogProvider.PickPrint(hits, null, "Base Set 2")!.Id.Should().Be("base2-87");
+        PokemonCatalogProvider.PickPrint(hits, null, null).Should().BeNull();
     }
 
     [Fact]

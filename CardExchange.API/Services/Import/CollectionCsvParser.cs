@@ -6,7 +6,7 @@ using CardExchange.Core.Entities;
 
 namespace CardExchange.API.Services.Import
 {
-    public enum ImportField { Name, SetCode, SetName, Edition, CollectorNumber, ScryfallId, Quantity, Condition, Language, Finish, Game }
+    public enum ImportField { Name, SetCode, SetName, Edition, CollectorNumber, ScryfallId, Quantity, Condition, Language, Finish, Game, Grade }
 
     public class ParsedCollectionRow
     {
@@ -49,17 +49,19 @@ namespace CardExchange.API.Services.Import
         // Chiavi normalizzate (minuscolo, senza spazi/underscore/trattini)
         private static readonly Dictionary<string, ImportField> HeaderAliases = new()
         {
-            ["name"] = ImportField.Name, ["cardname"] = ImportField.Name, ["card"] = ImportField.Name, ["nome"] = ImportField.Name, ["nomecarta"] = ImportField.Name,
-            ["setcode"] = ImportField.SetCode, ["editioncode"] = ImportField.SetCode, ["expansioncode"] = ImportField.SetCode, ["codiceset"] = ImportField.SetCode,
+            ["name"] = ImportField.Name, ["productname"] = ImportField.Name, ["cardname"] = ImportField.Name, ["card"] = ImportField.Name, ["nome"] = ImportField.Name, ["nomecarta"] = ImportField.Name,
+            ["setcode"] = ImportField.SetCode, ["setnumber"] = ImportField.SetCode, ["setid"] = ImportField.SetCode, ["editioncode"] = ImportField.SetCode, ["expansioncode"] = ImportField.SetCode, ["codiceset"] = ImportField.SetCode,
             ["setname"] = ImportField.SetName, ["expansion"] = ImportField.SetName, ["expansionname"] = ImportField.SetName, ["editionname"] = ImportField.SetName,
             ["set"] = ImportField.Edition, ["edition"] = ImportField.Edition, ["espansione"] = ImportField.Edition,
             ["collectornumber"] = ImportField.CollectorNumber, ["cardnumber"] = ImportField.CollectorNumber, ["number"] = ImportField.CollectorNumber, ["numero"] = ImportField.CollectorNumber, ["collectorno"] = ImportField.CollectorNumber,
             ["scryfallid"] = ImportField.ScryfallId,
             ["quantity"] = ImportField.Quantity, ["count"] = ImportField.Quantity, ["qty"] = ImportField.Quantity, ["quantita"] = ImportField.Quantity, ["amount"] = ImportField.Quantity,
-            ["condition"] = ImportField.Condition, ["condizione"] = ImportField.Condition,
+            ["condition"] = ImportField.Condition, ["cardcondition"] = ImportField.Condition, ["condizione"] = ImportField.Condition,
             ["language"] = ImportField.Language, ["lang"] = ImportField.Language, ["lingua"] = ImportField.Language,
-            ["game"] = ImportField.Game, ["gioco"] = ImportField.Game,
+            ["game"] = ImportField.Game, ["gioco"] = ImportField.Game, ["category"] = ImportField.Game, ["categoria"] = ImportField.Game,
+            ["grade"] = ImportField.Grade, ["grading"] = ImportField.Grade,
             ["foil"] = ImportField.Finish, ["isfoil"] = ImportField.Finish, ["printing"] = ImportField.Finish, ["finish"] = ImportField.Finish, ["finitura"] = ImportField.Finish,
+            ["variance"] = ImportField.Finish, ["variant"] = ImportField.Finish, ["variante"] = ImportField.Finish,
         };
 
         private static readonly Dictionary<string, CardCondition> ConditionAliases = new()
@@ -97,6 +99,7 @@ namespace CardExchange.API.Services.Import
         };
 
         private static readonly Regex SetCodePattern = new("^[A-Za-z0-9]{2,6}$", RegexOptions.Compiled);
+        private static readonly Regex NameWithNumber = new(@"^(.+?)\s+-\s+#?(\d{1,4}[a-z]?/[A-Za-z0-9]{1,5})$", RegexOptions.Compiled);
 
         public static CollectionCsvParseResult Parse(string csvText)
         {
@@ -133,9 +136,11 @@ namespace CardExchange.API.Services.Import
                 }
             }
 
-            if (!columnIndex.ContainsKey(ImportField.Name) && !columnIndex.ContainsKey(ImportField.ScryfallId))
+            var hasSetAndNumber = (columnIndex.ContainsKey(ImportField.SetCode) || columnIndex.ContainsKey(ImportField.Edition))
+                                  && columnIndex.ContainsKey(ImportField.CollectorNumber);
+            if (!columnIndex.ContainsKey(ImportField.Name) && !columnIndex.ContainsKey(ImportField.ScryfallId) && !hasSetAndNumber)
             {
-                result.Error = "Non trovo la colonna con il nome della carta (es. \"Name\") né lo Scryfall ID.";
+                result.Error = "Non trovo la colonna con il nome della carta (es. \"Name\"), né set e numero, né lo Scryfall ID.";
                 return result;
             }
 
@@ -191,8 +196,29 @@ namespace CardExchange.API.Services.Import
                 var condition = Get(ImportField.Condition);
                 if (condition != null)
                 {
-                    if (ConditionAliases.TryGetValue(NormalizeKey(condition), out var c)) row.Condition = c;
+                    var (c, foilInCondition) = ParseCondition(condition);
+                    if (c.HasValue) row.Condition = c.Value;
                     else row.Warnings.Add($"Condizione \"{condition}\" non riconosciuta: impostata Near Mint");
+                    if (foilInCondition) row.Finish = CardFinish.Foil;
+                }
+
+                // Carte gradate (es. "PSA 10"): si importano come Mint, il voto resta solo nell'avviso
+                var grade = Get(ImportField.Grade);
+                if (grade != null && !NormalizeKey(grade).StartsWith("ungraded") && NormalizeKey(grade) != "raw")
+                {
+                    row.Condition = CardCondition.Mint;
+                    row.Warnings.Add($"Carta gradata ({grade}): importata come Mint");
+                }
+
+                // "Charizard ex - 199/165" (Collectr, TCGplayer): il numero nel nome si usa se manca la colonna del numero
+                if (row.Name != null)
+                {
+                    var m = NameWithNumber.Match(row.Name);
+                    if (m.Success)
+                    {
+                        row.Name = m.Groups[1].Value.Trim();
+                        row.CollectorNumber ??= m.Groups[2].Value.Trim();
+                    }
                 }
 
                 var language = Get(ImportField.Language);
@@ -203,7 +229,7 @@ namespace CardExchange.API.Services.Import
                 }
 
                 var finish = Get(ImportField.Finish);
-                if (finish != null) row.Finish = ParseFinish(finish);
+                if (finish != null && row.Finish == CardFinish.Normal) row.Finish = ParseFinish(finish);
 
                 // Senza nome bastano altri riferimenti (set + numero, codice di stampa come LOB-EN001 o OP01-001):
                 // decide il catalogo del gioco se sono sufficienti
@@ -233,14 +259,33 @@ namespace CardExchange.API.Services.Import
                 "etched" or "etchedfoil" => CardFinish.Etched,
                 "reverseholo" or "reverse" or "reverseholofoil" => CardFinish.ReverseHolo,
                 "foil" or "true" or "yes" or "y" or "1" or "si" or "x" or "holo" or "holofoil" => CardFinish.Foil,
+                _ when key.Contains("reverse") => CardFinish.ReverseHolo,
+                // "1st Edition Holofoil", "Cold Foil", "Enchanted" (Lorcana)
+                _ when key.Contains("etched") => CardFinish.Etched,
+                _ when key.Contains("foil") || key.Contains("holo") || key == "enchanted" => CardFinish.Foil,
                 _ => CardFinish.Normal
             };
+        }
+
+        /// <summary>"Near Mint", "NM", "Near Mint Foil" (TCGplayer: la finitura è nella condizione).</summary>
+        public static (CardCondition? Condition, bool Foil) ParseCondition(string value)
+        {
+            var key = NormalizeKey(value);
+            if (ConditionAliases.TryGetValue(key, out var c)) return (c, false);
+            foreach (var suffix in new[] { "holofoil", "foil", "holo" })
+            {
+                if (key.EndsWith(suffix) && ConditionAliases.TryGetValue(key[..^suffix.Length], out var c2)) return (c2, true);
+            }
+            return (null, false);
         }
 
         private static string DetectFormat(IReadOnlyList<string> headers)
         {
             var keys = headers.Select(NormalizeKey).ToHashSet();
             if (keys.Contains("manaboxid")) return "ManaBox";
+            if (keys.Contains("portfolioname") || (keys.Contains("productname") && keys.Contains("category"))) return "Collectr";
+            if (keys.Contains("simplename") || (keys.Contains("productid") && keys.Contains("sku"))) return "TCGplayer";
+            if (keys.Contains("setnumber") && keys.Contains("cardnumber") && keys.Contains("variant")) return "Dreamborn";
             if (keys.Contains("foldername") && keys.Contains("printing")) return "Dragon Shield";
             if (keys.Contains("idproduct")) return "Cardmarket";
             if (keys.Contains("tradelistcount") && keys.Contains("editioncode")) return "Deckbox";

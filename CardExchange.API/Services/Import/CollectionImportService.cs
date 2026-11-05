@@ -145,11 +145,88 @@ namespace CardExchange.API.Services.Import
             if (parsed.Error != null)
                 throw new ImportException(parsed.Error);
 
+            // File con la colonna del gioco (Collectr, export di CardExchange…): ogni riga va al suo catalogo,
+            // anche se nello stesso file ci sono più giochi
+            if (parsed.Mapping.ContainsKey(ImportField.Game) && _catalogs != null
+                && parsed.Rows.Any(r => r.Game != null && GameKeyFor(r.Game) is { } k && !k.Equals(catalogKey ?? "magic", StringComparison.OrdinalIgnoreCase)))
+                return await PreviewByGameAsync(parsed);
+
             if (!string.IsNullOrWhiteSpace(catalogKey) && !catalogKey.Equals("magic", StringComparison.OrdinalIgnoreCase))
             {
                 var provider = _catalogs?.Get(catalogKey) ?? throw new ImportException("Import non disponibile per questo gioco.");
                 return await PreviewWithProviderAsync(parsed, provider);
             }
+
+            return await PreviewMagicAsync(parsed);
+        }
+
+        /// <summary>Chiave del catalogo per il gioco scritto nel file ("Pokemon", "One Piece Card Game", "Lorcana", "Magic: The Gathering"…).</summary>
+        public string? GameKeyFor(string fileGame)
+        {
+            if (GameMatches(fileGame, "magic", "Magic: The Gathering") || NormalizeGame(fileGame) is "mtg") return "magic";
+            foreach (var p in _catalogs?.All ?? Array.Empty<CardExchange.API.Services.Catalog.ICatalogProvider>())
+                if (GameMatches(fileGame, p.Key, p.GameName)) return p.Key;
+            var g = NormalizeGame(fileGame);
+            if (g.Contains("yugioh")) return _catalogs?.Get("yugioh")?.Key;
+            return null;
+        }
+
+        private async Task<ImportPreviewResponse> PreviewByGameAsync(CollectionCsvParseResult parsed)
+        {
+            var groups = parsed.Rows.GroupBy(r => r.Error != null ? "" : r.Game == null ? "magic" : GameKeyFor(r.Game) ?? "?").ToList();
+            var parts = new List<ImportPreviewResponse>();
+            foreach (var g in groups)
+            {
+                var sub = new CollectionCsvParseResult
+                {
+                    DetectedFormat = parsed.DetectedFormat, Mapping = parsed.Mapping, IgnoredColumns = parsed.IgnoredColumns, Rows = g.ToList()
+                };
+                if (g.Key == "?")
+                    foreach (var r in sub.Rows) r.Error = $"Gioco non supportato: {r.Game}";
+                if (g.Key is "" or "?" || g.Key == "magic")
+                {
+                    // Le righe con errore passano dal percorso Magic, che le riporta così come sono
+                    if (g.Key == "magic") foreach (var r in sub.Rows) r.Game = null;
+                    try
+                    {
+                        parts.Add(await PreviewMagicAsync(sub));
+                    }
+                    catch (ImportException ex)
+                    {
+                        // Scryfall non raggiungibile: le altre carte del file si importano comunque
+                        foreach (var r in sub.Rows) r.Error ??= ex.Message;
+                        parts.Add(new ImportPreviewResponse
+                        {
+                            Rows = sub.Rows.Select(r => new ImportPreviewRow
+                            {
+                                LineNumber = r.LineNumber, InputName = r.Name, InputSet = r.SetCode ?? r.SetName, InputNumber = r.CollectorNumber,
+                                Quantity = r.Quantity, Condition = (int)r.Condition, Language = r.Language, Finish = (int)r.Finish,
+                                Warnings = r.Warnings, Status = "error", Error = r.Error
+                            }).ToList()
+                        });
+                    }
+                }
+                else
+                {
+                    parts.Add(await PreviewWithProviderAsync(sub, _catalogs!.Get(g.Key)!));
+                }
+            }
+            var rows = parts.SelectMany(p => p.Rows).OrderBy(r => r.LineNumber).ToList();
+            return new ImportPreviewResponse
+            {
+                DetectedFormat = parsed.DetectedFormat,
+                Mapping = parsed.Mapping.ToDictionary(m => m.Key.ToString(), m => m.Value),
+                IgnoredColumns = parsed.IgnoredColumns,
+                TotalRows = parsed.Rows.Count,
+                Rows = rows,
+                ReadyCount = rows.Count(r => r.Status == "ready"),
+                ErrorCount = rows.Count(r => r.Status != "ready"),
+                TotalQuantity = rows.Where(r => r.Status == "ready").Sum(r => r.Quantity)
+            };
+        }
+
+        private async Task<ImportPreviewResponse> PreviewMagicAsync(CollectionCsvParseResult parsed)
+        {
 
             // File con la colonna del gioco (es. export di CardExchange): le righe di altri giochi si segnalano
             foreach (var row in parsed.Rows.Where(r => r.Error == null && r.Game != null && !GameMatches(r.Game, "magic", "Magic: The Gathering")))
@@ -164,6 +241,7 @@ namespace CardExchange.API.Services.Import
             };
 
             var resolvable = parsed.Rows.Where(r => r.Error == null).ToList();
+            await FillSetCodesFromNamesAsync(resolvable);
             var resolved = await ResolveAsync(resolvable);
 
             foreach (var row in parsed.Rows)
@@ -493,6 +571,27 @@ namespace CardExchange.API.Services.Import
         // ---------------- Risoluzione su Scryfall ----------------
 
         private record Resolution(ScryfallCard? Card, bool EditionGuessed, string? PrintLanguage);
+
+        /// <summary>"Magic 2010" → m10: con il nome dell'espansione (Collectr, TCGplayer) si trova la stampa giusta invece di indovinarla.</summary>
+        private async Task FillSetCodesFromNamesAsync(List<ParsedCollectionRow> rows)
+        {
+            var needing = rows.Where(r => r.SetCode == null && r.SetName != null && r.ScryfallId == null).ToList();
+            if (needing.Count == 0) return;
+            List<ScryfallSet> sets;
+            try
+            {
+                sets = await _scryfall.GetAllSetsAsync() ?? new List<ScryfallSet>();
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                return;
+            }
+            static string Simple(string s) => new string(s.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
+            var byName = sets.Where(x => !string.IsNullOrWhiteSpace(x.Name) && !string.IsNullOrWhiteSpace(x.Code))
+                .GroupBy(x => Simple(x.Name)).ToDictionary(g => g.Key, g => g.First().Code.ToLowerInvariant());
+            foreach (var r in needing)
+                if (byName.TryGetValue(Simple(r.SetName!), out var code)) r.SetCode = code;
+        }
 
         private static string? KeyFor(ParsedCollectionRow r)
         {
