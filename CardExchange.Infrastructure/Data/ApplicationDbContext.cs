@@ -39,6 +39,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<ErrorGroup> ErrorGroups { get; set; }
         public DbSet<StoreActivity> StoreActivities { get; set; }
         public DbSet<StoreMonthlyReport> StoreMonthlyReports { get; set; }
+        public DbSet<UserActiveDay> UserActiveDays { get; set; }
         public DbSet<CatalogStatus> CatalogStatuses { get; set; }
         public DbSet<LocationBroadcast> LocationBroadcasts { get; set; }
         public DbSet<UserReport> UserReports { get; set; }
@@ -328,6 +329,13 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(e => new { e.IsResolved, e.LastSeenAt });
             });
             modelBuilder.Entity<CatalogStatus>().HasIndex(c => c.Key).IsUnique();
+
+            modelBuilder.Entity<UserActiveDay>(entity =>
+            {
+                entity.HasKey(d => new { d.UserId, d.Day });
+                entity.HasIndex(d => d.Day);
+                entity.HasOne<User>().WithMany().HasForeignKey(d => d.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
 
             modelBuilder.Entity<StoreMonthlyReport>(entity =>
             {

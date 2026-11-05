@@ -555,6 +555,24 @@ export interface MonitoringOverview {
   catalogs: { key: string; lastCheckAt?: string | null; lastOkAt?: string | null; lastFailAt?: string | null; consecutiveFailures: number; lastError?: string | null; isUp: boolean }[];
 }
 
+export interface RateMetric { eligible: number; count: number; rate?: number | null }
+export interface PlanMetricsResult {
+  city: string | null;
+  matchWithin48h: RateMetric;
+  weeklyActiveUsers: number;
+  tradesCompletedLastWeek: number;
+  retentionAfter4Weeks: RateMetric;
+  activeStores: number;
+  broadcastsLastWeek: number;
+  totalUsers: number;
+  weeks: { from: string; activeUsers: number; newUsers: number; tradesCompleted: number; broadcasts: number }[];
+  cities: { city: string; users: number }[];
+}
+
+export const planMetrics = {
+  get: (city?: string) => client.get<PlanMetricsResult>('/admin/metrics', { params: { city: city || undefined } }),
+};
+
 export const monitoring = {
   overview: (includeResolved = false) => client.get<MonitoringOverview>('/admin/monitoring', { params: { includeResolved } }),
   resolve: (id: number) => client.post(`/admin/monitoring/errors/${id}/resolve`),

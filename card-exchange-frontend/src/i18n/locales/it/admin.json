@@ -114,5 +114,56 @@
     "lastSeen": "ultima {{when}}",
     "firstSeen": "prima volta {{when}}",
     "resolve": "Segna come risolto"
+  },
+  "metrics": {
+    "menu": "Metriche del piano",
+    "title": "Metriche del piano",
+    "allCities": "Tutte le città",
+    "users_one": "{{count}} utente",
+    "users_other": "{{count}} utenti",
+    "targetsNote": "Obiettivi del piano di lancio per la città di partenza: giorno 30 → giorno 90. Sotto la soglia di allarme il valore è rosso.",
+    "target": "Obiettivo {{d30}} → {{d90}}",
+    "alarm": "Allarme sotto {{value}}",
+    "notEnough": "Dati non ancora sufficienti",
+    "of": "{{count}} su {{total}}",
+    "status": {
+      "ok": "In linea",
+      "low": "Sotto l'obiettivo",
+      "alarm": "Allarme",
+      "none": "Nessun dato"
+    },
+    "m": {
+      "match": {
+        "label": "Match entro 48 ore",
+        "hint": "Nuovi utenti (ultimi 30 giorni) con almeno un match vicino dopo 48 ore: misura la densità."
+      },
+      "wau": {
+        "label": "Utenti attivi a settimana",
+        "hint": "Persone che hanno usato l'app negli ultimi 7 giorni."
+      },
+      "trades": {
+        "label": "Scambi conclusi a settimana",
+        "hint": "Confermati da entrambi nell'app, ultimi 7 giorni."
+      },
+      "retention": {
+        "label": "Ritorno dopo 4 settimane",
+        "hint": "Iscritti tra 4 e 8 settimane fa che hanno usato l'app dal 28° giorno in poi."
+      },
+      "stores": {
+        "label": "Negozi attivi",
+        "hint": "Verificati, con almeno 50 carte disponibili o un evento negli ultimi 30 giorni."
+      },
+      "broadcasts": {
+        "label": "Avvisi \"Sono qui\" a settimana",
+        "hint": "Inviati negli ultimi 7 giorni: dice se i venditori usano l'app fuori dai negozi."
+      }
+    },
+    "weeks": "Settimana per settimana",
+    "week": "Settimana dal",
+    "activeUsers": "Attivi",
+    "newUsers": "Nuovi",
+    "tradesCompleted": "Scambi",
+    "broadcasts": "Sono qui",
+    "loadError": "Impossibile caricare le metriche."
   }
 }

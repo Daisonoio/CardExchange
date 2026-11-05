@@ -64,6 +64,9 @@ namespace CardExchange.Core.Entities
         /// <summary>Utente che ha invitato questo utente, se registrato con un codice invito.</summary>
         public int? ReferredByUserId { get; set; }
 
+        /// <summary>Esito del controllo a 48 ore dall'iscrizione: aveva almeno un match vicino? (null = non controllato)</summary>
+        public bool? MatchWithin48h { get; set; }
+
         /// <summary>Ultimo invio del riepilogo settimanale via email.</summary>
         public DateTime? LastWeeklyDigestAt { get; set; }
 

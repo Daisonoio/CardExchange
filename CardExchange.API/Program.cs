@@ -208,6 +208,10 @@ builder.Services.AddSingleton<CardExchange.API.Services.Stores.IStoreActivityRec
 builder.Services.AddHostedService<CardExchange.API.Services.Stores.StoreActivityWriter>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.StoreStatsService>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.StoreMonthlyReports>();
+builder.Services.AddSingleton<CardExchange.API.Services.Metrics.ActiveDayRecorder>();
+builder.Services.AddHostedService<CardExchange.API.Services.Metrics.ActiveDayWriter>();
+builder.Services.AddScoped<CardExchange.API.Services.Metrics.ActivationCheck>();
+builder.Services.AddScoped<CardExchange.API.Services.Metrics.PlanMetrics>();
 
 // Monitoraggio: errori (anche quelli solo registrati nei log) e stato dei cataloghi esterni
 builder.Services.AddSingleton<CardExchange.API.Services.Monitoring.IErrorTracker, CardExchange.API.Services.Monitoring.ErrorTracker>();
@@ -488,6 +492,15 @@ else
 // 8. Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Giorni di attività per le metriche interne (una scrittura per utente al giorno, in background)
+app.Use(async (ctx, next) =>
+{
+    await next();
+    if (ctx.User.Identity?.IsAuthenticated == true && ctx.Response.StatusCode < 400
+        && int.TryParse(ctx.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var activeUserId))
+        ctx.RequestServices.GetRequiredService<CardExchange.API.Services.Metrics.ActiveDayRecorder>().Touch(activeUserId, DateTime.UtcNow);
+});
 
 // 9. Endpoints
 app.MapControllers();

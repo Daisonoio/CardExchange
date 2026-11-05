@@ -150,6 +150,10 @@ namespace CardExchange.API.Services
                     if (reminders + followUps > 0)
                         _logger.LogInformation("Promemoria appuntamenti: {Reminders} promemoria, {FollowUps} inviti a confermare", reminders, followUps);
 
+                    // Metrica "match entro 48 ore" per i nuovi iscritti
+                    using (var metricsScope = _scopeFactory.CreateScope())
+                        await metricsScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Metrics.ActivationCheck>().RunAsync(DateTime.UtcNow, stoppingToken);
+
                     await Task.Delay(Interval, stoppingToken);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)

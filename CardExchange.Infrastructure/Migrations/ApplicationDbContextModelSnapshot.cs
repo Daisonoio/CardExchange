@@ -2251,6 +2251,9 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<DateTime?>("LastWeeklyDigestAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool?>("MatchWithin48h")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -2330,6 +2333,21 @@ namespace CardExchange.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.UserActiveDay", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.HasKey("UserId", "Day");
+
+                    b.HasIndex("Day");
+
+                    b.ToTable("UserActiveDays");
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.UserBlock", b =>
@@ -3104,6 +3122,15 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Navigation("Reviewer");
 
                     b.Navigation("TradeOffer");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.UserActiveDay", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.UserBlock", b =>

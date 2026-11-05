@@ -114,5 +114,56 @@
     "lastSeen": "last {{when}}",
     "firstSeen": "first {{when}}",
     "resolve": "Mark as resolved"
+  },
+  "metrics": {
+    "menu": "Plan metrics",
+    "title": "Plan metrics",
+    "allCities": "All cities",
+    "users_one": "{{count}} user",
+    "users_other": "{{count}} users",
+    "targetsNote": "Launch plan targets for the launch city: day 30 → day 90. Values below the alarm threshold are shown in red.",
+    "target": "Target {{d30}} → {{d90}}",
+    "alarm": "Alarm below {{value}}",
+    "notEnough": "Not enough data yet",
+    "of": "{{count}} of {{total}}",
+    "status": {
+      "ok": "On track",
+      "low": "Below target",
+      "alarm": "Alarm",
+      "none": "No data"
+    },
+    "m": {
+      "match": {
+        "label": "Match within 48 hours",
+        "hint": "New users (last 30 days) with at least one nearby match after 48 hours: measures density."
+      },
+      "wau": {
+        "label": "Weekly active users",
+        "hint": "People who used the app in the last 7 days."
+      },
+      "trades": {
+        "label": "Trades completed per week",
+        "hint": "Confirmed by both parties in the app, last 7 days."
+      },
+      "retention": {
+        "label": "Return after 4 weeks",
+        "hint": "Users who joined 4–8 weeks ago and used the app from day 28 onwards."
+      },
+      "stores": {
+        "label": "Active stores",
+        "hint": "Verified, with at least 50 cards available or an event in the last 30 days."
+      },
+      "broadcasts": {
+        "label": "\"I'm here\" alerts per week",
+        "hint": "Sent in the last 7 days: shows whether sellers use the app outside stores."
+      }
+    },
+    "weeks": "Week by week",
+    "week": "Week from",
+    "activeUsers": "Active",
+    "newUsers": "New",
+    "tradesCompleted": "Trades",
+    "broadcasts": "I'm here",
+    "loadError": "Could not load the metrics."
   }
 }
