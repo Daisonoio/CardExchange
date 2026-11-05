@@ -1,0 +1,41 @@
+{
+  "stepOf": "Passo {{n}} di {{total}}",
+  "next": "Continua",
+  "skip": "Salta per ora",
+  "close": "Chiudi",
+  "place": {
+    "title": "Dove scambi di solito?",
+    "subtitle": "Ti mostriamo chi ha le carte che cerchi vicino a te.",
+    "useGps": "Usa la mia posizione",
+    "locating": "Ricerca posizione…",
+    "orCity": "Oppure scrivi la città o il quartiere",
+    "cityPlaceholder": "es. Milano, Navigli",
+    "chosen": "Posizione: {{place}}",
+    "privacy": "Agli altri mostriamo solo la città e la distanza arrotondata al km, mai l'indirizzo.",
+    "gpsError": "Non riesco a leggere la posizione: scrivi la città.",
+    "saveError": "Salvataggio non riuscito, riprova."
+  },
+  "cards": {
+    "title": "Quali carte cerchi?",
+    "subtitle": "Aggiungine fino a {{count}} alla wishlist: bastano poche per iniziare.",
+    "game": "Gioco",
+    "pickGame": "Scegli prima il gioco.",
+    "searchPlaceholder": "Cerca una carta per nome",
+    "adding": "Aggiungo alla wishlist…",
+    "progress": "{{n}} di {{total}} carte",
+    "addError": "Non sono riuscito ad aggiungere la carta, riprova.",
+    "seeWhoHasThem": "Vedi chi le ha vicino a te",
+    "continueWith_one": "Continua con {{count}} carta",
+    "continueWith_other": "Continua con {{count}} carte"
+  },
+  "result": {
+    "foundTitle_one": "{{count}} copia delle carte che cerchi è vicino a te",
+    "foundTitle_other": "{{count}} copie delle carte che cerchi sono vicino a te",
+    "foundSubtitle": "Entro {{km}} km. Tocca per vedere la collezione di chi la ha e proporre uno scambio.",
+    "km": "a {{km}} km",
+    "emptyTitle": "Ti avvisiamo noi",
+    "emptySubtitle": "Per ora nessuno vicino a te le ha. Appena qualcuno le aggiunge ti mandiamo una notifica: attivale qui sotto.",
+    "goHome": "Vai alla Home",
+    "explore": "Guarda cosa c'è vicino a te"
+  }
+}

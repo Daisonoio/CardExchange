@@ -1,0 +1,41 @@
+{
+  "stepOf": "Step {{n}} of {{total}}",
+  "next": "Continue",
+  "skip": "Skip for now",
+  "close": "Close",
+  "place": {
+    "title": "Where do you usually trade?",
+    "subtitle": "We'll show you who has the cards you want near you.",
+    "useGps": "Use my location",
+    "locating": "Locating…",
+    "orCity": "Or type your city or neighbourhood",
+    "cityPlaceholder": "e.g. Milano, Navigli",
+    "chosen": "Location: {{place}}",
+    "privacy": "Others only see your city and the distance rounded to the km, never your address.",
+    "gpsError": "Couldn't read your location: type your city.",
+    "saveError": "Couldn't save, please try again."
+  },
+  "cards": {
+    "title": "Which cards are you looking for?",
+    "subtitle": "Add up to {{count}} to your wishlist: a few are enough to get started.",
+    "game": "Game",
+    "pickGame": "Pick a game first.",
+    "searchPlaceholder": "Search a card by name",
+    "adding": "Adding to your wishlist…",
+    "progress": "{{n}} of {{total}} cards",
+    "addError": "Couldn't add the card, please try again.",
+    "seeWhoHasThem": "See who has them near you",
+    "continueWith_one": "Continue with {{count}} card",
+    "continueWith_other": "Continue with {{count}} cards"
+  },
+  "result": {
+    "foundTitle_one": "{{count}} copy of the cards you want is near you",
+    "foundTitle_other": "{{count}} copies of the cards you want are near you",
+    "foundSubtitle": "Within {{km}} km. Tap to see the owner's collection and propose a trade.",
+    "km": "{{km}} km away",
+    "emptyTitle": "We'll let you know",
+    "emptySubtitle": "Nobody near you has them yet. As soon as someone adds them we'll send you a notification: turn them on below.",
+    "goHome": "Go to Home",
+    "explore": "See what's near you"
+  }
+}

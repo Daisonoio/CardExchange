@@ -112,6 +112,10 @@ export default function HomePage() {
             {t('locationPrompt.description')}
           </p>
           <div className="space-y-2.5">
+            <Button onClick={() => navigate('/welcome')} className="w-full">
+              <Sparkles size={14} />
+              {t('locationPrompt.quickStart')}
+            </Button>
             <Button onClick={() => navigate('/profile/edit')} variant="outline" className="w-full">
               <Settings size={14} />
               {t('locationPrompt.setInProfile')}

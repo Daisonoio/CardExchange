@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { MailWarning, X } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { auth } from '../../api';
 import { useAuth } from '../../context/AuthContext';
@@ -30,7 +31,9 @@ export default function VerifyEmailBanner() {
   const [dismissed, setDismissed] = useState(() => (user ? isSnoozed(user.id) : false));
   const [visible, setVisible] = useState(false);
 
-  const show = !!user && user.emailConfirmed === false && !dismissed;
+  // Durante il primo accesso guidato non copre i risultati: compare dopo
+  const { pathname } = useLocation();
+  const show = !!user && user.emailConfirmed === false && !dismissed && pathname !== '/welcome';
 
   // Compare poco dopo il caricamento della pagina, con una breve animazione
   useEffect(() => {

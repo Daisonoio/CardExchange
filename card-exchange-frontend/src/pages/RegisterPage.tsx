@@ -91,7 +91,8 @@ export default function RegisterPage() {
       });
       clearStoredReferral();
       clearStoredStoreSlug();
-      navigate('/home');
+      // Primo accesso guidato: posizione, 5 carte cercate, subito chi le ha vicino
+      navigate('/welcome');
     } catch (err: unknown) {
       // Il server spiega il motivo (email già usata, password non valida…): si mostra quello
       setError(apiErrorMessage(err, t('register.failed')));

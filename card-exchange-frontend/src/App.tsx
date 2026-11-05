@@ -40,6 +40,7 @@ import QrPage from './pages/QrPage';
 import LegalPage from './pages/legal/LegalPage';
 import AccountPrivacyPage from './pages/AccountPrivacyPage';
 import AdminMonitoringPage from './pages/AdminMonitoringPage';
+import WelcomePage from './pages/WelcomePage';
 import StoreLinkPage from './pages/StoreLinkPage';
 import LiveComposePage from './pages/LiveComposePage';
 import FollowingPage from './pages/FollowingPage';
@@ -113,6 +114,7 @@ export default function App() {
               <Route path="/search" element={<SearchPage />} />
               <Route path="/admin/billing" element={<AdminBillingPage />} />
               <Route path="/admin/monitoring" element={<AdminMonitoringPage />} />
+              <Route path="/welcome" element={<WelcomePage />} />
             </Route>
 
             {/* Anteprima della nuova grafica (stesso login, pagine reali) */}

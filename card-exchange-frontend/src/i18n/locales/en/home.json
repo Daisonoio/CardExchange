@@ -3,7 +3,8 @@
     "title": "Set your location",
     "description": "To see cards available near you, you need to set your location.",
     "setInProfile": "Set in profile",
-    "useCurrent": "Use current location"
+    "useCurrent": "Use current location",
+    "quickStart": "Get started in 2 minutes"
   },
   "nearby": {
     "title": "Nearby",

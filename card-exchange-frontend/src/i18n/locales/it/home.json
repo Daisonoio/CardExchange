@@ -3,7 +3,8 @@
     "title": "Imposta la tua posizione",
     "description": "Per vedere le carte disponibili nelle tue vicinanze, devi impostare la tua posizione.",
     "setInProfile": "Imposta nel profilo",
-    "useCurrent": "Usa posizione attuale"
+    "useCurrent": "Usa posizione attuale",
+    "quickStart": "Inizia in 2 minuti"
   },
   "nearby": {
     "title": "Nelle vicinanze",
