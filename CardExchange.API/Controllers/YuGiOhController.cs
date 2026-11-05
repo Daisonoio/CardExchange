@@ -41,11 +41,11 @@ namespace CardExchange.API.Controllers
         }
 
         // ================================================================
-        // Ricerca — prima DB, fallback API
+        // Ricerca — prima il catalogo, DB locale come riserva
         // ================================================================
 
         /// <summary>
-        /// Ricerca carte Yu-Gi-Oh! Cerca prima nel DB locale, poi nell'API YGOProDeck.
+        /// Ricerca carte Yu-Gi-Oh! nel catalogo YGOProDeck; se non risponde, nel DB locale.
         /// </summary>
         [HttpGet("search")]
         [AllowAnonymous]
@@ -56,7 +56,24 @@ namespace CardExchange.API.Controllers
 
             pageSize = Math.Clamp(pageSize, 1, 50);
 
-            // 1. Cerca nel DB locale
+            // 1. Catalogo completo: tutte le stampe. Prima si cercava nel DB locale, ma bastava una carta
+            //    già importata per nascondere tutte le altre con lo stesso nome.
+            var offset = (page - 1) * pageSize;
+            var apiCards = await _yugioh.SearchCardsAsync(q, offset, pageSize);
+            if (apiCards.Count > 0)
+            {
+                return Ok(new
+                {
+                    source = "api",
+                    query = q,
+                    page,
+                    pageSize,
+                    totalCount = apiCards.Count,
+                    cards = apiCards.Select(MapApiCardToResponse)
+                });
+            }
+
+            // 2. Servizio non raggiungibile (o nessun risultato): le carte già presenti nel DB locale
             var yugiohGameId = await GetYuGiOhGameIdAsync();
             if (yugiohGameId.HasValue)
             {
@@ -88,19 +105,7 @@ namespace CardExchange.API.Controllers
                 }
             }
 
-            // 2. Fallback: chiama API YGOProDeck
-            var offset = (page - 1) * pageSize;
-            var apiCards = await _yugioh.SearchCardsAsync(q, offset, pageSize);
-
-            return Ok(new
-            {
-                source = "api",
-                query = q,
-                page,
-                pageSize,
-                totalCount = apiCards.Count,
-                cards = apiCards.Select(MapApiCardToResponse)
-            });
+            return Ok(new { source = "api", query = q, totalCount = 0, cards = Array.Empty<object>() });
         }
 
         /// <summary>

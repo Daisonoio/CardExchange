@@ -42,11 +42,11 @@ namespace CardExchange.API.Controllers
         }
 
         // ================================================================
-        // Ricerca — prima DB, fallback API
+        // Ricerca — prima il catalogo, DB locale come riserva
         // ================================================================
 
         /// <summary>
-        /// Ricerca carte Pokémon TCG. Cerca prima nel DB locale, poi nell'API esterna.
+        /// Ricerca carte Pokémon TCG nel catalogo; se non risponde, nel DB locale.
         /// </summary>
         [HttpGet("search")]
         [AllowAnonymous]
@@ -57,7 +57,24 @@ namespace CardExchange.API.Controllers
 
             pageSize = Math.Clamp(pageSize, 1, 50);
 
-            // 1. Cerca nel DB locale
+            // 1. Catalogo completo: tutte le stampe. Prima si cercava nel DB locale, ma bastava una carta
+            //    già importata per nascondere tutte le altre stampe con lo stesso nome.
+            var apiQuery = $"name:\"{q}\"";
+            var result = await _pokemonTcg.SearchCardsAsync(apiQuery, page, pageSize);
+            if (result != null)
+            {
+                return Ok(new
+                {
+                    source = "api",
+                    query = q,
+                    page = result.Page,
+                    pageSize = result.PageSize,
+                    totalCount = result.TotalCount,
+                    cards = result.Data.Select(MapApiCardToResponse)
+                });
+            }
+
+            // 2. Servizio non raggiungibile (o nessun risultato): le carte già presenti nel DB locale
             var pokemonGameId = await GetPokemonGameIdAsync();
             if (pokemonGameId.HasValue)
             {
@@ -89,21 +106,7 @@ namespace CardExchange.API.Controllers
                 }
             }
 
-            // 2. Fallback: chiama API
-            var apiQuery = $"name:\"{q}\"";
-            var result = await _pokemonTcg.SearchCardsAsync(apiQuery, page, pageSize);
-            if (result == null)
-                return Ok(new { source = "api", query = q, totalCount = 0, cards = Array.Empty<object>() });
-
-            return Ok(new
-            {
-                source = "api",
-                query = q,
-                page = result.Page,
-                pageSize = result.PageSize,
-                totalCount = result.TotalCount,
-                cards = result.Data.Select(MapApiCardToResponse)
-            });
+            return Ok(new { source = "api", query = q, totalCount = 0, cards = Array.Empty<object>() });
         }
 
         /// <summary>
