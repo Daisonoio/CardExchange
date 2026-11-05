@@ -1,3 +1,4 @@
+import { syncTimeZone } from '../utils/timeZone';
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User, LoginRequest, RegisterRequest } from '../types';
 import { auth } from '../api';
@@ -26,6 +27,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const [connectionError, setConnectionError] = useState(false);
+
+  // Fuso orario del dispositivo: gli orari nelle notifiche arrivano nell'ora giusta anche fuori dall'Italia
+  const userId = user?.id;
+  useEffect(() => {
+    if (userId) syncTimeZone(userId);
+  }, [userId]);
 
   /**
    * Carica l'utente. La sessione si chiude solo se il server dice che non è più valida (401/403):

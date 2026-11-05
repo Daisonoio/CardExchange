@@ -2304,6 +2304,10 @@ namespace CardExchange.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("TimeZone")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<int>("TotalReviewsReceived")
                         .HasColumnType("int");
 

@@ -141,12 +141,12 @@ namespace CardExchange.API.Services.Social
                 {
                     u.Id,
                     Lat = u.Location != null ? u.Location.Latitude : null,
-                    Lon = u.Location != null ? u.Location.Longitude : null
+                    Lon = u.Location != null ? u.Location.Longitude : null,
+                    u.TimeZone
                 })
                 .ToListAsync();
 
             var name = store != null ? store.Name : "@" + author.Username;
-            var body = BroadcastRules.Body(broadcast.PlaceName, broadcast.SpotDetail, broadcast.EndsAt, broadcast.Message);
 
             var payloads = recipients.Select(r =>
             {
@@ -158,7 +158,7 @@ namespace CardExchange.API.Services.Social
                     UserId = r.Id,
                     Type = NotificationType.FollowedNearby,
                     Title = BroadcastRules.Title(name, BroadcastRules.DisplayDistanceKm(km)),
-                    Body = body,
+                    Body = BroadcastRules.Body(broadcast.PlaceName, broadcast.SpotDetail, broadcast.EndsAt, broadcast.Message, r.TimeZone),
                     ReferenceId = broadcast.Id,
                     ReferenceType = "Broadcast"
                 };

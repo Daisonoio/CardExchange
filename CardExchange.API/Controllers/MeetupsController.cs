@@ -22,7 +22,6 @@ namespace CardExchange.API.Controllers
     {
         private static readonly TimeSpan MinLeadTime = TimeSpan.FromMinutes(30);
         private static readonly TimeSpan MaxHorizon = TimeSpan.FromDays(60);
-        private static readonly TimeZoneInfo ItalyTime = ResolveItalyTimeZone();
 
         private readonly ApplicationDbContext _context;
         private readonly INotificationService _notifications;
@@ -226,7 +225,7 @@ namespace CardExchange.API.Controllers
             var otherId = userId == offer.SenderId ? offer.ReceiverId : offer.SenderId;
             await NotifyAsync(otherId, offer.Id,
                 active.Count > 0 ? "Nuova proposta di appuntamento" : "Proposta di appuntamento",
-                $"{me.Username} propone di incontrarvi {FormatWhen(scheduledUtc)} a {meetup.LocationName}.");
+                $"{me.Username} propone di incontrarvi {FormatWhen(scheduledUtc, TimeZoneOf(offer, otherId))} a {meetup.LocationName}.");
 
             meetup.ProposedBy = me;
             return Ok(ToDto(meetup));
@@ -259,7 +258,7 @@ namespace CardExchange.API.Controllers
             var me = userId == offer.SenderId ? offer.Sender : offer.Receiver;
             var otherId = userId == offer.SenderId ? offer.ReceiverId : offer.SenderId;
             await NotifyAsync(otherId, offer.Id, "Appuntamento annullato",
-                $"{me.Username} ha annullato l'incontro di {FormatWhen(meetup.ScheduledAt)}.");
+                $"{me.Username} ha annullato l'incontro di {FormatWhen(meetup.ScheduledAt, TimeZoneOf(offer, otherId))}.");
             return Ok(ToDto(meetup));
         }
 
@@ -286,11 +285,12 @@ namespace CardExchange.API.Controllers
                 this.StoreActivity()?.Record(meetup.StoreId.Value, StoreActivityType.MeetupScheduled, refId: meetup.Id);
 
             var me = userId == offer.SenderId ? offer.Sender : offer.Receiver;
+            var tz = TimeZoneOf(offer, meetup.ProposedById);
             await NotifyAsync(meetup.ProposedById, offer.Id,
                 accept ? "Appuntamento confermato" : "Appuntamento rifiutato",
                 accept
-                    ? $"{me.Username} ha confermato l'incontro {FormatWhen(meetup.ScheduledAt)} a {meetup.LocationName}."
-                    : $"{me.Username} non può {FormatWhen(meetup.ScheduledAt)}: proponete un altro orario.");
+                    ? $"{me.Username} ha confermato l'incontro {FormatWhen(meetup.ScheduledAt, tz)} a {meetup.LocationName}."
+                    : $"{me.Username} non può {FormatWhen(meetup.ScheduledAt, tz)}: proponete un altro orario.");
             return Ok(ToDto(meetup));
         }
 
@@ -321,21 +321,11 @@ namespace CardExchange.API.Controllers
             }
         }
 
-        /// <summary>Data leggibile in ora italiana, es. "sabato 8 novembre alle 15:30".</summary>
-        public static string FormatWhen(DateTime utc)
-        {
-            var local = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), ItalyTime);
-            return local.ToString("dddd d MMMM 'alle' HH:mm", new CultureInfo("it-IT"));
-        }
+        /// <summary>Data leggibile nel fuso di chi la legge, es. "sabato 8 novembre alle 15:30".</summary>
+        public static string FormatWhen(DateTime utc, string? timeZone = null) => TimeZones.FormatWhen(utc, timeZone);
 
-        private static TimeZoneInfo ResolveItalyTimeZone()
-        {
-            foreach (var id in new[] { "Europe/Rome", "W. Europe Standard Time" })
-            {
-                try { return TimeZoneInfo.FindSystemTimeZoneById(id); } catch (TimeZoneNotFoundException) { }
-            }
-            return TimeZoneInfo.Utc;
-        }
+        private static string? TimeZoneOf(TradeOffer offer, int userId) =>
+            userId == offer.SenderId ? offer.Sender?.TimeZone : offer.Receiver?.TimeZone;
 
         private static MeetupDto ToDto(TradeMeetup m) => new()
         {

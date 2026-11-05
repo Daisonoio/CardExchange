@@ -30,10 +30,10 @@ namespace CardExchange.Core.Rules
                 ? $"{authorName} è a {distanceKm} km da te"
                 : $"{authorName} ti dice dov'è";
 
-        /// <summary>Testo della notifica: luogo, punto preciso e orario di fine (ora locale italiana).</summary>
-        public static string Body(string placeName, string? spotDetail, DateTime endsAtUtc, string? message)
+        /// <summary>Testo della notifica: luogo, punto preciso e orario di fine nel fuso di chi la riceve.</summary>
+        public static string Body(string placeName, string? spotDetail, DateTime endsAtUtc, string? message, string? timeZone = null)
         {
-            var until = TimeZoneInfo.ConvertTimeFromUtc(endsAtUtc, ItalyTimeZone()).ToString("HH:mm");
+            var until = TimeZones.FormatTime(endsAtUtc, timeZone);
             var parts = new List<string> { placeName };
             if (!string.IsNullOrWhiteSpace(spotDetail)) parts.Add(spotDetail.Trim());
             parts.Add($"fino alle {until}");
@@ -44,12 +44,6 @@ namespace CardExchange.Core.Rules
                 body += " — " + (m.Length > 100 ? m[..100] + "…" : m);
             }
             return body.Length > 500 ? body[..500] : body;
-        }
-
-        private static TimeZoneInfo ItalyTimeZone()
-        {
-            try { return TimeZoneInfo.FindSystemTimeZoneById("Europe/Rome"); }
-            catch (TimeZoneNotFoundException) { return TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time"); }
         }
     }
 }

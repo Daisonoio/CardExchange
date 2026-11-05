@@ -1,3 +1,4 @@
+using CardExchange.Core.Rules;
 using CardExchange.API.Controllers;
 using CardExchange.Core.Entities;
 using CardExchange.Infrastructure.Data;
@@ -28,15 +29,16 @@ namespace CardExchange.API.Services
         public async Task<(int Reminders, int FollowUps)> RunAsync(DateTime nowUtc, CancellationToken ct = default)
         {
             var upcoming = await _context.TradeMeetups
-                .Include(m => m.TradeOffer)
+                .Include(m => m.TradeOffer).ThenInclude(o => o.Sender)
+                .Include(m => m.TradeOffer).ThenInclude(o => o.Receiver)
                 .Where(m => m.Status == MeetupStatus.Accepted && m.ReminderSentAt == null
                             && m.ScheduledAt > nowUtc && m.ScheduledAt <= nowUtc + ReminderWindow)
                 .ToListAsync(ct);
 
             foreach (var m in upcoming)
             {
-                var body = $"Ricorda l'incontro {MeetupsController.FormatWhen(m.ScheduledAt)} a {m.LocationName}. Porta le carte dello scambio #{m.TradeOfferId}.";
-                await NotifyBothAsync(m, "Promemoria appuntamento", body);
+                await NotifyBothAsync(m, "Promemoria appuntamento", tz =>
+                    $"Ricorda l'incontro {TimeZones.FormatWhen(m.ScheduledAt, tz)} a {m.LocationName}. Porta le carte dello scambio #{m.TradeOfferId}.");
                 m.ReminderSentAt = nowUtc;
             }
 
@@ -49,7 +51,7 @@ namespace CardExchange.API.Services
 
             foreach (var m in past)
             {
-                await NotifyBothAsync(m, "Lo scambio è avvenuto?",
+                await NotifyBothAsync(m, "Lo scambio è avvenuto?", _ =>
                     $"Se vi siete incontrati, conferma lo scambio #{m.TradeOfferId} nell'app: le carte passeranno di collezione quando confermerete entrambi.");
                 m.FollowUpSentAt = nowUtc;
             }
@@ -61,26 +63,32 @@ namespace CardExchange.API.Services
         }
 
         /// <summary>
-        /// Avvisa i negozi degli scambi fissati da loro oggi: dalle 8:00 (ora italiana) un riepilogo,
+        /// Avvisa i negozi degli scambi fissati da loro oggi: dalle 8:00 (nel fuso del proprietario) un riepilogo,
         /// poi un avviso per ogni incontro confermato più tardi. Il negozio vede quanti e quando, mai chi.
         /// </summary>
         public async Task<int> NotifyStoresAsync(DateTime nowUtc, CancellationToken ct = default)
         {
-            var local = TimeZoneInfo.ConvertTimeFromUtc(nowUtc, ItalyTime);
-            if (local.Hour < StoreDigestHour) return 0;
-            var endOfDayUtc = TimeZoneInfo.ConvertTimeToUtc(local.Date.AddDays(1), ItalyTime);
-
+            // Finestra larga (fino a 36 ore): il "oggi" di ogni negozio si calcola nel fuso del proprietario
+            var horizon = nowUtc.AddHours(36);
             var meetups = await _context.TradeMeetups
-                .Include(m => m.Store)
+                .Include(m => m.Store).ThenInclude(s => s!.Owner)
                 .Where(m => m.Status == MeetupStatus.Accepted && m.StoreId != null && m.StoreNotifiedAt == null
-                            && m.ScheduledAt > nowUtc && m.ScheduledAt < endOfDayUtc)
+                            && m.ScheduledAt > nowUtc && m.ScheduledAt < horizon)
                 .ToListAsync(ct);
 
+            var notified = 0;
             foreach (var group in meetups.Where(m => m.Store != null).GroupBy(m => m.StoreId!.Value))
             {
                 var store = group.First().Store!;
-                var first = TimeZoneInfo.ConvertTimeFromUtc(group.Min(m => m.ScheduledAt), ItalyTime);
-                var count = group.Count();
+                var tzId = store.Owner?.TimeZone;
+                var zone = TimeZones.Resolve(tzId);
+                var local = TimeZoneInfo.ConvertTimeFromUtc(nowUtc, zone);
+                if (local.Hour < StoreDigestHour) continue;
+                var endOfDayUtc = TimeZoneInfo.ConvertTimeToUtc(local.Date.AddDays(1), zone);
+                var today = group.Where(m => m.ScheduledAt < endOfDayUtc).ToList();
+                if (today.Count == 0) continue;
+                var first = TimeZones.ToLocal(today.Min(m => m.ScheduledAt), tzId);
+                var count = today.Count;
                 var title = count == 1 ? "Oggi da te c'è uno scambio" : $"Oggi da te ci sono {count} scambi";
                 var body = count == 1
                     ? $"Due persone si incontrano da {store.Name} alle {first:HH:mm} per uno scambio."
@@ -94,29 +102,22 @@ namespace CardExchange.API.Services
                     _logger.LogError(ex, "Avviso al negozio {StoreId} non inviato", store.Id);
                     continue;
                 }
-                foreach (var m in group) m.StoreNotifiedAt = nowUtc;
+                foreach (var m in today) m.StoreNotifiedAt = nowUtc;
+                notified += today.Count;
             }
-            return meetups.Count;
+            return notified;
         }
 
         /// <summary>Ora (italiana) da cui parte l'avviso giornaliero ai negozi.</summary>
         public const int StoreDigestHour = 8;
 
-        private static readonly TimeZoneInfo ItalyTime = ResolveItalyTimeZone();
-
-        private static TimeZoneInfo ResolveItalyTimeZone()
+        private async Task NotifyBothAsync(TradeMeetup m, string title, Func<string?, string> body)
         {
-            try { return TimeZoneInfo.FindSystemTimeZoneById("Europe/Rome"); }
-            catch (TimeZoneNotFoundException) { return TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time"); }
-        }
-
-        private async Task NotifyBothAsync(TradeMeetup m, string title, string body)
-        {
-            foreach (var userId in new[] { m.TradeOffer.SenderId, m.TradeOffer.ReceiverId })
+            foreach (var (userId, tz) in new[] { (m.TradeOffer.SenderId, m.TradeOffer.Sender?.TimeZone), (m.TradeOffer.ReceiverId, m.TradeOffer.Receiver?.TimeZone) })
             {
                 try
                 {
-                    await _notifications.SendAsync(userId, NotificationType.MeetupUpdate, title, body, m.TradeOfferId, "TradeOffer");
+                    await _notifications.SendAsync(userId, NotificationType.MeetupUpdate, title, body(tz), m.TradeOfferId, "TradeOffer");
                 }
                 catch (Exception ex)
                 {

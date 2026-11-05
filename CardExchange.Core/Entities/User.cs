@@ -64,6 +64,10 @@ namespace CardExchange.Core.Entities
         /// <summary>Utente che ha invitato questo utente, se registrato con un codice invito.</summary>
         public int? ReferredByUserId { get; set; }
 
+        /// <summary>Fuso orario (IANA, es. "Europe/Rome") rilevato dal browser: orari delle notifiche.</summary>
+        [MaxLength(64)]
+        public string? TimeZone { get; set; }
+
         /// <summary>Esito del controllo a 48 ore dall'iscrizione: aveva almeno un match vicino? (null = non controllato)</summary>
         public bool? MatchWithin48h { get; set; }
 

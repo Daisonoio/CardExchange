@@ -359,6 +359,24 @@ namespace CardExchange.API.Controllers
             });
         }
 
+        public record TimeZoneRequest(string TimeZone);
+
+        /// <summary>Fuso orario del dispositivo (rilevato dal browser): gli orari nelle notifiche si scrivono in questo fuso.</summary>
+        [HttpPut("timezone")]
+        public async Task<IActionResult> SetTimeZone([FromBody] TimeZoneRequest request)
+        {
+            if (!CardExchange.Core.Rules.TimeZones.IsValid(request.TimeZone))
+                return BadRequest(new { message = "Fuso orario non valido" });
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetCurrentUserId());
+            if (user == null) return NotFound();
+            if (user.TimeZone != request.TimeZone)
+            {
+                user.TimeZone = request.TimeZone;
+                await _context.SaveChangesAsync();
+            }
+            return Ok(new { timeZone = user.TimeZone });
+        }
+
         private int GetCurrentUserId()
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
