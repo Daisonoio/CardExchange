@@ -36,6 +36,8 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<UserBlock> UserBlocks { get; set; }
         public DbSet<Follow> Follows { get; set; }
         public DbSet<StoreAttribution> StoreAttributions { get; set; }
+        public DbSet<ErrorGroup> ErrorGroups { get; set; }
+        public DbSet<CatalogStatus> CatalogStatuses { get; set; }
         public DbSet<LocationBroadcast> LocationBroadcasts { get; set; }
         public DbSet<UserReport> UserReports { get; set; }
         public DbSet<TradeMeetup> TradeMeetups { get; set; }
@@ -316,6 +318,14 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(f => f.FollowedUser).WithMany().HasForeignKey(f => f.FollowedUserId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(f => f.FollowedStore).WithMany().HasForeignKey(f => f.FollowedStoreId).OnDelete(DeleteBehavior.Restrict);
             });
+
+            // Monitoraggio
+            modelBuilder.Entity<ErrorGroup>(entity =>
+            {
+                entity.HasIndex(e => e.Fingerprint).IsUnique();
+                entity.HasIndex(e => new { e.IsResolved, e.LastSeenAt });
+            });
+            modelBuilder.Entity<CatalogStatus>().HasIndex(c => c.Key).IsUnique();
 
             // Negozio di provenienza: uno per utente
             modelBuilder.Entity<StoreAttribution>(entity =>

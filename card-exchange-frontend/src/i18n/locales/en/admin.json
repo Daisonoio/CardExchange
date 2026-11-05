@@ -93,5 +93,26 @@
     "dismissed": "Dismissed",
     "closedOn": "on {{date}}",
     "accountSuspended": "account suspended"
+  },
+  "monitoring": {
+    "menu": "Monitoring",
+    "title": "Monitoring",
+    "refresh": "Refresh",
+    "loadError": "Couldn't load monitoring.",
+    "catalogs": "Card catalogues",
+    "noChecksYet": "The first check runs one minute after the server starts.",
+    "up": "Working · last successful check {{when}}",
+    "down_one": "Not responding for {{count}} check · last success {{when}}",
+    "down_other": "Not responding for {{count}} checks · last success {{when}}",
+    "errors": "Open errors: {{open}} · seen in the last 24 hours: {{recent}}",
+    "showResolved": "Show resolved too",
+    "noErrors": "No open errors.",
+    "client": "App",
+    "server": "Server",
+    "times_one": "{{n}} time",
+    "times_other": "{{n}} times",
+    "lastSeen": "last {{when}}",
+    "firstSeen": "first {{when}}",
+    "resolve": "Mark as resolved"
   }
 }

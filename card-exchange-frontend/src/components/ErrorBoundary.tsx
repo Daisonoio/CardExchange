@@ -1,6 +1,7 @@
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import i18n from '../i18n';
+import { reportClientError } from '../utils/errorReporting';
 
 interface Props {
   children: ReactNode;
@@ -23,6 +24,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('ErrorBoundary caught:', error, info.componentStack);
+    reportClientError(`${error.name}: ${error.message}`, `${error.stack ?? ''}\n${info.componentStack ?? ''}`, 'react');
   }
 
   render() {

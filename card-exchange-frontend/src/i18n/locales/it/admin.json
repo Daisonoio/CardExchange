@@ -93,5 +93,26 @@
     "dismissed": "Archiviata",
     "closedOn": "il {{date}}",
     "accountSuspended": "account sospeso"
+  },
+  "monitoring": {
+    "menu": "Monitoraggio",
+    "title": "Monitoraggio",
+    "refresh": "Aggiorna",
+    "loadError": "Impossibile caricare il monitoraggio.",
+    "catalogs": "Cataloghi delle carte",
+    "noChecksYet": "Il primo controllo parte un minuto dopo l'avvio del server.",
+    "up": "Funziona · ultimo controllo riuscito {{when}}",
+    "down_one": "Non risponde da {{count}} controllo · ultimo riuscito {{when}}",
+    "down_other": "Non risponde da {{count}} controlli · ultimo riuscito {{when}}",
+    "errors": "Errori aperti: {{open}} · visti nelle ultime 24 ore: {{recent}}",
+    "showResolved": "Mostra anche i risolti",
+    "noErrors": "Nessun errore aperto.",
+    "client": "App",
+    "server": "Server",
+    "times_one": "{{n}} volta",
+    "times_other": "{{n}} volte",
+    "lastSeen": "ultima {{when}}",
+    "firstSeen": "prima volta {{when}}",
+    "resolve": "Segna come risolto"
   }
 }

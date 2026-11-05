@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import {
   Star, ArrowLeftRight, MessageCircle, MapPin, LogOut,
-  ChevronRight, Pencil, Library, Heart, Trophy, Ban, ShieldCheck, Crown, Receipt, BarChart3, Search, Sparkles, QrCode,
+  ChevronRight, Pencil, Library, Heart, Trophy, Ban, ShieldCheck, Crown, Receipt, BarChart3, Search, Sparkles, QrCode, Activity,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ReviewsSheet from '../components/users/ReviewsSheet';
@@ -44,6 +44,7 @@ export default function ProfilePage() {
     { label: t('menu.blockedUsers'), icon: Ban, to: null, action: () => setShowBlocked(true) },
     ...(hasPermission('ADMIN.REPORTS.MANAGE') ? [{ label: t('menu.moderation'), icon: ShieldCheck, to: '/moderation' }] : []),
     ...(hasRole('Admin', 'SuperAdmin') ? [{ label: t('menu.subscriptions'), icon: Receipt, to: '/admin/billing' }] : []),
+    ...(hasRole('Admin', 'SuperAdmin') ? [{ label: t('admin:monitoring.menu'), icon: Activity, to: '/admin/monitoring' }] : []),
   ] as { label: string; icon: typeof Star; to: string | null; action?: () => void }[];
 
   return (

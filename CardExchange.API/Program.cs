@@ -203,6 +203,15 @@ builder.Services.AddScoped<IPriceTrackingService, PriceTrackingService>();
 builder.Services.AddScoped<IMatchmakingService, MatchmakingService>();
 builder.Services.AddScoped<CardSearchService>();
 builder.Services.AddScoped<CardExchange.API.Services.Social.BroadcastService>();
+
+// Monitoraggio: errori (anche quelli solo registrati nei log) e stato dei cataloghi esterni
+builder.Services.AddSingleton<CardExchange.API.Services.Monitoring.IErrorTracker, CardExchange.API.Services.Monitoring.ErrorTracker>();
+builder.Services.AddSingleton<ILoggerProvider>(sp => new CardExchange.API.Services.Monitoring.ErrorTrackingLoggerProvider(
+    sp.GetRequiredService<CardExchange.API.Services.Monitoring.IErrorTracker>()));
+builder.Services.AddScoped<CardExchange.API.Services.Monitoring.MonitoringAlerts>();
+builder.Services.AddScoped<CardExchange.API.Services.Monitoring.CatalogHealthChecker>();
+builder.Services.AddHostedService<CardExchange.API.Services.Monitoring.ErrorTrackingHostedService>();
+builder.Services.AddHostedService<CardExchange.API.Services.Monitoring.CatalogHealthHostedService>();
 builder.Services.AddScoped<IWishlistAlertService, WishlistAlertService>();
 builder.Services.AddScoped<CardExchange.API.Services.Moderation.IUserBlockService, CardExchange.API.Services.Moderation.UserBlockService>();
 builder.Services.AddScoped<CardExchange.API.Services.Import.IMagicCatalogService, CardExchange.API.Services.Import.MagicCatalogService>();

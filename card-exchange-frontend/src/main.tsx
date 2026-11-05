@@ -6,7 +6,9 @@ import './index.css'
 import './i18n'
 import App from './App.tsx'
 import { captureReferralFromUrl } from './utils/referral'
+import { installErrorReporting } from './utils/errorReporting'
 
+installErrorReporting()
 captureReferralFromUrl()
 
 createRoot(document.getElementById('root')!).render(

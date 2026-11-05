@@ -39,6 +39,7 @@ import LivePage from './pages/LivePage';
 import QrPage from './pages/QrPage';
 import LegalPage from './pages/legal/LegalPage';
 import AccountPrivacyPage from './pages/AccountPrivacyPage';
+import AdminMonitoringPage from './pages/AdminMonitoringPage';
 import StoreLinkPage from './pages/StoreLinkPage';
 import LiveComposePage from './pages/LiveComposePage';
 import FollowingPage from './pages/FollowingPage';
@@ -111,6 +112,7 @@ export default function App() {
               <Route path="/stats" element={<StatsPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/admin/billing" element={<AdminBillingPage />} />
+              <Route path="/admin/monitoring" element={<AdminMonitoringPage />} />
             </Route>
 
             {/* Anteprima della nuova grafica (stesso login, pagine reali) */}

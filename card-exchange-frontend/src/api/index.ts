@@ -545,3 +545,16 @@ export const account = {
   /** Elimina l'account: serve lo username come conferma. */
   deleteAccount: (confirmUsername: string) => client.delete('/account/delete-account', { params: { confirmUsername } }),
 };
+
+// === Monitoraggio (amministratori) ===
+export interface MonitoringOverview {
+  errors: { id: number; source: 'Server' | 'Client'; category: string; message: string; detail?: string | null; path?: string | null; count: number; firstSeenAt: string; lastSeenAt: string; isResolved: boolean }[];
+  openGroups: number;
+  seenLast24h: number;
+  catalogs: { key: string; lastCheckAt?: string | null; lastOkAt?: string | null; lastFailAt?: string | null; consecutiveFailures: number; lastError?: string | null; isUp: boolean }[];
+}
+
+export const monitoring = {
+  overview: (includeResolved = false) => client.get<MonitoringOverview>('/admin/monitoring', { params: { includeResolved } }),
+  resolve: (id: number) => client.post(`/admin/monitoring/errors/${id}/resolve`),
+};
