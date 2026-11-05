@@ -38,6 +38,9 @@ namespace CardExchange.API.DTOs.Requests
         [MaxLength(12)]
         public string? ReferralCode { get; set; }
 
+        /// <summary>Accettazione dei termini d'uso e presa visione dell'informativa privacy (obbligatoria).</summary>
+        public bool AcceptTerms { get; set; }
+
         /// <summary>Negozio dal cui QR o link arriva la registrazione (es. "games-corner-milano").</summary>
         [MaxLength(80)]
         public string? StoreSlug { get; set; }

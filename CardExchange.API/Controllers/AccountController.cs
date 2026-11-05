@@ -54,6 +54,84 @@ namespace CardExchange.API.Controllers
             if (user == null)
                 return NotFound();
 
+            // Tutti gli altri dati personali, raccolti a parte per non appesantire la query principale
+            var messagesSent = await _context.Messages.AsNoTracking()
+                .Where(m => m.SenderId == userId)
+                .OrderBy(m => m.CreatedAt)
+                .Select(m => new { m.ConversationId, m.Content, m.CreatedAt, m.IsRead })
+                .ToListAsync();
+            var conversations = await _context.Conversations.AsNoTracking()
+                .Where(c => c.User1Id == userId || c.User2Id == userId)
+                .Select(c => new { c.Id, withUser = c.User1Id == userId ? c.User2.Username : c.User1.Username, c.TradeOfferId, c.CreatedAt, c.LastMessageAt })
+                .ToListAsync();
+            var reviewsWritten = await _context.TradeReviews.AsNoTracking()
+                .Where(r => r.ReviewerId == userId)
+                .Select(r => new { r.TradeOfferId, reviewedUser = r.ReviewedUser.Username, r.Rating, r.Comment, r.CreatedAt })
+                .ToListAsync();
+            var reviewsReceived = await _context.TradeReviews.AsNoTracking()
+                .Where(r => r.ReviewedUserId == userId)
+                .Select(r => new { r.TradeOfferId, r.Rating, r.Comment, r.CreatedAt })
+                .ToListAsync();
+            var meetups = await _context.TradeMeetups.AsNoTracking()
+                .Where(m => m.TradeOffer.SenderId == userId || m.TradeOffer.ReceiverId == userId)
+                .Select(m => new { m.TradeOfferId, m.ScheduledAt, m.LocationName, m.Address, status = m.Status.ToString(), proposedByMe = m.ProposedById == userId, m.Notes })
+                .ToListAsync();
+            var reportsFiled = await _context.UserReports.AsNoTracking()
+                .Where(r => r.ReporterId == userId)
+                .Select(r => new { reportedUser = r.ReportedUser.Username, reason = r.Reason.ToString(), r.Details, status = r.Status.ToString(), r.CreatedAt })
+                .ToListAsync();
+            var blocked = await _context.UserBlocks.AsNoTracking()
+                .Where(b => b.BlockerId == userId)
+                .Select(b => new { username = b.BlockedUser.Username, b.CreatedAt })
+                .ToListAsync();
+            var following = await _context.Follows.AsNoTracking()
+                .Where(f => f.FollowerId == userId)
+                .Select(f => new { user = f.FollowedUser != null ? f.FollowedUser.Username : null, store = f.FollowedStore != null ? f.FollowedStore.Name : null, f.CreatedAt })
+                .ToListAsync();
+            var followersCount = await _context.Follows.CountAsync(f => f.FollowedUserId == userId);
+            var broadcasts = await _context.LocationBroadcasts.AsNoTracking()
+                .Where(b => b.AuthorId == userId)
+                .Select(b => new { b.PlaceName, b.SpotDetail, b.Message, b.Latitude, b.Longitude, b.StartsAt, b.EndsAt, b.RecipientCount })
+                .ToListAsync();
+            var storeOfOrigin = await _context.StoreAttributions.AsNoTracking()
+                .Where(a => a.UserId == userId)
+                .Select(a => new { store = a.Store.Name, a.CreatedAt })
+                .FirstOrDefaultAsync();
+            var storesOwned = await _context.Stores.AsNoTracking()
+                .Where(st => st.OwnerId == userId)
+                .Select(st => new { st.Name, st.Address, st.City, st.Phone, st.Website, st.Instagram, status = st.Status.ToString(), st.CreatedAt })
+                .ToListAsync();
+            var eventsOrganized = await _context.Events.AsNoTracking()
+                .Where(e => e.OrganizerId == userId)
+                .Select(e => new { e.Title, e.StartDate, e.City, status = e.Status.ToString() })
+                .ToListAsync();
+            var eventsJoined = await _context.EventParticipants.AsNoTracking()
+                .Where(p => p.UserId == userId)
+                .Select(p => new { p.Event.Title, p.Event.StartDate, status = p.Status.ToString(), p.CheckedInAt })
+                .ToListAsync();
+            var favorites = await _context.FavoriteCards.AsNoTracking()
+                .Where(f => f.UserId == userId)
+                .Select(f => new { f.CardId, cardName = f.Card.CardInfo.Name, f.CreatedAt })
+                .ToListAsync();
+            var priceAlerts = await _context.PriceAlerts.AsNoTracking()
+                .Where(a => a.UserId == userId)
+                .Select(a => new { cardName = a.CardInfo.Name, a.TargetPrice, direction = a.Direction.ToString(), a.IsActive, a.TriggeredAt, a.CreatedAt })
+                .ToListAsync();
+            var savedSearches = await _context.SavedSearches.AsNoTracking()
+                .Where(x => x.UserId == userId)
+                .Select(x => new { x.Name, x.CriteriaJson, x.AlertEnabled, x.CreatedAt })
+                .ToListAsync();
+            var devices = await _context.PushSubscriptions.AsNoTracking()
+                .Where(x => x.UserId == userId)
+                .Select(x => new { x.UserAgent, x.CreatedAt, x.LastSuccessAt })
+                .ToListAsync();
+            var notificationPreferences = await _context.NotificationPreferences.AsNoTracking()
+                .Where(x => x.UserId == userId)
+                .Select(x => new { type = x.Type.ToString(), x.IsEnabled })
+                .ToListAsync();
+            var invitedBy = user.ReferredByUserId == null ? null
+                : await _context.Users.AsNoTracking().Where(u => u.Id == user.ReferredByUserId).Select(u => u.Username).FirstOrDefaultAsync();
+
             var exportData = new
             {
                 exportDate = DateTime.UtcNow,
@@ -71,7 +149,13 @@ namespace CardExchange.API.Controllers
                     user.LastLoginAt,
                     user.ReputationScore,
                     user.TotalTradesCompleted,
-                    user.TotalReviewsReceived
+                    user.TotalReviewsReceived,
+                    user.BirthDate,
+                    user.TermsAcceptedAt,
+                    user.TermsVersion,
+                    user.ReferralCode,
+                    invitedBy,
+                    storeOfOrigin
                 },
                 location = user.Location != null ? new
                 {
@@ -93,6 +177,9 @@ namespace CardExchange.API.Controllers
                     c.Notes,
                     c.IsAvailableForTrade,
                     c.EstimatedValue,
+                    c.AskingPrice,
+                    c.Language,
+                    finish = c.Finish.ToString(),
                     c.CreatedAt
                 }),
                 wishlist = user.WishlistItems.Select(w => new
@@ -142,7 +229,25 @@ namespace CardExchange.API.Controllers
                     s.StartDate,
                     s.EndDate,
                     s.CreatedAt
-                })
+                }),
+                conversations,
+                messagesSent,
+                reviewsWritten,
+                reviewsReceived,
+                meetups,
+                reportsFiled,
+                blockedUsers = blocked,
+                following,
+                followersCount,
+                imHereUpdates = broadcasts,
+                storesOwned,
+                eventsOrganized,
+                eventsJoined,
+                favoriteCards = favorites,
+                priceAlerts,
+                savedSearches,
+                pushDevices = devices,
+                notificationPreferences
             };
 
             _logger.LogInformation("Esportazione dati GDPR per utente {UserId}", userId);

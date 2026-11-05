@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import BrandLogo from '../components/brand/BrandLogo';
+import LegalLinks from '../components/layout/LegalLinks';
 
 export default function LoginPage() {
   const { t } = useTranslation('auth');
@@ -82,6 +83,7 @@ export default function LoginPage() {
             {t('login.register')}
           </Link>
         </p>
+        <LegalLinks light />
       </div>
     </div>
   );

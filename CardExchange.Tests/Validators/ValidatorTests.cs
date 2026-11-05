@@ -16,7 +16,7 @@ public class RegisterRequestValidatorTests
     [InlineData("Pässwörd1€")]
     public void AnySymbolIsAccepted(string password)
     {
-        var request = new RegisterRequest { Email = "t@t.com", Username = "luca.meli", FirstName = "T", LastName = "U", Password = password, ConfirmPassword = password, BirthDate = new DateOnly(1995, 6, 15) };
+        var request = new RegisterRequest { Email = "t@t.com", Username = "luca.meli", FirstName = "T", LastName = "U", Password = password, ConfirmPassword = password, BirthDate = new DateOnly(1995, 6, 15), AcceptTerms = true };
         _validator.TestValidate(request).ShouldNotHaveAnyValidationErrors();
     }
 
@@ -27,6 +27,13 @@ public class RegisterRequestValidatorTests
     {
         var request = new RegisterRequest { Email = "t@t.com", Username = "test", FirstName = "T", LastName = "U", Password = password, ConfirmPassword = password, BirthDate = new DateOnly(1995, 6, 15) };
         _validator.TestValidate(request).ShouldHaveValidationErrorFor(x => x.Password);
+    }
+
+    [Fact]
+    public void TermsMustBeAccepted()
+    {
+        var request = new RegisterRequest { Email = "t@t.com", Username = "test", FirstName = "T", LastName = "U", Password = "P@ssw0rd!", ConfirmPassword = "P@ssw0rd!", BirthDate = new DateOnly(1995, 6, 15) };
+        _validator.TestValidate(request).ShouldHaveValidationErrorFor(x => x.AcceptTerms);
     }
 
     [Fact]
@@ -49,7 +56,8 @@ public class RegisterRequestValidatorTests
             LastName = "User",
             Password = "Password1!",
             ConfirmPassword = "Password1!",
-            BirthDate = new DateOnly(1995, 6, 15)
+            BirthDate = new DateOnly(1995, 6, 15),
+            AcceptTerms = true
         };
 
         var result = _validator.TestValidate(request);

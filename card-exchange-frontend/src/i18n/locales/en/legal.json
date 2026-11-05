@@ -1,0 +1,198 @@
+{
+  "back": "Back",
+  "updated": "Last updated: {{date}}",
+  "draft": "Draft to be completed and reviewed by a lawyer before publication.",
+  "nav": {
+    "privacy": "Privacy",
+    "terms": "Terms of use",
+    "cookies": "Cookies"
+  },
+  "privacy": {
+    "title": "Privacy notice",
+    "intro": "This notice explains which personal data CardExchange processes, why, for how long and what your rights are (art. 13 of EU Regulation 2016/679, \"GDPR\").",
+    "sections": [
+      {
+        "title": "Who processes your data",
+        "body": [
+          "The data controller is {{company}}, {{address}}, VAT {{vatNumber}}. For any privacy request write to {{email}}."
+        ]
+      },
+      {
+        "title": "Which data we process",
+        "body": [
+          "Account data: first and last name, username, email, date of birth, password (stored only in encrypted form).",
+          "Profile location: city, province, postal code and coordinates you provide. They are used to calculate distances from other users, stores and events.",
+          "Content you add: collection, wishlist, indicative prices, card photos, messages, trade proposals, meetups, reviews, reports, blocks, profiles you follow and \"I'm here\" updates (with the place you choose to publish).",
+          "Optional payment contacts (PayPal or Satispay username, a QR image), shown only to the other user after an accepted trade.",
+          "Paid subscription data: plan, dates and amounts. Card details are handled by Stripe and never reach us.",
+          "The store whose QR code you signed up from, if any.",
+          "Technical data: access and error logs, devices on which you enabled push notifications."
+        ]
+      },
+      {
+        "title": "Why we process them and on what basis",
+        "body": [
+          "To provide the service you asked for (account, collection, matches, chat, trades, notifications): performance of a contract (art. 6.1.b GDPR).",
+          "For platform security, fraud and abuse prevention and handling reports: legitimate interest (art. 6.1.f).",
+          "To show stores aggregated statistics about demand in their area and the customers who came from their QR code, without ever revealing who you are: legitimate interest. Data appears only when it concerns at least 3 people.",
+          "For tax and accounting obligations related to subscriptions: legal obligation (art. 6.1.c).",
+          "For the weekly email digest: legitimate interest. You can turn it off at any time in notification preferences."
+        ]
+      },
+      {
+        "title": "What other users see",
+        "body": [
+          "Other users see your username, city, distance rounded to the kilometre, the cards you make available, your reviews and, if you publish them, your \"I'm here\" updates. They never see your email, postal code or exact position."
+        ]
+      },
+      {
+        "title": "Minors",
+        "body": [
+          "You must be at least 14 to sign up. We don't show minors promotional content based on their personal data."
+        ]
+      },
+      {
+        "title": "Who we share data with",
+        "body": [
+          "Providers that help us run the service, appointed as data processors: hosting ({{hosting}}), email delivery ({{emailProvider}}), Stripe for subscription payments.",
+          "Your browser's notification services (for example Google, Apple, Mozilla), if you turn on push notifications.",
+          "Maps and address search use OpenStreetMap: your browser contacts their servers, which receive your IP address.",
+          "Card catalogues (Scryfall, Pokémon TCG API, YGOPRODeck, OPTCG API, Lorcast) only receive card searches made by our server, with no personal data.",
+          "Some providers may process data outside the European Union: in that case the transfer relies on the safeguards provided by the GDPR (adequacy decisions or standard contractual clauses)."
+        ]
+      },
+      {
+        "title": "For how long",
+        "body": [
+          "Account data is kept while your account is active. If you delete your account, personal data is deleted or anonymised immediately: messages already sent remain visible to the other participants as \"deleted user\".",
+          "Invoice data is kept for 10 years as required by law. Technical logs are kept for at most 12 months."
+        ]
+      },
+      {
+        "title": "Your rights",
+        "body": [
+          "You can request access, rectification, erasure, restriction, portability of your data and object to processing based on legitimate interest by writing to {{email}}.",
+          "From the Account and privacy page you can download all your data and delete your account yourself.",
+          "You have the right to lodge a complaint with the Italian Data Protection Authority (www.garanteprivacy.it)."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "title": "Terms of use",
+    "intro": "These terms govern the use of CardExchange. By signing up you accept them.",
+    "sections": [
+      {
+        "title": "The service",
+        "body": [
+          "CardExchange helps collectors and stores find each other and organise in-person trades and sales of collectible cards.",
+          "CardExchange doesn't sell or buy cards, doesn't handle payments between users and isn't a party to their agreements. Prices shown are indicative: users agree freely and pay in person."
+        ]
+      },
+      {
+        "title": "Account",
+        "body": [
+          "To sign up you must be at least 14 and provide truthful data. Your account is personal: keep your password safe and tell us if you suspect unauthorised access.",
+          "You can delete your account at any time from the Account and privacy page."
+        ]
+      },
+      {
+        "title": "Rules of conduct",
+        "body": [
+          "Describe cards honestly, including condition and authenticity. Offering counterfeits is forbidden.",
+          "Fraud, spam, harassment, offensive or illegal content and using several accounts to get around limits or blocks are forbidden.",
+          "Meet in public places: the app suggests partner stores as safe meeting points. Minors should meet with an adult present or at a store."
+        ]
+      },
+      {
+        "title": "Content",
+        "body": [
+          "You are responsible for the content you publish. You allow us to show it within the service for as long as it stays published.",
+          "Card names and images belong to their publishers and are used only to identify the cards."
+        ]
+      },
+      {
+        "title": "Subscriptions",
+        "body": [
+          "Some features are available with a paid subscription (for example Premium or Store). Price, duration and renewal are shown before purchase.",
+          "Card subscriptions renew automatically: you can cancel at any time and the subscription stays active until the end of the paid period.",
+          "If you are a consumer you can withdraw within 14 days of purchase, within the limits set by consumer law."
+        ]
+      },
+      {
+        "title": "Moderation",
+        "body": [
+          "We may remove content and suspend or close accounts that break these terms, including after reports from users."
+        ]
+      },
+      {
+        "title": "Liability",
+        "body": [
+          "Trades, sales and meetups take place under the responsibility of the users involved. To the extent permitted by law, CardExchange is not liable for damages arising from agreements between users.",
+          "We do our best to keep the service available and data accurate, but we can't guarantee it will always be free of interruptions or errors, for example in prices from external catalogues."
+        ]
+      },
+      {
+        "title": "Changes and governing law",
+        "body": [
+          "If we change these terms substantially we will tell you in the app or by email before they take effect.",
+          "Italian law applies. For consumers, the courts of their place of residence have jurisdiction."
+        ]
+      }
+    ]
+  },
+  "cookies": {
+    "title": "Cookies and browser storage",
+    "intro": "CardExchange only uses technical tools needed to run the service. That's why we don't ask for consent with a banner.",
+    "sections": [
+      {
+        "title": "What we store in your browser",
+        "body": [
+          "Your sign-in session, so we don't ask for your password on every page.",
+          "Your preferences: language, selected game, search radius, notices you have closed.",
+          "The invite code or store you came from, for up to 30 days, so it still counts if you sign up later."
+        ]
+      },
+      {
+        "title": "What we don't use",
+        "body": [
+          "We don't use profiling cookies, third-party advertising or analytics tools that track you across other sites."
+        ]
+      },
+      {
+        "title": "External services",
+        "body": [
+          "Maps load their images from OpenStreetMap, which receives your IP address.",
+          "Subscription payments take place on Stripe's pages, which use their own technical and anti-fraud cookies."
+        ]
+      },
+      {
+        "title": "How to delete them",
+        "body": [
+          "You can delete this data at any time from your browser settings. Signing out removes your session."
+        ]
+      }
+    ]
+  },
+  "account": {
+    "menu": "Account and privacy",
+    "title": "Account and privacy",
+    "exportTitle": "Download your data",
+    "exportBody": "A file with all your account data: profile, collection, wishlist, trades, messages sent, reviews, follows, updates and preferences.",
+    "exportButton": "Download my data",
+    "exporting": "Preparing…",
+    "exportError": "Download failed, please try again.",
+    "deleteTitle": "Delete your account",
+    "deleteBody": "We delete your collection, wishlist, notifications, follows and updates, and anonymise your profile. Messages already sent remain for others as \"deleted user\". This can't be undone.",
+    "deleteStart": "Delete my account",
+    "deleteConfirmLabel": "To confirm, type your username: {{username}}",
+    "deleteConfirm": "Delete permanently",
+    "deleting": "Deleting…",
+    "deleteError": "Deletion failed",
+    "legalTitle": "Documents",
+    "termsAccepted": "You accepted the terms of use when you signed up."
+  },
+  "register": {
+    "accept": "I accept the <terms>terms of use</terms> and have read the <privacy>privacy notice</privacy>"
+  }
+}

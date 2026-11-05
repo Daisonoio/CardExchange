@@ -7,6 +7,9 @@ namespace CardExchange.API.Validators
     {
         public RegisterRequestValidator()
         {
+            RuleFor(x => x.AcceptTerms)
+                .Equal(true).WithMessage("Per registrarti devi accettare i termini d'uso e prendere visione dell'informativa privacy");
+
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("L'email è obbligatoria")
                 .EmailAddress().WithMessage("Formato email non valido")

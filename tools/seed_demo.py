@@ -71,7 +71,7 @@ def login_or_register(api, username, first, city, lat, lng):
         status, res = api.call("POST", "/api/auth/register", {
             "email": f"{username.replace('.', '').replace('-', '').replace('_', '')}@demo.cardexchange.local",
             "username": username, "firstName": first, "lastName": "Demo",
-            "password": PASSWORD, "confirmPassword": PASSWORD, "birthDate": "1995-05-15"})
+            "password": PASSWORD, "confirmPassword": PASSWORD, "birthDate": "1995-05-15", "acceptTerms": True})
         if status != 200:
             sys.exit(f"Registrazione di {username} non riuscita ({status}): {res}")
     api.token = res["accessToken"]

@@ -16,6 +16,8 @@ export interface RegisterRequest {
   birthDate: string;
   /** Codice invito facoltativo. */
   referralCode?: string;
+  /** Accettazione di termini e presa visione dell'informativa (obbligatoria) */
+  acceptTerms: boolean;
   /** Negozio dal cui QR arriva la registrazione */
   storeSlug?: string;
 }

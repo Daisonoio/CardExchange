@@ -23,6 +23,11 @@ namespace CardExchange.Core.Entities
         /// <summary>Data di nascita, per verificare l'età minima (null per gli account creati prima del controllo).</summary>
         public DateOnly? BirthDate { get; set; }
 
+        /// <summary>Quando ha accettato termini d'uso e preso visione dell'informativa, e quale versione.</summary>
+        public DateTime? TermsAcceptedAt { get; set; }
+        [MaxLength(20)]
+        public string? TermsVersion { get; set; }
+
         [MaxLength(500)]
         public string? Bio { get; set; }
 

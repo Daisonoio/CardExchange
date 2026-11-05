@@ -32,6 +32,7 @@ export default function ProfilePage() {
   const menuItems = [
     { label: t('menu.editProfile'), icon: Pencil, to: '/profile/edit' },
     { label: t('qr:me.menu'), icon: QrCode, to: '/qr/me' },
+    { label: t('legal:account.menu'), icon: ShieldCheck, to: '/profile/privacy' },
     { label: t('menu.myPlan'), icon: Crown, to: '/premium' },
     { label: t('menu.newDesignPreview'), icon: Sparkles, to: '/preview' },
     { label: t('menu.stats'), icon: BarChart3, to: '/stats' },

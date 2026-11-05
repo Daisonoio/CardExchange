@@ -537,3 +537,11 @@ export interface MeetupSpot {
   distanceFromMeKm?: number | null;
   distanceFromOtherKm?: number | null;
 }
+
+// === Account e privacy (GDPR) ===
+export const account = {
+  /** Tutti i dati personali in un file JSON. */
+  exportData: () => client.get<Blob>('/account/export-data', { responseType: 'blob' }),
+  /** Elimina l'account: serve lo username come conferma. */
+  deleteAccount: (confirmUsername: string) => client.delete('/account/delete-account', { params: { confirmUsername } }),
+};

@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import BrandLogo from '../components/brand/BrandLogo';
+import LegalLinks from '../components/layout/LegalLinks';
 
 export default function RegisterPage() {
   const { t } = useTranslation('auth');
@@ -31,6 +32,8 @@ export default function RegisterPage() {
   const [referralCode] = useState(() => getStoredReferral());
   // Arrivo dal QR di un negozio (/s/:slug): ci si iscrive "da" quel negozio e lo si segue
   const [storeSlug] = useState(() => getStoredStoreSlug());
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const { t: tLegal } = useTranslation('legal');
   const [fromStore, setFromStore] = useState<string | null>(null);
   useEffect(() => {
     if (!storeSlug) return;
@@ -84,6 +87,7 @@ export default function RegisterPage() {
         birthDate: form.birthDate,
         referralCode: invitedBy && referralCode ? referralCode : undefined,
         storeSlug: fromStore && storeSlug ? storeSlug : undefined,
+        acceptTerms,
       });
       clearStoredReferral();
       clearStoredStoreSlug();
@@ -184,7 +188,28 @@ export default function RegisterPage() {
             required
           />
 
-          <Button type="submit" isLoading={isLoading} className="w-full">
+          <label htmlFor="accept-terms" className="flex items-start gap-2.5 text-sm text-text-secondary">
+            <input
+              id="accept-terms"
+              type="checkbox"
+              checked={acceptTerms}
+              onChange={(e) => setAcceptTerms(e.target.checked)}
+              required
+              className="mt-0.5 w-4 h-4 accent-primary shrink-0"
+            />
+            <span>
+              <Trans
+                t={tLegal}
+                i18nKey="register.accept"
+                components={{
+                  terms: <Link to="/terms" target="_blank" className="text-primary font-semibold hover:underline" />,
+                  privacy: <Link to="/privacy" target="_blank" className="text-primary font-semibold hover:underline" />,
+                }}
+              />
+            </span>
+          </label>
+
+          <Button type="submit" isLoading={isLoading} className="w-full" disabled={!acceptTerms}>
             {t('register.submit')}
           </Button>
         </form>
@@ -195,6 +220,7 @@ export default function RegisterPage() {
             {t('register.login')}
           </Link>
         </p>
+        <LegalLinks />
       </div>
     </div>
   );

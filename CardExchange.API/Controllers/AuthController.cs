@@ -114,6 +114,8 @@ namespace CardExchange.API.Controllers
                     LastName = request.LastName,
                     Bio = request.Bio,
                     BirthDate = request.BirthDate,
+                    TermsAcceptedAt = DateTime.UtcNow,
+                    TermsVersion = LegalTerms.CurrentVersion,
                     PasswordHash = passwordHash,
                     IsActive = true,
                     EmailConfirmed = false,

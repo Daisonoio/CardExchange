@@ -1,5 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+// Font servito dal nostro dominio: nessuna richiesta a Google Fonts (privacy)
+import '@fontsource-variable/inter'
 import './index.css'
 import './i18n'
 import App from './App.tsx'

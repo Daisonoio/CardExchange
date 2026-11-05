@@ -37,6 +37,8 @@ import LocalPage from './pages/LocalPage';
 import StorePage from './pages/StorePage';
 import LivePage from './pages/LivePage';
 import QrPage from './pages/QrPage';
+import LegalPage from './pages/legal/LegalPage';
+import AccountPrivacyPage from './pages/AccountPrivacyPage';
 import StoreLinkPage from './pages/StoreLinkPage';
 import LiveComposePage from './pages/LiveComposePage';
 import FollowingPage from './pages/FollowingPage';
@@ -71,6 +73,10 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             {/* Link breve stampato nel QR del negozio */}
             <Route path="/s/:slug" element={<StoreLinkPage />} />
+            {/* Documenti legali: pubblici */}
+            <Route path="/privacy" element={<LegalPage doc="privacy" />} />
+            <Route path="/terms" element={<LegalPage doc="terms" />} />
+            <Route path="/cookies" element={<LegalPage doc="cookies" />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
@@ -96,6 +102,7 @@ export default function App() {
               <Route path="/live/:id" element={<LivePage />} />
               <Route path="/following" element={<FollowingPage />} />
               <Route path="/qr/:kind/:id?" element={<QrPage />} />
+              <Route path="/profile/privacy" element={<AccountPrivacyPage />} />
               <Route path="/stores/:id/edit" element={<StoreFormPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />

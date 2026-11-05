@@ -1,0 +1,198 @@
+{
+  "back": "Indietro",
+  "updated": "Ultimo aggiornamento: {{date}}",
+  "draft": "Bozza da completare e far verificare a un legale prima della pubblicazione.",
+  "nav": {
+    "privacy": "Privacy",
+    "terms": "Termini d'uso",
+    "cookies": "Cookie"
+  },
+  "privacy": {
+    "title": "Informativa privacy",
+    "intro": "Questa informativa spiega quali dati personali tratta CardExchange, perché, per quanto tempo e quali sono i tuoi diritti (art. 13 del Regolamento UE 2016/679, \"GDPR\").",
+    "sections": [
+      {
+        "title": "Chi tratta i tuoi dati",
+        "body": [
+          "Il titolare del trattamento è {{company}}, {{address}}, P.IVA {{vatNumber}}. Per qualsiasi richiesta sulla privacy puoi scrivere a {{email}}."
+        ]
+      },
+      {
+        "title": "Quali dati trattiamo",
+        "body": [
+          "Dati dell'account: nome, cognome, username, email, data di nascita, password (conservata solo in forma cifrata).",
+          "Posizione del profilo: città, provincia, CAP e coordinate che indichi. Servono a calcolare le distanze dagli altri utenti, dai negozi e dagli eventi.",
+          "Contenuti che inserisci: collezione, wishlist, prezzi indicativi, foto delle carte, messaggi, proposte di scambio, appuntamenti, recensioni, segnalazioni, blocchi, profili che segui e avvisi \"Sono qui\" (con il luogo che scegli di pubblicare).",
+          "Contatti di pagamento facoltativi (username PayPal o Satispay, immagine di un QR), mostrati solo all'altro utente dopo uno scambio accettato.",
+          "Dati sugli abbonamenti a pagamento: piano, date e importi. I dati della carta sono gestiti da Stripe e non arrivano mai a noi.",
+          "Il negozio dal cui QR ti sei registrato, se è il caso.",
+          "Dati tecnici: registri di accesso e di errore, dispositivi su cui hai attivato le notifiche push."
+        ]
+      },
+      {
+        "title": "Perché li trattiamo e su quale base",
+        "body": [
+          "Per fornirti il servizio che hai richiesto (account, collezione, abbinamenti, chat, scambi, notifiche): esecuzione del contratto (art. 6.1.b GDPR).",
+          "Per la sicurezza della piattaforma, la prevenzione di frodi e abusi e la moderazione delle segnalazioni: legittimo interesse (art. 6.1.f).",
+          "Per mostrare ai negozi statistiche aggregate sulla domanda nella loro zona e sui clienti arrivati dal loro QR, senza mai rivelare chi sei: legittimo interesse. I dati compaiono solo se riguardano almeno 3 persone.",
+          "Per gli obblighi fiscali e contabili legati agli abbonamenti: obbligo di legge (art. 6.1.c).",
+          "Per il riepilogo settimanale via email: legittimo interesse. Puoi disattivarlo in qualsiasi momento dalle preferenze di notifica."
+        ]
+      },
+      {
+        "title": "Cosa vedono gli altri utenti",
+        "body": [
+          "Gli altri utenti vedono il tuo username, la città, la distanza arrotondata al chilometro, le carte che metti a disposizione, le recensioni ricevute e, se li pubblichi, i tuoi avvisi \"Sono qui\". Non vedono mai la tua email, il CAP o la posizione esatta."
+        ]
+      },
+      {
+        "title": "Minorenni",
+        "body": [
+          "Per iscriversi servono almeno 14 anni. Agli utenti minorenni non mostriamo contenuti promozionali basati sui loro dati personali."
+        ]
+      },
+      {
+        "title": "A chi comunichiamo i dati",
+        "body": [
+          "Ai fornitori che ci aiutano a erogare il servizio, nominati responsabili del trattamento: hosting ({{hosting}}), invio delle email ({{emailProvider}}), Stripe per i pagamenti degli abbonamenti.",
+          "Ai servizi di notifica del tuo browser (ad esempio Google, Apple, Mozilla), se attivi le notifiche push.",
+          "Le mappe e la ricerca degli indirizzi usano OpenStreetMap: il tuo browser contatta i loro server, che ricevono il tuo indirizzo IP.",
+          "I cataloghi delle carte (Scryfall, Pokémon TCG API, YGOPRODeck, OPTCG API, Lorcast) ricevono solo le ricerche di carte fatte dal nostro server, senza dati personali.",
+          "Alcuni fornitori possono trattare dati fuori dall'Unione europea: in questi casi il trasferimento avviene con le garanzie previste dal GDPR (decisioni di adeguatezza o clausole contrattuali standard)."
+        ]
+      },
+      {
+        "title": "Per quanto tempo",
+        "body": [
+          "I dati dell'account restano finché lo mantieni attivo. Se elimini l'account, i dati personali vengono cancellati o resi anonimi subito: i messaggi già inviati restano visibili agli altri partecipanti come \"utente eliminato\".",
+          "I dati delle fatture si conservano per 10 anni per obbligo di legge. I registri tecnici si conservano al massimo 12 mesi."
+        ]
+      },
+      {
+        "title": "I tuoi diritti",
+        "body": [
+          "Puoi chiedere accesso, rettifica, cancellazione, limitazione, portabilità dei tuoi dati e opporti ai trattamenti basati sul legittimo interesse, scrivendo a {{email}}.",
+          "Dalla pagina Account e privacy puoi scaricare tutti i tuoi dati e cancellare l'account in autonomia.",
+          "Hai il diritto di presentare reclamo al Garante per la protezione dei dati personali (www.garanteprivacy.it)."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "title": "Termini d'uso",
+    "intro": "Questi termini regolano l'uso di CardExchange. Registrandoti li accetti.",
+    "sections": [
+      {
+        "title": "Il servizio",
+        "body": [
+          "CardExchange aiuta collezionisti e negozi a trovarsi e a organizzare scambi e vendite di carte collezionabili di persona.",
+          "CardExchange non vende né compra carte, non gestisce pagamenti tra utenti e non è parte degli accordi tra di loro. I prezzi mostrati sono indicativi: gli utenti si accordano liberamente e pagano di persona."
+        ]
+      },
+      {
+        "title": "Account",
+        "body": [
+          "Per registrarti devi avere almeno 14 anni e fornire dati veritieri. L'account è personale: custodisci la password e avvisaci se sospetti un accesso non autorizzato.",
+          "Puoi cancellare l'account in qualsiasi momento dalla pagina Account e privacy."
+        ]
+      },
+      {
+        "title": "Regole di comportamento",
+        "body": [
+          "Descrivi le carte in modo onesto, comprese condizione e autenticità. È vietato offrire contraffazioni.",
+          "Sono vietati frodi, spam, molestie, contenuti offensivi o illegali e l'uso di più account per aggirare limiti o blocchi.",
+          "Per gli incontri scegli luoghi pubblici: l'app propone i negozi partner come punti di scambio sicuri. Gli utenti minorenni dovrebbero incontrarsi in presenza di un adulto o in un negozio."
+        ]
+      },
+      {
+        "title": "Contenuti",
+        "body": [
+          "Sei responsabile dei contenuti che pubblichi. Ci concedi il permesso di mostrarli all'interno del servizio, per tutto il tempo in cui restano pubblicati.",
+          "Nomi e immagini delle carte appartengono ai rispettivi editori e sono usati solo per identificarle."
+        ]
+      },
+      {
+        "title": "Abbonamenti",
+        "body": [
+          "Alcune funzioni sono disponibili con un abbonamento a pagamento (ad esempio Premium o Negozio). Prezzo, durata e rinnovo sono indicati prima dell'acquisto.",
+          "Gli abbonamenti con carta si rinnovano automaticamente: puoi disdire in qualsiasi momento e l'abbonamento resta attivo fino alla scadenza del periodo pagato.",
+          "Se sei un consumatore puoi recedere entro 14 giorni dall'acquisto, nei limiti previsti dal Codice del consumo."
+        ]
+      },
+      {
+        "title": "Moderazione",
+        "body": [
+          "Possiamo rimuovere contenuti e sospendere o chiudere account che violano questi termini, anche a seguito delle segnalazioni degli utenti."
+        ]
+      },
+      {
+        "title": "Responsabilità",
+        "body": [
+          "Scambi, vendite e incontri avvengono sotto la responsabilità degli utenti coinvolti. Nei limiti consentiti dalla legge, CardExchange non risponde di danni derivanti dagli accordi tra utenti.",
+          "Facciamo il possibile per mantenere il servizio disponibile e i dati corretti, ma non possiamo garantire che sia sempre privo di interruzioni o errori, ad esempio nei prezzi dei cataloghi esterni."
+        ]
+      },
+      {
+        "title": "Modifiche e legge applicabile",
+        "body": [
+          "Se cambiamo questi termini in modo sostanziale ti avviseremo nell'app o via email prima che entrino in vigore.",
+          "Si applica la legge italiana. Per i consumatori è competente il foro del luogo di residenza o domicilio."
+        ]
+      }
+    ]
+  },
+  "cookies": {
+    "title": "Cookie e memoria del browser",
+    "intro": "CardExchange usa solo strumenti tecnici necessari al funzionamento del servizio. Per questo non ti chiediamo il consenso con un banner.",
+    "sections": [
+      {
+        "title": "Cosa salviamo nel tuo browser",
+        "body": [
+          "La sessione di accesso, per non doverti chiedere la password a ogni pagina.",
+          "Le tue preferenze: lingua, gioco selezionato, raggio di ricerca, avvisi già chiusi.",
+          "Il codice invito o il negozio da cui sei arrivato, per un massimo di 30 giorni, così vale anche se ti registri più tardi."
+        ]
+      },
+      {
+        "title": "Cosa non usiamo",
+        "body": [
+          "Non usiamo cookie di profilazione, pubblicità di terze parti o strumenti di statistica che ti tracciano su altri siti."
+        ]
+      },
+      {
+        "title": "Servizi esterni",
+        "body": [
+          "Le mappe caricano le immagini da OpenStreetMap, che riceve il tuo indirizzo IP.",
+          "Il pagamento degli abbonamenti avviene sulle pagine di Stripe, che usa i propri cookie tecnici e antifrode."
+        ]
+      },
+      {
+        "title": "Come cancellarli",
+        "body": [
+          "Puoi cancellare questi dati in qualsiasi momento dalle impostazioni del browser. Uscendo dall'account la sessione viene eliminata."
+        ]
+      }
+    ]
+  },
+  "account": {
+    "menu": "Account e privacy",
+    "title": "Account e privacy",
+    "exportTitle": "Scarica i tuoi dati",
+    "exportBody": "Un file con tutti i dati del tuo account: profilo, collezione, wishlist, scambi, messaggi inviati, recensioni, follow, avvisi e preferenze.",
+    "exportButton": "Scarica i miei dati",
+    "exporting": "Preparazione…",
+    "exportError": "Download non riuscito, riprova.",
+    "deleteTitle": "Elimina l'account",
+    "deleteBody": "Cancelliamo collezione, wishlist, notifiche, follow e avvisi, e rendiamo anonimo il profilo. I messaggi già inviati restano agli altri come \"utente eliminato\". Non si può annullare.",
+    "deleteStart": "Elimina il mio account",
+    "deleteConfirmLabel": "Per confermare scrivi il tuo username: {{username}}",
+    "deleteConfirm": "Elimina definitivamente",
+    "deleting": "Eliminazione…",
+    "deleteError": "Eliminazione non riuscita",
+    "legalTitle": "Documenti",
+    "termsAccepted": "Hai accettato i termini d'uso alla registrazione."
+  },
+  "register": {
+    "accept": "Accetto i <terms>termini d'uso</terms> e ho letto l'<privacy>informativa privacy</privacy>"
+  }
+}

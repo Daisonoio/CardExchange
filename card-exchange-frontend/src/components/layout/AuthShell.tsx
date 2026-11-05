@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import BrandLogo from '../brand/BrandLogo';
+import LegalLinks from './LegalLinks';
 
 /** Contenitore grafico delle pagine pubbliche di autenticazione (login, reset password, verifica email). */
 export default function AuthShell({ subtitle, children, footer }: { subtitle: string; children: ReactNode; footer?: ReactNode }) {
@@ -14,6 +15,7 @@ export default function AuthShell({ subtitle, children, footer }: { subtitle: st
         </div>
         <div className="bg-white rounded-2xl p-6 shadow-xl space-y-4">{children}</div>
         {footer && <div className="text-center text-sm text-white/70 mt-6">{footer}</div>}
+        <LegalLinks light />
       </div>
     </div>
   );
