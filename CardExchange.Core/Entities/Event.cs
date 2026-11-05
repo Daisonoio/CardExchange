@@ -80,6 +80,22 @@ namespace CardExchange.Core.Entities
         /// <summary>Negozio che ospita l'evento (facoltativo).</summary>
         public int? StoreId { get; set; }
 
+        /// <summary>Quota indicativa, pagata di persona all'evento (mai tramite l'app).</summary>
+        public decimal? EntryFeeEur { get; set; }
+
+        /// <summary>Chiusura delle iscrizioni (se diversa dall'inizio).</summary>
+        public DateTime? RegistrationDeadline { get; set; }
+
+        /// <summary>Formato del torneo, es. "Standard", "Draft".</summary>
+        [MaxLength(60)]
+        public string? Format { get; set; }
+
+        /// <summary>Gioco del torneo.</summary>
+        public int? GameId { get; set; }
+
+        /// <summary>Riepilogo degli iscritti già inviato all'organizzatore.</summary>
+        public DateTime? OrganizerSummarySentAt { get; set; }
+
         // Relazioni
         public virtual User Organizer { get; set; } = null!;
         public virtual Store? Store { get; set; }

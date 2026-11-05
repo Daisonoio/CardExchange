@@ -213,6 +213,7 @@ builder.Services.AddHostedService<CardExchange.API.Services.Metrics.ActiveDayWri
 builder.Services.AddScoped<CardExchange.API.Services.Metrics.ActivationCheck>();
 builder.Services.AddScoped<CardExchange.API.Services.Metrics.PlanMetrics>();
 builder.Services.AddScoped<CardExchange.API.Services.NearbyWishlistMatches>();
+builder.Services.AddScoped<CardExchange.API.Services.Events.EventRegistrations>();
 
 // Monitoraggio: errori (anche quelli solo registrati nei log) e stato dei cataloghi esterni
 builder.Services.AddSingleton<CardExchange.API.Services.Monitoring.IErrorTracker, CardExchange.API.Services.Monitoring.ErrorTracker>();

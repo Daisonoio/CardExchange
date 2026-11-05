@@ -362,6 +362,27 @@ export interface CardEvent {
     reputationScore: number;
   };
   createdAt: string;
+  /** Quota indicativa, pagata di persona all'evento. */
+  entryFeeEur?: number | null;
+  registrationDeadline?: string | null;
+  format?: string | null;
+  gameId?: number | null;
+  registrationOpen?: boolean;
+  /** Posti rimasti (assente se senza limite). */
+  spotsLeft?: number | null;
+  waitlistCount?: number;
+  myStatus?: 'Registered' | 'Confirmed' | 'Attended' | 'Waitlisted' | 'Offered' | null;
+  myWaitlistPosition?: number | null;
+  myOfferExpiresAt?: string | null;
+}
+
+export interface EventAttendee {
+  userId: number;
+  username: string;
+  status: string;
+  joinedAt: string;
+  checkedInAt?: string | null;
+  waitlistPosition?: number | null;
 }
 
 export interface CardEventDetail extends CardEvent {

@@ -1,11 +1,17 @@
 {
   "local": {
     "title": "Vicino a te",
-    "tabs": { "events": "Eventi", "stores": "Negozi" }
+    "tabs": {
+      "events": "Eventi",
+      "stores": "Negozi"
+    }
   },
   "list": {
     "loadError": "Impossibile caricare gli eventi.",
-    "modes": { "nearby": "Vicino a me", "all": "Tutti i prossimi" },
+    "modes": {
+      "nearby": "Vicino a me",
+      "all": "Tutti i prossimi"
+    },
     "organize": "Organizza un evento",
     "unavailable": "Eventi vicini non disponibili",
     "emptyTitle": "Nessun evento in programma",
@@ -35,7 +41,33 @@
     "shareText": "Vieni a \"{{title}}\" con me su CardExchange!",
     "linkCopied": "Link dell'evento copiato negli appunti",
     "invite": "Invita amici a questo evento",
-    "whoIsGoing": "Chi partecipa"
+    "whoIsGoing": "Chi partecipa",
+    "fee": "Quota {{fee}} · si paga sul posto",
+    "format": "Formato: {{format}}",
+    "deadline": "Iscrizioni fino a {{when}}",
+    "closed": "Iscrizioni chiuse",
+    "spotsLeft_one": "Ultimo posto!",
+    "spotsLeft_other": "{{count}} posti liberi",
+    "waitlistCount_one": "{{count}} in lista d'attesa",
+    "waitlistCount_other": "{{count}} in lista d'attesa",
+    "joinWaitlist": "Mettiti in lista d'attesa",
+    "waitlisted": "Sei in lista d'attesa, posizione {{position}}",
+    "waitlistedHint": "Se si libera un posto ti avvisiamo: avrai 12 ore per confermarlo.",
+    "leaveWaitlist": "Esci dalla lista d'attesa",
+    "offered": "Si è liberato un posto per te!",
+    "offeredUntil": "Confermalo entro {{when}}, poi passa al prossimo in lista.",
+    "confirmSpot": "Conferma il posto",
+    "declineSpot": "Rinuncia",
+    "registered": "Sei iscritto",
+    "attended": "Presente ✓",
+    "attendees": "Iscritti",
+    "attendeesHint": "Tocca per segnare chi è arrivato.",
+    "noAttendees": "Ancora nessun iscritto.",
+    "present": "Presente",
+    "markPresent": "Segna presente",
+    "waitlistTitle": "Lista d'attesa",
+    "waitlistPos": "{{position}}°",
+    "offeredBadge": "Posto offerto"
   },
   "form": {
     "title": "Organizza un evento",
@@ -48,7 +80,12 @@
       "descriptionPlaceholder": "Programma, costo d'ingresso, cosa portare…",
       "start": "Inizio",
       "duration": "Durata (ore)",
-      "maxParticipants": "Posti massimi (facoltativo)"
+      "maxParticipants": "Posti massimi (facoltativo)",
+      "entryFee": "Quota (€, facoltativa)",
+      "entryFeeHint": "Indicativa: si paga di persona all'evento, mai tramite l'app.",
+      "format": "Formato (facoltativo)",
+      "formatPlaceholder": "Es. Standard, Draft, Commander",
+      "deadline": "Chiusura iscrizioni (facoltativa)"
     },
     "where": "Dove",
     "place": "Luogo",

@@ -34,6 +34,8 @@ function getNavigationTarget(notification: Notification): string | null {
     case 'Broadcast': return `/live/${referenceId}`;
     case 'Follower': return `/collection/${referenceId}`;
     case 'Store': return `/stores/${referenceId}`;
+    case 'StoreReport': return `/stores/${referenceId}/results`;
+    case 'Event': return `/events/${referenceId}`;
     default: return null;
   }
 }

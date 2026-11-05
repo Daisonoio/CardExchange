@@ -1,4 +1,5 @@
 using CardExchange.API.Services.Stores;
+using CardExchange.API.Services.Events;
 using CardExchange.API.Authorization;
 using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
@@ -204,21 +205,23 @@ namespace CardExchange.API.Controllers
             if (now > closes) return BadRequest(new { message = "L'evento è terminato" });
 
             var participant = ev.Participants.FirstOrDefault(p => p.UserId == userId);
-            var active = ev.Participants.Count(p => p.Status != ParticipationStatus.Cancelled);
-            if (participant == null || participant.Status == ParticipationStatus.Cancelled)
+            if (participant == null || !EventRegistrations.HoldsSeat(participant.Status))
             {
-                if (ev.MaxParticipants.HasValue && active >= ev.MaxParticipants.Value)
-                    return BadRequest(new { message = "Posti esauriti" });
+                // Senza posto (non iscritto o in lista d'attesa): entra solo se ci sono posti liberi
+                if (ev.MaxParticipants.HasValue && EventRegistrations.SeatsTaken(ev) >= ev.MaxParticipants.Value)
+                    return BadRequest(new { message = participant?.Status == ParticipationStatus.Waitlisted
+                        ? "Sei in lista d'attesa: l'evento è ancora pieno" : "Posti esauriti" });
                 if (participant == null)
                 {
                     participant = new EventParticipant { EventId = id, UserId = userId };
                     ev.Participants.Add(participant);
                 }
-                ev.ParticipantCount = active + 1;
             }
 
             participant.Status = ParticipationStatus.Attended;
             participant.CheckedInAt = now;
+            participant.OfferExpiresAt = null;
+            ev.ParticipantCount = EventRegistrations.SeatsTaken(ev);
             await _context.SaveChangesAsync();
             if (ev.StoreId != null)
                 this.StoreActivity()?.Record(ev.StoreId.Value, StoreActivityType.EventCheckIn, participant.UserId, ev.Id);
@@ -312,8 +315,9 @@ namespace CardExchange.API.Controllers
 
                 var currentUserId = GetCurrentUserId();
                 var blocked = await _blocks.GetBlockedUserIdsAsync(currentUserId);
-                var isParticipating = eventEntity.Participants
-                    .Any(p => p.UserId == currentUserId && p.Status != ParticipationStatus.Cancelled);
+                var mine = eventEntity.Participants.FirstOrDefault(p => p.UserId == currentUserId && p.Status != ParticipationStatus.Cancelled);
+                var isParticipating = mine != null && EventRegistrations.HoldsSeat(mine.Status);
+                var seats = EventRegistrations.SeatsTaken(eventEntity);
 
                 var dto = new EventDetailDto
                 {
@@ -334,7 +338,17 @@ namespace CardExchange.API.Controllers
                     IsPublic = eventEntity.IsPublic,
                     ImageUrl = eventEntity.ImageUrl,
                     SupportedGameIds = eventEntity.SupportedGameIds,
-                    ParticipantCount = eventEntity.Participants.Count(p => p.Status != ParticipationStatus.Cancelled),
+                    ParticipantCount = seats,
+                    EntryFeeEur = eventEntity.EntryFeeEur,
+                    RegistrationDeadline = eventEntity.RegistrationDeadline,
+                    Format = eventEntity.Format,
+                    GameId = eventEntity.GameId,
+                    RegistrationOpen = EventRegistrations.RegistrationOpen(eventEntity, DateTime.UtcNow),
+                    SpotsLeft = eventEntity.MaxParticipants.HasValue ? Math.Max(0, eventEntity.MaxParticipants.Value - seats) : null,
+                    WaitlistCount = eventEntity.Participants.Count(p => p.Status == ParticipationStatus.Waitlisted),
+                    MyStatus = mine?.Status.ToString(),
+                    MyWaitlistPosition = mine?.Status == ParticipationStatus.Waitlisted ? EventRegistrations.WaitlistPosition(eventEntity, currentUserId) : null,
+                    MyOfferExpiresAt = mine?.Status == ParticipationStatus.Offered ? mine.OfferExpiresAt : null,
                     StoreId = eventEntity.StoreId,
                     StoreName = eventEntity.Store?.Name,
                     CreatedAt = eventEntity.CreatedAt,
@@ -348,7 +362,7 @@ namespace CardExchange.API.Controllers
                     },
                     // Gli utenti bloccati (in entrambe le direzioni) non compaiono nell'elenco
                     Participants = eventEntity.Participants
-                        .Where(p => p.Status != ParticipationStatus.Cancelled && !blocked.Contains(p.UserId))
+                        .Where(p => EventRegistrations.HoldsSeat(p.Status) && !blocked.Contains(p.UserId))
                         .Select(p => new EventParticipantDto
                         {
                             UserId = p.UserId,
@@ -384,6 +398,9 @@ namespace CardExchange.API.Controllers
 
                 if (request.EndDate.HasValue && request.EndDate <= request.StartDate)
                     return BadRequest(new { message = "La data di fine deve essere successiva alla data di inizio" });
+
+                if (request.RegistrationDeadline.HasValue && request.RegistrationDeadline > request.StartDate)
+                    return BadRequest(new { message = "La chiusura delle iscrizioni deve precedere l'inizio" });
 
                 // Evento ospitato da un negozio: solo il proprietario, solo se verificato; il luogo è quello del negozio
                 Store? store = null;
@@ -427,7 +444,11 @@ namespace CardExchange.API.Controllers
                     IsPublic = request.IsPublic,
                     ImageUrl = request.ImageUrl,
                     SupportedGameIds = request.SupportedGameIds,
-                    StoreId = store?.Id
+                    StoreId = store?.Id,
+                    EntryFeeEur = request.EntryFeeEur,
+                    RegistrationDeadline = request.RegistrationDeadline,
+                    Format = string.IsNullOrWhiteSpace(request.Format) ? null : request.Format.Trim(),
+                    GameId = request.GameId
                 };
 
                 // Aggiungi organizzatore come primo partecipante
@@ -437,7 +458,7 @@ namespace CardExchange.API.Controllers
                     Status = ParticipationStatus.Confirmed
                 };
                 eventEntity.Participants.Add(participant);
-                eventEntity.ParticipantCount = 1;
+                eventEntity.ParticipantCount = 0;
 
                 await _eventRepository.AddAsync(eventEntity);
                 await _eventRepository.SaveChangesAsync();
@@ -457,12 +478,14 @@ namespace CardExchange.API.Controllers
         /// Aggiorna un evento (solo l'organizzatore)
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateEvent(int id, [FromBody] UpdateEventRequest request)
+        public async Task<ActionResult> UpdateEvent(int id, [FromBody] UpdateEventRequest request,
+            [FromServices] EventRegistrations registrations)
         {
             try
             {
                 var userId = GetCurrentUserId();
-                var eventEntity = await _eventRepository.GetByIdAsync(id);
+                var eventEntity = await _context.Events.Include(e => e.Participants).ThenInclude(p => p.User)
+                    .FirstOrDefaultAsync(e => e.Id == id);
 
                 if (eventEntity == null)
                     return NotFound(new { message = "Evento non trovato" });
@@ -486,9 +509,17 @@ namespace CardExchange.API.Controllers
                 if (request.IsPublic.HasValue) eventEntity.IsPublic = request.IsPublic.Value;
                 if (request.ImageUrl != null) eventEntity.ImageUrl = request.ImageUrl;
                 if (request.SupportedGameIds != null) eventEntity.SupportedGameIds = request.SupportedGameIds;
+                if (request.EntryFeeEur.HasValue) eventEntity.EntryFeeEur = request.EntryFeeEur;
+                if (request.RegistrationDeadline.HasValue) eventEntity.RegistrationDeadline = request.RegistrationDeadline;
+                if (request.Format != null) eventEntity.Format = string.IsNullOrWhiteSpace(request.Format) ? null : request.Format.Trim();
+                if (request.GameId.HasValue) eventEntity.GameId = request.GameId;
+                if (eventEntity.RegistrationDeadline > eventEntity.StartDate)
+                    return BadRequest(new { message = "La chiusura delle iscrizioni deve precedere l'inizio" });
 
-                _eventRepository.Update(eventEntity);
-                await _eventRepository.SaveChangesAsync();
+                // Più posti: entrano i primi della lista d'attesa
+                await registrations.PromoteAsync(eventEntity, DateTime.UtcNow);
+                eventEntity.ParticipantCount = EventRegistrations.SeatsTaken(eventEntity);
+                await _context.SaveChangesAsync();
 
                 return Ok(MapToDto(eventEntity, true));
             }
@@ -545,110 +576,120 @@ namespace CardExchange.API.Controllers
         /// Partecipa a un evento (RSVP)
         /// </summary>
         [HttpPost("{id}/join")]
-        public async Task<ActionResult> JoinEvent(int id)
+        public async Task<ActionResult> JoinEvent(int id, [FromServices] EventRegistrations registrations)
         {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized();
+            JoinResult result;
             try
             {
-                var userId = GetCurrentUserId();
-                if (userId == 0) return Unauthorized();
-
-                var eventEntity = await _eventRepository.GetEventWithParticipantsAsync(id);
-                if (eventEntity == null)
-                    return NotFound(new { message = "Evento non trovato" });
-
-                if (eventEntity.Status != EventStatus.Published)
-                    return BadRequest(new { message = "L'evento non è attivo" });
-
-                if (eventEntity.StartDate <= DateTime.UtcNow)
-                    return BadRequest(new { message = "L'evento è già iniziato o terminato" });
-
-                // Controlla se già iscritto
-                var existing = await _eventRepository.GetParticipantAsync(id, userId);
-                if (existing != null && existing.Status != ParticipationStatus.Cancelled)
-                    return BadRequest(new { message = "Sei già iscritto a questo evento" });
-
-                // Controlla capacità massima
-                if (eventEntity.MaxParticipants.HasValue)
-                {
-                    var currentCount = eventEntity.Participants.Count(p => p.Status != ParticipationStatus.Cancelled);
-                    if (currentCount >= eventEntity.MaxParticipants.Value)
-                        return BadRequest(new { message = "L'evento ha raggiunto il numero massimo di partecipanti" });
-                }
-
-                if (existing != null && existing.Status == ParticipationStatus.Cancelled)
-                {
-                    // Ri-iscrizione
-                    existing.Status = ParticipationStatus.Registered;
-                    existing.IsDeleted = false;
-                }
-                else
-                {
-                    var participant = new EventParticipant
-                    {
-                        EventId = id,
-                        UserId = userId,
-                        Status = ParticipationStatus.Registered
-                    };
-                    eventEntity.Participants.Add(participant);
-                }
-
-                eventEntity.ParticipantCount = eventEntity.Participants.Count(p => p.Status != ParticipationStatus.Cancelled);
-                await _eventRepository.SaveChangesAsync();
-                if (eventEntity.StoreId != null)
-                    this.StoreActivity()?.Record(eventEntity.StoreId.Value, StoreActivityType.EventRegistration, userId, eventEntity.Id);
-
-                // Notifica organizzatore
-                var user = await _userRepository.GetByIdAsync(userId);
-                await _notificationService.SendAsync(
-                    eventEntity.OrganizerId,
-                    NotificationType.SystemAnnouncement,
-                    "Nuovo partecipante",
-                    $"{user?.Username ?? "Un utente"} si è iscritto al tuo evento \"{eventEntity.Title}\".",
-                    eventEntity.Id,
-                    "Event");
-
-                return Ok(new { message = "Iscrizione avvenuta con successo" });
+                result = await registrations.JoinAsync(id, userId, DateTime.UtcNow);
             }
-            catch (Exception ex)
+            catch (EventRegistrationException ex)
             {
-                _logger.LogError(ex, "Errore durante l'iscrizione all'evento {EventId}", id);
-                return StatusCode(500, new { message = "Errore interno del server" });
+                return ex.Message == "Evento non trovato" ? NotFound(new { message = ex.Message }) : BadRequest(new { message = ex.Message });
+            }
+
+            var eventEntity = await _context.Events.AsNoTracking().FirstAsync(e => e.Id == id);
+            if (result.Outcome == JoinOutcome.Waitlisted)
+                return Ok(new { status = "Waitlisted", waitlistPosition = result.WaitlistPosition,
+                    message = $"L'evento è pieno: sei in lista d'attesa (posizione {result.WaitlistPosition}). Ti avvisiamo se si libera un posto." });
+
+            if (eventEntity.StoreId != null)
+                this.StoreActivity()?.Record(eventEntity.StoreId.Value, StoreActivityType.EventRegistration, userId, eventEntity.Id);
+            var user = await _userRepository.GetByIdAsync(userId);
+            await _notificationService.SendAsync(
+                eventEntity.OrganizerId,
+                NotificationType.EventUpdate,
+                "Nuovo partecipante",
+                $"{user?.Username ?? "Un utente"} si è iscritto al tuo evento \"{eventEntity.Title}\".",
+                eventEntity.Id,
+                "Event");
+            return Ok(new { status = "Registered", message = "Iscrizione avvenuta con successo" });
+        }
+
+        /// <summary>Annulla l'iscrizione o esce dalla lista d'attesa; il posto passa al primo in lista.</summary>
+        [HttpPost("{id}/leave")]
+        public async Task<ActionResult> LeaveEvent(int id, [FromServices] EventRegistrations registrations)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0) return Unauthorized();
+            try
+            {
+                await registrations.LeaveAsync(id, userId, DateTime.UtcNow);
+                return Ok(new { message = "Iscrizione annullata con successo" });
+            }
+            catch (EventRegistrationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
 
-        /// <summary>
-        /// Annulla la partecipazione a un evento
-        /// </summary>
-        [HttpPost("{id}/leave")]
-        public async Task<ActionResult> LeaveEvent(int id)
+        /// <summary>Conferma il posto che si è liberato dalla lista d'attesa.</summary>
+        [HttpPost("{id}/confirm-spot")]
+        public async Task<ActionResult> ConfirmSpot(int id, [FromServices] EventRegistrations registrations)
         {
             try
             {
-                var userId = GetCurrentUserId();
-                if (userId == 0) return Unauthorized();
-
-                var participant = await _eventRepository.GetParticipantAsync(id, userId);
-                if (participant == null || participant.Status == ParticipationStatus.Cancelled)
-                    return BadRequest(new { message = "Non sei iscritto a questo evento" });
-
-                participant.Status = ParticipationStatus.Cancelled;
-
-                // Aggiorna contatore
-                var eventEntity = await _eventRepository.GetByIdAsync(id);
-                if (eventEntity != null)
-                {
-                    eventEntity.ParticipantCount = await _eventRepository.GetParticipantCountAsync(id) - 1;
-                }
-
-                await _eventRepository.SaveChangesAsync();
-
-                return Ok(new { message = "Iscrizione annullata con successo" });
+                await registrations.ConfirmOfferAsync(id, GetCurrentUserId(), DateTime.UtcNow);
+                return Ok(new { message = "Posto confermato: sei iscritto" });
             }
-            catch (Exception ex)
+            catch (EventRegistrationException ex)
             {
-                _logger.LogError(ex, "Errore durante l'annullamento iscrizione all'evento {EventId}", id);
-                return StatusCode(500, new { message = "Errore interno del server" });
+                return BadRequest(new { message = ex.Message });
             }
+        }
+
+        /// <summary>Iscritti, presenze e lista d'attesa (solo l'organizzatore).</summary>
+        [HttpGet("{id}/attendees")]
+        public async Task<ActionResult> Attendees(int id)
+        {
+            var ev = await _context.Events.AsNoTracking().Include(e => e.Participants).ThenInclude(p => p.User)
+                .FirstOrDefaultAsync(e => e.Id == id);
+            if (ev == null) return NotFound(new { message = "Evento non trovato" });
+            if (ev.OrganizerId != GetCurrentUserId()) return Forbid();
+            var waitlist = EventRegistrations.Waitlist(ev).Select(p => p.UserId).ToList();
+            var list = ev.Participants
+                .Where(p => p.UserId != ev.OrganizerId && p.Status != ParticipationStatus.Cancelled)
+                .Select(p => new EventAttendeeDto
+                {
+                    UserId = p.UserId,
+                    Username = p.User?.Username ?? "N/A",
+                    Status = p.Status.ToString(),
+                    JoinedAt = p.CreatedAt,
+                    CheckedInAt = p.CheckedInAt,
+                    WaitlistPosition = waitlist.IndexOf(p.UserId) is var i and >= 0 ? i + 1 : null
+                })
+                .OrderBy(a => a.WaitlistPosition.HasValue).ThenBy(a => a.WaitlistPosition).ThenBy(a => a.Username)
+                .ToList();
+            return Ok(list);
+        }
+
+        /// <summary>L'organizzatore segna (o toglie) la presenza di un iscritto con un tocco.</summary>
+        [HttpPost("{id}/attendees/{userId:int}/checkin")]
+        public async Task<ActionResult> OrganizerCheckIn(int id, int userId, [FromQuery] bool present = true)
+        {
+            var ev = await _context.Events.Include(e => e.Participants).FirstOrDefaultAsync(e => e.Id == id);
+            if (ev == null) return NotFound(new { message = "Evento non trovato" });
+            if (ev.OrganizerId != GetCurrentUserId()) return Forbid();
+            var p = ev.Participants.FirstOrDefault(x => x.UserId == userId && EventRegistrations.HoldsSeat(x.Status));
+            if (p == null) return BadRequest(new { message = "Questa persona non ha un posto all'evento" });
+            var wasPresent = p.CheckedInAt != null;
+            if (present)
+            {
+                p.Status = ParticipationStatus.Attended;
+                p.CheckedInAt ??= DateTime.UtcNow;
+                p.OfferExpiresAt = null;
+            }
+            else
+            {
+                p.Status = ParticipationStatus.Registered;
+                p.CheckedInAt = null;
+            }
+            await _context.SaveChangesAsync();
+            if (present && !wasPresent && ev.StoreId != null)
+                this.StoreActivity()?.Record(ev.StoreId.Value, StoreActivityType.EventCheckIn, userId, ev.Id);
+            return Ok(new { userId, checkedInAt = p.CheckedInAt });
         }
 
         /// <summary>
@@ -730,6 +771,12 @@ namespace CardExchange.API.Controllers
                 StoreName = e.Store?.Name,
                 IsParticipating = isParticipating,
                 CreatedAt = e.CreatedAt,
+                EntryFeeEur = e.EntryFeeEur,
+                RegistrationDeadline = e.RegistrationDeadline,
+                Format = e.Format,
+                GameId = e.GameId,
+                RegistrationOpen = EventRegistrations.RegistrationOpen(e, DateTime.UtcNow),
+                SpotsLeft = e.MaxParticipants.HasValue ? Math.Max(0, e.MaxParticipants.Value - e.ParticipantCount) : null,
                 Organizer = e.Organizer != null ? new OrganizerDto
                 {
                     Id = e.Organizer.Id,

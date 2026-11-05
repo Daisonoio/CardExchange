@@ -27,7 +27,9 @@ namespace CardExchange.Core.Entities
         /// <summary>Qualcuno ha iniziato a seguirti.</summary>
         NewFollower = 18,
         /// <summary>Attività per il proprietario di un negozio (es. scambi fissati in negozio oggi).</summary>
-        StoreActivity = 19
+        StoreActivity = 19,
+        /// <summary>Iscrizioni agli eventi: lista d'attesa, posto liberato, promemoria.</summary>
+        EventUpdate = 20
     }
 
     public class Notification : BaseEntity

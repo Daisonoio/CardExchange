@@ -882,6 +882,16 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal?>("EntryFeeEur")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Format")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<int?>("GameId")
+                        .HasColumnType("int");
+
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -906,6 +916,9 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<int>("OrganizerId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("OrganizerSummarySentAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("ParticipantCount")
                         .HasColumnType("int");
 
@@ -916,6 +929,9 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<string>("Province")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("RegistrationDeadline")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -978,6 +994,12 @@ namespace CardExchange.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<DateTime?>("OfferExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ReminderSentAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -986,6 +1008,9 @@ namespace CardExchange.Infrastructure.Migrations
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("WaitlistedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 

@@ -26,6 +26,20 @@ namespace CardExchange.API.DTOs.Responses
         public OrganizerDto Organizer { get; set; } = null!;
         public bool IsParticipating { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        /// <summary>Quota indicativa, pagata di persona.</summary>
+        public decimal? EntryFeeEur { get; set; }
+        public DateTime? RegistrationDeadline { get; set; }
+        public string? Format { get; set; }
+        public int? GameId { get; set; }
+        public bool RegistrationOpen { get; set; }
+        /// <summary>Posti rimasti, null se senza limite.</summary>
+        public int? SpotsLeft { get; set; }
+        public int WaitlistCount { get; set; }
+        /// <summary>Stato dell'utente corrente: Registered, Confirmed, Attended, Waitlisted, Offered (null se non iscritto).</summary>
+        public string? MyStatus { get; set; }
+        public int? MyWaitlistPosition { get; set; }
+        public DateTime? MyOfferExpiresAt { get; set; }
     }
 
     public class OrganizerDto
@@ -39,6 +53,17 @@ namespace CardExchange.API.DTOs.Responses
     public class EventDetailDto : EventDto
     {
         public IEnumerable<EventParticipantDto> Participants { get; set; } = new List<EventParticipantDto>();
+    }
+
+    /// <summary>Iscritto visto dall'organizzatore (con presenza e lista d'attesa).</summary>
+    public class EventAttendeeDto
+    {
+        public int UserId { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public DateTime JoinedAt { get; set; }
+        public DateTime? CheckedInAt { get; set; }
+        public int? WaitlistPosition { get; set; }
     }
 
     public class EventParticipantDto

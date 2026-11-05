@@ -49,6 +49,13 @@ namespace CardExchange.API.DTOs.Requests
         // JSON array di GameId, es. "[1,3,5]"
         [MaxLength(500)]
         public string? SupportedGameIds { get; set; }
+        /// <summary>Quota indicativa, pagata di persona all'evento.</summary>
+        [Range(0, 1000)]
+        public decimal? EntryFeeEur { get; set; }
+        public DateTime? RegistrationDeadline { get; set; }
+        [MaxLength(60)]
+        public string? Format { get; set; }
+        public int? GameId { get; set; }
     }
 
     public class UpdateEventRequest
@@ -88,5 +95,12 @@ namespace CardExchange.API.DTOs.Requests
 
         [MaxLength(500)]
         public string? SupportedGameIds { get; set; }
+        /// <summary>Quota indicativa, pagata di persona all'evento.</summary>
+        [Range(0, 1000)]
+        public decimal? EntryFeeEur { get; set; }
+        public DateTime? RegistrationDeadline { get; set; }
+        [MaxLength(60)]
+        public string? Format { get; set; }
+        public int? GameId { get; set; }
     }
 }

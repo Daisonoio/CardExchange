@@ -26,7 +26,7 @@ export default function EventFormPage() {
   nextWeek.setHours(20, 30, 0, 0);
   const [form, setForm] = useState({
     title: '', description: '', type: 'Trademeetup', start: toLocalInput(nextWeek), durationHours: 3,
-    maxParticipants: '', storeId: 0, gameIds: [] as number[],
+    maxParticipants: '', storeId: 0, gameIds: [] as number[], entryFee: '', format: '', deadline: '',
   });
   const [place, setPlace] = useState<AddressValue>({ address: '', city: '', province: '', postalCode: '', latitude: 0, longitude: 0 });
   const [busy, setBusy] = useState(false);
@@ -63,6 +63,10 @@ export default function EventFormPage() {
         maxParticipants: form.maxParticipants ? Number(form.maxParticipants) : undefined,
         isPublic: true,
         supportedGameIds: form.gameIds.length ? form.gameIds.join(',') : undefined,
+        entryFeeEur: form.entryFee ? Number(form.entryFee) : undefined,
+        format: form.format.trim() || undefined,
+        registrationDeadline: form.deadline ? new Date(form.deadline).toISOString() : undefined,
+        gameId: form.gameIds.length === 1 ? form.gameIds[0] : undefined,
         ...where,
       });
       navigate(`/events/${data.id}`, { replace: true });
@@ -108,6 +112,22 @@ export default function EventFormPage() {
         <label className={label}>{t('form.fields.maxParticipants')}
           <input type="number" min={2} value={form.maxParticipants} onChange={(e) => setForm({ ...form, maxParticipants: e.target.value })} className={inputCls} />
         </label>
+        {form.maxParticipants && (
+          <label className={label}>{t('form.fields.deadline')}
+            <input type="datetime-local" value={form.deadline} max={form.start} onChange={(e) => setForm({ ...form, deadline: e.target.value })} className={inputCls} />
+          </label>
+        )}
+        {form.type !== 'Trademeetup' && (
+          <div className="grid grid-cols-2 gap-2">
+            <label className={label}>{t('form.fields.entryFee')}
+              <input type="number" min={0} max={1000} step="0.5" inputMode="decimal" value={form.entryFee} onChange={(e) => setForm({ ...form, entryFee: e.target.value })} className={inputCls} />
+            </label>
+            <label className={label}>{t('form.fields.format')}
+              <input value={form.format} maxLength={60} onChange={(e) => setForm({ ...form, format: e.target.value })} placeholder={t('form.fields.formatPlaceholder')} className={inputCls} />
+            </label>
+            <p className="col-span-2 text-[11px] font-normal text-text-muted">{t('form.fields.entryFeeHint')}</p>
+          </div>
+        )}
       </section>
 
       <section className="space-y-2 bg-white rounded-2xl border border-border p-3">

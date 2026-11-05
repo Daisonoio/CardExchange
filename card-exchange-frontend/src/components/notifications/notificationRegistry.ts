@@ -65,6 +65,12 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
     get label() { return i18n.t('notifications:types.FollowedNearby'); },
     category: 'social',
   },
+  EventUpdate: {
+    icon: CalendarClock,
+    color: 'text-primary bg-primary/10',
+    get label() { return i18n.t('notifications:types.EventUpdate'); },
+    category: 'social',
+  },
   StoreActivity: {
     icon: Store,
     color: 'text-primary bg-primary/10',

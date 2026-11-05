@@ -189,7 +189,12 @@ export const events = {
     address: string; city: string; province?: string; postalCode?: string; country: string;
     latitude?: number; longitude?: number; maxParticipants?: number; isPublic: boolean;
     supportedGameIds?: string; storeId?: number;
+    entryFeeEur?: number; registrationDeadline?: string; format?: string; gameId?: number;
   }) => client.post<CardEvent>('/events', data),
+  confirmSpot: (id: number) => client.post<{ message: string }>(`/events/${id}/confirm-spot`),
+  attendees: (id: number) => client.get<import('../types').EventAttendee[]>(`/events/${id}/attendees`),
+  markPresent: (id: number, userId: number, present: boolean) =>
+    client.post<{ userId: number; checkedInAt?: string | null }>(`/events/${id}/attendees/${userId}/checkin`, null, { params: { present } }),
   cancel: (id: number) => client.delete(`/events/${id}`),
   checkIn: (id: number) => client.post<{ message: string }>(`/events/${id}/checkin`),
   checkOut: (id: number) => client.post<{ message: string }>(`/events/${id}/checkout`),

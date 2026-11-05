@@ -1,11 +1,17 @@
 {
   "local": {
     "title": "Near you",
-    "tabs": { "events": "Events", "stores": "Stores" }
+    "tabs": {
+      "events": "Events",
+      "stores": "Stores"
+    }
   },
   "list": {
     "loadError": "Couldn't load events.",
-    "modes": { "nearby": "Near me", "all": "All upcoming" },
+    "modes": {
+      "nearby": "Near me",
+      "all": "All upcoming"
+    },
     "organize": "Organise an event",
     "unavailable": "Nearby events unavailable",
     "emptyTitle": "No upcoming events",
@@ -35,7 +41,33 @@
     "shareText": "Come to \"{{title}}\" with me on CardExchange!",
     "linkCopied": "Event link copied to clipboard",
     "invite": "Invite friends to this event",
-    "whoIsGoing": "Who's going"
+    "whoIsGoing": "Who's going",
+    "fee": "Fee {{fee}} · paid on site",
+    "format": "Format: {{format}}",
+    "deadline": "Registration until {{when}}",
+    "closed": "Registration closed",
+    "spotsLeft_one": "Last spot!",
+    "spotsLeft_other": "{{count}} spots left",
+    "waitlistCount_one": "{{count}} on the waitlist",
+    "waitlistCount_other": "{{count}} on the waitlist",
+    "joinWaitlist": "Join the waitlist",
+    "waitlisted": "You're on the waitlist, position {{position}}",
+    "waitlistedHint": "If a spot opens up we'll let you know: you'll have 12 hours to confirm it.",
+    "leaveWaitlist": "Leave the waitlist",
+    "offered": "A spot opened up for you!",
+    "offeredUntil": "Confirm it by {{when}}, then it goes to the next person in line.",
+    "confirmSpot": "Confirm the spot",
+    "declineSpot": "Decline",
+    "registered": "You're registered",
+    "attended": "Present ✓",
+    "attendees": "Registered",
+    "attendeesHint": "Tap to mark who has arrived.",
+    "noAttendees": "No one registered yet.",
+    "present": "Present",
+    "markPresent": "Mark present",
+    "waitlistTitle": "Waitlist",
+    "waitlistPos": "#{{position}}",
+    "offeredBadge": "Spot offered"
   },
   "form": {
     "title": "Organise an event",
@@ -48,7 +80,12 @@
       "descriptionPlaceholder": "Schedule, entry fee, what to bring…",
       "start": "Start",
       "duration": "Duration (hours)",
-      "maxParticipants": "Max spots (optional)"
+      "maxParticipants": "Max spots (optional)",
+      "entryFee": "Fee (€, optional)",
+      "entryFeeHint": "Indicative: paid in person at the event, never through the app.",
+      "format": "Format (optional)",
+      "formatPlaceholder": "E.g. Standard, Draft, Commander",
+      "deadline": "Registration closes (optional)"
     },
     "where": "Where",
     "place": "Venue",
