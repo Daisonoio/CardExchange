@@ -898,10 +898,14 @@ namespace CardExchange.API.Controllers
             [FromQuery] int? radiusKm = null,
             [FromQuery] double? latitude = null,
             [FromQuery] double? longitude = null,
-            [FromQuery] int? gameId = null)
+            [FromQuery] int? gameId = null,
+            [FromServices] CardExchange.API.Services.NearbyWishlistMatches nearby = null!)
         {
             try
             {
+                if (!CanManageWishlistOf(userId, "WISHLIST.READ.ANY"))
+                    return Forbid();
+
                 var user = await _userRepository.GetWithLocationAsync(userId);
 
                 if (user == null)
@@ -928,59 +932,7 @@ namespace CardExchange.API.Controllers
                     return BadRequest(new { message = "NO_LOCATION" });
                 }
 
-                var wishlistItems = await _wishlistRepository.GetUserWishlistAsync(userId);
-                var topCards = new List<object>();
-
-                foreach (var item in wishlistItems)
-                {
-                    var matchingCards = await FindMatchingCards(item);
-
-                    foreach (var card in matchingCards)
-                    {
-                        var owner = await _userRepository.GetWithLocationAsync(card.UserId);
-                        if (owner?.Location == null || !owner.Location.Latitude.HasValue || !owner.Location.Longitude.HasValue)
-                            continue;
-
-                        var distance = CalculateDistance(
-                            searchLat, searchLon,
-                            (double)owner.Location.Latitude.Value,
-                            (double)owner.Location.Longitude.Value);
-
-                        if (distance > searchRadius)
-                            continue;
-
-                        var cardInfo = await _cardInfoRepository.GetByIdAsync(item.CardInfoId);
-                        var cardSet = cardInfo != null ? await _cardSetRepository.GetByIdAsync(cardInfo.CardSetId) : null;
-
-                        // Filtro del gioco scelto in alto (es. solo Magic)
-                        if (gameId.HasValue && cardSet?.GameId != gameId.Value)
-                            continue;
-
-                        topCards.Add(new
-                        {
-                            cardId = card.Id,
-                            cardInfoId = item.CardInfoId,
-                            cardName = cardInfo?.Name ?? "Unknown",
-                            cardSetName = cardSet?.Name ?? "Unknown",
-                            imageUrl = cardInfo?.ImageNormal ?? cardInfo?.ImageSmall ?? cardInfo?.ImageUrl,
-                            imageLarge = cardInfo?.ImageLarge ?? cardInfo?.ImageNormal,
-                            priceEur = cardInfo?.PriceEur ?? card.EstimatedValue ?? 0,
-                            condition = card.Condition.ToString(),
-                            quantity = card.Quantity,
-                            ownerId = owner.Id,
-                            ownerUsername = owner.Username,
-                            ownerCity = owner.Location?.City,
-                            ownerCountry = owner.Location?.Country,
-                            distanceKm = Math.Round(distance, 1)
-                        });
-                    }
-                }
-
-                // Ordina per prezzo decrescente e prendi le top 20
-                var top20 = topCards
-                    .OrderByDescending(c => (decimal)((dynamic)c).priceEur)
-                    .Take(20)
-                    .ToList();
+                var top20 = await nearby.FindAsync(userId, searchLat, searchLon, searchRadius, gameId);
 
                 return Ok(new
                 {
