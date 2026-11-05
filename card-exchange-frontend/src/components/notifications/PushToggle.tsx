@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BellRing } from 'lucide-react';
 import { pushApi } from '../../api';
+import BottomSheet from '../ui/BottomSheet';
+import NotificationsGuide from './NotificationsGuide';
 import { disablePush, enablePush, getPushState } from '../../utils/push';
 import type { PushState } from '../../utils/push';
 
@@ -12,7 +14,11 @@ const DESCRIPTION_KEYS: Record<PushState, string> = {
   unsupported: 'push.descriptions.unsupported',
   'disabled-server': 'push.descriptions.disabledServer',
   'ios-needs-install': 'push.descriptions.iosNeedsInstall',
+  'ios-too-old': 'push.descriptions.iosTooOld',
 };
+
+/** Stati in cui serve una spiegazione passo passo. */
+const NEEDS_GUIDE: PushState[] = ['ios-needs-install', 'ios-too-old', 'denied'];
 
 /** Interruttore per le notifiche push su questo dispositivo. */
 export default function PushToggle() {
@@ -20,6 +26,7 @@ export default function PushToggle() {
   const [state, setState] = useState<PushState | null>(null);
   const [busy, setBusy] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   useEffect(() => {
     getPushState().then(setState).catch(() => setState('unsupported'));
@@ -73,7 +80,15 @@ export default function PushToggle() {
           {t('push.sendTest')}
         </button>
       )}
+      {NEEDS_GUIDE.includes(state) && (
+        <button type="button" onClick={() => setGuideOpen(true)} className="mt-2 text-xs font-semibold text-primary hover:underline">
+          {t('guide.cta')}
+        </button>
+      )}
       {info && <p className="mt-1 text-xs text-text-secondary">{info}</p>}
+      <BottomSheet open={guideOpen} onClose={() => setGuideOpen(false)} title={t('guide.title')}>
+        <NotificationsGuide />
+      </BottomSheet>
     </div>
   );
 }

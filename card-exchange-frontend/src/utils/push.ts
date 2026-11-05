@@ -1,6 +1,6 @@
 import { pushApi } from '../api';
 
-export type PushState = 'unsupported' | 'disabled-server' | 'denied' | 'off' | 'on' | 'ios-needs-install';
+export type PushState = 'unsupported' | 'disabled-server' | 'denied' | 'off' | 'on' | 'ios-needs-install' | 'ios-too-old';
 
 const urlBase64ToUint8Array = (base64: string) => {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4);
@@ -8,13 +8,45 @@ const urlBase64ToUint8Array = (base64: string) => {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 };
 
-const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isStandalone = () =>
-  window.matchMedia('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true;
+export interface DeviceInfo {
+  /** iPhone o iPad (anche iPad che si presenta come Mac). */
+  ios: boolean;
+  android: boolean;
+  /** Aperta dall'icona sulla schermata Home. */
+  standalone: boolean;
+  /** Versione principale e minore di iOS, se nota. */
+  iosVersion: [number, number] | null;
+  /** Browser interno di un'app (Instagram, Facebook, TikTok…): da lì non si può aggiungere alla Home. */
+  inAppBrowser: boolean;
+  /** Su iPhone, browser diverso da Safari (Chrome, Firefox, Edge…). */
+  otherIosBrowser: boolean;
+}
+
+/** Le notifiche web su iPhone esistono da iOS 16.4. */
+export const IOS_MIN_PUSH: [number, number] = [16, 4];
+
+export function deviceInfo(ua = navigator.userAgent): DeviceInfo {
+  const ios = /iphone|ipad|ipod/i.test(ua) || (/macintosh/i.test(ua) && typeof navigator !== 'undefined' && navigator.maxTouchPoints > 1);
+  const v = ua.match(/OS (\d+)_(\d+)/);
+  return {
+    ios,
+    android: /android/i.test(ua),
+    standalone: typeof window !== 'undefined'
+      && (window.matchMedia?.('(display-mode: standalone)').matches || (navigator as unknown as { standalone?: boolean }).standalone === true),
+    iosVersion: ios && v ? [Number(v[1]), Number(v[2])] : null,
+    inAppBrowser: /FBAN|FBAV|Instagram|TikTok|musical_ly|Line\/|Snapchat|Twitter/i.test(ua),
+    otherIosBrowser: ios && /CriOS|FxiOS|EdgiOS|OPiOS|GSA\//i.test(ua),
+  };
+}
+
+export const iosTooOld = (d: DeviceInfo) =>
+  !!d.iosVersion && (d.iosVersion[0] < IOS_MIN_PUSH[0] || (d.iosVersion[0] === IOS_MIN_PUSH[0] && d.iosVersion[1] < IOS_MIN_PUSH[1]));
 
 /** Stato attuale delle notifiche push su questo dispositivo. */
 export async function getPushState(): Promise<PushState> {
-  if (isIos() && !isStandalone()) return 'ios-needs-install';
+  const device = deviceInfo();
+  if (device.ios && iosTooOld(device)) return 'ios-too-old';
+  if (device.ios && !device.standalone) return 'ios-needs-install';
   if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return 'unsupported';
   const { data } = await pushApi.publicKey();
   if (!data.enabled) return 'disabled-server';

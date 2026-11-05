@@ -49,10 +49,58 @@
       "denied": "Notifications are blocked for this site in your browser settings.",
       "unsupported": "This browser doesn't support push notifications.",
       "disabledServer": "Push notifications aren't available yet.",
-      "iosNeedsInstall": "On iPhone: tap Share → 'Add to Home Screen', then open the app from there to turn them on."
+      "iosNeedsInstall": "On iPhone they only arrive if you add CardExchange to your Home Screen.",
+      "iosTooOld": "On this iPhone notifications need iOS 16.4 or later."
     },
     "toggleError": "Couldn't update notifications, please try again.",
     "testSent": "Test notification sent: it should arrive in a few seconds.",
     "sendTest": "Send a test notification"
+  },
+  "guide": {
+    "cta": "How to",
+    "bannerTitle": "Get alerts on your iPhone too",
+    "bannerText": "On iPhone, notifications only arrive if you add CardExchange to your Home Screen. It takes 30 seconds.",
+    "bannerDismiss": "Not now",
+    "title": "Turn on notifications",
+    "intro": "So you know right away when someone nearby has a card you want, messages you or confirms a meetup.",
+    "iphone": "On iPhone and iPad",
+    "android": "On Android",
+    "blocked": "If you blocked them",
+    "inApp": "You're using another app's built-in browser (e.g. Instagram): from here you can't add CardExchange to your Home Screen. Copy the link and open it in Safari.",
+    "otherBrowser": "We recommend Safari: copy the link and open it there. Since iOS 16.4 the Share menu in Chrome and Edge works too.",
+    "tooOld": "Your iPhone runs iOS {{version}}: web notifications need iOS 16.4 or later. Update from Settings → General → Software Update.",
+    "copyLink": "Copy link",
+    "copied": "Link copied",
+    "steps": {
+      "safari": {
+        "title": "Open CardExchange in Safari",
+        "text": "Use the address you're looking at now."
+      },
+      "share": {
+        "title": "Tap Share",
+        "text": "It's the square with an upward arrow, in the bottom bar (at the top on iPad)."
+      },
+      "add": {
+        "title": "Choose \"Add to Home Screen\"",
+        "text": "If you don't see it, scroll the menu down. Then tap \"Add\"."
+      },
+      "open": {
+        "title": "Open CardExchange from the icon",
+        "text": "From the Home Screen, not from Safari. Go to Profile, turn on \"Notifications on this device\" and tap \"Allow\"."
+      }
+    },
+    "androidSteps": [
+      "Go to Profile and turn on \"Notifications on this device\".",
+      "When the browser asks, tap \"Allow\".",
+      "Optional: from Chrome's ⋮ menu choose \"Install app\" to get a Home Screen icon."
+    ],
+    "blockedSteps": {
+      "iphone": "iPhone: Settings → Notifications → CardExchange → Allow Notifications.",
+      "android": "Android (Chrome): tap the icon left of the address → Permissions → Notifications → Allow.",
+      "desktop": "Computer: click the icon left of the address and allow notifications for this site."
+    },
+    "done": "Done? Try \"Send a test notification\" in your Profile.",
+    "back": "Back",
+    "openApp": "Go to CardExchange"
   }
 }

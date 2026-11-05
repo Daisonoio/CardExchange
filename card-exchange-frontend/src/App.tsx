@@ -36,6 +36,7 @@ import CollectionPreview from './proto/CollectionPreview';
 import LocalPage from './pages/LocalPage';
 import StorePage from './pages/StorePage';
 import StoreResultsPage from './pages/StoreResultsPage';
+import NotificationsGuidePage from './pages/NotificationsGuidePage';
 import LivePage from './pages/LivePage';
 import QrPage from './pages/QrPage';
 import LegalPage from './pages/legal/LegalPage';
@@ -81,6 +82,8 @@ export default function App() {
             <Route path="/privacy" element={<LegalPage doc="privacy" />} />
             <Route path="/terms" element={<LegalPage doc="terms" />} />
             <Route path="/cookies" element={<LegalPage doc="cookies" />} />
+            {/* Guida alle notifiche (iPhone: aggiungere alla schermata Home) */}
+            <Route path="/help/notifications" element={<NotificationsGuidePage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />

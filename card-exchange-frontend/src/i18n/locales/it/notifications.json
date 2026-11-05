@@ -49,10 +49,58 @@
       "denied": "Le notifiche sono bloccate nelle impostazioni del browser per questo sito.",
       "unsupported": "Questo browser non supporta le notifiche push.",
       "disabledServer": "Le notifiche push non sono ancora disponibili.",
-      "iosNeedsInstall": "Su iPhone: tocca Condividi → 'Aggiungi alla schermata Home', poi apri l'app da lì per attivarle."
+      "iosNeedsInstall": "Su iPhone arrivano solo se aggiungi CardExchange alla schermata Home.",
+      "iosTooOld": "Su questo iPhone le notifiche richiedono iOS 16.4 o successivo."
     },
     "toggleError": "Non è stato possibile cambiare le notifiche, riprova.",
     "testSent": "Notifica di prova inviata: dovrebbe arrivare tra pochi secondi.",
     "sendTest": "Invia una notifica di prova"
+  },
+  "guide": {
+    "cta": "Come fare",
+    "bannerTitle": "Ricevi gli avvisi anche su iPhone",
+    "bannerText": "Su iPhone le notifiche arrivano solo se aggiungi CardExchange alla schermata Home. Ci vogliono 30 secondi.",
+    "bannerDismiss": "Non ora",
+    "title": "Attivare le notifiche",
+    "intro": "Così sai subito quando qualcuno vicino a te ha una carta che cerchi, ti scrive o conferma un appuntamento.",
+    "iphone": "Su iPhone e iPad",
+    "android": "Su Android",
+    "blocked": "Se le hai bloccate",
+    "inApp": "Stai usando il browser interno di un'altra app (es. Instagram): da qui non si può aggiungere CardExchange alla Home. Copia il link e aprilo in Safari.",
+    "otherBrowser": "Consigliamo Safari: copia il link e aprilo lì. Dalla versione 16.4 funziona anche il menu Condividi di Chrome ed Edge.",
+    "tooOld": "Il tuo iPhone ha iOS {{version}}: le notifiche web richiedono iOS 16.4 o successivo. Aggiorna da Impostazioni → Generali → Aggiornamento software.",
+    "copyLink": "Copia il link",
+    "copied": "Link copiato",
+    "steps": {
+      "safari": {
+        "title": "Apri CardExchange in Safari",
+        "text": "Usa l'indirizzo che stai guardando ora."
+      },
+      "share": {
+        "title": "Tocca Condividi",
+        "text": "È l'icona del quadrato con la freccia verso l'alto, nella barra in basso (su iPad in alto)."
+      },
+      "add": {
+        "title": "Scegli \"Aggiungi alla schermata Home\"",
+        "text": "Se non la vedi, scorri il menu verso il basso. Poi tocca \"Aggiungi\"."
+      },
+      "open": {
+        "title": "Apri CardExchange dall'icona",
+        "text": "Dalla schermata Home, non da Safari. Vai su Profilo e attiva \"Notifiche su questo dispositivo\", poi tocca \"Consenti\"."
+      }
+    },
+    "androidSteps": [
+      "Vai su Profilo e attiva \"Notifiche su questo dispositivo\".",
+      "Quando il browser lo chiede, tocca \"Consenti\".",
+      "Facoltativo: dal menu ⋮ di Chrome scegli \"Installa app\" per avere l'icona sulla Home."
+    ],
+    "blockedSteps": {
+      "iphone": "iPhone: Impostazioni → Notifiche → CardExchange → Consenti notifiche.",
+      "android": "Android (Chrome): tocca l'icona a sinistra dell'indirizzo → Autorizzazioni → Notifiche → Consenti.",
+      "desktop": "Computer: clicca l'icona a sinistra dell'indirizzo e consenti le notifiche per questo sito."
+    },
+    "done": "Fatto? Prova con \"Invia una notifica di prova\" nel Profilo.",
+    "back": "Indietro",
+    "openApp": "Vai a CardExchange"
   }
 }

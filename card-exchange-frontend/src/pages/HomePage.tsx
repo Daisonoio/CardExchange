@@ -8,6 +8,7 @@ import { useGame } from '../context/GameContext';
 import { useGeolocation } from '../hooks/useGeolocation';
 import CardCarousel from '../components/cards/CardCarousel';
 import LiveStrip from '../components/social/LiveStrip';
+import IosPushBanner from '../components/notifications/IosPushBanner';
 import { useSearchRadius } from '../hooks/useSearchRadius';
 import type { CarouselCard } from '../components/cards/CardCarousel';
 import Button from '../components/ui/Button';
@@ -100,6 +101,8 @@ export default function HomePage() {
         <LiveStrip coords={hasProfileLocation ? null : position} />
       </aside>
       <div className="lg:order-1 min-w-0">
+
+      <IosPushBanner />
 
       {/* Location prompt */}
       {showLocationPrompt && (
