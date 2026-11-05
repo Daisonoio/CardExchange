@@ -20,7 +20,8 @@
     "participants_other": "{{count}} participants",
     "participantsMax_one": "{{count}}/{{max}} participants",
     "participantsMax_other": "{{count}}/{{max}} participants",
-    "joined": "· Joined"
+    "joined": "· Joined",
+    "emptyAction": "Organise an event"
   },
   "detail": {
     "notFoundTitle": "Event not found",
@@ -67,7 +68,8 @@
     "markPresent": "Mark present",
     "waitlistTitle": "Waitlist",
     "waitlistPos": "#{{position}}",
-    "offeredBadge": "Spot offered"
+    "offeredBadge": "Spot offered",
+    "notFoundAction": "See nearby events"
   },
   "form": {
     "title": "Organise an event",

@@ -6,6 +6,7 @@ import { ArrowLeft, CalendarDays, Clock, Layers, Loader2, MapPin, MessageSquare,
 import { broadcasts, type LiveBroadcast } from '../api';
 import { useFormat } from '../i18n/format';
 import EmptyState from '../components/ui/EmptyState';
+import EmptyStateLink from '../components/ui/EmptyStateLink';
 import FollowButton from '../components/social/FollowButton';
 import '../components/map/leafletSetup';
 
@@ -23,7 +24,8 @@ export default function LivePage() {
   }, [id]);
 
   if (item === undefined) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>;
-  if (item === null) return <EmptyState icon={MapPin} title={t('page.notFound')} description={t('page.notFoundDescription')} />;
+  if (item === null) return <EmptyState icon={MapPin} title={t('page.notFound')} description={t('page.notFoundDescription')}
+    action={<EmptyStateLink to="/following" label={t('page.notFoundAction')} />} />;
 
   const name = item.store ? item.store.name : `@${item.author.username}`;
   const directions = `https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`;

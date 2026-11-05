@@ -458,6 +458,8 @@ app.UseMiddleware<GlobalExceptionHandler>();
 // 2. Request logging con correlation ID
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseResponseCompression();
+// Testi delle risposte nella lingua dell'interfaccia (Accept-Language); dentro la compressione
+app.UseMiddleware<CardExchange.API.Localization.LocalizeResponsesMiddleware>();
 
 // 3. Security headers
 app.UseMiddleware<SecurityHeadersMiddleware>();

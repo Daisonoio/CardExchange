@@ -36,7 +36,8 @@
       "title": "Nessuna richiesta",
       "received": "Non hai ricevuto richieste di scambio",
       "sent": "Non hai inviato richieste di scambio",
-      "all": "Nessuna richiesta di scambio. Esplora le carte disponibili per iniziare!"
+      "all": "Nessuna richiesta di scambio. Esplora le carte disponibili per iniziare!",
+      "action": "Trova un match"
     },
     "cardsUnavailable": "Alcune carte non sono piu disponibili per questo scambio",
     "actionError": "Errore durante l'azione sullo scambio",

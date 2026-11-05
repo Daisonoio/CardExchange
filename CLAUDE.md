@@ -24,5 +24,6 @@ I negozi sono il canale principale: l'app non deve mai metterli in competizione 
 ## Codice
 - Backend ASP.NET Core 9 + EF Core (SQL Server in produzione, migrazioni in `CardExchange.Infrastructure/Migrations`).
 - Frontend React 19 + TypeScript + Tailwind in `card-exchange-frontend`; testi in `src/i18n/locales/{it,en}`.
+- Testi del server (messaggi API, notifiche, email) scritti in italiano nel codice; la traduzione inglese va in `CardExchange.API/Localization/server-text.en.json` (frasi esatte o modelli con `{0}`, `{n}`, `{when}`, `{month}`).
 - Transazioni sul database con `InTransactionAsync` (compatibile con la strategia di retry di SQL Server).
 - Test: `dotnet test CardExchange.Tests`; frontend `npx tsc -b` e `npx eslint src`.

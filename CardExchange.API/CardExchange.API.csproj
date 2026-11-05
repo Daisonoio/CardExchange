@@ -34,4 +34,9 @@
 		<ProjectReference Include="..\CardExchange.Infrastructure\CardExchange.Infrastructure.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Content Remove="Localization\server-text.*.json" />
+		<EmbeddedResource Include="Localization\server-text.*.json" LogicalName="CardExchange.API.Localization.%(Filename)%(Extension)" WithCulture="false" />
+	</ItemGroup>
+
 </Project>

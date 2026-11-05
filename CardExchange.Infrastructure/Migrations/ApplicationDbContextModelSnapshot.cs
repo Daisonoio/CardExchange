@@ -2342,6 +2342,10 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Language")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("datetime2");
 

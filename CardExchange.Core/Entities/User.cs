@@ -75,6 +75,10 @@ namespace CardExchange.Core.Entities
         [MaxLength(64)]
         public string? TimeZone { get; set; }
 
+        /// <summary>Lingua dell'interfaccia ("it", "en"): notifiche push ed email in questa lingua.</summary>
+        [MaxLength(8)]
+        public string? Language { get; set; }
+
         /// <summary>Esito del controllo a 48 ore dall'iscrizione: aveva almeno un match vicino? (null = non controllato)</summary>
         public bool? MatchWithin48h { get; set; }
 

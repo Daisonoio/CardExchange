@@ -1,3 +1,4 @@
+import i18n from '../i18n';
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 
 const API_BASE = '/api';
@@ -12,6 +13,8 @@ client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Messaggi del server nella lingua dell'interfaccia
+  if (config.headers) config.headers['Accept-Language'] = (i18n.resolvedLanguage ?? i18n.language ?? 'it').split('-')[0];
   return config;
 });
 

@@ -116,6 +116,8 @@ namespace CardExchange.API.Controllers
                     BirthDate = request.BirthDate,
                     TermsAcceptedAt = DateTime.UtcNow,
                     TermsVersion = LegalTerms.CurrentVersion,
+                    // Lingua dell'interfaccia al momento dell'iscrizione: prima email già nella lingua giusta
+                    Language = CardExchange.API.Localization.ServerText.Normalize(HttpContext?.Request.Headers.AcceptLanguage.ToString()),
                     PasswordHash = passwordHash,
                     IsActive = true,
                     EmailConfirmed = false,
@@ -602,7 +604,7 @@ namespace CardExchange.API.Controllers
                 await _userRepository.SaveChangesAsync();
 
                 var link = $"{_emailSettings.FrontendBaseUrl.TrimEnd('/')}/reset-password?token={Uri.EscapeDataString(token)}";
-                await TrySendEmailAsync(user, EmailTemplates.ResetPassword(user.FirstName, link));
+                await TrySendEmailAsync(user, EmailTemplates.ResetPassword(user.FirstName, link, user.Language));
 
                 _logger.LogInformation("Richiesta reset password per utente {UserId}", user.Id);
                 return Ok(new { message = genericMessage });
@@ -691,7 +693,7 @@ namespace CardExchange.API.Controllers
         {
             if (string.IsNullOrEmpty(user.EmailVerificationToken)) return;
             var link = $"{_emailSettings.FrontendBaseUrl.TrimEnd('/')}/verify-email?token={Uri.EscapeDataString(user.EmailVerificationToken)}";
-            await TrySendEmailAsync(user, EmailTemplates.VerifyEmail(user.FirstName, link));
+            await TrySendEmailAsync(user, EmailTemplates.VerifyEmail(user.FirstName, link, user.Language));
         }
 
         /// <summary>

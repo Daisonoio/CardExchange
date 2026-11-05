@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronRight, Loader2, Radio, Store as StoreIcon, UserPlus, Users } from 'lucide-react';
 import { follows, type FollowingList } from '../api';
 import EmptyState from '../components/ui/EmptyState';
+import EmptyStateLink from '../components/ui/EmptyStateLink';
 import LiveStrip from '../components/social/LiveStrip';
 
 /** Profili seguiti (collezionisti e negozi) con l'eventuale "Sono qui" in corso. */
@@ -36,7 +37,8 @@ export default function FollowingPage() {
       <LiveStrip />
 
       {empty ? (
-        <EmptyState icon={UserPlus} title={t('following.empty')} description={t('following.emptyDescription')} />
+        <EmptyState icon={UserPlus} title={t('following.empty')} description={t('following.emptyDescription')}
+          action={<EmptyStateLink to="/explore" label={t('following.emptyAction')} />} />
       ) : (
         <>
           {data.users.length > 0 && (

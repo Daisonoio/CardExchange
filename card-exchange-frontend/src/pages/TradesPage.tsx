@@ -11,6 +11,7 @@ import { useTrades } from '../hooks/useTrades';
 import type { TradeOffer, TradeOfferStatus, User } from '../types';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
+import EmptyStateLink from '../components/ui/EmptyStateLink';
 import BottomSheet from '../components/ui/BottomSheet';
 import ReviewFormSheet from '../components/users/ReviewFormSheet';
 import UserSafetyMenu from '../components/users/UserSafetyMenu';
@@ -126,6 +127,7 @@ export default function TradesPage() {
             ? t('list.empty.sent')
             : t('list.empty.all')
           }
+          action={<EmptyStateLink to="/matchmaking" label={t('list.empty.action')} />}
         />
       ) : (
         <div className="space-y-2">

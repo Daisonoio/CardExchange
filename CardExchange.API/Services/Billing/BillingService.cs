@@ -200,7 +200,7 @@ namespace CardExchange.API.Services.Billing
         }
 
         private Task NotifyActivatedAsync(UserSubscription s, SubscriptionPlan plan) =>
-            TryNotifyAsync(s.UserId, NotificationType.SystemAnnouncement, $"{plan.Name} attivo",
+            TryNotifyAsync(s.UserId, NotificationType.SystemAnnouncement, $"Piano {plan.Name} attivo",
                 $"Il tuo piano è attivo fino al {s.EndDate:dd/MM/yyyy}. Grazie per il supporto!");
 
         private async Task TryNotifyAsync(int userId, NotificationType type, string title, string body)

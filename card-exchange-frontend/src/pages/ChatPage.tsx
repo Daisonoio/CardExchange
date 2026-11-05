@@ -9,6 +9,7 @@ import { messages } from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { ConversationPreview, ChatMessage } from '../types';
 import EmptyState from '../components/ui/EmptyState';
+import EmptyStateLink from '../components/ui/EmptyStateLink';
 import { useFormat } from '../i18n/format';
 
 const CHAT_HUB_URL = '/hubs/chat';
@@ -293,6 +294,7 @@ export default function ChatPage() {
               icon={MessageSquare}
               title={t('empty.title')}
               description={t('empty.description')}
+              action={<EmptyStateLink to="/matchmaking" label={t('empty.action')} />}
             />
           </div>
         ) : (

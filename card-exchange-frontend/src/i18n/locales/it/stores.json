@@ -26,7 +26,8 @@
       "people": "2 persone",
       "completed_one": "{{count}} scambio concluso da te negli ultimi 30 giorni",
       "completed_other": "{{count}} scambi conclusi da te negli ultimi 30 giorni"
-    }
+    },
+    "notFoundAction": "Vedi i negozi vicini"
   },
   "form": {
     "notFound": "Negozio non trovato",
@@ -81,7 +82,8 @@
     "meetupSpot": "Punto d'incontro",
     "events_one": "{{count}} evento",
     "events_other": "{{count}} eventi",
-    "addStore": "Hai un negozio? Inseriscilo su CardExchange"
+    "addStore": "Hai un negozio? Inseriscilo su CardExchange",
+    "emptyAction": "Hai un negozio? Aggiungilo"
   },
   "results": {
     "entry": "I tuoi risultati",

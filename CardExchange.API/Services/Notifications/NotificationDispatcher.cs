@@ -162,16 +162,32 @@ namespace CardExchange.API.Services.Notifications
             return notification;
         }
 
+        private readonly Dictionary<int, string?> _languages = new();
+
+        private async Task<string?> LanguageOfAsync(int userId)
+        {
+            if (!_languages.TryGetValue(userId, out var lang))
+            {
+                lang = await _context.Users.AsNoTracking().Where(u => u.Id == userId).Select(u => u.Language).FirstOrDefaultAsync();
+                _languages[userId] = lang;
+            }
+            return lang;
+        }
+
         /// <summary>
         /// Invia la notifica in tempo reale via SignalR al client connesso
         /// </summary>
         private async Task PushToClientAsync(Notification notification)
         {
             // Notifica push sui dispositivi registrati (inviata in background)
+            // Il testo salvato è in italiano; la notifica push esce nella lingua dell'utente
+            var language = await LanguageOfAsync(notification.UserId);
+            var title = CardExchange.API.Localization.ServerText.T(notification.Title, language);
+            var body = CardExchange.API.Localization.ServerText.T(notification.Body, language);
             _pushQueue.Enqueue(new Push.PushJob(
                 notification.UserId,
-                notification.Title,
-                notification.Body,
+                title,
+                body,
                 Push.PushQueue.UrlFor(notification.ReferenceType, notification.ReferenceId),
                 Tag: $"{notification.Type}-{notification.ReferenceId}"));
 
@@ -183,8 +199,8 @@ namespace CardExchange.API.Services.Notifications
                     {
                         notification.Id,
                         type = notification.Type.ToString(),
-                        notification.Title,
-                        notification.Body,
+                        Title = title,
+                        Body = body,
                         notification.IsRead,
                         notification.ReferenceId,
                         notification.ReferenceType,

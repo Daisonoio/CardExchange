@@ -10,6 +10,7 @@ import { useGeolocation } from '../hooks/useGeolocation';
 import CardItem from '../components/cards/CardItem';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
+import EmptyStateLink from '../components/ui/EmptyStateLink';
 import { useSearchRadius } from '../hooks/useSearchRadius';
 import RadiusSlider from '../components/ui/RadiusSlider';
 
@@ -300,6 +301,7 @@ export default function ExplorePage() {
                       ? t('cards.emptySearch', { term: searchTerm, radius: effectiveRadius })
                       : t('cards.emptyDescription', { radius: effectiveRadius })
                   }
+                  action={!searchTerm && <EmptyStateLink to="/profile" label={t('emptyInvite')} />}
                 />
               ) : (
                 <div className="space-y-2">
@@ -376,6 +378,7 @@ export default function ExplorePage() {
                   description={zoneLabel
                     ? t('zone.emptyDescriptionFrom', { radius: zoneRadius, place: zoneLabel })
                     : t('zone.emptyDescription', { radius: zoneRadius })}
+                  action={<EmptyStateLink to="/profile" label={t('emptyInvite')} />}
                 />
               ) : (
                 <div className="space-y-2">
@@ -407,6 +410,7 @@ export default function ExplorePage() {
               icon={MapPin}
               title={t('users.emptyTitle')}
               description={t('users.emptyDescription', { radius: effectiveRadius })}
+              action={<EmptyStateLink to="/profile" label={t('emptyInvite')} />}
             />
           ) : (
             <div className="space-y-2">

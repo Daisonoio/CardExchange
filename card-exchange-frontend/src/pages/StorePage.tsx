@@ -10,6 +10,7 @@ import { useGame } from '../context/GameContext';
 import { useFormat } from '../i18n/format';
 import StoresMap from '../components/stores/StoresMap';
 import EmptyState from '../components/ui/EmptyState';
+import EmptyStateLink from '../components/ui/EmptyStateLink';
 import FollowButton from '../components/social/FollowButton';
 
 const STATUS_LABEL: Record<Store['status'], { textKey: string; cls: string }> = {
@@ -44,7 +45,8 @@ export default function StorePage() {
   }, [id, isOwner]);
 
   if (store === undefined) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>;
-  if (store === null) return <EmptyState icon={MapPin} title={t('page.notFoundTitle')} description={t('page.notFoundDescription')} />;
+  if (store === null) return <EmptyState icon={MapPin} title={t('page.notFoundTitle')} description={t('page.notFoundDescription')}
+    action={<EmptyStateLink to="/local" label={t('page.notFoundAction')} />} />;
 
   const gameNames = games.filter((g) => store.gameIds.includes(g.id)).map((g) => g.name);
   const directions = `https://www.openstreetmap.org/directions?to=${store.latitude}%2C${store.longitude}`;

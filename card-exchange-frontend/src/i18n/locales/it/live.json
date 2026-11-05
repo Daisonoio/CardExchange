@@ -33,7 +33,8 @@
     "recipients_other": "Inviato a {{count}} follower",
     "endNow": "Termina ora",
     "ending": "Chiusura…",
-    "share": "Condividi"
+    "share": "Condividi",
+    "notFoundAction": "Vedi chi segui"
   },
   "compose": {
     "title": "Fai sapere dove sei",
@@ -56,7 +57,13 @@
     "pickOnMap": "Oppure tocca la mappa per spostare il punto",
     "gpsError": "Non riesco a leggere la tua posizione: scegli il punto sulla mappa.",
     "duration": "Fino a quando",
-    "durations": { "60": "1 ora", "120": "2 ore", "240": "4 ore", "480": "8 ore", "eod": "Fine giornata" },
+    "durations": {
+      "60": "1 ora",
+      "120": "2 ore",
+      "240": "4 ore",
+      "480": "8 ore",
+      "eod": "Fine giornata"
+    },
     "preview": "Anteprima della notifica",
     "previewTitle": "{{name}} è a 5 km da te",
     "send_one": "Avvisa {{count}} follower",
@@ -76,6 +83,7 @@
     "emptyDescription": "Apri il profilo di un collezionista o di un negozio e tocca \"Segui\" per sapere quando è a un mercatino vicino a te.",
     "liveAt": "Ora a: {{place}}",
     "yourFollowers_one": "Ti segue {{count}} persona",
-    "yourFollowers_other": "Ti seguono {{count}} persone"
+    "yourFollowers_other": "Ti seguono {{count}} persone",
+    "emptyAction": "Trova collezionisti da seguire"
   }
 }

@@ -8,6 +8,7 @@ import { EVENT_TYPE_LABELS } from '../types';
 import { apiErrorMessage } from '../utils/apiError';
 import { formatEventDate } from '../utils/eventDate';
 import EmptyState from '../components/ui/EmptyState';
+import EmptyStateLink from '../components/ui/EmptyStateLink';
 import { useFormat } from '../i18n/format';
 
 type Mode = 'nearby' | 'all';
@@ -55,7 +56,8 @@ export default function EventsPage() {
       ) : result?.error ? (
         <EmptyState icon={MapPin} title={t('list.unavailable')} description={result.error} />
       ) : !result || result.items.length === 0 ? (
-        <EmptyState icon={CalendarDays} title={t('list.emptyTitle')} description={t('list.emptyDescription')} />
+        <EmptyState icon={CalendarDays} title={t('list.emptyTitle')} description={t('list.emptyDescription')}
+          action={<EmptyStateLink to="/events/new" label={t('list.emptyAction')} />} />
       ) : (
         <ul className="space-y-2">
           {result.items.map((e) => (

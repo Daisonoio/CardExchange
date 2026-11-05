@@ -109,7 +109,7 @@ namespace CardExchange.API.Services.Stores
                 Headline(s) + ". " + string.Join(" · ", lines), store.Id, "StoreReport");
             if (store.Owner.EmailConfirmed)
                 await _email.SendAsync(store.Owner.Email, $"{store.Owner.FirstName} {store.Owner.LastName}".Trim(),
-                    EmailTemplates.StoreMonthlyReport(store.Owner.FirstName, store.Name, monthName, Headline(s), lines, link), ct);
+                    EmailTemplates.StoreMonthlyReport(store.Owner.FirstName, store.Name, monthName, Headline(s), lines, link, store.Owner.Language), ct);
         }
 
         private static TimeZoneInfo ResolveItaly()

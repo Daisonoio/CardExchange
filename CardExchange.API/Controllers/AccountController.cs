@@ -359,22 +359,26 @@ namespace CardExchange.API.Controllers
             });
         }
 
-        public record TimeZoneRequest(string TimeZone);
+        public record LocaleRequest(string? TimeZone, string? Language);
 
-        /// <summary>Fuso orario del dispositivo (rilevato dal browser): gli orari nelle notifiche si scrivono in questo fuso.</summary>
-        [HttpPut("timezone")]
-        public async Task<IActionResult> SetTimeZone([FromBody] TimeZoneRequest request)
+        /// <summary>
+        /// Fuso orario e lingua del dispositivo (rilevati dal browser): orari e testi delle notifiche ed email
+        /// arrivano nel fuso e nella lingua dell'utente.
+        /// </summary>
+        [HttpPut("locale")]
+        public async Task<IActionResult> SetLocale([FromBody] LocaleRequest request)
         {
-            if (!CardExchange.Core.Rules.TimeZones.IsValid(request.TimeZone))
+            if (request.TimeZone != null && !CardExchange.Core.Rules.TimeZones.IsValid(request.TimeZone))
                 return BadRequest(new { message = "Fuso orario non valido" });
+            if (request.Language != null && !CardExchange.API.Localization.ServerText.Supported.Contains(request.Language))
+                return BadRequest(new { message = "Lingua non supportata" });
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == GetCurrentUserId());
             if (user == null) return NotFound();
-            if (user.TimeZone != request.TimeZone)
-            {
-                user.TimeZone = request.TimeZone;
-                await _context.SaveChangesAsync();
-            }
-            return Ok(new { timeZone = user.TimeZone });
+            var changed = false;
+            if (request.TimeZone != null && user.TimeZone != request.TimeZone) { user.TimeZone = request.TimeZone; changed = true; }
+            if (request.Language != null && user.Language != request.Language) { user.Language = request.Language; changed = true; }
+            if (changed) await _context.SaveChangesAsync();
+            return Ok(new { timeZone = user.TimeZone, language = user.Language });
         }
 
         private int GetCurrentUserId()

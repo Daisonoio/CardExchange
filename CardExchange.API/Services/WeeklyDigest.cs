@@ -68,7 +68,7 @@ namespace CardExchange.API.Services
                             .Select(Describe)
                             .ToList();
                         await _email.SendAsync(user.Email, $"{user.FirstName} {user.LastName}".Trim(),
-                            EmailTemplates.WeeklyDigest(user.FirstName, matches.Count, highlights, $"{baseUrl}/matchmaking", $"{baseUrl}/profile"), ct);
+                            EmailTemplates.WeeklyDigest(user.FirstName, matches.Count, highlights, $"{baseUrl}/matchmaking", $"{baseUrl}/profile", user.Language), ct);
                         sent++;
                     }
                     // Anche senza match si aggiorna la data, così l'utente non viene ricalcolato ogni notte

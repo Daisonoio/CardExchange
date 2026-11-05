@@ -191,7 +191,7 @@ namespace CardExchange.API.Services.Stores
             {
                 UserId = id,
                 Type = NotificationType.StoreOffer,
-                Title = $"{store.Name} ha {name}",
+                Title = $"Disponibile da {store.Name}: {name}",
                 Body = $"È nella tua wishlist ed è disponibile da {store.Name}, {store.City}. Passa in negozio: prezzo e scambio si concordano di persona.",
                 ReferenceId = store.Id,
                 ReferenceType = "Store"

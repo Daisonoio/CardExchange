@@ -36,7 +36,8 @@
       "title": "No requests",
       "received": "You haven't received any trade requests",
       "sent": "You haven't sent any trade requests",
-      "all": "No trade requests yet. Explore the available cards to get started!"
+      "all": "No trade requests yet. Explore the available cards to get started!",
+      "action": "Find a match"
     },
     "cardsUnavailable": "Some cards are no longer available for this trade",
     "actionError": "Something went wrong with this trade action",

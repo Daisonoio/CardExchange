@@ -6,6 +6,7 @@ import { stores } from '../../api';
 import type { Store } from '../../types';
 import { useGame } from '../../context/GameContext';
 import EmptyState from '../ui/EmptyState';
+import EmptyStateLink from '../ui/EmptyStateLink';
 import StoresMap from './StoresMap';
 
 /** Negozi verificati vicini (in base alla posizione del profilo) e negozi gestiti dall'utente. */
@@ -56,6 +57,7 @@ export default function StoresTab() {
           icon={StoreIcon}
           title={t('tab.emptyTitle')}
           description={t('tab.emptyDescription')}
+          action={<EmptyStateLink to="/stores/new" label={t('tab.emptyAction')} />}
         />
       ) : (
         <>

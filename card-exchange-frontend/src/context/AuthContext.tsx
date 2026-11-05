@@ -1,4 +1,5 @@
-import { syncTimeZone } from '../utils/timeZone';
+import { syncLocale } from '../utils/timeZone';
+import i18n from '../i18n';
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User, LoginRequest, RegisterRequest } from '../types';
 import { auth } from '../api';
@@ -28,10 +29,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const [connectionError, setConnectionError] = useState(false);
 
-  // Fuso orario del dispositivo: gli orari nelle notifiche arrivano nell'ora giusta anche fuori dall'Italia
+  // Fuso orario e lingua del dispositivo: notifiche ed email nell'ora e nella lingua giuste
   const userId = user?.id;
   useEffect(() => {
-    if (userId) syncTimeZone(userId);
+    if (!userId) return;
+    syncLocale(userId);
+    // Cambio lingua dall'interfaccia: anche notifiche ed email cambiano lingua
+    const onChange = () => syncLocale(userId);
+    i18n.on('languageChanged', onChange);
+    return () => { i18n.off('languageChanged', onChange); };
   }, [userId]);
 
   /**

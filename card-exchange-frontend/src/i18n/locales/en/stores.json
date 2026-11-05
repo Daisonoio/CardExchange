@@ -26,7 +26,8 @@
       "people": "2 people",
       "completed_one": "{{count}} trade completed at your store in the last 30 days",
       "completed_other": "{{count}} trades completed at your store in the last 30 days"
-    }
+    },
+    "notFoundAction": "See nearby stores"
   },
   "form": {
     "notFound": "Store not found",
@@ -81,7 +82,8 @@
     "meetupSpot": "Meetup spot",
     "events_one": "{{count}} event",
     "events_other": "{{count}} events",
-    "addStore": "Own a store? Add it to CardExchange"
+    "addStore": "Own a store? Add it to CardExchange",
+    "emptyAction": "Own a store? Add it"
   },
   "results": {
     "entry": "Your results",

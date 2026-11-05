@@ -11,6 +11,7 @@ import { useGame } from '../context/GameContext';
 import { apiErrorMessage } from '../utils/apiError';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
+import EmptyStateLink from '../components/ui/EmptyStateLink';
 import TradeNightPanel from '../components/events/TradeNightPanel';
 import EventAttendeesPanel from '../components/events/EventAttendeesPanel';
 import { formatDateTime, formatEuro, formatTime } from '../i18n/format';
@@ -36,7 +37,8 @@ export default function EventPage() {
   useEffect(() => { load(); }, [load]);
 
   if (event === undefined) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>;
-  if (event === null) return <EmptyState icon={CalendarDays} title={t('detail.notFoundTitle')} description={t('detail.notFoundDescription')} />;
+  if (event === null) return <EmptyState icon={CalendarDays} title={t('detail.notFoundTitle')} description={t('detail.notFoundDescription')}
+    action={<EmptyStateLink to="/local?tab=events" label={t('detail.notFoundAction')} />} />;
 
   const isOrganizer = user?.id === event.organizer.id;
   const isFull = event.spotsLeft != null ? event.spotsLeft <= 0 : !!event.maxParticipants && event.participantCount >= event.maxParticipants;

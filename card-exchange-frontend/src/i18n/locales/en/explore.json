@@ -43,5 +43,6 @@
     "trades_one": "{{count}} trade",
     "trades_other": "{{count}} trades",
     "openCollection": "Open @{{username}}'s collection"
-  }
+  },
+  "emptyInvite": "Invite friends in your area"
 }

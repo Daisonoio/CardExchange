@@ -3,7 +3,8 @@
   "sendError": "Impossibile inviare il messaggio",
   "empty": {
     "title": "Nessuna conversazione",
-    "description": "Le chat appariranno qui quando inizierai a messaggiare con altri utenti"
+    "description": "Le chat appariranno qui quando inizierai a messaggiare con altri utenti",
+    "action": "Trova con chi scambiare"
   },
   "youPrefix": "Tu: ",
   "startConversation": "Inizia una conversazione",

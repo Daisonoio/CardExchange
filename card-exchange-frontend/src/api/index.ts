@@ -556,8 +556,8 @@ export const account = {
   exportData: () => client.get<Blob>('/account/export-data', { responseType: 'blob' }),
   /** Elimina l'account: serve lo username come conferma. */
   deleteAccount: (confirmUsername: string) => client.delete('/account/delete-account', { params: { confirmUsername } }),
-  /** Fuso orario del dispositivo, per gli orari nelle notifiche. */
-  setTimeZone: (timeZone: string) => client.put('/account/timezone', { timeZone }),
+  /** Fuso orario e lingua del dispositivo, per orari e testi di notifiche ed email. */
+  setLocale: (data: { timeZone?: string; language?: string }) => client.put('/account/locale', data),
 };
 
 // === Monitoraggio (amministratori) ===

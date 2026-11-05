@@ -3,7 +3,8 @@
   "sendError": "Couldn't send the message",
   "empty": {
     "title": "No conversations",
-    "description": "Your chats will appear here once you start messaging other users"
+    "description": "Your chats will appear here once you start messaging other users",
+    "action": "Find someone to trade with"
   },
   "youPrefix": "You: ",
   "startConversation": "Start a conversation",
