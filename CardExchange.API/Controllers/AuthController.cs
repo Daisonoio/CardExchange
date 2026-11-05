@@ -122,6 +122,8 @@ namespace CardExchange.API.Controllers
                     EmailVerificationToken = emailVerificationToken,
                     EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24),
                     ReferredByUserId = referrer?.Id,
+                    SignupFingerprint = referrer == null ? null
+                        : ReferralRules.SignupFingerprint(HttpContext?.Connection.RemoteIpAddress?.ToString(), DateTime.UtcNow),
                     RefreshToken = _tokenService.GenerateRefreshToken(),
                     RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays)
                 };

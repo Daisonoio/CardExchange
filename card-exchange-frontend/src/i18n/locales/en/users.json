@@ -10,12 +10,19 @@
     "copied": "Link copied to clipboard",
     "copyManually": "Copy the link above",
     "title": "Invite friends",
-    "subtitle": "More collectors nearby means more trades for everyone.",
+    "subtitle": "For every 3 friends who become active you get 1 month of Premium free.",
     "linkLabel": "Invite link",
     "share": "Share",
     "noneYet": "No friends have joined with your link yet.",
     "joined_one": "{{count}} friend joined",
-    "joined_other": "{{count}} friends joined"
+    "joined_other": "{{count}} friends joined",
+    "progress": "{{done}} of {{total}} towards your next Premium month",
+    "rewardsEarned_one": "You've earned {{count}} Premium month",
+    "rewardsEarned_other": "You've earned {{count}} Premium months",
+    "capReached": "You've received this year's {{max}} Premium months: thank you!",
+    "activeRule": "A friend is active once they confirm their email, add at least 10 cards to collection and wishlist, and use the app on 3 different days within a month.",
+    "activeBadge": "active",
+    "pendingBadge": "pending"
   },
   "planBadge": {
     "storeTitle": "Shop with an active plan",

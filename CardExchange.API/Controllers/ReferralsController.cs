@@ -26,7 +26,7 @@ namespace CardExchange.API.Controllers
 
         /// <summary>Codice e link di invito dell'utente (generati al primo uso) e amici che si sono iscritti.</summary>
         [HttpGet("me")]
-        public async Task<IActionResult> Mine()
+        public async Task<IActionResult> Mine([FromServices] ReferralRewards rewards)
         {
             var userId = int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
@@ -49,7 +49,7 @@ namespace CardExchange.API.Controllers
                 .AsNoTracking()
                 .Where(u => u.ReferredByUserId == userId)
                 .OrderByDescending(u => u.CreatedAt)
-                .Select(u => new { u.Username, joinedAt = u.CreatedAt, completedTrades = u.TotalTradesCompleted })
+                .Select(u => new { u.Username, joinedAt = u.CreatedAt, completedTrades = u.TotalTradesCompleted, active = u.ReferralQualifiedAt != null })
                 .ToListAsync();
 
             return Ok(new
@@ -57,7 +57,8 @@ namespace CardExchange.API.Controllers
                 code = user.ReferralCode,
                 link = $"{_emailSettings.FrontendBaseUrl.TrimEnd('/')}/register?ref={user.ReferralCode}",
                 invitedCount = invited.Count,
-                invited = invited.Take(50)
+                invited = invited.Take(50),
+                reward = await rewards.ProgressAsync(userId, DateTime.UtcNow)
             });
         }
 

@@ -19,7 +19,9 @@ namespace CardExchange.Core.Entities
         /// <summary>Bonifico confermato da un amministratore.</summary>
         BankTransfer = 2,
         /// <summary>Attivazione manuale (fattura, omaggio, premio).</summary>
-        Manual = 3
+        Manual = 3,
+        /// <summary>Mese Premium regalato come premio per gli inviti.</summary>
+        Reward = 4
     }
 
     public class UserSubscription : BaseEntity

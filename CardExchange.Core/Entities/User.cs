@@ -64,6 +64,13 @@ namespace CardExchange.Core.Entities
         /// <summary>Utente che ha invitato questo utente, se registrato con un codice invito.</summary>
         public int? ReferredByUserId { get; set; }
 
+        /// <summary>Quando l'invitato è diventato "attivo" ai fini del premio inviti.</summary>
+        public DateTime? ReferralQualifiedAt { get; set; }
+
+        /// <summary>Impronta della connessione all'iscrizione (hash di IP e giorno): conta una sola volta più inviti dallo stesso posto.</summary>
+        [MaxLength(32)]
+        public string? SignupFingerprint { get; set; }
+
         /// <summary>Fuso orario (IANA, es. "Europe/Rome") rilevato dal browser: orari delle notifiche.</summary>
         [MaxLength(64)]
         public string? TimeZone { get; set; }

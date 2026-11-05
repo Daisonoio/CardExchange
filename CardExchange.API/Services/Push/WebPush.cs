@@ -75,6 +75,7 @@ namespace CardExchange.API.Services.Push
             "Wishlist" => "/wishlist",
             "Monitoring" => "/admin/monitoring",
             "StoreReport" => referenceId.HasValue ? $"/stores/{referenceId}/results" : "/local",
+            "Referral" => "/profile",
             "Event" => referenceId.HasValue ? $"/events/{referenceId}" : "/local?tab=events",
             "Store" => referenceId.HasValue ? $"/stores/{referenceId}" : "/local",
             "Broadcast" => referenceId.HasValue ? $"/live/{referenceId}" : "/following",

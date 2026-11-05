@@ -25,6 +25,7 @@ function getNavigationTarget(notification: Notification): string | null {
   const { referenceType, referenceId } = notification;
   if (referenceType === 'PriceSpike') return '/collection';
   if (referenceType === 'Monitoring') return '/admin/monitoring';
+  if (referenceType === 'Referral') return '/profile';
   if (!referenceId) return null;
   switch (referenceType) {
     case 'TradeOffer': return '/trades';

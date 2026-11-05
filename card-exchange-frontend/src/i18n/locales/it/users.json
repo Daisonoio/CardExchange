@@ -10,12 +10,19 @@
     "copied": "Link copiato negli appunti",
     "copyManually": "Copia il link qui sopra",
     "title": "Invita amici",
-    "subtitle": "Più collezionisti in zona, più scambi per tutti.",
+    "subtitle": "Ogni 3 amici che diventano attivi ricevi 1 mese Premium gratis.",
     "linkLabel": "Link di invito",
     "share": "Condividi",
     "noneYet": "Nessun amico iscritto con il tuo link, per ora.",
     "joined_one": "{{count}} amico iscritto",
-    "joined_other": "{{count}} amici iscritti"
+    "joined_other": "{{count}} amici iscritti",
+    "progress": "{{done}} su {{total}} verso il prossimo mese Premium",
+    "rewardsEarned_one": "Hai guadagnato {{count}} mese Premium",
+    "rewardsEarned_other": "Hai guadagnato {{count}} mesi Premium",
+    "capReached": "Hai ricevuto i {{max}} mesi Premium di quest'anno: grazie!",
+    "activeRule": "Un amico è attivo quando conferma l'email, inserisce almeno 10 carte tra collezione e wishlist e usa l'app in 3 giorni diversi entro un mese.",
+    "activeBadge": "attivo",
+    "pendingBadge": "in attesa"
   },
   "planBadge": {
     "storeTitle": "Negozio con piano attivo",

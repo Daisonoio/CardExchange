@@ -2382,6 +2382,9 @@ namespace CardExchange.Infrastructure.Migrations
                         .HasMaxLength(12)
                         .HasColumnType("nvarchar(12)");
 
+                    b.Property<DateTime?>("ReferralQualifiedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("ReferredByUserId")
                         .HasColumnType("int");
 
@@ -2398,6 +2401,10 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<string>("SatispayUsername")
                         .HasMaxLength(120)
                         .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("SignupFingerprint")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.Property<DateTime?>("TermsAcceptedAt")
                         .HasColumnType("datetime2");

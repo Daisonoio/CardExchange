@@ -396,7 +396,11 @@ export const stores = {
 
 // === Inviti ===
 export const referrals = {
-  mine: () => client.get<{ code: string; link: string; invitedCount: number; invited: { username: string; joinedAt: string; completedTrades: number }[] }>('/referrals/me'),
+  mine: () => client.get<{
+    code: string; link: string; invitedCount: number;
+    invited: { username: string; joinedAt: string; completedTrades: number; active?: boolean }[];
+    reward?: { qualified: number; towardsNext: number; perReward: number; monthsEarned: number; monthsThisYear: number; maxMonthsPerYear: number };
+  }>('/referrals/me'),
   lookup: (code: string) => client.get<{ username: string }>(`/referrals/${code}`),
 };
 

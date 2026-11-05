@@ -7,7 +7,7 @@ import { shareLink } from '../../utils/referral';
 /** Link personale di invito e amici che si sono iscritti. */
 export default function InviteCard() {
   const { t } = useTranslation('users');
-  const [data, setData] = useState<{ link: string; invitedCount: number; invited: { username: string }[] } | null>(null);
+  const [data, setData] = useState<Awaited<ReturnType<typeof referrals.mine>>['data'] | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   useEffect(() => {
@@ -15,6 +15,8 @@ export default function InviteCard() {
   }, []);
 
   if (!data) return null;
+  const reward = data.reward;
+  const capped = !!reward && reward.monthsThisYear >= reward.maxMonthsPerYear;
 
   const share = async () => {
     const result = await shareLink(data.link, 'CardExchange',
@@ -41,11 +43,43 @@ export default function InviteCard() {
         </button>
       </div>
       {feedback && <p className="text-xs text-text-secondary">{feedback}</p>}
-      <p className="text-xs text-text-secondary">
-        {data.invitedCount === 0
-          ? t('invite.noneYet')
-          : `${t('invite.joined', { count: data.invitedCount })}: ${data.invited.slice(0, 5).map((i) => `@${i.username}`).join(', ')}${data.invitedCount > 5 ? '…' : ''}`}
-      </p>
+      {reward && (
+        <div className="pt-1">
+          {capped ? (
+            <p className="text-xs font-medium text-green-700">{t('invite.capReached', { max: reward.maxMonthsPerYear })}</p>
+          ) : (
+            <>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-text-secondary">{t('invite.progress', { done: reward.towardsNext, total: reward.perReward })}</span>
+                <span className="flex gap-1" aria-hidden>
+                  {Array.from({ length: reward.perReward }, (_, i) => (
+                    <span key={i} className={`w-2.5 h-2.5 rounded-full ${i < reward.towardsNext ? 'bg-primary' : 'bg-border'}`} />
+                  ))}
+                </span>
+              </div>
+              <div className="mt-1 h-1.5 rounded-full bg-surface-dark overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={reward.perReward} aria-valuenow={reward.towardsNext}>
+                <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${(reward.towardsNext / reward.perReward) * 100}%` }} />
+              </div>
+            </>
+          )}
+          {reward.monthsEarned > 0 && !capped && <p className="mt-1 text-xs font-medium text-green-700">{t('invite.rewardsEarned', { count: reward.monthsEarned })}</p>}
+        </div>
+      )}
+      {data.invitedCount === 0 ? (
+        <p className="text-xs text-text-secondary">{t('invite.noneYet')}</p>
+      ) : (
+        <div>
+          <p className="text-xs text-text-secondary">{t('invite.joined', { count: data.invitedCount })}</p>
+          <ul className="mt-1 flex flex-wrap gap-1.5">
+            {data.invited.slice(0, 12).map((i) => (
+              <li key={i.username} className={`px-2 py-0.5 rounded-full text-[11px] ${i.active ? 'bg-green-50 text-green-700' : 'bg-surface-dark text-text-secondary'}`}>
+                @{i.username} · {i.active ? t('invite.activeBadge') : t('invite.pendingBadge')}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <p className="text-[11px] text-text-muted">{t('invite.activeRule')}</p>
     </div>
   );
 }

@@ -269,6 +269,12 @@ namespace CardExchange.API.Services.Prices
                         expired, reminded, stale);
                 }
 
+                // Inviti con premio: nuovi invitati attivi e mesi Premium guadagnati
+                using (var referralScope = _scopeFactory.CreateScope())
+                {
+                    await referralScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.ReferralRewards>().RunAsync(DateTime.UtcNow, ct);
+                }
+
                 // Domanda locale dei negozi
                 using (var demandScope = _scopeFactory.CreateScope())
                 {
