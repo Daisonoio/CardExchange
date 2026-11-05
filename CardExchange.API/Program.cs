@@ -399,6 +399,12 @@ using (var scope = app.Services.CreateScope())
         if (context.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             await context.Database.EnsureCreatedAsync();
+            // Database già esistente: aggiunge tabelle, colonne e indici nuovi senza perdere i dati
+            var sync = await SqliteSchemaSync.ApplyAsync(context);
+            if (sync.TablesCreated.Count > 0 || sync.ColumnsAdded.Count > 0)
+                app.Logger.LogInformation("Schema SQLite aggiornato: tabelle {Tables}, colonne {Columns}",
+                    string.Join(", ", sync.TablesCreated), string.Join(", ", sync.ColumnsAdded));
+            foreach (var w in sync.Warnings) app.Logger.LogWarning("Schema SQLite: {Warning}", w);
         }
         else
         {
