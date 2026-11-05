@@ -278,7 +278,7 @@ namespace CardExchange.API.Services.Catalog
 
             var game = await EnsureGameAsync(Key, GameName, Publisher, Description);
             var dash = apiCard.Code.IndexOf('-');
-            var setCode = dash > 0 ? apiCard.Code[..dash] : apiCard.Code;
+            var setCode = (dash > 0 ? apiCard.Code[..dash] : apiCard.Code).ToUpperInvariant();
             var set = await Context.CardSets.FirstOrDefaultAsync(cs => cs.Code == setCode && cs.GameId == game.Id, ct);
             if (set == null)
             {
@@ -306,10 +306,12 @@ namespace CardExchange.API.Services.Catalog
             Subtitle = string.Join(" — ", new[] { c.Type, c.Color, c.Cost != null ? $"Costo {c.Cost}" : null }.Where(s => !string.IsNullOrWhiteSpace(s))),
             SetCode = c.Code.Contains('-') ? c.Code[..c.Code.IndexOf('-')] : c.Code,
             SetName = c.Set?.Name,
-            Number = c.Code,
+            Number = c.Code.Split('_')[0],
             Rarity = c.Rarity,
             ImageSmall = c.Images?.Small ?? c.Images?.Large,
-            ImageLarge = c.Images?.Large ?? c.Images?.Small
+            ImageLarge = c.Images?.Large ?? c.Images?.Small,
+            PriceEur = c.PriceEur,
+            PriceConverted = c.PriceEur.HasValue
         };
     }
 }

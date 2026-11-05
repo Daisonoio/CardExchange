@@ -1,40 +1,52 @@
-using CardExchange.API.DTOs.OnePieceTcg;
-using CardExchange.Core.Entities;
-using CardExchange.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
+using CardExchange.API.DTOs.OnePieceTcg;
+using CardExchange.API.Services.Catalog;
+using CardExchange.Core.Entities;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace CardExchange.API.Services
 {
+    /// <summary>
+    /// Catalogo One Piece TCG tramite OPTCG API (optcgapi.com): gratuita, senza chiave, con set principali,
+    /// starter deck e promo, immagini e prezzi di mercato in dollari (convertiti in euro al cambio BCE).
+    /// Il codice di una carta è quello della singola stampa: "OP01-001" (base), "OP01-001_p1" (parallel), ecc.
+    /// </summary>
     public class OnePieceTcgService : IOnePieceTcgService
     {
+        public const string BaseUrl = "https://optcgapi.com";
+
         private readonly HttpClient _httpClient;
         private readonly IMemoryCache _cache;
-        private readonly ApplicationDbContext _context;
+        private readonly IExchangeRates _fx;
         private readonly ILogger<OnePieceTcgService> _logger;
 
-        // ApiTCG: rispettiamo un rate limit conservativo
+        // Servizio gratuito: richieste distanziate
         private static readonly SemaphoreSlim _rateLimiter = new(1, 1);
         private static DateTime _lastRequestTime = DateTime.MinValue;
-        private const int MinDelayMs = 200; // ~5 req/s max
+        private const int MinDelayMs = 150;
+        private const int MaxSearchResults = 120;
+        private const int PageSize = 40;
+        private static readonly Regex CodeQuery = new(@"^(OP|ST|EB|PRB)\d{2}-\d{3}$|^P-\d{3}$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex Variant = new(@"\s*\([^)]*\)\s*$", RegexOptions.Compiled);
 
-        private static readonly JsonSerializerOptions _jsonOptions = new()
-        {
-            PropertyNameCaseInsensitive = true
-        };
+        // Le tre raccolte dell'API: set principali/extra, starter deck, promo
+        private static readonly string[] Collections = { "sets", "decks", "promos" };
 
-        public OnePieceTcgService(
-            HttpClient httpClient,
-            IMemoryCache cache,
-            ApplicationDbContext context,
-            ILogger<OnePieceTcgService> logger)
+        private static readonly Regex PrintNumber = new(@"\s*\(\d{3}\)", RegexOptions.Compiled);
+        private static readonly Regex StarterCode = new(@"^ST\d", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex PromoCode = new(@"^P-", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
+
+        public OnePieceTcgService(HttpClient httpClient, IMemoryCache cache, IExchangeRates fx, ILogger<OnePieceTcgService> logger)
         {
             _httpClient = httpClient;
             _cache = cache;
-            _context = context;
+            _fx = fx;
             _logger = logger;
+            _httpClient.BaseAddress ??= new Uri(BaseUrl);
         }
 
         // ================================================================
@@ -43,95 +55,155 @@ namespace CardExchange.API.Services
 
         public async Task<OnePieceCard?> GetCardByCodeAsync(string code)
         {
-            var cacheKey = $"optcg:card:{code}";
-            if (_cache.TryGetValue(cacheKey, out OnePieceCard? cached))
-                return cached;
+            code = code.Trim();
+            var cacheKey = $"optcg:card:{code.ToUpperInvariant()}";
+            if (_cache.TryGetValue(cacheKey, out OnePieceCard? cached)) return cached;
 
-            await ApplyApiKeyAsync();
-            await RateLimitAsync();
-
-            try
-            {
-                var response = await _httpClient.GetAsync($"/api/one-piece/cards/{Uri.EscapeDataString(code)}");
-
-                if (response.StatusCode == HttpStatusCode.NotFound)
-                    return null;
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorBody = await response.Content.ReadAsStringAsync();
-                    _logger.LogWarning("OnePieceTCG GET card/{Code} -> {StatusCode}: {Error}", code, response.StatusCode, errorBody);
-                    return null;
-                }
-
-                var json = await response.Content.ReadAsStringAsync();
-
-                // La risposta è wrappata in { "data": {...} }
-                var wrapper = JsonSerializer.Deserialize<OnePieceSingleResponse>(json, _jsonOptions);
-                var card = wrapper?.Data;
-
-                if (card != null)
-                    _cache.Set(cacheKey, card, TimeSpan.FromHours(6));
-
-                return card;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Errore chiamata OnePieceTCG GET card/{Code}", code);
-                return null;
-            }
+            // "OP01-001_p1" -> si chiede "OP01-001" e si sceglie la stampa giusta
+            var prints = await GetPrintsAsync(code.Split('_')[0].ToUpperInvariant());
+            var card = prints?.FirstOrDefault(p => string.Equals(p.Code, code, StringComparison.OrdinalIgnoreCase));
+            if (card != null) _cache.Set(cacheKey, card, TimeSpan.FromHours(6));
+            return card;
         }
 
         public async Task<OnePieceResponse?> SearchCardsAsync(string query, int page = 1)
         {
-            var cacheKey = $"optcg:search:{query.ToLowerInvariant()}:p{page}";
-            if (_cache.TryGetValue(cacheKey, out OnePieceResponse? cached))
-                return cached;
-
-            await ApplyApiKeyAsync();
-            await RateLimitAsync();
-
-            try
+            query = query.Trim();
+            var cacheKey = $"optcg:search:{query.ToLowerInvariant()}";
+            if (!_cache.TryGetValue(cacheKey, out List<OnePieceCard>? all) || all == null)
             {
-                var encoded = Uri.EscapeDataString(query);
-                var response = await _httpClient.GetAsync($"/api/one-piece/cards?name={encoded}&page={page}");
-
-                if (!response.IsSuccessStatusCode)
+                // Ricerca per codice ("OP01-024"): tutte le stampe di quella carta
+                if (CodeQuery.IsMatch(query))
                 {
-                    var errorBody = await response.Content.ReadAsStringAsync();
-                    _logger.LogWarning("OnePieceTCG GET cards?name={Query} -> {StatusCode}: {Error}", query, response.StatusCode, errorBody);
-                    return null;
+                    var prints = await GetPrintsAsync(query.ToUpperInvariant());
+                    if (prints == null) return null;
+                    all = prints.OrderBy(c => c.Code.Contains('_') ? 1 : 0).ThenBy(c => c.Code, StringComparer.OrdinalIgnoreCase).ToList();
+                    _cache.Set(cacheKey, all, TimeSpan.FromHours(1));
+                    return Page(all, page);
                 }
 
-                var json = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<OnePieceResponse>(json, _jsonOptions);
-
-                if (result != null)
+                var rate = await _fx.UsdToEurAsync();
+                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                all = new List<OnePieceCard>();
+                var anyAnswer = false;
+                foreach (var collection in Collections)
                 {
-                    _cache.Set(cacheKey, result, TimeSpan.FromHours(1));
-                    // Le carte trovate restano in memoria: l'aggiunta subito dopo non dipende da una nuova chiamata all'API
-                    foreach (var card in result.Data ?? new List<OnePieceCard>())
-                        if (!string.IsNullOrEmpty(card.Code)) _cache.Set($"optcg:card:{card.Code}", card, TimeSpan.FromHours(6));
+                    var prints = await GetListAsync($"/api/{collection}/filtered/?card_name={Uri.EscapeDataString(query)}");
+                    if (prints == null) continue;
+                    anyAnswer = true;
+                    // La stessa stampa può comparire in più raccolte: vale la prima
+                    foreach (var p in prints.Where(p => !string.IsNullOrWhiteSpace(p.CardImageId) && seen.Add(p.CardImageId!)))
+                        all.Add(Map(p, rate));
                 }
+                if (!anyAnswer) return null;
 
-                return result;
+                // Prima il nome esatto, poi i nomi con una parola che inizia come la ricerca
+                // ("luffy" -> "Monkey.D.Luffy"), i personaggi prima degli eventi; poi per codice, base prima delle varianti
+                all = all
+                    .OrderBy(c => NameRank(c.Name, query))
+                    .ThenBy(c => TypeRank(c.Type))
+                    .ThenBy(c => c.Code.Split('_')[0], StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(c => c.Code.Contains('_') ? 1 : 0)
+                    .ThenBy(c => c.Code, StringComparer.OrdinalIgnoreCase)
+                    .Take(MaxSearchResults)
+                    .ToList();
+                _cache.Set(cacheKey, all, TimeSpan.FromHours(1));
             }
-            catch (Exception ex)
+
+            // L'aggiunta subito dopo la ricerca non richiama l'API
+            foreach (var card in all) _cache.Set($"optcg:card:{card.Code.ToUpperInvariant()}", card, TimeSpan.FromHours(6));
+
+            return Page(all, page);
+        }
+
+        private static OnePieceResponse Page(List<OnePieceCard> all, int page)
+        {
+            page = Math.Max(1, page);
+            return new OnePieceResponse
             {
-                _logger.LogError(ex, "Errore chiamata OnePieceTCG search cards: {Query}", query);
-                return null;
+                Data = all.Skip((page - 1) * PageSize).Take(PageSize).ToList(),
+                Page = page,
+                Limit = PageSize,
+                Total = all.Count,
+                TotalPages = (int)Math.Ceiling(all.Count / (double)PageSize)
+            };
+        }
+
+        public static int NameRank(string name, string query)
+        {
+            var bare = Variant.Replace(name, "").Trim();
+            if (string.Equals(bare, query, StringComparison.OrdinalIgnoreCase)) return 0;
+            var words = Regex.Split(bare, @"[^\p{L}\p{N}]+");
+            if (words.Any(w => w.StartsWith(query, StringComparison.OrdinalIgnoreCase))) return 1;
+            return 2;
+        }
+
+        private static int TypeRank(string? type) => type?.ToUpperInvariant() switch
+        {
+            "LEADER" => 0,
+            "CHARACTER" => 1,
+            "EVENT" => 2,
+            "STAGE" => 3,
+            _ => 4
+        };
+
+        /// <summary>Tutte le stampe di un codice base (cerca nelle raccolte adatte); null se il servizio non risponde.</summary>
+        private async Task<List<OnePieceCard>?> GetPrintsAsync(string baseCode)
+        {
+            var order = PromoCode.IsMatch(baseCode) ? new[] { "promos" }
+                : StarterCode.IsMatch(baseCode) ? new[] { "decks", "promos" }
+                : new[] { "sets", "promos", "decks" };
+            var rate = await _fx.UsdToEurAsync();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var result = new List<OnePieceCard>();
+            var anyAnswer = false;
+            foreach (var collection in order)
+            {
+                var prints = await GetListAsync($"/api/{collection}/card/{Uri.EscapeDataString(baseCode)}/");
+                if (prints == null) continue;
+                anyAnswer = true;
+                foreach (var p in prints.Where(p => !string.IsNullOrWhiteSpace(p.CardImageId) && seen.Add(p.CardImageId!)))
+                    result.Add(Map(p, rate));
             }
+            return anyAnswer ? result : null;
         }
 
         // ================================================================
-        // Mapping One Piece TCG -> Entità locali
+        // Mapping
         // ================================================================
+
+        /// <summary>Formato OPTCG API -> formato interno (usato da controller, catalogo e import).</summary>
+        public static OnePieceCard Map(OptcgApiCard c, decimal usdToEur)
+        {
+            var code = (c.CardImageId ?? c.CardSetId ?? "").Trim();
+            // "Roronoa Zoro (001) (Parallel)" -> "Roronoa Zoro (Parallel)": il numero è già nel codice
+            var name = PrintNumber.Replace(c.CardName ?? code, "").Trim();
+            var usd = c.MarketPrice ?? c.InventoryPrice;
+            return new OnePieceCard
+            {
+                Code = code,
+                Name = string.IsNullOrWhiteSpace(name) ? code : name,
+                Type = c.CardType,
+                Rarity = c.Rarity,
+                Cost = OptcgApiCard.ToInt(c.CardCost),
+                Power = OptcgApiCard.ToInt(c.CardPower),
+                Counter = OptcgApiCard.ToInt(c.CounterAmount),
+                Color = c.CardColor,
+                Family = c.SubTypes,
+                Ability = c.CardText,
+                Attribute = string.IsNullOrWhiteSpace(c.Attribute) ? null : new OnePieceAttribute { Name = c.Attribute },
+                Images = string.IsNullOrWhiteSpace(c.CardImage) ? null : new OnePieceImages { Small = c.CardImage, Large = c.CardImage },
+                Set = new OnePieceSetInfo { Name = c.SetName },
+                PriceUsd = usd,
+                PriceEur = usd.HasValue ? Math.Round(usd.Value * usdToEur, 2) : null
+            };
+        }
 
         public void MapToCardInfo(OnePieceCard src, CardInfo dest)
         {
             dest.OnePieceTcgId = src.Code;
             dest.Name = src.Name;
-            dest.CardNumber = src.Code;
+            dest.CardNumber = src.Code.Split('_')[0];
             dest.Rarity = src.Rarity;
             dest.Type = src.Type;
             dest.OnePieceColor = src.Color;
@@ -143,42 +215,56 @@ namespace CardExchange.API.Services
             dest.OnePieceTrigger = src.Trigger;
             dest.Description = src.Ability;
 
-            // Immagini
             if (src.Images != null)
             {
                 dest.OnePieceImageSmall = src.Images.Small;
                 dest.OnePieceImageLarge = src.Images.Large;
                 dest.ImageUrl = src.Images.Large ?? src.Images.Small;
+                dest.ImageSmall ??= src.Images.Small;
+                dest.ImageLarge ??= src.Images.Large;
             }
+
+            if (src.PriceUsd.HasValue) dest.PriceUsd = src.PriceUsd;
+            if (src.PriceEur.HasValue) dest.PriceEur = src.PriceEur;
 
             dest.OnePieceTcgUpdatedAt = DateTime.UtcNow;
         }
 
         // ================================================================
-        // HTTP helpers
+        // HTTP
         // ================================================================
 
-        private async Task ApplyApiKeyAsync()
+        /// <summary>Elenco di stampe; null se il servizio non risponde, lista vuota se non trova nulla.</summary>
+        private async Task<List<OptcgApiCard>?> GetListAsync(string path)
         {
-            var cacheKey = "optcg:apikey";
-            if (!_cache.TryGetValue(cacheKey, out string? apiKey))
+            await RateLimitAsync();
+            for (var attempt = 1; attempt <= 2; attempt++)
             {
-                var configKey = await _context.AppConfigKeys
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(k => k.ServiceName == "OnePieceTcg"
-                                           && k.KeyName == "ApiKey"
-                                           && k.IsActive
-                                           && !k.IsDeleted);
-
-                apiKey = configKey?.KeyValue;
-                _cache.Set(cacheKey, apiKey ?? string.Empty, TimeSpan.FromMinutes(5));
+                try
+                {
+                    using var response = await _httpClient.GetAsync(path);
+                    // L'API risponde 404 quando non trova carte
+                    if (response.StatusCode == HttpStatusCode.NotFound) return new List<OptcgApiCard>();
+                    if ((int)response.StatusCode >= 500 && attempt == 1) { await Task.Delay(400); continue; }
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        _logger.LogWarning("OPTCG API GET {Path} -> {StatusCode}", path, response.StatusCode);
+                        return null;
+                    }
+                    var json = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<List<OptcgApiCard>>(json, _jsonOptions) ?? new List<OptcgApiCard>();
+                }
+                catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
+                {
+                    if (attempt == 2)
+                    {
+                        _logger.LogWarning(ex, "OPTCG API GET {Path} non riuscita", path);
+                        return null;
+                    }
+                    await Task.Delay(400);
+                }
             }
-
-            if (!string.IsNullOrEmpty(apiKey))
-            {
-                _httpClient.DefaultRequestHeaders.Remove("x-api-key");
-                _httpClient.DefaultRequestHeaders.Add("x-api-key", apiKey);
-            }
+            return null;
         }
 
         private static async Task RateLimitAsync()
@@ -187,9 +273,7 @@ namespace CardExchange.API.Services
             try
             {
                 var elapsed = (DateTime.UtcNow - _lastRequestTime).TotalMilliseconds;
-                if (elapsed < MinDelayMs)
-                    await Task.Delay(MinDelayMs - (int)elapsed);
-
+                if (elapsed < MinDelayMs) await Task.Delay(MinDelayMs - (int)elapsed);
                 _lastRequestTime = DateTime.UtcNow;
             }
             finally
@@ -197,11 +281,5 @@ namespace CardExchange.API.Services
                 _rateLimiter.Release();
             }
         }
-    }
-
-    // Wrapper per la risposta singola carta
-    internal class OnePieceSingleResponse
-    {
-        public OnePieceCard? Data { get; set; }
     }
 }

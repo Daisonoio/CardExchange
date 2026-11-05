@@ -55,6 +55,49 @@ namespace CardExchange.API.DTOs.OnePieceTcg
 
         [JsonPropertyName("notes")]
         public List<string>? Notes { get; set; }
+
+        /// <summary>Prezzo di mercato in dollari (TCGplayer, via OPTCG API).</summary>
+        [JsonPropertyName("priceUsd")]
+        public decimal? PriceUsd { get; set; }
+
+        /// <summary>Prezzo convertito in euro al cambio BCE del giorno.</summary>
+        [JsonPropertyName("priceEur")]
+        public decimal? PriceEur { get; set; }
+    }
+
+    // ================================================================
+    // OPTCG API (optcgapi.com): formato originale delle carte
+    // ================================================================
+
+    public class OptcgApiCard
+    {
+        [JsonPropertyName("card_name")] public string? CardName { get; set; }
+        [JsonPropertyName("set_name")] public string? SetName { get; set; }
+        [JsonPropertyName("set_id")] public string? SetId { get; set; }
+        [JsonPropertyName("card_text")] public string? CardText { get; set; }
+        [JsonPropertyName("rarity")] public string? Rarity { get; set; }
+        [JsonPropertyName("card_set_id")] public string? CardSetId { get; set; }
+        [JsonPropertyName("card_color")] public string? CardColor { get; set; }
+        [JsonPropertyName("card_type")] public string? CardType { get; set; }
+        [JsonPropertyName("card_cost")] public System.Text.Json.JsonElement? CardCost { get; set; }
+        [JsonPropertyName("card_power")] public System.Text.Json.JsonElement? CardPower { get; set; }
+        [JsonPropertyName("counter_amount")] public System.Text.Json.JsonElement? CounterAmount { get; set; }
+        [JsonPropertyName("sub_types")] public string? SubTypes { get; set; }
+        [JsonPropertyName("attribute")] public string? Attribute { get; set; }
+        /// <summary>Identifica la singola stampa: "OP01-001", "OP01-001_p1" (parallel), "P-001_r1"…</summary>
+        [JsonPropertyName("card_image_id")] public string? CardImageId { get; set; }
+        [JsonPropertyName("card_image")] public string? CardImage { get; set; }
+        [JsonPropertyName("market_price")] public decimal? MarketPrice { get; set; }
+        [JsonPropertyName("inventory_price")] public decimal? InventoryPrice { get; set; }
+
+        /// <summary>Numero intero da un campo che l'API manda a volte come numero, a volte come testo ("5000", "-").</summary>
+        public static int? ToInt(System.Text.Json.JsonElement? e)
+        {
+            if (e is not { } v) return null;
+            if (v.ValueKind == System.Text.Json.JsonValueKind.Number && v.TryGetInt32(out var n)) return n;
+            if (v.ValueKind == System.Text.Json.JsonValueKind.String && int.TryParse(v.GetString()?.Trim(), out var m)) return m;
+            return null;
+        }
     }
 
     public class OnePieceAttribute

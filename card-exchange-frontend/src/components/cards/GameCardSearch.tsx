@@ -62,7 +62,7 @@ function normalizeOnePieceCards(cards: any[]): GameCard[] {
     rarity: c.rarity,
     imageSmall: c.images?.small || c.images?.large || '',
     imageLarge: c.images?.large || c.images?.small || '',
-    priceEur: undefined,
+    priceEur: c.priceEur ?? undefined,
     subtitle: [c.type, c.color, c.cost != null ? `Cost ${c.cost}` : null].filter(Boolean).join(' — '),
   }));
 }

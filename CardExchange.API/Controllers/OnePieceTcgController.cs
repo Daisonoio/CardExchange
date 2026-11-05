@@ -41,7 +41,7 @@ namespace CardExchange.API.Controllers
         // ================================================================
 
         /// <summary>
-        /// Ricerca carte One Piece TCG. Cerca prima nel DB locale, poi nell'API ApiTCG.
+        /// Ricerca carte One Piece TCG nel catalogo OPTCG API; se non risponde, nel DB locale.
         /// </summary>
         [HttpGet("search")]
         [AllowAnonymous]
@@ -52,7 +52,24 @@ namespace CardExchange.API.Controllers
 
             pageSize = Math.Clamp(pageSize, 1, 50);
 
-            // 1. Cerca nel DB locale
+            // 1. Catalogo completo (tutte le stampe). Prima si cercava nel DB locale, ma bastava una carta
+            //    già importata per nascondere tutte le altre stampe con lo stesso nome.
+            var result = await _onePiece.SearchCardsAsync(q, page);
+            if (result != null)
+            {
+                return Ok(new
+                {
+                    source = "api",
+                    query = q,
+                    page = result.Page,
+                    pageSize = result.Limit,
+                    totalCount = result.Total,
+                    totalPages = result.TotalPages,
+                    cards = result.Data.Select(MapApiCardToResponse)
+                });
+            }
+
+            // 2. Servizio non raggiungibile: le carte già presenti nel DB locale
             var onePieceGameId = await GetOnePieceGameIdAsync();
             if (onePieceGameId.HasValue)
             {
@@ -84,21 +101,7 @@ namespace CardExchange.API.Controllers
                 }
             }
 
-            // 2. Fallback: chiama API ApiTCG
-            var result = await _onePiece.SearchCardsAsync(q, page);
-            if (result == null)
-                return Ok(new { source = "api", query = q, totalCount = 0, cards = Array.Empty<object>() });
-
-            return Ok(new
-            {
-                source = "api",
-                query = q,
-                page = result.Page,
-                pageSize = result.Limit,
-                totalCount = result.Total,
-                totalPages = result.TotalPages,
-                cards = result.Data.Select(MapApiCardToResponse)
-            });
+            return StatusCode(StatusCodes.Status502BadGateway, new { message = "Il catalogo One Piece non risponde, riprova tra poco." });
         }
 
         /// <summary>
@@ -197,6 +200,7 @@ namespace CardExchange.API.Controllers
                     large = ci.OnePieceImageLarge
                 },
                 setName = ci.CardSet?.Name,
+                priceEur = ci.PriceEur,
                 lastUpdated = ci.OnePieceTcgUpdatedAt
             };
         }
@@ -222,7 +226,8 @@ namespace CardExchange.API.Controllers
                     small = card.Images?.Small,
                     large = card.Images?.Large
                 },
-                setName = card.Set?.Name
+                setName = card.Set?.Name,
+                priceEur = card.PriceEur
             };
         }
 

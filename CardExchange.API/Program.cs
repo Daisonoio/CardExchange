@@ -251,7 +251,7 @@ builder.Services.AddHttpClient<IYuGiOhService, YuGiOhService>(client =>
 });
 builder.Services.AddHttpClient<IOnePieceTcgService, OnePieceTcgService>(client =>
 {
-    client.BaseAddress = new Uri("https://apitcg.com");
+    client.BaseAddress = new Uri(OnePieceTcgService.BaseUrl);
     client.DefaultRequestHeaders.Add("User-Agent", "CardExchange/1.0");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     client.Timeout = TimeSpan.FromSeconds(20);
