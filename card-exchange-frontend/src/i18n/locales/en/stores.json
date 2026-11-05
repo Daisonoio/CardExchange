@@ -19,7 +19,14 @@
     "createEvent": "Create event",
     "noEvents": "No upcoming events.",
     "participants_one": "{{count}} participant",
-    "participants_other": "{{count}} participants"
+    "participants_other": "{{count}} participants",
+    "meetups": {
+      "title": "Trades at your store in the next 7 days",
+      "none": "None yet: your customers see you as a meeting point when they schedule a trade.",
+      "people": "2 people",
+      "completed_one": "{{count}} trade completed at your store in the last 30 days",
+      "completed_other": "{{count}} trades completed at your store in the last 30 days"
+    }
   },
   "form": {
     "notFound": "Store not found",

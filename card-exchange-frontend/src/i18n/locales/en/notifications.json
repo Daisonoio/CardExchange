@@ -24,7 +24,8 @@
     "SystemAnnouncement": "System announcement",
     "default": "Notification",
     "FollowedNearby": "Someone you follow is nearby",
-    "NewFollower": "New follower"
+    "NewFollower": "New follower",
+    "StoreActivity": "Activity at your store"
   },
   "center": {
     "title": "Notifications",

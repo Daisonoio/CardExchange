@@ -701,6 +701,7 @@ export interface TradeMeetup {
   status: 'Proposed' | 'Accepted' | 'Declined' | 'Cancelled' | 'Superseded';
   createdAt: string;
   respondedAt?: string;
+  storeId?: number | null;
 }
 
 // === Negozi ===

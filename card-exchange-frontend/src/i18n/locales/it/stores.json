@@ -19,7 +19,14 @@
     "createEvent": "Crea evento",
     "noEvents": "Nessun evento in programma.",
     "participants_one": "{{count}} partecipante",
-    "participants_other": "{{count}} partecipanti"
+    "participants_other": "{{count}} partecipanti",
+    "meetups": {
+      "title": "Scambi in negozio nei prossimi 7 giorni",
+      "none": "Nessuno per ora: i tuoi clienti ti vedono come punto di scambio quando fissano un incontro.",
+      "people": "2 persone",
+      "completed_one": "{{count}} scambio concluso da te negli ultimi 30 giorni",
+      "completed_other": "{{count}} scambi conclusi da te negli ultimi 30 giorni"
+    }
   },
   "form": {
     "notFound": "Negozio non trovato",

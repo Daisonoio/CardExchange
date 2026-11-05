@@ -32,6 +32,7 @@ function getNavigationTarget(notification: Notification): string | null {
     case 'Conversation': return `/chat?conversationId=${referenceId}`;
     case 'Broadcast': return `/live/${referenceId}`;
     case 'Follower': return `/collection/${referenceId}`;
+    case 'Store': return `/stores/${referenceId}`;
     default: return null;
   }
 }

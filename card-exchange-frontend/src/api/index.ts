@@ -348,7 +348,9 @@ export const moderation = {
 export const meetups = {
   list: (tradeOfferId: number) =>
     client.get<import('../types').TradeMeetup[]>(`/tradeoffers/${tradeOfferId}/meetups`),
-  propose: (tradeOfferId: number, data: { scheduledAt: string; locationName: string; address?: string; latitude?: number; longitude?: number; notes?: string }) =>
+  suggestions: (tradeOfferId: number) =>
+    client.get<MeetupSpot[]>(`/tradeoffers/${tradeOfferId}/meetups/suggestions`),
+  propose: (tradeOfferId: number, data: { scheduledAt: string; locationName: string; address?: string; latitude?: number; longitude?: number; notes?: string; storeId?: number }) =>
     client.post<import('../types').TradeMeetup>(`/tradeoffers/${tradeOfferId}/meetups`, data),
   accept: (tradeOfferId: number, meetupId: number) =>
     client.post<import('../types').TradeMeetup>(`/tradeoffers/${tradeOfferId}/meetups/${meetupId}/accept`),
@@ -375,6 +377,7 @@ export const stores = {
   mine: () => client.get<import('../types').Store[]>('/stores/mine'),
   bySlug: (slug: string) => client.get<{ id: number; name: string; city: string; slug: string }>(`/stores/by-slug/${encodeURIComponent(slug)}`),
   attributions: (id: number) => client.get<{ total: number; last30Days: number }>(`/stores/${id}/attributions`),
+  meetups: (id: number) => client.get<{ upcoming: { id: number; scheduledAt: string }[]; completedLast30Days: number }>(`/stores/${id}/meetups`),
   create: (data: import('../types').StoreInput) => client.post<import('../types').Store>('/stores', data),
   update: (id: number, data: import('../types').StoreInput) => client.put<import('../types').Store>(`/stores/${id}`, data),
   pending: (status: 'pending' | 'verified' | 'rejected' | 'suspended' = 'pending') =>
@@ -520,3 +523,17 @@ export const broadcasts = {
   get: (id: number) => client.get<LiveBroadcast>(`/broadcasts/${id}`),
   end: (id: number) => client.post<LiveBroadcast>(`/broadcasts/${id}/end`),
 };
+
+/** Negozio suggerito come punto di scambio sicuro per un appuntamento. */
+export interface MeetupSpot {
+  storeId: number;
+  name: string;
+  address: string;
+  city: string;
+  latitude: number;
+  longitude: number;
+  openingHours?: string | null;
+  isPartner: boolean;
+  distanceFromMeKm?: number | null;
+  distanceFromOtherKm?: number | null;
+}

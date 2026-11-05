@@ -414,6 +414,29 @@ namespace CardExchange.API.Controllers
             return new StorePublicDto { Id = store.Id, Name = store.Name, City = store.City, Slug = store.Slug! };
         }
 
+        /// <summary>
+        /// Scambi fissati in negozio nei prossimi giorni (solo il proprietario): data e ora, mai i nomi dei partecipanti.
+        /// </summary>
+        [HttpGet("api/stores/{id:int}/meetups")]
+        public async Task<IActionResult> Meetups(int id, [FromQuery] int days = 7)
+        {
+            var store = await _context.Stores.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+            if (store == null) return NotFound(new { message = "Negozio non trovato" });
+            if (store.OwnerId != CurrentUserId()) return Forbid();
+            var now = DateTime.UtcNow;
+            var until = now.AddDays(Math.Clamp(days, 1, 30));
+            var list = await _context.TradeMeetups.AsNoTracking()
+                .Where(m => m.StoreId == id && m.Status == MeetupStatus.Accepted && m.ScheduledAt > now && m.ScheduledAt < until)
+                .OrderBy(m => m.ScheduledAt)
+                .Select(m => new { m.Id, m.ScheduledAt })
+                .ToListAsync();
+            var since = now.AddDays(-30);
+            var completed = await _context.TradeMeetups.AsNoTracking()
+                .CountAsync(m => m.StoreId == id && m.Status == MeetupStatus.Accepted && m.ScheduledAt < now && m.ScheduledAt >= since
+                                 && m.TradeOffer.Status == TradeOfferStatus.Completed);
+            return Ok(new { upcoming = list, completedLast30Days = completed });
+        }
+
         /// <summary>Quanti utenti si sono registrati dal QR del negozio (solo il proprietario, solo il numero).</summary>
         [HttpGet("api/stores/{id:int}/attributions")]
         public async Task<IActionResult> Attributions(int id)

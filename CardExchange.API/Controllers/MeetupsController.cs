@@ -1,5 +1,6 @@
 using CardExchange.API.Services;
 using CardExchange.Core.Entities;
+using CardExchange.Core.Rules;
 using CardExchange.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -54,6 +55,24 @@ namespace CardExchange.API.Controllers
 
             [MaxLength(500)]
             public string? Notes { get; set; }
+
+            /// <summary>Negozio scelto come punto di scambio: nome, indirizzo e posizione vengono dalla sua scheda.</summary>
+            public int? StoreId { get; set; }
+        }
+
+        public class MeetupSpotDto
+        {
+            public int StoreId { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string Address { get; set; } = string.Empty;
+            public string City { get; set; } = string.Empty;
+            public decimal Latitude { get; set; }
+            public decimal Longitude { get; set; }
+            public string? OpeningHours { get; set; }
+            /// <summary>Negozio partner (piano Negozio attivo).</summary>
+            public bool IsPartner { get; set; }
+            public int? DistanceFromMeKm { get; set; }
+            public int? DistanceFromOtherKm { get; set; }
         }
 
         public class MeetupDto
@@ -71,6 +90,67 @@ namespace CardExchange.API.Controllers
             public string Status { get; set; } = string.Empty;
             public DateTime CreatedAt { get; set; }
             public DateTime? RespondedAt { get; set; }
+            public int? StoreId { get; set; }
+        }
+
+        /// <summary>
+        /// Negozi da proporre come punto di scambio sicuro: partner per primi, poi per distanza dal punto medio
+        /// tra i due partecipanti (entro 30 km). Senza le posizioni di entrambi si usa quella disponibile.
+        /// </summary>
+        [HttpGet("suggestions")]
+        public async Task<ActionResult<IEnumerable<MeetupSpotDto>>> Suggestions(int tradeOfferId)
+        {
+            var (offer, error) = await LoadOfferForParticipantAsync(tradeOfferId);
+            if (offer == null) return error!;
+            var userId = CurrentUserId();
+            var otherId = userId == offer.SenderId ? offer.ReceiverId : offer.SenderId;
+
+            var locations = await _context.UserLocations.AsNoTracking()
+                .Where(l => (l.UserId == userId || l.UserId == otherId) && l.Latitude != null && l.Longitude != null)
+                .Select(l => new { l.UserId, Lat = (double)l.Latitude!.Value, Lon = (double)l.Longitude!.Value })
+                .ToListAsync();
+            var mine = locations.FirstOrDefault(l => l.UserId == userId);
+            var other = locations.FirstOrDefault(l => l.UserId == otherId);
+            if (mine == null && other == null) return Ok(Array.Empty<MeetupSpotDto>());
+            var (midLat, midLon) = mine != null && other != null
+                ? MeetupSpots.Midpoint(mine.Lat, mine.Lon, other.Lat, other.Lon)
+                : ((mine ?? other)!.Lat, (mine ?? other)!.Lon);
+
+            var stores = await _context.Stores.AsNoTracking()
+                .Where(s => s.Status == StoreStatus.Verified && s.IsSafeMeetupSpot)
+                .ToListAsync();
+            var now = DateTime.UtcNow;
+            var ownerIds = stores.Select(s => s.OwnerId).Distinct().ToList();
+            var partners = (await _context.UserSubscriptions
+                .Where(s => ownerIds.Contains(s.UserId) && s.Status == SubscriptionStatus.Active
+                            && s.StartDate <= now && s.EndDate > now && s.Plan.Tier == SubscriptionTier.Store)
+                .Select(s => s.UserId).Distinct().ToListAsync()).ToHashSet();
+
+            var ranked = MeetupSpots.Rank(
+                stores.Select(s => new MeetupSpots.Candidate(s.Id, (double)s.Latitude, (double)s.Longitude, partners.Contains(s.OwnerId))),
+                midLat, midLon);
+            var byId = stores.ToDictionary(s => s.Id);
+            int? Km(double? lat, double? lon, Store s) => lat.HasValue && lon.HasValue
+                ? Math.Max(1, (int)Math.Round(Geo.DistanceKm(lat.Value, lon.Value, (double)s.Latitude, (double)s.Longitude)))
+                : null;
+
+            return Ok(ranked.Select(r =>
+            {
+                var s = byId[r.StoreId];
+                return new MeetupSpotDto
+                {
+                    StoreId = s.Id,
+                    Name = s.Name,
+                    Address = s.Address,
+                    City = s.City,
+                    Latitude = s.Latitude,
+                    Longitude = s.Longitude,
+                    OpeningHours = s.OpeningHours,
+                    IsPartner = r.IsPartner,
+                    DistanceFromMeKm = Km(mine?.Lat, mine?.Lon, s),
+                    DistanceFromOtherKm = Km(other?.Lat, other?.Lon, s)
+                };
+            }));
         }
 
         /// <summary>Storico degli appuntamenti dello scambio (più recenti prima).</summary>
@@ -106,6 +186,18 @@ namespace CardExchange.API.Controllers
                 return BadRequest(new { message = "Scegli un orario ad almeno 30 minuti da adesso" });
             if (scheduledUtc > now + MaxHorizon)
                 return BadRequest(new { message = "Scegli una data entro i prossimi 60 giorni" });
+            // Negozio come punto di scambio: luogo e posizione vengono dalla sua scheda
+            Store? store = null;
+            if (request.StoreId.HasValue)
+            {
+                store = await _context.Stores.AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.Id == request.StoreId.Value && s.Status == StoreStatus.Verified);
+                if (store == null) return BadRequest(new { message = "Il negozio scelto non è disponibile" });
+                request.LocationName = store.Name;
+                request.Address = $"{store.Address}, {store.City}";
+                request.Latitude = store.Latitude;
+                request.Longitude = store.Longitude;
+            }
             if (string.IsNullOrWhiteSpace(request.LocationName))
                 return BadRequest(new { message = "Indica il luogo dell'incontro" });
 
@@ -123,7 +215,8 @@ namespace CardExchange.API.Controllers
                 Address = request.Address?.Trim(),
                 Latitude = request.Latitude,
                 Longitude = request.Longitude,
-                Notes = request.Notes?.Trim()
+                Notes = request.Notes?.Trim(),
+                StoreId = store?.Id
             };
             _context.TradeMeetups.Add(meetup);
             await _context.SaveChangesAsync();
@@ -255,7 +348,8 @@ namespace CardExchange.API.Controllers
             Notes = m.Notes,
             Status = m.Status.ToString(),
             CreatedAt = m.CreatedAt,
-            RespondedAt = m.RespondedAt
+            RespondedAt = m.RespondedAt,
+            StoreId = m.StoreId
         };
 
         private int CurrentUserId() =>

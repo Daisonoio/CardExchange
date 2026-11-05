@@ -142,7 +142,10 @@
       "placePlaceholder": "E.g. Games Corner shop",
       "addressPlaceholder": "Address (optional)",
       "notesPlaceholder": "Notes (optional), e.g. 'at the counter'",
-      "submit": "Send proposal"
+      "submit": "Send proposal",
+      "partner": "Partner",
+      "fromYou": "{{km}} km from you",
+      "fromOther": "{{km}} km from {{username}}"
     }
   }
 }

@@ -365,6 +365,8 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(m => new { m.Status, m.ScheduledAt });
                 entity.HasOne(m => m.TradeOffer).WithMany().HasForeignKey(m => m.TradeOfferId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(m => m.ProposedBy).WithMany().HasForeignKey(m => m.ProposedById).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(m => m.Store).WithMany().HasForeignKey(m => m.StoreId).OnDelete(DeleteBehavior.SetNull);
+                entity.HasIndex(m => new { m.StoreId, m.ScheduledAt });
             });
 
             // Segnalazioni utenti

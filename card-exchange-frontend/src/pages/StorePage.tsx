@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, CalendarDays, Clock, Globe, Instagram, Loader2, MapPin, Phone, QrCode, Radio, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowLeftRight, CalendarDays, Clock, Globe, Instagram, Loader2, MapPin, Phone, QrCode, Radio, ShieldCheck, Sparkles } from 'lucide-react';
 import { events, stores } from '../api';
 import type { CardEvent, Store } from '../types';
 import { EVENT_TYPE_LABELS } from '../types';
 import { formatEventDate } from '../utils/eventDate';
 import { useGame } from '../context/GameContext';
+import { useFormat } from '../i18n/format';
 import StoresMap from '../components/stores/StoresMap';
 import EmptyState from '../components/ui/EmptyState';
 import FollowButton from '../components/social/FollowButton';
@@ -24,9 +25,11 @@ export default function StorePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { games } = useGame();
+  const { dateTime } = useFormat();
   const [store, setStore] = useState<Store | null | undefined>(undefined);
   const [storeEvents, setStoreEvents] = useState<CardEvent[]>([]);
   const [attributions, setAttributions] = useState<{ total: number; last30Days: number } | null>(null);
+  const [storeMeetups, setStoreMeetups] = useState<{ upcoming: { id: number; scheduledAt: string }[]; completedLast30Days: number } | null>(null);
 
   useEffect(() => {
     stores.get(Number(id)).then(({ data }) => setStore(data)).catch(() => setStore(null));
@@ -37,6 +40,7 @@ export default function StorePage() {
   useEffect(() => {
     if (!isOwner) return;
     stores.attributions(Number(id)).then(({ data }) => setAttributions(data)).catch(() => setAttributions(null));
+    stores.meetups(Number(id)).then(({ data }) => setStoreMeetups(data)).catch(() => setStoreMeetups(null));
   }, [id, isOwner]);
 
   if (store === undefined) return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>;
@@ -63,6 +67,22 @@ export default function StorePage() {
         )}
         {!store.isOwner && store.status === 'Verified' && <FollowButton target={{ storeId: store.id }} showCount />}
       </div>
+
+      {store.isOwner && store.status === 'Verified' && storeMeetups && (
+        <div className="p-3 rounded-xl bg-white border border-border">
+          <p className="text-sm font-semibold text-text flex items-center gap-1.5"><ArrowLeftRight size={16} className="text-primary" /> {t('page.meetups.title')}</p>
+          {storeMeetups.upcoming.length === 0 ? (
+            <p className="text-xs text-text-secondary mt-0.5">{t('page.meetups.none')}</p>
+          ) : (
+            <ul className="mt-1 space-y-0.5">
+              {storeMeetups.upcoming.slice(0, 5).map((m) => (
+                <li key={m.id} className="text-xs text-text-secondary">{dateTime(m.scheduledAt, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · {t('page.meetups.people')}</li>
+              ))}
+            </ul>
+          )}
+          <p className="text-[11px] text-text-muted mt-1">{t('page.meetups.completed', { count: storeMeetups.completedLast30Days })}</p>
+        </div>
+      )}
 
       {store.isOwner && store.status === 'Verified' && (
         <Link to={`/qr/store/${store.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">

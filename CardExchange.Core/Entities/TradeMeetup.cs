@@ -54,6 +54,14 @@ namespace CardExchange.Core.Entities
         /// <summary>Invito a confermare lo scambio dopo l'incontro già inviato.</summary>
         public DateTime? FollowUpSentAt { get; set; }
 
+        /// <summary>Negozio scelto come punto di scambio (luogo e coordinate vengono dalla sua scheda).</summary>
+        public int? StoreId { get; set; }
+
+        /// <summary>Quando il negozio è stato avvisato dell'incontro.</summary>
+        public DateTime? StoreNotifiedAt { get; set; }
+
+        public virtual Store? Store { get; set; }
+
         [ForeignKey(nameof(TradeOfferId))]
         public virtual TradeOffer TradeOffer { get; set; } = null!;
 

@@ -24,7 +24,8 @@
     "SystemAnnouncement": "Annuncio di sistema",
     "default": "Notifica",
     "FollowedNearby": "Un profilo che segui è nei paraggi",
-    "NewFollower": "Nuovo follower"
+    "NewFollower": "Nuovo follower",
+    "StoreActivity": "Attività del tuo negozio"
   },
   "center": {
     "title": "Notifiche",

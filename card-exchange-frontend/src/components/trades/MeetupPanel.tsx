@@ -3,8 +3,8 @@ import { CalendarClock, CalendarPlus, MapPin, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import { formatDateTime } from '../../i18n/format';
-import { meetups, stores } from '../../api';
-import type { Store, TradeMeetup } from '../../types';
+import { meetups, type MeetupSpot } from '../../api';
+import type { TradeMeetup } from '../../types';
 import { apiErrorMessage } from '../../utils/apiError';
 import Button from '../ui/Button';
 
@@ -49,10 +49,10 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
   const { t } = useTranslation('trades');
   const [list, setList] = useState<TradeMeetup[] | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<{ when: string; locationName: string; address: string; notes: string; latitude?: number; longitude?: number }>(
+  const [form, setForm] = useState<{ when: string; locationName: string; address: string; notes: string; latitude?: number; longitude?: number; storeId?: number }>(
     { when: '', locationName: '', address: '', notes: '' });
-  // Negozi verificati vicini, proposti come luoghi d'incontro sicuri
-  const [nearbyStores, setNearbyStores] = useState<Store[]>([]);
+  // Negozi proposti come punto di scambio: partner per primi, poi i più comodi per entrambi
+  const [spots, setSpots] = useState<MeetupSpot[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,14 +88,18 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
     suggested.setMinutes(0, 0, 0);
     setForm({
       when: toLocalInput(suggested), locationName: active?.locationName ?? '', address: active?.address ?? '', notes: '',
-      latitude: active?.latitude, longitude: active?.longitude,
+      latitude: active?.latitude, longitude: active?.longitude, storeId: active?.storeId ?? undefined,
     });
     setShowForm(true);
-    stores.list({ meetupOnly: true, radiusKm: 30 }).then(({ data }) => setNearbyStores(data.slice(0, 5))).catch(() => setNearbyStores([]));
+    meetups.suggestions(tradeOfferId).then(({ data }) => {
+      setSpots(data);
+      // Nuovo appuntamento: il negozio più comodo è già scelto, si può cambiare o scrivere un altro luogo
+      if (!active && data.length > 0) pickStore(data[0]);
+    }).catch(() => setSpots([]));
   };
 
-  const pickStore = (s: Store) =>
-    setForm((f) => ({ ...f, locationName: s.name, address: `${s.address}, ${s.city}`, latitude: s.latitude, longitude: s.longitude }));
+  const pickStore = (s: MeetupSpot) =>
+    setForm((f) => ({ ...f, locationName: s.name, address: `${s.address}, ${s.city}`, latitude: s.latitude, longitude: s.longitude, storeId: s.storeId }));
 
   const submit = () => run(async () => {
     await meetups.propose(tradeOfferId, {
@@ -105,6 +109,7 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
       latitude: form.latitude,
       longitude: form.longitude,
       notes: form.notes.trim() || undefined,
+      storeId: form.storeId,
     });
     setShowForm(false);
   });
@@ -186,22 +191,36 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
               className="mt-1 w-full px-3 py-2 rounded-xl border border-border text-sm"
             />
           </label>
-          {nearbyStores.length > 0 && (
+          {spots.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-text-secondary mb-1 flex items-center gap-1">
                 <ShieldCheck size={13} className="text-green-600" /> {t('meetup.form.suggestedStores')}
               </p>
-              <div className="flex flex-wrap gap-1.5">
-                {nearbyStores.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => pickStore(s)}
-                    className={`px-2.5 py-1 rounded-full text-xs border ${form.locationName === s.name ? 'border-primary bg-primary/10 text-primary' : 'border-border text-text-secondary'}`}
-                  >
-                    {s.name}{s.distanceKm != null ? ` · ${s.distanceKm} km` : ''}
-                  </button>
-                ))}
+              <div className="space-y-1.5" role="radiogroup" aria-label={t('meetup.form.suggestedStores')}>
+                {spots.map((s) => {
+                  const selected = form.storeId === s.storeId;
+                  return (
+                    <button
+                      key={s.storeId}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => pickStore(s)}
+                      className={`w-full text-left px-3 py-2 rounded-xl border transition-colors ${selected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40'}`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-text truncate">{s.name}</span>
+                        {s.isPartner && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 shrink-0">{t('meetup.form.partner')}</span>}
+                      </span>
+                      <span className="block text-[11px] text-text-muted truncate">
+                        {s.address}, {s.city}
+                        {s.distanceFromMeKm != null && <> · {t('meetup.form.fromYou', { km: s.distanceFromMeKm })}</>}
+                        {s.distanceFromOtherKm != null && <> · {t('meetup.form.fromOther', { km: s.distanceFromOtherKm, username: otherUsername })}</>}
+                      </span>
+                      {s.openingHours && <span className="block text-[11px] text-text-muted truncate">{s.openingHours}</span>}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -209,7 +228,7 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
             {t('meetup.form.place')}
             <input
               value={form.locationName}
-              onChange={(e) => setForm({ ...form, locationName: e.target.value, latitude: undefined, longitude: undefined })}
+              onChange={(e) => setForm({ ...form, locationName: e.target.value, latitude: undefined, longitude: undefined, storeId: undefined })}
               maxLength={200}
               placeholder={t('meetup.form.placePlaceholder')}
               className="mt-1 w-full px-3 py-2 rounded-xl border border-border text-sm"

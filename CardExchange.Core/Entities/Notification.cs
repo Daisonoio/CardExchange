@@ -25,7 +25,9 @@ namespace CardExchange.Core.Entities
         /// <summary>Un profilo seguito (utente o negozio) fa sapere dove si trova ("Sono qui").</summary>
         FollowedNearby = 17,
         /// <summary>Qualcuno ha iniziato a seguirti.</summary>
-        NewFollower = 18
+        NewFollower = 18,
+        /// <summary>Attività per il proprietario di un negozio (es. scambi fissati in negozio oggi).</summary>
+        StoreActivity = 19
     }
 
     public class Notification : BaseEntity

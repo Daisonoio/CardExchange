@@ -73,6 +73,7 @@ namespace CardExchange.API.Services.Push
             "Conversation" => referenceId.HasValue ? $"/chat?conversationId={referenceId}" : "/chat",
             "Card" or "PriceSpike" or "PriceAlert" => "/collection",
             "Wishlist" => "/wishlist",
+            "Store" => referenceId.HasValue ? $"/stores/{referenceId}" : "/local",
             "Broadcast" => referenceId.HasValue ? $"/live/{referenceId}" : "/following",
             "Follower" => referenceId.HasValue ? $"/collection/{referenceId}" : "/following",
             _ => "/home"

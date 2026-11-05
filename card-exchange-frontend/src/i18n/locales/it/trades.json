@@ -142,7 +142,10 @@
       "placePlaceholder": "Es. Negozio Games Corner",
       "addressPlaceholder": "Indirizzo (facoltativo)",
       "notesPlaceholder": "Note (facoltative), es. 'al bancone'",
-      "submit": "Invia proposta"
+      "submit": "Invia proposta",
+      "partner": "Partner",
+      "fromYou": "a {{km}} km da te",
+      "fromOther": "a {{km}} km da {{username}}"
     }
   }
 }

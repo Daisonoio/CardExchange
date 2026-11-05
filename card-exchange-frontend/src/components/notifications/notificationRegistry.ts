@@ -12,6 +12,7 @@ import {
   Mail,
   MapPin,
   UserPlus,
+  Store,
   type LucideIcon,
 } from 'lucide-react';
 import i18n from '../../i18n';
@@ -62,6 +63,12 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
     icon: MapPin,
     color: 'text-primary bg-primary/10',
     get label() { return i18n.t('notifications:types.FollowedNearby'); },
+    category: 'social',
+  },
+  StoreActivity: {
+    icon: Store,
+    color: 'text-primary bg-primary/10',
+    get label() { return i18n.t('notifications:types.StoreActivity'); },
     category: 'social',
   },
   NewFollower: {

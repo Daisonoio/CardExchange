@@ -1823,6 +1823,12 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<int?>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("StoreNotifiedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("TradeOfferId")
                         .HasColumnType("int");
 
@@ -1834,6 +1840,8 @@ namespace CardExchange.Infrastructure.Migrations
                     b.HasIndex("ProposedById");
 
                     b.HasIndex("Status", "ScheduledAt");
+
+                    b.HasIndex("StoreId", "ScheduledAt");
 
                     b.HasIndex("TradeOfferId", "Status");
 
@@ -2803,6 +2811,11 @@ namespace CardExchange.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CardExchange.Core.Entities.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("CardExchange.Core.Entities.TradeOffer", "TradeOffer")
                         .WithMany()
                         .HasForeignKey("TradeOfferId")
@@ -2810,6 +2823,8 @@ namespace CardExchange.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("ProposedBy");
+
+                    b.Navigation("Store");
 
                     b.Navigation("TradeOffer");
                 });

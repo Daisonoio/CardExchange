@@ -54,8 +54,60 @@ namespace CardExchange.API.Services
                 m.FollowUpSentAt = nowUtc;
             }
 
+            await NotifyStoresAsync(nowUtc, ct);
+
             await _context.SaveChangesAsync(ct);
             return (upcoming.Count, past.Count);
+        }
+
+        /// <summary>
+        /// Avvisa i negozi degli scambi fissati da loro oggi: dalle 8:00 (ora italiana) un riepilogo,
+        /// poi un avviso per ogni incontro confermato più tardi. Il negozio vede quanti e quando, mai chi.
+        /// </summary>
+        public async Task<int> NotifyStoresAsync(DateTime nowUtc, CancellationToken ct = default)
+        {
+            var local = TimeZoneInfo.ConvertTimeFromUtc(nowUtc, ItalyTime);
+            if (local.Hour < StoreDigestHour) return 0;
+            var endOfDayUtc = TimeZoneInfo.ConvertTimeToUtc(local.Date.AddDays(1), ItalyTime);
+
+            var meetups = await _context.TradeMeetups
+                .Include(m => m.Store)
+                .Where(m => m.Status == MeetupStatus.Accepted && m.StoreId != null && m.StoreNotifiedAt == null
+                            && m.ScheduledAt > nowUtc && m.ScheduledAt < endOfDayUtc)
+                .ToListAsync(ct);
+
+            foreach (var group in meetups.Where(m => m.Store != null).GroupBy(m => m.StoreId!.Value))
+            {
+                var store = group.First().Store!;
+                var first = TimeZoneInfo.ConvertTimeFromUtc(group.Min(m => m.ScheduledAt), ItalyTime);
+                var count = group.Count();
+                var title = count == 1 ? "Oggi da te c'è uno scambio" : $"Oggi da te ci sono {count} scambi";
+                var body = count == 1
+                    ? $"Due persone si incontrano da {store.Name} alle {first:HH:mm} per uno scambio."
+                    : $"{count * 2} persone si incontrano da {store.Name}, il primo scambio alle {first:HH:mm}.";
+                try
+                {
+                    await _notifications.SendAsync(store.OwnerId, NotificationType.StoreActivity, title, body, store.Id, "Store");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Avviso al negozio {StoreId} non inviato", store.Id);
+                    continue;
+                }
+                foreach (var m in group) m.StoreNotifiedAt = nowUtc;
+            }
+            return meetups.Count;
+        }
+
+        /// <summary>Ora (italiana) da cui parte l'avviso giornaliero ai negozi.</summary>
+        public const int StoreDigestHour = 8;
+
+        private static readonly TimeZoneInfo ItalyTime = ResolveItalyTimeZone();
+
+        private static TimeZoneInfo ResolveItalyTimeZone()
+        {
+            try { return TimeZoneInfo.FindSystemTimeZoneById("Europe/Rome"); }
+            catch (TimeZoneNotFoundException) { return TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time"); }
         }
 
         private async Task NotifyBothAsync(TradeMeetup m, string title, string body)
