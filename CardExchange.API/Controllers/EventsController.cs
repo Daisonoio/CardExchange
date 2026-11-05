@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Stores;
 using CardExchange.API.Authorization;
 using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
@@ -219,6 +220,8 @@ namespace CardExchange.API.Controllers
             participant.Status = ParticipationStatus.Attended;
             participant.CheckedInAt = now;
             await _context.SaveChangesAsync();
+            if (ev.StoreId != null)
+                this.StoreActivity()?.Record(ev.StoreId.Value, StoreActivityType.EventCheckIn, participant.UserId, ev.Id);
             return Ok(new { message = "Sei presente! Ora vedi chi c'è e con chi puoi scambiare." });
         }
 
@@ -591,6 +594,8 @@ namespace CardExchange.API.Controllers
 
                 eventEntity.ParticipantCount = eventEntity.Participants.Count(p => p.Status != ParticipationStatus.Cancelled);
                 await _eventRepository.SaveChangesAsync();
+                if (eventEntity.StoreId != null)
+                    this.StoreActivity()?.Record(eventEntity.StoreId.Value, StoreActivityType.EventRegistration, userId, eventEntity.Id);
 
                 // Notifica organizzatore
                 var user = await _userRepository.GetByIdAsync(userId);

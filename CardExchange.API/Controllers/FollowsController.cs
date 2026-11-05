@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Stores;
 using CardExchange.API.Services.Moderation;
 using CardExchange.API.Services.Notifications;
 using CardExchange.Core.Entities;
@@ -110,6 +111,7 @@ namespace CardExchange.API.Controllers
             {
                 _context.Follows.Add(new Follow { FollowerId = me, FollowedStoreId = id });
                 await _context.SaveChangesAsync();
+                this.StoreActivity()?.Record(id, StoreActivityType.Follow, me);
             }
             return await GetStoreStatus(id);
         }

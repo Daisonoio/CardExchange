@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Stores;
 using CardExchange.API.Services;
 using CardExchange.Core.Entities;
 using CardExchange.Core.Rules;
@@ -281,6 +282,8 @@ namespace CardExchange.API.Controllers
             meetup.Status = accept ? MeetupStatus.Accepted : MeetupStatus.Declined;
             meetup.RespondedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
+            if (accept && meetup.StoreId != null)
+                this.StoreActivity()?.Record(meetup.StoreId.Value, StoreActivityType.MeetupScheduled, refId: meetup.Id);
 
             var me = userId == offer.SenderId ? offer.Sender : offer.Receiver;
             await NotifyAsync(meetup.ProposedById, offer.Id,

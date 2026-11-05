@@ -1765,6 +1765,38 @@ namespace CardExchange.Infrastructure.Migrations
                     b.ToTable("Stores");
                 });
 
+            modelBuilder.Entity("CardExchange.Core.Entities.StoreActivity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("RefId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredAt");
+
+                    b.HasIndex("StoreId", "OccurredAt");
+
+                    b.ToTable("StoreActivities");
+                });
+
             modelBuilder.Entity("CardExchange.Core.Entities.StoreAttribution", b =>
                 {
                     b.Property<int>("Id")

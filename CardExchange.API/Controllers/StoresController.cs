@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Stores;
 using CardExchange.API.Authorization;
 using CardExchange.API.Services;
 using CardExchange.Core.Entities;
@@ -173,6 +174,8 @@ namespace CardExchange.API.Controllers
 
             var counts = await UpcomingEventCountsAsync(new List<int> { id });
             var featured = await FeaturedOwnerIdsAsync(new List<int> { store.OwnerId });
+            if (store.OwnerId != userId && store.Status == StoreStatus.Verified)
+                this.StoreActivity()?.Record(store.Id, StoreActivityType.ProfileView, userId == 0 ? null : userId, visitorKey: this.VisitorKey());
             return Ok(ToDto(store, userId, counts, null, featured));
         }
 
@@ -411,6 +414,8 @@ namespace CardExchange.API.Controllers
             var store = await _context.Stores.AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Slug == slug.ToLower() && s.Status == StoreStatus.Verified);
             if (store == null) return NotFound(new { message = "Negozio non trovato" });
+            var viewer = CurrentUserId();
+            this.StoreActivity()?.Record(store.Id, StoreActivityType.QrScan, viewer == 0 ? null : viewer, visitorKey: this.VisitorKey());
             return new StorePublicDto { Id = store.Id, Name = store.Name, City = store.City, Slug = store.Slug! };
         }
 
@@ -435,6 +440,20 @@ namespace CardExchange.API.Controllers
                 .CountAsync(m => m.StoreId == id && m.Status == MeetupStatus.Accepted && m.ScheduledAt < now && m.ScheduledAt >= since
                                  && m.TradeOffer.Status == TradeOfferStatus.Completed);
             return Ok(new { upcoming = list, completedLast30Days = completed });
+        }
+
+        /// <summary>Statistiche del negozio in un periodo (solo proprietario e moderatori), predefinito ultimi 30 giorni.</summary>
+        [HttpGet("api/stores/{id:int}/activity")]
+        public async Task<IActionResult> Activity(int id, [FromQuery] DateTime? from, [FromQuery] DateTime? to,
+            [FromServices] StoreStatsService stats)
+        {
+            var store = await _context.Stores.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+            if (store == null) return NotFound(new { message = "Negozio non trovato" });
+            if (store.OwnerId != CurrentUserId() && !IsModerator()) return Forbid();
+            var toUtc = (to ?? DateTime.UtcNow).ToUniversalTime();
+            var fromUtc = (from ?? toUtc.AddDays(-30)).ToUniversalTime();
+            if (toUtc - fromUtc > TimeSpan.FromDays(400)) return BadRequest(new { message = "Periodo troppo lungo (massimo 13 mesi)" });
+            return Ok(new { from = fromUtc, to = toUtc, stats = await stats.ComputeAsync(id, fromUtc, toUtc) });
         }
 
         /// <summary>Quanti utenti si sono registrati dal QR del negozio (solo il proprietario, solo il numero).</summary>

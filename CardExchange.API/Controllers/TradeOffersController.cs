@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Stores;
 using CardExchange.API.Authorization;
 using CardExchange.API.DTOs.Requests;
 using CardExchange.API.DTOs.Responses;
@@ -592,6 +593,18 @@ namespace CardExchange.API.Controllers
                 otherUserId, NotificationType.TradeCompleted, offer.Id, currentUser?.Username ?? currentUsername ?? string.Empty);
 
             _logger.LogInformation("Scambio {OfferId} completato", id);
+
+            // Scambio avvenuto in un negozio: due persone portate in negozio
+            var storeMeetup = await _context.TradeMeetups.AsNoTracking()
+                .Where(m => m.TradeOfferId == offer.Id && m.Status == MeetupStatus.Accepted && m.StoreId != null)
+                .OrderByDescending(m => m.ScheduledAt)
+                .Select(m => new { m.Id, m.StoreId })
+                .FirstOrDefaultAsync();
+            if (storeMeetup != null)
+            {
+                this.StoreActivity()?.Record(storeMeetup.StoreId!.Value, StoreActivityType.MeetupCompleted, offer.SenderId, storeMeetup.Id);
+                this.StoreActivity()?.Record(storeMeetup.StoreId!.Value, StoreActivityType.MeetupCompleted, offer.ReceiverId, storeMeetup.Id);
+            }
 
             return Ok(MapToDto(offer));
         }
