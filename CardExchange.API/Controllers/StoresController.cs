@@ -456,6 +456,39 @@ namespace CardExchange.API.Controllers
             return Ok(new { from = fromUtc, to = toUtc, stats = await stats.ComputeAsync(id, fromUtc, toUtc) });
         }
 
+        /// <summary>
+        /// Risultati del negozio: il mese in corso (calcolato al momento) e i riepiloghi mensili salvati (ultimi 12).
+        /// Solo proprietario e moderatori.
+        /// </summary>
+        [HttpGet("api/stores/{id:int}/reports")]
+        public async Task<IActionResult> Reports(int id, [FromServices] StoreStatsService stats)
+        {
+            var store = await _context.Stores.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+            if (store == null) return NotFound(new { message = "Negozio non trovato" });
+            if (store.OwnerId != CurrentUserId() && !IsModerator()) return Forbid();
+
+            var now = DateTime.UtcNow;
+            var currentMonth = StoreMonthlyReports.LastCompletedMonth(now).AddMonths(1);
+            var (from, _) = StoreMonthlyReports.MonthBounds(currentMonth);
+            var saved = await _context.StoreMonthlyReports.AsNoTracking()
+                .Where(r => r.StoreId == id)
+                .OrderByDescending(r => r.Month)
+                .Take(12)
+                .Select(r => new { r.Month, r.MetricsJson })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                store = new { store.Id, store.Name },
+                current = new { month = currentMonth.ToString("yyyy-MM"), stats = await stats.ComputeAsync(id, from, now) },
+                months = saved.Select(r =>
+                {
+                    var content = System.Text.Json.JsonSerializer.Deserialize<StoreReportContent>(r.MetricsJson, StoreMonthlyReports.Json);
+                    return new { month = r.Month.ToString("yyyy-MM"), stats = content?.Stats, previous = content?.Previous };
+                })
+            });
+        }
+
         /// <summary>Quanti utenti si sono registrati dal QR del negozio (solo il proprietario, solo il numero).</summary>
         [HttpGet("api/stores/{id:int}/attributions")]
         public async Task<IActionResult> Attributions(int id)

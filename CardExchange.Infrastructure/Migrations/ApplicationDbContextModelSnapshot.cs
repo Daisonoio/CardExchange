@@ -1833,6 +1833,44 @@ namespace CardExchange.Infrastructure.Migrations
                     b.ToTable("StoreAttributions");
                 });
 
+            modelBuilder.Entity("CardExchange.Core.Entities.StoreMonthlyReport", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MetricsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly>("Month")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId", "Month")
+                        .IsUnique();
+
+                    b.ToTable("StoreMonthlyReports");
+                });
+
             modelBuilder.Entity("CardExchange.Core.Entities.SubscriptionPlan", b =>
                 {
                     b.Property<int>("Id")
@@ -2957,6 +2995,17 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Navigation("Store");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.StoreMonthlyReport", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.TradeMeetup", b =>

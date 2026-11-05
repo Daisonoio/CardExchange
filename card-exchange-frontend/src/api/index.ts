@@ -377,6 +377,7 @@ export const stores = {
   mine: () => client.get<import('../types').Store[]>('/stores/mine'),
   bySlug: (slug: string) => client.get<{ id: number; name: string; city: string; slug: string }>(`/stores/by-slug/${encodeURIComponent(slug)}`),
   attributions: (id: number) => client.get<{ total: number; last30Days: number }>(`/stores/${id}/attributions`),
+  reports: (id: number) => client.get<import('../types').StoreReports>(`/stores/${id}/reports`),
   meetups: (id: number) => client.get<{ upcoming: { id: number; scheduledAt: string }[]; completedLast30Days: number }>(`/stores/${id}/meetups`),
   create: (data: import('../types').StoreInput) => client.post<import('../types').Store>('/stores', data),
   update: (id: number, data: import('../types').StoreInput) => client.put<import('../types').Store>(`/stores/${id}`, data),

@@ -269,6 +269,12 @@ namespace CardExchange.API.Services.Prices
                         expired, reminded, stale);
                 }
 
+                // Riepilogo mensile dei negozi (crea solo quelli del mese appena concluso non ancora fatti)
+                using (var reportScope = _scopeFactory.CreateScope())
+                {
+                    await reportScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Stores.StoreMonthlyReports>().RunAsync(DateTime.UtcNow, ct);
+                }
+
                 if (_configuration.GetValue("Jobs:WeeklyDigest:Enabled", true))
                 {
                     using var digestScope = _scopeFactory.CreateScope();

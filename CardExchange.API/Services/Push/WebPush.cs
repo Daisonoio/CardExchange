@@ -74,6 +74,7 @@ namespace CardExchange.API.Services.Push
             "Card" or "PriceSpike" or "PriceAlert" => "/collection",
             "Wishlist" => "/wishlist",
             "Monitoring" => "/admin/monitoring",
+            "StoreReport" => referenceId.HasValue ? $"/stores/{referenceId}/results" : "/local",
             "Store" => referenceId.HasValue ? $"/stores/{referenceId}" : "/local",
             "Broadcast" => referenceId.HasValue ? $"/live/{referenceId}" : "/following",
             "Follower" => referenceId.HasValue ? $"/collection/{referenceId}" : "/following",

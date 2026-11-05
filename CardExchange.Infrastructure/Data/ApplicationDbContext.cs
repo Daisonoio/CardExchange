@@ -38,6 +38,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<StoreAttribution> StoreAttributions { get; set; }
         public DbSet<ErrorGroup> ErrorGroups { get; set; }
         public DbSet<StoreActivity> StoreActivities { get; set; }
+        public DbSet<StoreMonthlyReport> StoreMonthlyReports { get; set; }
         public DbSet<CatalogStatus> CatalogStatuses { get; set; }
         public DbSet<LocationBroadcast> LocationBroadcasts { get; set; }
         public DbSet<UserReport> UserReports { get; set; }
@@ -327,6 +328,12 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(e => new { e.IsResolved, e.LastSeenAt });
             });
             modelBuilder.Entity<CatalogStatus>().HasIndex(c => c.Key).IsUnique();
+
+            modelBuilder.Entity<StoreMonthlyReport>(entity =>
+            {
+                entity.HasIndex(r => new { r.StoreId, r.Month }).IsUnique();
+                entity.HasOne(r => r.Store).WithMany().HasForeignKey(r => r.StoreId).OnDelete(DeleteBehavior.Cascade);
+            });
 
             // Attività dei negozi: solo inserimenti, lette per negozio e periodo
             modelBuilder.Entity<StoreActivity>(entity =>

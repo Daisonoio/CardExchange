@@ -33,6 +33,14 @@ namespace CardExchange.API.Services.Email
             link: link,
             footer: $"Ricevi questa email perché hai attivo il riepilogo settimanale. Puoi disattivarlo dalle preferenze notifiche: {preferencesLink}");
 
+        public static EmailMessage StoreMonthlyReport(string firstName, string storeName, string monthName, string headline, IReadOnlyList<string> lines, string link) => Build(
+            subject: $"{storeName}: il tuo mese di {monthName} su CardExchange",
+            greeting: firstName,
+            intro: $"{headline}.\n\nNel mese di {monthName}:\n" + string.Join("\n", lines.Select(l => "• " + l)),
+            buttonText: "Vedi tutti i risultati",
+            link: link,
+            footer: "Ricevi questa email perché gestisci un negozio su CardExchange. Il riepilogo arriva una volta al mese.");
+
         private static EmailMessage Build(string subject, string greeting, string intro, string buttonText, string link, string footer)
         {
             var name = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(greeting) ? "ciao" : greeting);

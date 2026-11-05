@@ -950,3 +950,22 @@ export interface AdvancedSearchResponse {
   sortBy: string;
   cards: AdvancedSearchCard[];
 }
+
+/** Valori di un negozio in un periodo (scambi e presenze portati da CardExchange). */
+export interface StoreStats {
+  peopleBroughtIn: number;
+  profileViews: number;
+  qrScans: number;
+  qrSignups: number;
+  newFollowers: number;
+  meetupsScheduled: number;
+  tradesCompletedAtStore: number;
+  eventRegistrations: number;
+  eventCheckIns: number;
+}
+
+export interface StoreReports {
+  store: { id: number; name: string };
+  current: { month: string; stats: StoreStats };
+  months: { month: string; stats: StoreStats | null; previous: StoreStats | null }[];
+}

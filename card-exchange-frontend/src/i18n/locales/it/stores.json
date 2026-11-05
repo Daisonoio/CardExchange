@@ -82,5 +82,30 @@
     "events_one": "{{count}} evento",
     "events_other": "{{count}} eventi",
     "addStore": "Hai un negozio? Inseriscilo su CardExchange"
+  },
+  "results": {
+    "entry": "I tuoi risultati",
+    "entryHint": "Quante persone CardExchange ha portato nel tuo negozio, mese per mese",
+    "title": "Risultati",
+    "thisMonth": "Questo mese finora",
+    "people_one": "persona portata in negozio",
+    "people_other": "persone portate in negozio",
+    "peopleHint": "Persone diverse che hanno concluso uno scambio da te o hanno partecipato a un tuo evento.",
+    "vsPrevious": "rispetto al mese prima",
+    "history": "Ultimi mesi",
+    "noHistory": "Il primo riepilogo arriverà all'inizio del prossimo mese, anche per email.",
+    "metrics": {
+      "tradesCompletedAtStore": "Scambi conclusi da te",
+      "eventCheckIns": "Presenze agli eventi",
+      "eventRegistrations": "Iscrizioni agli eventi",
+      "meetupsScheduled": "Appuntamenti fissati da te",
+      "newFollowers": "Nuovi follower",
+      "qrSignups": "Iscritti dal tuo QR",
+      "qrScans": "Scansioni del QR",
+      "profileViews": "Visite alla scheda"
+    },
+    "privacy": "Sono numeri complessivi: non mostriamo chi sono le persone.",
+    "forbidden": "Solo chi gestisce il negozio può vedere i risultati.",
+    "peopleLabel": "Persone portate in negozio"
   }
 }

@@ -207,6 +207,7 @@ builder.Services.AddSingleton<CardExchange.API.Services.Security.LoginAttemptGua
 builder.Services.AddSingleton<CardExchange.API.Services.Stores.IStoreActivityRecorder, CardExchange.API.Services.Stores.StoreActivityRecorder>();
 builder.Services.AddHostedService<CardExchange.API.Services.Stores.StoreActivityWriter>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.StoreStatsService>();
+builder.Services.AddScoped<CardExchange.API.Services.Stores.StoreMonthlyReports>();
 
 // Monitoraggio: errori (anche quelli solo registrati nei log) e stato dei cataloghi esterni
 builder.Services.AddSingleton<CardExchange.API.Services.Monitoring.IErrorTracker, CardExchange.API.Services.Monitoring.ErrorTracker>();

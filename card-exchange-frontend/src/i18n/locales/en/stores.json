@@ -82,5 +82,30 @@
     "events_one": "{{count}} event",
     "events_other": "{{count}} events",
     "addStore": "Own a store? Add it to CardExchange"
+  },
+  "results": {
+    "entry": "Your results",
+    "entryHint": "How many people CardExchange brought to your store, month by month",
+    "title": "Results",
+    "thisMonth": "This month so far",
+    "people_one": "person brought to your store",
+    "people_other": "people brought to your store",
+    "peopleHint": "Different people who completed a trade at your store or attended one of your events.",
+    "vsPrevious": "vs. previous month",
+    "history": "Recent months",
+    "noHistory": "The first summary will arrive at the start of next month, by email too.",
+    "metrics": {
+      "tradesCompletedAtStore": "Trades completed at your store",
+      "eventCheckIns": "Event attendances",
+      "eventRegistrations": "Event sign-ups",
+      "meetupsScheduled": "Meetups scheduled at your store",
+      "newFollowers": "New followers",
+      "qrSignups": "Sign-ups from your QR",
+      "qrScans": "QR scans",
+      "profileViews": "Store page visits"
+    },
+    "privacy": "These are totals only: we never show who the people are.",
+    "forbidden": "Only the store manager can see the results.",
+    "peopleLabel": "People brought to your store"
   }
 }
