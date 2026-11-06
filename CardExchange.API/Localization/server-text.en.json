@@ -554,5 +554,6 @@
   "Premio pronto da {0}": "Reward ready at {0}",
   "Hai raccolto {n} timbri: in negozio ti aspetta \"{0}\".": "You've collected {n} stamps: \"{0}\" is waiting for you in store.",
   "Timbro da {0}": "Stamp from {0}",
-  "Ne mancano {n} per \"{0}\".": "{n} more for \"{0}\"."
+  "Ne mancano {n} per \"{0}\".": "{n} more for \"{0}\".",
+  "Nessuna sorgente di immagini One Piece configurata": "No One Piece image source configured"
 }

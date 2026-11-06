@@ -276,6 +276,15 @@ namespace CardExchange.API.Services.Prices
                     await mirrorScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Catalog.PokemonCatalogMirror>().RunAsync(DateTime.UtcNow, ct);
                 }
 
+                // Immagini One Piece: se è configurata una sorgente (diritti verificati), il catalogo già salvato passa a quella
+                if (CardExchange.API.Services.Catalog.OnePieceImageSource.Template(_configuration) is { } opTemplate)
+                {
+                    using var opScope = _scopeFactory.CreateScope();
+                    var changed = await CardExchange.API.Services.Catalog.OnePieceImageSource.BackfillAsync(
+                        opScope.ServiceProvider.GetRequiredService<ApplicationDbContext>(), opTemplate, ct: ct);
+                    if (changed > 0) _logger.LogInformation("Immagini One Piece aggiornate alla nuova sorgente: {Count}", changed);
+                }
+
                 // Commissioni ai negozi: maturano dopo 30 giorni; il primo del mese si liquidano come sconto sul piano
                 using (var commissionScope = _scopeFactory.CreateScope())
                 {

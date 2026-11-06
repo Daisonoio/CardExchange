@@ -103,6 +103,28 @@ namespace CardExchange.API.Controllers
             return Ok(new { sets, status = await mirror.StatusAsync(ct) });
         }
 
+        /// <summary>Sorgente delle immagini One Piece e quante carte la usano già.</summary>
+        [HttpGet("api/admin/monitoring/onepiece-images")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> OnePieceImages([FromServices] IConfiguration configuration, [FromServices] CardExchange.Infrastructure.Data.ApplicationDbContext db)
+        {
+            var template = CardExchange.API.Services.Catalog.OnePieceImageSource.Template(configuration);
+            var total = await db.CardInfos.CountAsync(ci => ci.OnePieceTcgId != null);
+            var prefix = template == null ? null : template[..template.IndexOf('{')];
+            var onSource = prefix == null ? 0 : await db.CardInfos.CountAsync(ci => ci.OnePieceTcgId != null && ci.ImageUrl != null && ci.ImageUrl.StartsWith(prefix));
+            return Ok(new { configured = template != null, template, total, onSource });
+        }
+
+        /// <summary>Porta subito il catalogo One Piece sulla sorgente configurata (di solito avviene ogni notte).</summary>
+        [HttpPost("api/admin/monitoring/onepiece-images/run")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> RunOnePieceImages([FromServices] IConfiguration configuration, [FromServices] CardExchange.Infrastructure.Data.ApplicationDbContext db, CancellationToken ct)
+        {
+            var template = CardExchange.API.Services.Catalog.OnePieceImageSource.Template(configuration);
+            if (template == null) return BadRequest(new { message = "Nessuna sorgente di immagini One Piece configurata" });
+            return Ok(new { updated = await CardExchange.API.Services.Catalog.OnePieceImageSource.BackfillAsync(db, template, ct: ct) });
+        }
+
         /// <summary>Segna un errore come risolto: se si ripresenta, gli amministratori vengono avvisati di nuovo.</summary>
         [HttpPost("api/admin/monitoring/errors/{id:int}/resolve")]
         [Authorize(Roles = "Admin,SuperAdmin")]

@@ -21,6 +21,7 @@ namespace CardExchange.API.Services
         private readonly IMemoryCache _cache;
         private readonly IExchangeRates _fx;
         private readonly ILogger<OnePieceTcgService> _logger;
+        private readonly string? _imageTemplate;
 
         // Servizio gratuito: richieste distanziate
         private static readonly SemaphoreSlim _rateLimiter = new(1, 1);
@@ -40,8 +41,10 @@ namespace CardExchange.API.Services
 
         private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-        public OnePieceTcgService(HttpClient httpClient, IMemoryCache cache, IExchangeRates fx, ILogger<OnePieceTcgService> logger)
+        public OnePieceTcgService(HttpClient httpClient, IMemoryCache cache, IExchangeRates fx, ILogger<OnePieceTcgService> logger,
+            IConfiguration? configuration = null)
         {
+            _imageTemplate = CardExchange.API.Services.Catalog.OnePieceImageSource.Template(configuration);
             _httpClient = httpClient;
             _cache = cache;
             _fx = fx;
@@ -93,7 +96,7 @@ namespace CardExchange.API.Services
                     anyAnswer = true;
                     // La stessa stampa può comparire in più raccolte: vale la prima
                     foreach (var p in prints.Where(p => !string.IsNullOrWhiteSpace(p.CardImageId) && seen.Add(p.CardImageId!)))
-                        all.Add(Map(p, rate));
+                        all.Add(Map(p, rate, _imageTemplate));
                 }
                 if (!anyAnswer) return null;
 
@@ -163,7 +166,7 @@ namespace CardExchange.API.Services
                 if (prints == null) continue;
                 anyAnswer = true;
                 foreach (var p in prints.Where(p => !string.IsNullOrWhiteSpace(p.CardImageId) && seen.Add(p.CardImageId!)))
-                    result.Add(Map(p, rate));
+                    result.Add(Map(p, rate, _imageTemplate));
             }
             return anyAnswer ? result : null;
         }
@@ -173,7 +176,7 @@ namespace CardExchange.API.Services
         // ================================================================
 
         /// <summary>Formato OPTCG API -> formato interno (usato da controller, catalogo e import).</summary>
-        public static OnePieceCard Map(OptcgApiCard c, decimal usdToEur)
+        public static OnePieceCard Map(OptcgApiCard c, decimal usdToEur, string? imageTemplate = null)
         {
             var code = (c.CardImageId ?? c.CardSetId ?? "").Trim();
             // "Roronoa Zoro (001) (Parallel)" -> "Roronoa Zoro (Parallel)": il numero è già nel codice
@@ -192,7 +195,10 @@ namespace CardExchange.API.Services
                 Family = c.SubTypes,
                 Ability = c.CardText,
                 Attribute = string.IsNullOrWhiteSpace(c.Attribute) ? null : new OnePieceAttribute { Name = c.Attribute },
-                Images = string.IsNullOrWhiteSpace(c.CardImage) ? null : new OnePieceImages { Small = c.CardImage, Large = c.CardImage },
+                // Sorgente configurata (immagini senza filigrana, con i diritti verificati), altrimenti quella dell'API
+                Images = CardExchange.API.Services.Catalog.OnePieceImageSource.UrlFor(code, imageTemplate) is { } licensed
+                    ? new OnePieceImages { Small = licensed, Large = licensed }
+                    : string.IsNullOrWhiteSpace(c.CardImage) ? null : new OnePieceImages { Small = c.CardImage, Large = c.CardImage },
                 Set = new OnePieceSetInfo { Name = c.SetName },
                 PriceUsd = usd,
                 PriceEur = usd.HasValue ? Math.Round(usd.Value * usdToEur, 2) : null
@@ -220,8 +226,9 @@ namespace CardExchange.API.Services
                 dest.OnePieceImageSmall = src.Images.Small;
                 dest.OnePieceImageLarge = src.Images.Large;
                 dest.ImageUrl = src.Images.Large ?? src.Images.Small;
-                dest.ImageSmall ??= src.Images.Small;
-                dest.ImageLarge ??= src.Images.Large;
+                // Con la sorgente configurata le immagini si sostituiscono sempre; altrimenti si tengono quelle già salvate
+                if (_imageTemplate != null) { dest.ImageSmall = src.Images.Small; dest.ImageLarge = src.Images.Large; dest.ImageNormal = src.Images.Large; }
+                else { dest.ImageSmall ??= src.Images.Small; dest.ImageLarge ??= src.Images.Large; }
             }
 
             if (src.PriceUsd.HasValue) dest.PriceUsd = src.PriceUsd;
