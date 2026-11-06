@@ -1,0 +1,53 @@
+{
+  "menu": "My reservations",
+  "title": "My reservations",
+  "storeTitle": "Reservations to prepare",
+  "cards": {
+    "title": "Available cards",
+    "search": "Search this store",
+    "empty": "No cards available right now.",
+    "reserve": "Reserve & collect",
+    "available": "{{count}} available",
+    "more": "Show more"
+  },
+  "sheet": {
+    "title": "Reserve & collect",
+    "quantity": "Quantity",
+    "price": "Price set by the store",
+    "priceNone": "Price to be agreed in store",
+    "howItWorks": "The store prepares the card and holds it for you for 48 hours (Sundays don't count). You pay in store when you collect: no payment in the app.",
+    "confirm": "Reserve",
+    "doneTitle": "Reserved!",
+    "doneText": "Show this code at the till:",
+    "goToMine": "Go to my reservations"
+  },
+  "status": {
+    "Pending": "Waiting for the store",
+    "Confirmed": "Ready for pickup",
+    "PickedUp": "Collected",
+    "Cancelled": "Cancelled",
+    "NoShow": "Not collected",
+    "Expired": "Expired"
+  },
+  "until": "Collect by {{when}}",
+  "code": "Pickup code",
+  "cancel": "Cancel reservation",
+  "cancelConfirm": "Cancel the reservation? The card becomes available to others again.",
+  "payInStore": "You pay in store",
+  "empty": "No reservations. Find a nearby store and reserve the cards you want: you collect and pay at the till.",
+  "emptyAction": "See nearby stores",
+  "active": "Active",
+  "history": "Last 30 days",
+  "store": {
+    "entry": "Reservations to prepare",
+    "entryHint": "Cards reserved by customers to collect in store",
+    "empty": "No reservations to prepare.",
+    "by": "Reserved by @{{username}}",
+    "confirm": "Ready",
+    "pickup": "Collected",
+    "pickupPrompt": "Pickup code shown by the customer",
+    "noShow": "Didn't show up",
+    "cancelConfirm": "Cancel this reservation? The customer will be notified.",
+    "noShowConfirm": "Mark the reservation as not collected? The card becomes available again."
+  }
+}

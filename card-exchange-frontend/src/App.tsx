@@ -37,6 +37,8 @@ import LocalPage from './pages/LocalPage';
 import StorePage from './pages/StorePage';
 import StoreResultsPage from './pages/StoreResultsPage';
 import StoreDemandPage from './pages/StoreDemandPage';
+import ReservationsPage from './pages/ReservationsPage';
+import StoreReservationsPage from './pages/StoreReservationsPage';
 import NotificationsGuidePage from './pages/NotificationsGuidePage';
 import LivePage from './pages/LivePage';
 import QrPage from './pages/QrPage';
@@ -114,6 +116,8 @@ export default function App() {
               <Route path="/stores/:id/edit" element={<StoreFormPage />} />
               <Route path="/stores/:id/results" element={<StoreResultsPage />} />
               <Route path="/stores/:id/demand" element={<StoreDemandPage />} />
+              <Route path="/stores/:id/reservations" element={<StoreReservationsPage />} />
+              <Route path="/reservations" element={<ReservationsPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />
               <Route path="/moderation" element={<ModerationPage />} />

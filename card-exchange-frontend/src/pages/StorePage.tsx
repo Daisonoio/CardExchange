@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, ArrowLeftRight, BarChart3, CalendarDays, Target, Clock, Globe, Instagram, Loader2, MapPin, Phone, QrCode, Radio, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowLeftRight, BarChart3, CalendarDays, PackageCheck, Target, Clock, Globe, Instagram, Loader2, MapPin, Phone, QrCode, Radio, ShieldCheck, Sparkles } from 'lucide-react';
 import { events, stores } from '../api';
 import type { CardEvent, Store } from '../types';
 import { EVENT_TYPE_LABELS } from '../types';
@@ -12,6 +12,7 @@ import StoresMap from '../components/stores/StoresMap';
 import EmptyState from '../components/ui/EmptyState';
 import EmptyStateLink from '../components/ui/EmptyStateLink';
 import FollowButton from '../components/social/FollowButton';
+import StoreCardsSection from '../components/stores/StoreCardsSection';
 
 const STATUS_LABEL: Record<Store['status'], { textKey: string; cls: string }> = {
   Pending: { textKey: 'page.status.Pending', cls: 'bg-amber-50 text-amber-700' },
@@ -97,6 +98,16 @@ export default function StorePage() {
       )}
 
       {store.isOwner && store.status === 'Verified' && (
+        <Link to={`/stores/${store.id}/reservations`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
+          <PackageCheck size={18} className="shrink-0 text-primary" />
+          <span className="min-w-0">
+            <strong className="block text-sm text-text">{t('reservations:store.entry')}</strong>
+            <span className="text-xs text-text-secondary">{t('reservations:store.entryHint')}</span>
+          </span>
+        </Link>
+      )}
+
+      {store.isOwner && store.status === 'Verified' && (
         <Link to={`/stores/${store.id}/demand`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
           <Target size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
@@ -167,6 +178,8 @@ export default function StorePage() {
         {store.website && <li className="flex items-center gap-3 p-3"><Globe size={16} className="text-primary shrink-0" /><a href={store.website} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">{store.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</a></li>}
         {store.instagram && <li className="flex items-center gap-3 p-3"><Instagram size={16} className="text-primary shrink-0" /><a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener noreferrer" className="hover:underline">@{store.instagram}</a></li>}
       </ul>
+
+      {store.status === 'Verified' && <StoreCardsSection storeId={store.id} isOwner={store.isOwner} />}
 
       {gameNames.length > 0 && (
         <div className="flex flex-wrap gap-1.5">

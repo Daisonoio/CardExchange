@@ -41,6 +41,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<StoreMonthlyReport> StoreMonthlyReports { get; set; }
         public DbSet<UserActiveDay> UserActiveDays { get; set; }
         public DbSet<StoreDemandSnapshot> StoreDemandSnapshots { get; set; }
+        public DbSet<Reservation> Reservations { get; set; }
         public DbSet<StoreStockAlert> StoreStockAlerts { get; set; }
         public DbSet<CatalogStatus> CatalogStatuses { get; set; }
         public DbSet<LocationBroadcast> LocationBroadcasts { get; set; }
@@ -331,6 +332,18 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(e => new { e.IsResolved, e.LastSeenAt });
             });
             modelBuilder.Entity<CatalogStatus>().HasIndex(c => c.Key).IsUnique();
+
+            modelBuilder.Entity<Reservation>(entity =>
+            {
+                entity.HasIndex(r => new { r.StoreId, r.Status });
+                entity.HasIndex(r => new { r.UserId, r.Status });
+                entity.HasIndex(r => new { r.Status, r.ExpiresAt });
+                entity.Property(r => r.PriceEur).HasPrecision(10, 2);
+                entity.Property(r => r.PickupCode).HasMaxLength(8);
+                entity.HasOne(r => r.Store).WithMany().HasForeignKey(r => r.StoreId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(r => r.Card).WithMany().HasForeignKey(r => r.CardId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<StoreDemandSnapshot>(entity =>
             {

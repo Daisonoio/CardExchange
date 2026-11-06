@@ -26,6 +26,7 @@ function getNavigationTarget(notification: Notification): string | null {
   if (referenceType === 'PriceSpike') return '/collection';
   if (referenceType === 'Monitoring') return '/admin/monitoring';
   if (referenceType === 'Referral') return '/profile';
+  if (referenceType === 'Reservation') return '/reservations';
   if (!referenceId) return null;
   switch (referenceType) {
     case 'TradeOffer': return '/trades';
@@ -37,6 +38,7 @@ function getNavigationTarget(notification: Notification): string | null {
     case 'Store': return `/stores/${referenceId}`;
     case 'StoreReport': return `/stores/${referenceId}/results`;
     case 'Event': return `/events/${referenceId}`;
+    case 'StoreReservations': return `/stores/${referenceId}/reservations`;
     default: return null;
   }
 }

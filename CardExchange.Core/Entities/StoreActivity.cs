@@ -8,7 +8,10 @@ namespace CardExchange.Core.Entities
         MeetupScheduled = 4,
         MeetupCompleted = 5,
         EventRegistration = 6,
-        EventCheckIn = 7
+        EventCheckIn = 7,
+        ReservationCreated = 8,
+        ReservationPickedUp = 9,
+        BuyOfferCompleted = 10
     }
 
     /// <summary>

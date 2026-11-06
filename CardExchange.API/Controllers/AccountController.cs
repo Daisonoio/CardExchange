@@ -296,6 +296,17 @@ namespace CardExchange.API.Controllers
             var broadcasts = await _context.LocationBroadcasts.Where(b => b.AuthorId == userId).ToListAsync();
             foreach (var b in broadcasts) { b.IsDeleted = true; b.EndedAt ??= DateTime.UtcNow; }
 
+            // Prenotazioni in negozio ancora attive: annullate, le copie tornano disponibili
+            var activeReservations = await _context.Reservations
+                .Where(r => r.UserId == userId && (r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed)).ToListAsync();
+            foreach (var r in activeReservations)
+            {
+                r.Status = ReservationStatus.Cancelled;
+                r.ClosedAt = DateTime.UtcNow;
+                var reservedCard = await _context.Cards.IgnoreQueryFilters().FirstOrDefaultAsync(c => c.Id == r.CardId);
+                if (reservedCard != null) reservedCard.ReservedQuantity = Math.Max(0, reservedCard.ReservedQuantity - r.Quantity);
+            }
+
             var subscriptions = await _context.UserSubscriptions.Where(s => s.UserId == userId).ToListAsync();
             foreach (var s in subscriptions) { s.IsDeleted = true; s.Status = SubscriptionStatus.Cancelled; }
 

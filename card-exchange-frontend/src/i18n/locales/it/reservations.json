@@ -1,0 +1,53 @@
+{
+  "menu": "Le mie prenotazioni",
+  "title": "Le mie prenotazioni",
+  "storeTitle": "Prenotazioni da preparare",
+  "cards": {
+    "title": "Carte disponibili",
+    "search": "Cerca nel negozio",
+    "empty": "Nessuna carta disponibile al momento.",
+    "reserve": "Prenota e ritira",
+    "available": "{{count}} disponibili",
+    "more": "Mostra altre"
+  },
+  "sheet": {
+    "title": "Prenota e ritira",
+    "quantity": "Quantità",
+    "price": "Prezzo indicato dal negozio",
+    "priceNone": "Prezzo da concordare in negozio",
+    "howItWorks": "Il negozio prepara la carta e la tiene per te per 48 ore (la domenica non conta). Paghi in negozio al ritiro: nessun pagamento nell'app.",
+    "confirm": "Prenota",
+    "doneTitle": "Prenotata!",
+    "doneText": "Mostra questo codice in cassa:",
+    "goToMine": "Vai alle mie prenotazioni"
+  },
+  "status": {
+    "Pending": "In attesa del negozio",
+    "Confirmed": "Pronta per il ritiro",
+    "PickedUp": "Ritirata",
+    "Cancelled": "Annullata",
+    "NoShow": "Non ritirata",
+    "Expired": "Scaduta"
+  },
+  "until": "Ritira entro {{when}}",
+  "code": "Codice di ritiro",
+  "cancel": "Annulla prenotazione",
+  "cancelConfirm": "Annullare la prenotazione? La carta torna disponibile per gli altri.",
+  "payInStore": "Si paga in negozio",
+  "empty": "Nessuna prenotazione. Trova un negozio vicino e prenota le carte che cerchi: le ritiri e le paghi in cassa.",
+  "emptyAction": "Vedi i negozi vicini",
+  "active": "Attive",
+  "history": "Ultimi 30 giorni",
+  "store": {
+    "entry": "Prenotazioni da preparare",
+    "entryHint": "Carte prenotate dai clienti da ritirare in negozio",
+    "empty": "Nessuna prenotazione da preparare.",
+    "by": "Prenotata da @{{username}}",
+    "confirm": "Pronta",
+    "pickup": "Ritirata",
+    "pickupPrompt": "Codice di ritiro mostrato dal cliente",
+    "noShow": "Non si è presentato",
+    "cancelConfirm": "Annullare questa prenotazione? Il cliente riceverà una notifica.",
+    "noShowConfirm": "Segnare la prenotazione come non ritirata? La carta torna disponibile."
+  }
+}

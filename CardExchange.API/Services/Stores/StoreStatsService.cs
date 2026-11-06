@@ -33,7 +33,8 @@ namespace CardExchange.API.Services.Stores
 
             int Count(StoreActivityType t) => rows.Count(r => r.Type == t);
             var broughtIn = rows
-                .Where(r => (r.Type == StoreActivityType.MeetupCompleted || r.Type == StoreActivityType.EventCheckIn) && r.UserId != null)
+                .Where(r => (r.Type == StoreActivityType.MeetupCompleted || r.Type == StoreActivityType.EventCheckIn
+                             || r.Type == StoreActivityType.ReservationPickedUp || r.Type == StoreActivityType.BuyOfferCompleted) && r.UserId != null)
                 .Select(r => r.UserId!.Value)
                 .Distinct()
                 .Count();

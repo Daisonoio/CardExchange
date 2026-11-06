@@ -375,6 +375,19 @@ export const pushApi = {
 };
 
 // === Negozi ===
+export const reservations = {
+  storeCards: (storeId: number, params?: { q?: string; gameId?: number; page?: number }) =>
+    client.get<import('../types').StoreCardsPage>(`/stores/${storeId}/cards`, { params }),
+  create: (storeId: number, cardId: number, quantity = 1) =>
+    client.post<import('../types').Reservation>(`/stores/${storeId}/reservations`, { cardId, quantity }),
+  mine: () => client.get<import('../types').Reservation[]>('/reservations/mine'),
+  forStore: (storeId: number) => client.get<import('../types').Reservation[]>(`/stores/${storeId}/reservations`),
+  confirm: (id: number) => client.post<import('../types').Reservation>(`/reservations/${id}/confirm`),
+  pickup: (id: number, code: string) => client.post<import('../types').Reservation>(`/reservations/${id}/pickup`, { code }),
+  cancel: (id: number) => client.post<import('../types').Reservation>(`/reservations/${id}/cancel`),
+  noShow: (id: number) => client.post<import('../types').Reservation>(`/reservations/${id}/no-show`),
+};
+
 export const stores = {
   list: (params?: { latitude?: number; longitude?: number; radiusKm?: number; gameId?: number; meetupOnly?: boolean; q?: string }) =>
     client.get<import('../types').Store[]>('/stores', { params }),

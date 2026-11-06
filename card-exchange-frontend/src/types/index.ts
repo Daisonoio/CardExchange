@@ -1010,3 +1010,60 @@ export interface StoreReports {
   current: { month: string; stats: StoreStats };
   months: { month: string; stats: StoreStats | null; previous: StoreStats | null }[];
 }
+
+// === Prenota e ritira ===
+export interface StoreCardItem {
+  id: number;
+  cardInfoId: number;
+  name: string;
+  setName?: string | null;
+  imageUrl?: string | null;
+  condition: string;
+  finish: string;
+  language?: string | null;
+  available: number;
+  priceEur?: number | null;
+}
+
+export interface StoreCardsPage {
+  total: number;
+  page: number;
+  pageSize: number;
+  acceptsReservations: boolean;
+  items: StoreCardItem[];
+}
+
+export type ReservationStatus = 'Pending' | 'Confirmed' | 'PickedUp' | 'Cancelled' | 'NoShow' | 'Expired';
+
+export interface Reservation {
+  id: number;
+  storeId: number;
+  storeName: string;
+  storeAddress: string;
+  storeCity: string;
+  cardId: number;
+  cardName: string;
+  setName?: string | null;
+  imageUrl?: string | null;
+  condition: string;
+  language?: string | null;
+  finish: string;
+  quantity: number;
+  priceEur?: number | null;
+  status: ReservationStatus;
+  expiresAt: string;
+  createdAt: string;
+  confirmedAt?: string | null;
+  closedAt?: string | null;
+  /** Solo per chi ha prenotato. */
+  pickupCode?: string | null;
+  /** Solo per il negozio. */
+  username?: string | null;
+}
+
+const CONDITION_BY_NAME: Record<string, CardCondition> = {
+  Mint: 1, NearMint: 2, Excellent: 3, Good: 4, LightlyPlayed: 5, ModeratelyPlayed: 6, HeavilyPlayed: 7, Damaged: 8,
+} as Record<string, CardCondition>;
+
+/** Etichetta tradotta di una condizione restituita per nome dal server ("NearMint" → "Near Mint"/"Quasi perfetta"). */
+export const conditionLabel = (name: string) => (CONDITION_BY_NAME[name] ? CONDITION_LABELS[CONDITION_BY_NAME[name]] : name);

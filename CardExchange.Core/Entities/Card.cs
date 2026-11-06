@@ -50,6 +50,9 @@ namespace CardExchange.Core.Entities
 
         public bool IsAvailableForTrade { get; set; } = true;
 
+        /// <summary>Copie bloccate da prenotazioni in negozio attive ("Prenota e ritira"): disponibili = Quantity − ReservedQuantity.</summary>
+        public int ReservedQuantity { get; set; }
+
         /// <summary>Valore stimato registrato all'inserimento (es. prezzo di mercato all'import). Usato solo se il catalogo non ha prezzi.</summary>
         public decimal? EstimatedValue { get; set; }
 
