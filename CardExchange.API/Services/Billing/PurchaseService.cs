@@ -14,6 +14,10 @@ namespace CardExchange.API.Services.Billing
         {
             new PurchaseProduct("credits-5", PurchaseProductType.PromotionCredits, "5 crediti promozione", 5, 20m),
             new PurchaseProduct("credits-15", PurchaseProductType.PromotionCredits, "15 crediti promozione", 15, 50m),
+            // Pacchetti per organizzatori di fiere e mercatini (RefId = evento)
+            new PurchaseProduct("event-base", PurchaseProductType.OrganizerPackage, "Pacchetto evento Base", 1, 49m),
+            new PurchaseProduct("event-plus", PurchaseProductType.OrganizerPackage, "Pacchetto evento Plus", 2, 99m),
+            new PurchaseProduct("event-region", PurchaseProductType.OrganizerPackage, "Pacchetto evento Regione", 3, 149m),
         };
 
         public static PurchaseProduct? Find(string? code) => Products.FirstOrDefault(p => p.Code == code);
@@ -121,7 +125,9 @@ namespace CardExchange.API.Services.Billing
                     }
                     break;
                 }
-                // I pacchetti organizzatori (F14) si attivano qui quando esisteranno
+                case PurchaseProductType.OrganizerPackage when purchase.RefId != null:
+                    await CardExchange.API.Services.Events.EventPackages.ActivateAsync(_db, purchase.RefId.Value, (EventPackageTier)purchase.Quantity, purchase.Id, null, DateTime.UtcNow);
+                    break;
             }
             await _db.SaveChangesAsync();
             await NotifyAsync(purchase.UserId, "Pagamento ricevuto",

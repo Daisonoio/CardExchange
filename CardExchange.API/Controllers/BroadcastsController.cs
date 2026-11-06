@@ -85,7 +85,7 @@ namespace CardExchange.API.Controllers
                 var dto = await ToDtoAsync(id, me, null, null);
                 if (dto != null) items.Add(dto);
             }
-            var today = await _context.LocationBroadcasts.CountAsync(b => b.AuthorId == me && b.CreatedAt >= since);
+            var today = await _context.LocationBroadcasts.CountAsync(b => b.AuthorId == me && b.CreatedAt >= since && b.ExhibitorId == null);
             var maxPerDay = await this.Entitlements(_context).LimitAsync(me, PlanLimit.BroadcastsPerDay);
             return Ok(new
             {

@@ -1,0 +1,67 @@
+{
+  "error": "Operazione non riuscita",
+  "copyPrompt": "Copia il link d'invito:",
+  "public": {
+    "title": "Espositori",
+    "count_one": "{{count}} espositore",
+    "count_other": "{{count}} espositori",
+    "onlyGame": "Solo chi ha carte di {{game}}",
+    "floorPlan": "Piantina della fiera",
+    "empty": "Nessun espositore per ora.",
+    "live": "Qui ora",
+    "wanted_one": "{{count}} carta che cerchi",
+    "wanted_other": "{{count}} carte che cerchi"
+  },
+  "panel": {
+    "title": "Pacchetto organizzatori",
+    "intro": "Per fiere e mercatini: elenco degli espositori con chi è qui adesso e le carte che i visitatori cercano. Gli espositori pubblicano \"Sono qui\" con lo stand già compilato, senza consumare il loro limite.",
+    "buy": "Acquista",
+    "bankTransfer": "Per il bonifico scrivici: attiviamo il pacchetto a mano.",
+    "active": "Pacchetto {{tier}} attivo.",
+    "name": "Nome dell'espositore",
+    "booth": "Stand (es. Pad. 3 – B12)",
+    "description": "Cosa porta (facoltativo)",
+    "add": "Aggiungi espositore",
+    "accepted": "Ha accettato: {{who}}",
+    "pending": "Invito da inviare",
+    "copyLink": "Copia link d'invito",
+    "copied": "Copiato",
+    "remove": "Rimuovi",
+    "removeConfirm": "Rimuovere l'espositore?",
+    "floorPlan": "Piantina (indirizzo https dell'immagine)",
+    "save": "Salva"
+  },
+  "tiers": {
+    "Base": {
+      "name": "Base",
+      "hint": "Elenco espositori e \"Sono qui\" dagli stand."
+    },
+    "Plus": {
+      "name": "Plus",
+      "hint": "Tutto il Base, più piantina ed evento in evidenza fino a {{km}} km."
+    },
+    "Region": {
+      "name": "Regione",
+      "hint": "Tutto il Plus, con l'evento in evidenza fino a {{km}} km."
+    }
+  },
+  "results": {
+    "pageViews": "Visite",
+    "accepted": "Espositori",
+    "broadcasts": "\"Sono qui\"",
+    "newFollowers": "Nuovi follower"
+  },
+  "invite": {
+    "invalid": "Invito non valido",
+    "kicker": "Invito a esporre",
+    "booth": "Stand {{booth}} · {{name}}",
+    "as": "Partecipa come",
+    "asMe": "Me stesso",
+    "accept": "Accetta l'invito",
+    "done": "Sei tra gli espositori: il giorno della fiera pubblica il tuo \"Sono qui\", lo stand è già compilato e non conta nel tuo limite.",
+    "postHere": "Pubblica \"Sono qui\" alla fiera",
+    "openEvent": "Vai alla pagina dell'evento",
+    "used": "Questo invito è già stato usato.",
+    "note": "Il tuo nome e lo stand compariranno nell'elenco pubblico degli espositori."
+  }
+}

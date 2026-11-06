@@ -42,6 +42,9 @@ namespace CardExchange.Core.Entities
         /// <summary>Chiuso prima della scadenza dall'autore.</summary>
         public DateTime? EndedAt { get; set; }
 
+        /// <summary>Avviso di un espositore dell'evento (pacchetto organizzatori): non conta nel limite giornaliero.</summary>
+        public int? ExhibitorId { get; set; }
+
         /// <summary>Quanti follower hanno ricevuto l'avviso.</summary>
         public int RecipientCount { get; set; }
 

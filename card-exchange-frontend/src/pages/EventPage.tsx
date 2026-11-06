@@ -13,6 +13,8 @@ import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import EmptyStateLink from '../components/ui/EmptyStateLink';
 import TradeNightPanel from '../components/events/TradeNightPanel';
+import EventExhibitors from '../components/events/EventExhibitors';
+import OrganizerPackagePanel from '../components/events/OrganizerPackagePanel';
 import EventAttendeesPanel from '../components/events/EventAttendeesPanel';
 import { formatDateTime, formatEuro, formatTime } from '../i18n/format';
 
@@ -130,6 +132,7 @@ export default function EventPage() {
         </Link>
       ))}
       {event.status === 'Published' && !ended && <TradeNightPanel eventId={event.id} />}
+      {event.status === 'Published' && <EventExhibitors eventId={event.id} />}
 
       {event.description && <p className="text-sm text-text whitespace-pre-line">{event.description}</p>}
       {gameNames.length > 0 && (
@@ -172,6 +175,7 @@ export default function EventPage() {
         )
       )}
       {isOrganizer && event.status === 'Published' && <EventAttendeesPanel eventId={event.id} />}
+      {isOrganizer && event.status === 'Published' && !ended && <OrganizerPackagePanel eventId={event.id} />}
       {isOrganizer && event.status === 'Published' && !ended && (
         <Link to={`/promotions?type=event&target=${event.id}`} className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-amber-300 bg-amber-50 text-sm font-semibold text-amber-800">
           <Megaphone size={15} /> {t('promotions:featureEvent')}

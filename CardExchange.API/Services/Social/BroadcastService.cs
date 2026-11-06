@@ -80,14 +80,19 @@ namespace CardExchange.API.Services.Social
             }
             if (lat == null && store != null) { lat = store.Latitude; lon = store.Longitude; }
 
+            // Espositore di una fiera con pacchetto organizzatori: stand già compilato e nessun limite giornaliero
+            var exhibitor = ev == null ? null
+                : await CardExchange.API.Services.Events.EventPackages.ExhibitorForBroadcastAsync(_context, ev, authorId, store?.Id, DateTime.UtcNow);
+            if (exhibitor != null) spot ??= exhibitor.BoothCode;
+
             if (lat == null || lon == null || !BroadcastRules.IsValidCoordinate(lat.Value, lon.Value))
                 return new(null, "Indica dove ti trovi: usa la tua posizione o scegli il punto sulla mappa");
 
             // Limite giornaliero anti-spam (giorno UTC)
             var since = DateTime.UtcNow.Date;
-            var today = await _context.LocationBroadcasts.CountAsync(b => b.AuthorId == authorId && b.CreatedAt >= since);
+            var today = await _context.LocationBroadcasts.CountAsync(b => b.AuthorId == authorId && b.CreatedAt >= since && b.ExhibitorId == null);
             var maxPerDay = await _entitlements.LimitAsync(authorId, PlanLimit.BroadcastsPerDay);
-            if (today >= maxPerDay)
+            if (exhibitor == null && today >= maxPerDay)
                 return new(null, $"Puoi inviare al massimo {maxPerDay} avvisi al giorno", 429);
 
             var now = DateTime.UtcNow;
@@ -103,6 +108,7 @@ namespace CardExchange.API.Services.Social
                 AuthorId = authorId,
                 StoreId = store?.Id,
                 EventId = ev?.Id,
+                ExhibitorId = exhibitor?.Id,
                 PlaceName = placeName,
                 SpotDetail = spot,
                 Message = message,

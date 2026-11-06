@@ -169,6 +169,46 @@ public class BroadcastServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task InvitedExhibitor_PostsWithBoothPrefilled_WithoutUsingTheDailyLimit()
+    {
+        var organizer = AddUser("fiera", Lat, Lon);
+        await _context.SaveChangesAsync();
+        var ev = new Event { OrganizerId = organizer.Id, Title = "Fiera del fumetto", Status = EventStatus.Published, IsPublic = true,
+            StartDate = DateTime.UtcNow.AddHours(-1), EndDate = DateTime.UtcNow.AddHours(6), Address = "Fiera", City = "Milano", Country = "IT", Latitude = Lat, Longitude = Lon };
+        _context.Events.Add(ev);
+        await _context.SaveChangesAsync();
+        var package = await CardExchange.API.Services.Events.EventPackages.ActivateAsync(_context, ev.Id, EventPackageTier.Region, null, null, DateTime.UtcNow);
+        _context.EventExhibitors.Add(new EventExhibitor { EventId = ev.Id, UserId = _seller.Id, Name = "Banco", BoothCode = "Pad. 3 – B12", InviteToken = "t1", AcceptedAt = DateTime.UtcNow });
+        await _context.SaveChangesAsync();
+
+        // Limite gratuito già esaurito con 3 avvisi normali
+        for (var i = 0; i < 3; i++) (await _service.CreateAsync(_seller.Id, Here())).Error.Should().BeNull();
+        (await _service.CreateAsync(_seller.Id, Here())).StatusCode.Should().Be(429);
+
+        var atFair = await _service.CreateAsync(_seller.Id, new CreateBroadcastRequest { PlaceName = "Fiera del fumetto", EventId = ev.Id, DurationMinutes = 240 });
+        atFair.Error.Should().BeNull();
+        atFair.Broadcast!.SpotDetail.Should().Be("Pad. 3 – B12");
+        atFair.Broadcast.ExhibitorId.Should().NotBeNull();
+
+        // Evento già iniziato: niente evento in evidenza, ma il pacchetto è attivo
+        package!.Tier.Should().Be(EventPackageTier.Region);
+    }
+
+    [Fact]
+    public async Task NotInvited_AtTheSameEvent_StillCountsTowardTheLimit()
+    {
+        var organizer = AddUser("fiera2", Lat, Lon);
+        await _context.SaveChangesAsync();
+        var ev = new Event { OrganizerId = organizer.Id, Title = "Fiera", Status = EventStatus.Published, IsPublic = true,
+            StartDate = DateTime.UtcNow, Address = "Fiera", City = "Milano", Country = "IT", Latitude = Lat, Longitude = Lon };
+        _context.Events.Add(ev);
+        await _context.SaveChangesAsync();
+        await CardExchange.API.Services.Events.EventPackages.ActivateAsync(_context, ev.Id, EventPackageTier.Base, null, null, DateTime.UtcNow);
+        for (var i = 0; i < 3; i++) (await _service.CreateAsync(_seller.Id, Here())).Error.Should().BeNull();
+        (await _service.CreateAsync(_seller.Id, new CreateBroadcastRequest { PlaceName = "Fiera", EventId = ev.Id })).StatusCode.Should().Be(429);
+    }
+
+    [Fact]
     public async Task Duration_IsClamped()
     {
         var shortOne = (await _service.CreateAsync(_seller.Id, Here(minutes: 5))).Broadcast!;

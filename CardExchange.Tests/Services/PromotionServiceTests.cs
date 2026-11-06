@@ -248,6 +248,20 @@ public class PromotionServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task RegionPackage_FeaturesTheEventWithin100Km()
+    {
+        var eventId = await SeedAsync();
+        await using var db = NewContext();
+        var package = await CardExchange.API.Services.Events.EventPackages.ActivateAsync(db, eventId, EventPackageTier.Region, null, null, _now);
+        var promo = await db.Promotions.SingleAsync(p => p.Id == package!.PromotionId);
+        promo.RadiusKm.Should().Be(100);
+        promo.Status.Should().Be(PromotionStatus.Active);
+        // Idempotente: una seconda attivazione non crea un'altra promozione
+        await CardExchange.API.Services.Events.EventPackages.ActivateAsync(db, eventId, EventPackageTier.Region, null, null, _now);
+        (await db.Promotions.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
     public void Review_And_Prices()
     {
         PromotionRules.Review("Torneo", "Porta il mazzo").Should().BeNull();

@@ -46,6 +46,8 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<Promotion> Promotions { get; set; }
         public DbSet<SellerShowcase> SellerShowcases { get; set; }
         public DbSet<SponsoredSlot> SponsoredSlots { get; set; }
+        public DbSet<EventPackage> EventPackages { get; set; }
+        public DbSet<EventExhibitor> EventExhibitors { get; set; }
         public DbSet<SlotImpression> SlotImpressions { get; set; }
         public DbSet<Sponsor> Sponsors { get; set; }
         public DbSet<Sponsorship> Sponsorships { get; set; }
@@ -437,6 +439,24 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
             });
 
+            modelBuilder.Entity<EventPackage>(entity =>
+            {
+                entity.HasIndex(p => p.EventId).IsUnique();
+                entity.Property(p => p.FloorPlanImageUrl).HasMaxLength(300);
+                entity.HasOne(p => p.Event).WithMany().HasForeignKey(p => p.EventId).OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<EventExhibitor>(entity =>
+            {
+                entity.HasIndex(x => x.InviteToken).IsUnique();
+                entity.HasIndex(x => new { x.EventId, x.UserId });
+                entity.Property(x => x.Name).HasMaxLength(80);
+                entity.Property(x => x.BoothCode).HasMaxLength(40);
+                entity.Property(x => x.Description).HasMaxLength(200);
+                entity.Property(x => x.InviteToken).HasMaxLength(40);
+                entity.HasOne(x => x.Event).WithMany().HasForeignKey(x => x.EventId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Store).WithMany().HasForeignKey(x => x.StoreId).OnDelete(DeleteBehavior.Restrict);
+            });
             modelBuilder.Entity<SponsoredSlot>(entity =>
             {
                 entity.HasIndex(s => new { s.Placement, s.IsActive, s.EndsAt });

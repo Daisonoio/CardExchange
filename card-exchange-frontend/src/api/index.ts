@@ -755,3 +755,26 @@ export const sponsored = {
   }) => client.post('/admin/sponsorships', body),
   adminDeleteShip: (id: number) => client.delete(`/admin/sponsorships/${id}`),
 };
+
+export type PackageTier = 'Base' | 'Plus' | 'Region';
+export const PACKAGE_TIER: Record<PackageTier, number> = { Base: 1, Plus: 2, Region: 3 };
+export type EventPackageInfo = {
+  active: boolean; tier?: PackageTier; floorPlanImageUrl?: string; canBuyByCard: boolean;
+  tiers: { tier: PackageTier; priceEur: number; featuredRadiusKm?: number }[];
+  results?: { pageViews: number; exhibitors: number; accepted: number; broadcasts: number; newFollowers: number } | null;
+};
+export type ManagedExhibitor = { id: number; name: string; boothCode: string; description?: string; inviteToken: string; acceptedAt?: string; acceptedAs?: string };
+export type PublicExhibitor = { id: number; name: string; userId: number; storeId?: number; boothCode: string; description?: string; liveBroadcastId?: number; wantedCards: number };
+
+export const eventPackages = {
+  get: (eventId: number) => client.get<EventPackageInfo>(`/events/${eventId}/package`),
+  buy: (eventId: number, tier: PackageTier) => client.post<{ url: string }>(`/events/${eventId}/package`, { tier: PACKAGE_TIER[tier] }),
+  floorPlan: (eventId: number, url: string) => client.put(`/events/${eventId}/package/floorplan`, { url }),
+  manage: (eventId: number) => client.get<ManagedExhibitor[]>(`/events/${eventId}/exhibitors/manage`),
+  add: (eventId: number, body: { name: string; boothCode: string; description?: string }) => client.post<ManagedExhibitor>(`/events/${eventId}/exhibitors`, body),
+  remove: (eventId: number, id: number) => client.delete(`/events/${eventId}/exhibitors/${id}`),
+  list: (eventId: number, gameId?: number | null) =>
+    client.get<{ active: boolean; tier?: PackageTier; floorPlanImageUrl?: string; exhibitors?: PublicExhibitor[] }>(`/events/${eventId}/exhibitors`, { params: { gameId: gameId ?? undefined } }),
+  invite: (token: string) => client.get<{ eventId: number; eventTitle: string; startDate: string; city: string; name: string; boothCode: string; description?: string; accepted: boolean; mine: boolean; stores: { id: number; name: string }[] }>(`/exhibitor-invites/${token}`),
+  accept: (token: string, storeId?: number) => client.post<{ message: string; eventId: number }>(`/exhibitor-invites/${token}/accept`, { storeId }),
+};

@@ -1,0 +1,67 @@
+{
+  "error": "Something went wrong",
+  "copyPrompt": "Copy the invitation link:",
+  "public": {
+    "title": "Exhibitors",
+    "count_one": "{{count}} exhibitor",
+    "count_other": "{{count}} exhibitors",
+    "onlyGame": "Only those with {{game}} cards",
+    "floorPlan": "Floor plan",
+    "empty": "No exhibitors yet.",
+    "live": "Here now",
+    "wanted_one": "{{count}} card you want",
+    "wanted_other": "{{count}} cards you want"
+  },
+  "panel": {
+    "title": "Organiser package",
+    "intro": "For fairs and markets: the exhibitor list showing who's here now and the cards visitors want. Exhibitors post \"I'm here\" with their booth already filled in, without using their limit.",
+    "buy": "Buy",
+    "bankTransfer": "To pay by bank transfer, write to us: we'll activate the package manually.",
+    "active": "{{tier}} package active.",
+    "name": "Exhibitor name",
+    "booth": "Booth (e.g. Hall 3 – B12)",
+    "description": "What they bring (optional)",
+    "add": "Add exhibitor",
+    "accepted": "Accepted: {{who}}",
+    "pending": "Invitation to send",
+    "copyLink": "Copy invitation link",
+    "copied": "Copied",
+    "remove": "Remove",
+    "removeConfirm": "Remove this exhibitor?",
+    "floorPlan": "Floor plan (https image address)",
+    "save": "Save"
+  },
+  "tiers": {
+    "Base": {
+      "name": "Base",
+      "hint": "Exhibitor list and \"I'm here\" from the booths."
+    },
+    "Plus": {
+      "name": "Plus",
+      "hint": "Everything in Base, plus floor plan and featured event up to {{km}} km."
+    },
+    "Region": {
+      "name": "Region",
+      "hint": "Everything in Plus, with the featured event up to {{km}} km."
+    }
+  },
+  "results": {
+    "pageViews": "Visits",
+    "accepted": "Exhibitors",
+    "broadcasts": "\"I'm here\"",
+    "newFollowers": "New followers"
+  },
+  "invite": {
+    "invalid": "Invalid invitation",
+    "kicker": "Invitation to exhibit",
+    "booth": "Booth {{booth}} · {{name}}",
+    "as": "Take part as",
+    "asMe": "Myself",
+    "accept": "Accept invitation",
+    "done": "You're an exhibitor: on the day of the fair post your \"I'm here\", the booth is already filled in and it doesn't count toward your limit.",
+    "postHere": "Post \"I'm here\" at the fair",
+    "openEvent": "Go to the event page",
+    "used": "This invitation has already been used.",
+    "note": "Your name and booth will appear in the public exhibitor list."
+  }
+}

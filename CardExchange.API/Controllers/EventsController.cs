@@ -385,6 +385,9 @@ namespace CardExchange.API.Controllers
                         })
                 };
 
+                // Visite alla pagina per i risultati del pacchetto organizzatori
+                if (currentUserId != eventEntity.OrganizerId)
+                    await _context.EventPackages.Where(p => p.EventId == eventEntity.Id).ExecuteUpdateAsync(u => u.SetProperty(p => p.PageViews, p => p.PageViews + 1));
                 var content = HttpContext.RequestServices.GetService<CardExchange.API.Services.Billing.SponsoredContent>();
                 if (content != null)
                     dto.Sponsors = (await content.ForEventAsync(eventEntity, DateTime.UtcNow))
