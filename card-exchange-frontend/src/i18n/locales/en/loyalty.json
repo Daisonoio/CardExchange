@@ -1,0 +1,71 @@
+{
+  "title": "My loyalty cards",
+  "menu": "Loyalty cards",
+  "pass": {
+    "title": "Your code",
+    "hint": "Show it at the till: the store scans it and gives you a stamp. It lasts 2 minutes and renews by itself.",
+    "renews": "Renews in {{seconds}} s",
+    "retry": "Code unavailable: try again",
+    "qrLabel": "Loyalty card QR code"
+  },
+  "empty": {
+    "title": "No loyalty cards yet",
+    "description": "At stores with a loyalty card you get a stamp when you visit or join an event. At the goal there's a reward chosen by the store.",
+    "action": "Nearby stores"
+  },
+  "card": {
+    "count": "{{stamps}} of {{required}}",
+    "reward_one": "{{count}} more stamp for: {{reward}}",
+    "reward_other": "{{count}} more stamps for: {{reward}}",
+    "ready": "Reward ready: {{reward}}. Show your code at the till.",
+    "redeemed_one": "{{count}} reward collected",
+    "redeemed_other": "{{count}} rewards collected"
+  },
+  "privacy": "The store sees your username only when it scans your code. At most one stamp per store per day.",
+  "store": {
+    "title": "Loyalty card",
+    "entry": "Loyalty card",
+    "entryHint": "Stamps for customers and a reward at the goal",
+    "settings": "Settings",
+    "stampsRequired": "Stamps for the reward",
+    "reward": "Reward",
+    "rewardPlaceholder": "E.g. a free booster pack",
+    "active": "Loyalty card active",
+    "rules": "One stamp per customer per day: scan their code, or it's given automatically when they check in to one of your events. You choose and provide the reward.",
+    "save": "Save",
+    "saved": "Saved",
+    "saveFailed": "Couldn't save"
+  },
+  "scan": {
+    "stampTab": "Stamp",
+    "redeemTab": "Give reward",
+    "stampHint": "Scan the code in the customer's loyalty card (Profile → Loyalty cards).",
+    "redeemHint": "Has the customer collected all the stamps? Scan their code and hand over: {{reward}}.",
+    "start": "Open camera",
+    "stop": "Close camera",
+    "codePlaceholder": "Or type the code",
+    "stampButton": "Stamp",
+    "redeemButton": "Give",
+    "rewardReady": "Reward reached: {{reward}}",
+    "failed": "Code not recognised",
+    "noCamera": "Camera not available: type the code.",
+    "cameraDenied": "Camera access denied: type the code."
+  },
+  "stats": {
+    "title": "How it's going",
+    "customers": "Customers with the card",
+    "withTwoOrMore": "Came back at least twice",
+    "rewardsReady": "With a reward ready",
+    "redeemedThisMonth": "Rewarded this month",
+    "stampsThisMonth": "Stamps this month",
+    "fewer": "fewer than 3",
+    "notEnough": "Figures appear from 3 customers with the card."
+  },
+  "storeCard": {
+    "title": "Loyalty card",
+    "progress": "You have {{stamps}} of {{required}} stamps",
+    "reward": "Reward: {{reward}}",
+    "open": "My loyalty cards",
+    "how": "A stamp for every visit or event, at most one a day."
+  }
+}

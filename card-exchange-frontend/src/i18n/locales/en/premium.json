@@ -38,7 +38,8 @@
     "broadcasts": "Up to {{count}} \"I'm here\" alerts per day",
     "instantAlerts": "Instant alerts when a card you want becomes available",
     "radius": "Search and alerts up to {{km}} km",
-    "earlyAccess": "2-hour early access to cards listed by stores and stalls"
+    "earlyAccess": "2-hour early access to cards listed by stores and stalls",
+    "loyalty": "Loyalty card with stamps: customers come back for the reward"
   },
   "errors": {
     "loadPlans": "Couldn't load the plans.",
@@ -122,7 +123,8 @@
     "buylist": "Buylist",
     "reservations": "Reserve & collect",
     "yes": "Included",
-    "no": "Not included"
+    "no": "Not included",
+    "loyalty": "Loyalty card"
   },
   "gate": {
     "premium": "Premium feature: see the plans",

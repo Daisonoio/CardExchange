@@ -224,8 +224,20 @@ namespace CardExchange.API.Controllers
             ev.ParticipantCount = EventRegistrations.SeatsTaken(ev);
             await _context.SaveChangesAsync();
             if (ev.StoreId != null)
+            {
                 this.StoreActivity()?.Record(ev.StoreId.Value, StoreActivityType.EventCheckIn, participant.UserId, ev.Id);
+                await StampLoyaltyAsync(ev, participant.UserId);
+            }
             return Ok(new { message = "Sei presente! Ora vedi chi c'è e con chi puoi scambiare." });
+        }
+
+        /// <summary>Timbro della tessera fedeltà al check-in di un evento del negozio (uno al giorno, se la tessera è attiva).</summary>
+        private async Task StampLoyaltyAsync(Event ev, int userId)
+        {
+            var loyalty = HttpContext?.RequestServices.GetService<CardExchange.API.Services.Stores.LoyaltyService>();
+            if (loyalty == null) return;
+            try { await loyalty.StampForEventAsync(ev, userId, DateTime.UtcNow); }
+            catch (Exception ex) { _logger?.LogWarning(ex, "Timbro fedeltà non assegnato per l'evento {EventId}", ev.Id); }
         }
 
         /// <summary>Esce dalla serata: non si è più visibili agli altri presenti.</summary>
@@ -688,7 +700,10 @@ namespace CardExchange.API.Controllers
             }
             await _context.SaveChangesAsync();
             if (present && !wasPresent && ev.StoreId != null)
+            {
                 this.StoreActivity()?.Record(ev.StoreId.Value, StoreActivityType.EventCheckIn, userId, ev.Id);
+                await StampLoyaltyAsync(ev, userId);
+            }
             return Ok(new { userId, checkedInAt = p.CheckedInAt });
         }
 

@@ -129,6 +129,10 @@ namespace CardExchange.API.Controllers
                 .Where(x => x.UserId == userId)
                 .Select(x => new { type = x.Type.ToString(), x.IsEnabled })
                 .ToListAsync();
+            var loyaltyCards = await _context.LoyaltyCards.AsNoTracking()
+                .Where(x => x.UserId == userId)
+                .Select(x => new { store = x.Store.Name, x.Stamps, x.RewardsRedeemed, x.LastStampAt, x.CreatedAt })
+                .ToListAsync();
             var invitedBy = user.ReferredByUserId == null ? null
                 : await _context.Users.AsNoTracking().Where(u => u.Id == user.ReferredByUserId).Select(u => u.Username).FirstOrDefaultAsync();
 
@@ -157,6 +161,7 @@ namespace CardExchange.API.Controllers
                     invitedBy,
                     storeOfOrigin
                 },
+                loyaltyCards,
                 location = user.Location != null ? new
                 {
                     user.Location.City,
@@ -316,6 +321,9 @@ namespace CardExchange.API.Controllers
                 o.Status = BuyOfferStatus.Withdrawn;
                 o.ClosedAt = DateTime.UtcNow;
             }
+
+            // Tessere fedeltà: via del tutto (i timbri seguono la tessera)
+            _context.LoyaltyCards.RemoveRange(await _context.LoyaltyCards.Where(c => c.UserId == userId).ToListAsync());
 
             var subscriptions = await _context.UserSubscriptions.Where(s => s.UserId == userId).ToListAsync();
             foreach (var s in subscriptions) { s.IsDeleted = true; s.Status = SubscriptionStatus.Cancelled; }

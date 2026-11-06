@@ -31,7 +31,9 @@ namespace CardExchange.Core.Entities
         /// <summary>Iscrizioni agli eventi: lista d'attesa, posto liberato, promemoria.</summary>
         EventUpdate = 20,
         /// <summary>Un negozio vicino ha una carta della wishlist (disattivabile).</summary>
-        StoreOffer = 21
+        StoreOffer = 21,
+        /// <summary>Tessera fedeltà: timbro ricevuto, premio pronto.</summary>
+        Loyalty = 22
     }
 
     public class Notification : BaseEntity

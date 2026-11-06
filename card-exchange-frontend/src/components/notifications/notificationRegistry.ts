@@ -14,6 +14,7 @@ import {
   UserPlus,
   Store,
   type LucideIcon,
+  Stamp,
 } from 'lucide-react';
 import i18n from '../../i18n';
 
@@ -70,6 +71,12 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
     color: 'text-primary bg-primary/10',
     get label() { return i18n.t('notifications:types.StoreOffer'); },
     category: 'collection',
+  },
+  Loyalty: {
+    icon: Stamp,
+    color: 'text-amber-700 bg-amber-100',
+    get label() { return i18n.t('notifications:types.Loyalty'); },
+    category: 'social',
   },
   EventUpdate: {
     icon: CalendarClock,

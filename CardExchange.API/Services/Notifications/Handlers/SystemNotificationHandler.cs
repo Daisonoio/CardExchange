@@ -11,7 +11,15 @@ namespace CardExchange.API.Services.Notifications.Handlers
             NotificationType.SubscriptionExpiring,
             NotificationType.SubscriptionExpired,
             NotificationType.PriceSpike,
-            NotificationType.MeetupUpdate
+            NotificationType.MeetupUpdate,
+            // Notifiche con titolo e testo già pronti: senza questa voce il dispatcher le scartava
+            NotificationType.WeeklyDigest,
+            NotificationType.FollowedNearby,
+            NotificationType.NewFollower,
+            NotificationType.StoreActivity,
+            NotificationType.EventUpdate,
+            NotificationType.StoreOffer,
+            NotificationType.Loyalty
         };
 
         public NotificationPayload BuildPayload(NotificationType type, Dictionary<string, object> parameters)

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, ArrowLeftRight, BarChart3, CalendarDays, PackageCheck, PiggyBank, ShoppingCart, Target, Clock, Globe, Instagram, Loader2, MapPin, Phone, QrCode, Radio, ShieldCheck, Sparkles } from 'lucide-react';
-import { events, stores } from '../api';
+import { ArrowLeft, ArrowLeftRight, BarChart3, CalendarDays, PackageCheck, PiggyBank, ShoppingCart, Target, Clock, Globe, Instagram, Loader2, MapPin, Phone, QrCode, Radio, ShieldCheck, Sparkles, Stamp } from 'lucide-react';
+import { events, loyalty, stores, type LoyaltyInfo } from '../api';
 import type { CardEvent, Store } from '../types';
 import { EVENT_TYPE_LABELS } from '../types';
 import { formatEventDate } from '../utils/eventDate';
@@ -34,6 +34,10 @@ export default function StorePage() {
   const [attributions, setAttributions] = useState<{ total: number; last30Days: number } | null>(null);
   const [storeMeetups, setStoreMeetups] = useState<{ upcoming: { id: number; scheduledAt: string }[]; completedLast30Days: number } | null>(null);
 
+  const [loyaltyInfo, setLoyaltyInfo] = useState<LoyaltyInfo | null>(null);
+  useEffect(() => {
+    loyalty.forStore(Number(id)).then(({ data }) => setLoyaltyInfo(data)).catch(() => setLoyaltyInfo(null));
+  }, [id]);
   useEffect(() => {
     stores.get(Number(id)).then(({ data }) => setStore(data)).catch(() => setStore(null));
     events.byStore(Number(id)).then(({ data }) => setStoreEvents(data)).catch(() => setStoreEvents([]));
@@ -104,6 +108,27 @@ export default function StorePage() {
           <span className="min-w-0">
             <strong className="block text-sm text-text">{t('earnings.entry')}</strong>
             <span className="text-xs text-text-secondary">{t('earnings.entryHint')}</span>
+          </span>
+        </Link>
+      )}
+
+      {store.isOwner && store.status === 'Verified' && (
+        <Link to={`/stores/${store.id}/loyalty`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
+          <Stamp size={18} className="shrink-0 text-amber-600" />
+          <span className="min-w-0">
+            <strong className="block text-sm text-text">{t('loyalty:store.entry')}<PlanTag capability="Loyalty" /></strong>
+            <span className="text-xs text-text-secondary">{t('loyalty:store.entryHint')}</span>
+          </span>
+        </Link>
+      )}
+
+      {!store.isOwner && loyaltyInfo?.active && (
+        <Link to="/loyalty" className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 border border-amber-200 hover:border-amber-400">
+          <Stamp size={18} className="shrink-0 text-amber-600" />
+          <span className="min-w-0">
+            <strong className="block text-sm text-text">{t('loyalty:storeCard.title')} · {t('loyalty:storeCard.progress', { stamps: loyaltyInfo.myStamps ?? 0, required: loyaltyInfo.stampsRequired })}</strong>
+            <span className="block text-xs text-text-secondary">{t('loyalty:storeCard.reward', { reward: loyaltyInfo.rewardDescription })}</span>
+            <span className="block text-[11px] text-text-muted">{t('loyalty:storeCard.how')}</span>
           </span>
         </Link>
       )}

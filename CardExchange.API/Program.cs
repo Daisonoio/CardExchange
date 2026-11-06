@@ -221,6 +221,7 @@ builder.Services.AddScoped<CardExchange.API.Services.Stores.StoreDemandService>(
 builder.Services.AddScoped<CardExchange.API.Services.ReferralRewards>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.ReservationService>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.BuyListService>();
+builder.Services.AddScoped<CardExchange.API.Services.Stores.LoyaltyService>();
 builder.Services.AddScoped<CardExchange.API.Services.Catalog.PokemonCatalogMirror>();
 builder.Services.AddScoped<CardExchange.API.Services.WishlistDigest>();
 builder.Services.AddScoped<CardExchange.API.Services.Billing.PurchaseService>();

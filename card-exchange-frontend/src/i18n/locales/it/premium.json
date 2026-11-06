@@ -38,7 +38,8 @@
     "broadcasts": "Fino a {{count}} avvisi \"Sono qui\" al giorno",
     "instantAlerts": "Avvisi immediati quando una carta che cerchi è disponibile",
     "radius": "Ricerca e avvisi fino a {{km}} km",
-    "earlyAccess": "Accesso anticipato di 2 ore alle carte caricate da negozi e banchi"
+    "earlyAccess": "Accesso anticipato di 2 ore alle carte caricate da negozi e banchi",
+    "loyalty": "Tessera fedeltà con timbri: i clienti tornano per il premio"
   },
   "errors": {
     "loadPlans": "Impossibile caricare i piani.",
@@ -122,7 +123,8 @@
     "buylist": "Lista acquisti",
     "reservations": "Prenota e ritira",
     "yes": "Incluso",
-    "no": "Non incluso"
+    "no": "Non incluso",
+    "loyalty": "Tessera fedeltà"
   },
   "gate": {
     "premium": "Funzione Premium: scopri i piani",

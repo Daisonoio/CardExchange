@@ -58,6 +58,7 @@ namespace CardExchange.API.Authorization
             Capability.LocalDemand => "La domanda locale è inclusa nel piano Negozio Pro",
             Capability.Buylist => "La lista acquisti è inclusa nel piano Negozio Pro",
             Capability.Reservations => "Prenota e ritira è incluso nel piano Negozio Pro",
+            Capability.Loyalty => "La tessera fedeltà è inclusa nel piano Negozio",
             Capability.SellerShowcase => "Funzione inclusa nel piano Banco",
             _ => "Funzionalità riservata agli utenti Premium"
         };

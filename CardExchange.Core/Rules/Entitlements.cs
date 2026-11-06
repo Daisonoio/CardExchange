@@ -21,7 +21,8 @@ namespace CardExchange.Core.Rules
         Buylist,
         Reservations,
         SellerShowcase,
-        HidesBrandSponsors
+        HidesBrandSponsors,
+        Loyalty
     }
 
     /// <summary>Limiti numerici che dipendono dal piano (int.MaxValue = illimitato).</summary>
@@ -88,6 +89,7 @@ namespace CardExchange.Core.Rules
             if (p.HasReservations) yield return Capability.Reservations;
             if (p.HasSellerShowcase) yield return Capability.SellerShowcase;
             if (p.HidesBrandSponsors) yield return Capability.HidesBrandSponsors;
+            if (p.HasLoyalty) yield return Capability.Loyalty;
         }
 
         public static IReadOnlyDictionary<PlanLimit, int> LimitsOf(SubscriptionPlan p) => new Dictionary<PlanLimit, int>
@@ -154,7 +156,7 @@ namespace CardExchange.Core.Rules
             Seller(PremiumRights(new SubscriptionPlan { Name = "Banco", SortOrder = 20, Tier = SubscriptionTier.Seller, Cycle = BillingCycle.Monthly, Price = 9.99m,
                 Description = "Per chi vende a mercatini e fiere: vetrina del banco, più avvisi \"Sono qui\" e crediti promozione ogni mese, più tutti i vantaggi Premium." })),
             Store(PremiumRights(new SubscriptionPlan { Name = "Negozio", SortOrder = 30, Tier = SubscriptionTier.Store, Cycle = BillingCycle.Monthly, Price = 19m,
-                Description = "Scheda in evidenza e punto d'incontro consigliato, QR per i clienti, statistiche e riepilogo mensile, eventi e tornei." })),
+                Description = "Scheda in evidenza e punto d'incontro consigliato, QR per i clienti, tessera fedeltà con timbri, statistiche e riepilogo mensile, eventi e tornei." })),
             Pro(Store(PremiumRights(new SubscriptionPlan { Name = "Negozio Pro", SortOrder = 40, Tier = SubscriptionTier.StorePro, Cycle = BillingCycle.Monthly, Price = 39m,
                 Description = "Tutto il piano Negozio più domanda locale, lista acquisti, prenota e ritira e crediti promozione ogni mese." }))),
             Store(PremiumRights(new SubscriptionPlan { Name = "Negozio Annuale", SortOrder = 90, Tier = SubscriptionTier.Store, Cycle = BillingCycle.Annual, Price = 99m, IsActive = false,
@@ -173,6 +175,7 @@ namespace CardExchange.Core.Rules
         {
             p.MaxBroadcastsPerDay = 8;
             p.HasFeaturedStore = true;
+            p.HasLoyalty = true;
             return p;
         }
 
@@ -200,7 +203,7 @@ namespace CardExchange.Core.Rules
             target.HasInstantAlerts = source.HasInstantAlerts; target.HasEarlyAccess = source.HasEarlyAccess;
             target.HasPriceAlerts = source.HasPriceAlerts; target.HasFeaturedStore = source.HasFeaturedStore;
             target.HasLocalDemand = source.HasLocalDemand; target.HasBuylist = source.HasBuylist;
-            target.HasReservations = source.HasReservations; target.HasSellerShowcase = source.HasSellerShowcase;
+            target.HasReservations = source.HasReservations; target.HasLoyalty = source.HasLoyalty; target.HasSellerShowcase = source.HasSellerShowcase;
             target.HidesBrandSponsors = source.HidesBrandSponsors;
             if (!source.IsActive) target.IsActive = false;
         }

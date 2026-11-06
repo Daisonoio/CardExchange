@@ -74,7 +74,8 @@ namespace CardExchange.API.Services
             HasBuylist = e.Has(Capability.Buylist),
             HasReservations = e.Has(Capability.Reservations),
             HasSellerShowcase = e.Has(Capability.SellerShowcase),
-            HidesBrandSponsors = e.Has(Capability.HidesBrandSponsors)
+            HidesBrandSponsors = e.Has(Capability.HidesBrandSponsors),
+            HasLoyalty = e.Has(Capability.Loyalty)
         };
     }
 }

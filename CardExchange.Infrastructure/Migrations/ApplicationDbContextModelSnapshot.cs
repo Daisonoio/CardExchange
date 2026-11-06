@@ -1223,6 +1223,127 @@ namespace CardExchange.Infrastructure.Migrations
                     b.ToTable("LocationBroadcasts");
                 });
 
+            modelBuilder.Entity("CardExchange.Core.Entities.LoyaltyCard", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastRedeemedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastStampAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RewardsRedeemed")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Stamps")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("StoreId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("LoyaltyCards");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.LoyaltyProgram", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RewardDescription")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int>("StampsRequired")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId")
+                        .IsUnique();
+
+                    b.ToTable("LoyaltyPrograms");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.LoyaltyStamp", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("LoyaltyCardId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RefId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LoyaltyCardId", "Day")
+                        .IsUnique();
+
+                    b.ToTable("LoyaltyStamps");
+                });
+
             modelBuilder.Entity("CardExchange.Core.Entities.Message", b =>
                 {
                     b.Property<int>("Id")
@@ -2492,6 +2613,9 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<bool>("HasLocalDemand")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("HasLoyalty")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("HasPriceAlerts")
                         .HasColumnType("bit");
 
@@ -3500,6 +3624,47 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Navigation("Event");
 
                     b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.LoyaltyCard", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CardExchange.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Store");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.LoyaltyProgram", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.LoyaltyStamp", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.LoyaltyCard", "LoyaltyCard")
+                        .WithMany()
+                        .HasForeignKey("LoyaltyCardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LoyaltyCard");
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.Message", b =>

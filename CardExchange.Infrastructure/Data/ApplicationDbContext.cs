@@ -42,6 +42,9 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<UserActiveDay> UserActiveDays { get; set; }
         public DbSet<StoreDemandSnapshot> StoreDemandSnapshots { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
+        public DbSet<LoyaltyProgram> LoyaltyPrograms { get; set; }
+        public DbSet<LoyaltyCard> LoyaltyCards { get; set; }
+        public DbSet<LoyaltyStamp> LoyaltyStamps { get; set; }
         public DbSet<StoreBuyOrder> StoreBuyOrders { get; set; }
         public DbSet<StoreBuyOffer> StoreBuyOffers { get; set; }
         public DbSet<StoreBuyAlert> StoreBuyAlerts { get; set; }
@@ -422,6 +425,26 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(r => r.Store).WithMany().HasForeignKey(r => r.StoreId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(r => r.Card).WithMany().HasForeignKey(r => r.CardId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<LoyaltyProgram>(entity =>
+            {
+                entity.HasIndex(p => p.StoreId).IsUnique();
+                entity.Property(p => p.RewardDescription).HasMaxLength(120);
+                entity.HasOne(p => p.Store).WithMany().HasForeignKey(p => p.StoreId).OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<LoyaltyCard>(entity =>
+            {
+                entity.HasIndex(c => new { c.StoreId, c.UserId }).IsUnique();
+                entity.HasIndex(c => c.UserId);
+                entity.HasOne(c => c.Store).WithMany().HasForeignKey(c => c.StoreId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(c => c.User).WithMany().HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<LoyaltyStamp>(entity =>
+            {
+                // Al massimo un timbro per tessera al giorno, anche con due scansioni contemporanee
+                entity.HasIndex(s => new { s.LoyaltyCardId, s.Day }).IsUnique();
+                entity.HasOne(s => s.LoyaltyCard).WithMany().HasForeignKey(s => s.LoyaltyCardId).OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<StoreDemandSnapshot>(entity =>

@@ -1,0 +1,71 @@
+{
+  "title": "Le mie tessere",
+  "menu": "Tessere fedeltà",
+  "pass": {
+    "title": "Il tuo codice",
+    "hint": "Mostralo in cassa: il negozio lo scansiona e ti dà il timbro. Vale 2 minuti e si rinnova da solo.",
+    "renews": "Si rinnova tra {{seconds}} s",
+    "retry": "Codice non disponibile: riprova",
+    "qrLabel": "QR della tessera fedeltà"
+  },
+  "empty": {
+    "title": "Nessuna tessera",
+    "description": "Nei negozi con la tessera fedeltà ricevi un timbro quando passi o partecipi a un evento. Al traguardo c'è un premio deciso dal negozio.",
+    "action": "Negozi vicini"
+  },
+  "card": {
+    "count": "{{stamps}} di {{required}}",
+    "reward_one": "Ancora {{count}} timbro per: {{reward}}",
+    "reward_other": "Ancora {{count}} timbri per: {{reward}}",
+    "ready": "Premio pronto: {{reward}}. Mostra il codice in cassa.",
+    "redeemed_one": "{{count}} premio già ritirato",
+    "redeemed_other": "{{count}} premi già ritirati"
+  },
+  "privacy": "Il negozio vede il tuo nome utente solo quando scansiona il tuo codice. Massimo un timbro al giorno per negozio.",
+  "store": {
+    "title": "Tessera fedeltà",
+    "entry": "Tessera fedeltà",
+    "entryHint": "Timbri ai clienti e un premio al traguardo",
+    "settings": "Impostazioni",
+    "stampsRequired": "Timbri per il premio",
+    "reward": "Premio",
+    "rewardPlaceholder": "Es. una bustina in omaggio",
+    "active": "Tessera attiva",
+    "rules": "Un timbro al giorno per cliente: lo dai scansionando il suo codice, oppure arriva da solo quando fa il check-in a un tuo evento. Il premio lo decidi e lo offri tu.",
+    "save": "Salva",
+    "saved": "Salvato",
+    "saveFailed": "Salvataggio non riuscito"
+  },
+  "scan": {
+    "stampTab": "Timbra",
+    "redeemTab": "Consegna premio",
+    "stampHint": "Scansiona il codice nella tessera del cliente (Profilo → Tessere fedeltà).",
+    "redeemHint": "Il cliente ha raggiunto i timbri? Scansiona il suo codice e consegna: {{reward}}.",
+    "start": "Apri la fotocamera",
+    "stop": "Chiudi la fotocamera",
+    "codePlaceholder": "Oppure digita il codice",
+    "stampButton": "Timbra",
+    "redeemButton": "Consegna",
+    "rewardReady": "Ha raggiunto il premio: {{reward}}",
+    "failed": "Codice non riconosciuto",
+    "noCamera": "Fotocamera non disponibile: digita il codice.",
+    "cameraDenied": "Accesso alla fotocamera negato: digita il codice."
+  },
+  "stats": {
+    "title": "Come va",
+    "customers": "Clienti con la tessera",
+    "withTwoOrMore": "Tornati almeno 2 volte",
+    "rewardsReady": "Con il premio pronto",
+    "redeemedThisMonth": "Premiati questo mese",
+    "stampsThisMonth": "Timbri questo mese",
+    "fewer": "meno di 3",
+    "notEnough": "I dati compaiono da 3 clienti con la tessera."
+  },
+  "storeCard": {
+    "title": "Tessera fedeltà",
+    "progress": "Hai {{stamps}} timbri su {{required}}",
+    "reward": "Premio: {{reward}}",
+    "open": "Le mie tessere",
+    "how": "Un timbro a ogni visita o evento, al massimo uno al giorno."
+  }
+}

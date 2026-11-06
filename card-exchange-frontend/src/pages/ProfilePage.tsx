@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import {
   Star, ArrowLeftRight, MessageCircle, MapPin, LogOut,
-  ChevronRight, Pencil, Library, Heart, Trophy, Ban, ShieldCheck, Crown, Receipt, BarChart3, Search, Sparkles, QrCode, Activity, Gauge, ShoppingBag, Tag, } from 'lucide-react';
+  ChevronRight, Pencil, Library, Heart, Trophy, Ban, ShieldCheck, Crown, Receipt, BarChart3, Search, Sparkles, QrCode, Activity, Gauge, ShoppingBag, Tag, Stamp, } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ReviewsSheet from '../components/users/ReviewsSheet';
 import BlockedUsersSheet from '../components/users/BlockedUsersSheet';
@@ -41,6 +41,7 @@ export default function ProfilePage() {
     { label: t('menu.myTrades'), icon: ArrowLeftRight, to: '/trades' },
     { label: t('reservations:menu'), icon: ShoppingBag, to: '/reservations' },
     { label: t('buylist:menu'), icon: Tag, to: '/sell' },
+    { label: t('loyalty:menu'), icon: Stamp, to: '/loyalty' },
     { label: t('menu.reviews'), icon: Trophy, to: null, action: () => setShowReviews(true) },
     { label: t('menu.blockedUsers'), icon: Ban, to: null, action: () => setShowBlocked(true) },
     ...(hasPermission('ADMIN.REPORTS.MANAGE') ? [{ label: t('menu.moderation'), icon: ShieldCheck, to: '/moderation' }] : []),

@@ -27,7 +27,8 @@
     "NewFollower": "New follower",
     "StoreActivity": "Activity at your store",
     "EventUpdate": "Event registrations",
-    "StoreOffer": "Offers from nearby stores"
+    "StoreOffer": "Offers from nearby stores",
+    "Loyalty": "Loyalty cards"
   },
   "center": {
     "title": "Notifications",

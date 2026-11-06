@@ -634,3 +634,24 @@ export const monitoring = {
   overview: (includeResolved = false) => client.get<MonitoringOverview>('/admin/monitoring', { params: { includeResolved } }),
   resolve: (id: number) => client.post(`/admin/monitoring/errors/${id}/resolve`),
 };
+
+export type LoyaltyInfo = {
+  active: boolean; hasPlan?: boolean; configured?: boolean; stampsRequired?: number; rewardDescription?: string; isActive?: boolean;
+  myStamps?: number;
+  stats?: { customers: number; withTwoOrMore: number; rewardsReady: number; redeemedThisMonth: number; stampsThisMonth: number } | null;
+};
+export type LoyaltyCardInfo = {
+  storeId: number; storeName: string; storeSlug?: string; city: string; stamps: number; stampsRequired: number;
+  reward: string; rewardReady: boolean; rewardsRedeemed: number; lastStampAt?: string;
+};
+export type LoyaltyScanResult = { message: string; stamped?: boolean; username?: string; stamps: number; stampsRequired: number; rewardReady: boolean };
+
+export const loyalty = {
+  forStore: (storeId: number) => client.get<LoyaltyInfo>(`/stores/${storeId}/loyalty`),
+  configure: (storeId: number, body: { stampsRequired: number; rewardDescription: string; isActive: boolean }) =>
+    client.put(`/stores/${storeId}/loyalty`, body),
+  stamp: (storeId: number, token: string) => client.post<LoyaltyScanResult>(`/stores/${storeId}/loyalty/stamp`, { token }),
+  redeem: (storeId: number, token: string) => client.post<LoyaltyScanResult>(`/stores/${storeId}/loyalty/redeem`, { token }),
+  mine: () => client.get<LoyaltyCardInfo[]>('/me/loyalty'),
+  pass: () => client.get<{ token: string; expiresAt: string }>('/me/loyalty/pass'),
+};

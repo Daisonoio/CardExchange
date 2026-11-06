@@ -37,6 +37,7 @@ const isStore = (p: SubscriptionPlan) => isStoreTier(p.tier);
 function planFeatures(p: SubscriptionPlan): [string, Record<string, unknown>?][] {
   const f: [string, Record<string, unknown>?][] = [];
   if (has(p, 'FeaturedStore')) f.push(['features.storeListing']);
+  if (has(p, 'Loyalty')) f.push(['features.loyalty']);
   if (has(p, 'LocalDemand')) f.push(['features.localDemand']);
   if (has(p, 'Buylist')) f.push(['features.buylist']);
   if (has(p, 'Reservations')) f.push(['features.reservations']);
@@ -67,6 +68,7 @@ const COMPARE: { key: string; cap?: string; value?: (p: SubscriptionPlan | null)
   { key: 'compare.promoCredits', value: (p) => String(p?.monthlyPromotionCredits ?? 0) },
   { key: 'compare.sellerShowcase', cap: 'SellerShowcase' },
   { key: 'compare.storeListing', cap: 'FeaturedStore' },
+  { key: 'compare.loyalty', cap: 'Loyalty' },
   { key: 'compare.localDemand', cap: 'LocalDemand' },
   { key: 'compare.buylist', cap: 'Buylist' },
   { key: 'compare.reservations', cap: 'Reservations' },

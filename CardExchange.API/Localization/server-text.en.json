@@ -537,5 +537,22 @@
   "Commissioni del mese": "This month's commissions",
   "Hai maturato {0} € da 1 pagamento Premium dei clienti portati da te: li scaliamo dalla prossima fattura del tuo piano.": "You earned €{0} from 1 Premium payment by customers you brought in: we'll deduct it from your plan's next invoice.",
   "Hai maturato {0} € da {n} pagamenti Premium dei clienti portati da te: li scaliamo dalla prossima fattura del tuo piano.": "You earned €{0} from {n} Premium payments by customers you brought in: we'll deduct it from your plan's next invoice.",
-  "{0} € di commissioni dal Premium dei tuoi clienti": "€{0} in commissions from your customers' Premium"
+  "{0} € di commissioni dal Premium dei tuoi clienti": "€{0} in commissions from your customers' Premium",
+  "Codice non valido": "Invalid code",
+  "Il codice è scaduto: chiedi al cliente di riaprire la tessera": "The code has expired: ask the customer to reopen their card",
+  "Non puoi timbrare la tua tessera": "You can't stamp your own card",
+  "La tessera fedeltà non è attiva per questo negozio": "The loyalty card isn't active for this store",
+  "La tessera fedeltà è inclusa nel piano Negozio": "The loyalty card is included in the Store plan",
+  "I timbri devono essere tra {n} e {m}": "Stamps must be between {n} and {m}",
+  "Descrivi il premio (da 3 a 120 caratteri)": "Describe the reward (3 to 120 characters)",
+  "Questo cliente non ha ancora timbri da te": "This customer has no stamps with you yet",
+  "Timbri insufficienti: {n} su {m}": "Not enough stamps: {n} of {m}",
+  "Tessera fedeltà salvata": "Loyalty card saved",
+  "Timbro di oggi già assegnato": "Today's stamp already given",
+  "Timbro assegnato": "Stamp given",
+  "Premio consegnato": "Reward handed over",
+  "Premio pronto da {0}": "Reward ready at {0}",
+  "Hai raccolto {n} timbri: in negozio ti aspetta \"{0}\".": "You've collected {n} stamps: \"{0}\" is waiting for you in store.",
+  "Timbro da {0}": "Stamp from {0}",
+  "Ne mancano {n} per \"{0}\".": "{n} more for \"{0}\"."
 }

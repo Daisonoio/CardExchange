@@ -7,7 +7,7 @@ import { useEntitlements } from '../../hooks/useEntitlements';
 /** Piano che include ciascuna funzione, per l'invito all'upgrade. */
 const PLAN_FOR: Record<string, 'premium' | 'store' | 'storePro' | 'seller'> = {
   LocalDemand: 'storePro', Buylist: 'storePro', Reservations: 'storePro',
-  FeaturedStore: 'store', SellerShowcase: 'seller',
+  FeaturedStore: 'store', Loyalty: 'store', SellerShowcase: 'seller',
 };
 
 /**
