@@ -608,6 +608,9 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<bool>("IsDigital")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("MirroredAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)

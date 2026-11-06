@@ -45,6 +45,12 @@ export default function AdminMonitoringPage() {
         <>
           <section className="bg-white rounded-2xl border border-border/60 p-4 space-y-2">
             <h2 className="font-semibold text-text">{t('monitoring.catalogs')}</h2>
+            {data.localCopy && (
+              <p className="text-xs text-text-secondary">
+                {t('monitoring.localCopy', { cards: data.localCopy.cards, sets: data.localCopy.sets })}
+                {data.localCopy.lastMirroredAt ? ` · ${t('monitoring.localCopyUpdated', { when: when(data.localCopy.lastMirroredAt) })}` : ''}
+              </p>
+            )}
             {data.catalogs.length === 0 ? (
               <p className="text-sm text-text-muted">{t('monitoring.noChecksYet')}</p>
             ) : (

@@ -591,6 +591,7 @@ export interface MonitoringOverview {
   openGroups: number;
   seenLast24h: number;
   catalogs: { key: string; lastCheckAt?: string | null; lastOkAt?: string | null; lastFailAt?: string | null; consecutiveFailures: number; lastError?: string | null; isUp: boolean }[];
+  localCopy?: { cards: number; sets: number; lastMirroredAt?: string | null };
 }
 
 export interface RateMetric { eligible: number; count: number; rate?: number | null }

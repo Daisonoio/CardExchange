@@ -82,7 +82,7 @@ namespace CardExchange.API.Controllers
                     .AsNoTracking()
                     .Where(ci => ci.CardSet.GameId == pokemonGameId.Value
                               && ci.PokemonTcgId != null
-                              && ci.Name.Contains(q));
+                              && ci.Name.ToLower().Contains(q.ToLower()));
 
                 var totalLocal = await dbQuery.CountAsync();
                 if (totalLocal > 0)

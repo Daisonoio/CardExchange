@@ -51,7 +51,7 @@ namespace CardExchange.API.Controllers
         /// <summary>Errori aperti e stato dei cataloghi (solo amministratori).</summary>
         [HttpGet("api/admin/monitoring")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> Overview([FromQuery] bool includeResolved = false)
+        public async Task<IActionResult> Overview([FromServices] CardExchange.API.Services.Catalog.PokemonCatalogMirror mirror, [FromQuery] bool includeResolved = false)
         {
             var query = _context.ErrorGroups.AsNoTracking();
             if (!includeResolved) query = query.Where(e => !e.IsResolved);
@@ -88,8 +88,19 @@ namespace CardExchange.API.Controllers
                     c.ConsecutiveFailures,
                     c.LastError,
                     isUp = c.ConsecutiveFailures == 0
-                })
+                }),
+                // Copia locale del gioco di punta: carte disponibili anche se il catalogo esterno è fermo
+                localCopy = await mirror.StatusAsync()
             });
+        }
+
+        /// <summary>Aggiorna subito la copia locale del catalogo Pokémon (di solito avviene ogni notte).</summary>
+        [HttpPost("api/admin/monitoring/catalog-mirror/run")]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> RunMirror([FromServices] CardExchange.API.Services.Catalog.PokemonCatalogMirror mirror, CancellationToken ct)
+        {
+            var sets = await mirror.RunAsync(DateTime.UtcNow, ct);
+            return Ok(new { sets, status = await mirror.StatusAsync(ct) });
         }
 
         /// <summary>Segna un errore come risolto: se si ripresenta, gli amministratori vengono avvisati di nuovo.</summary>

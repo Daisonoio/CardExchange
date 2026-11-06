@@ -78,8 +78,50 @@ namespace CardExchange.API.Services.Catalog
             return await _api.SearchCardsAsync(query, page, pageSize);
         }
 
+        /// <summary>
+        /// Prima la copia locale del catalogo (veloce e disponibile anche se l'API non risponde):
+        /// set + numero, oppure nome + numero + totale stampato ("58/102").
+        /// </summary>
+        private async Task<CatalogCard?> ResolveLocalAsync(CatalogLookup lookup, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(lookup.Number)) return null;
+            var parts = lookup.Number.Split('/');
+            var number = NormalizeNumber(parts[0]);
+            var cards = Context.CardInfos.AsNoTracking().Include(ci => ci.CardSet).Where(ci => ci.PokemonTcgId != null);
+            if (!string.IsNullOrWhiteSpace(lookup.SetCode))
+            {
+                var id = $"{lookup.SetCode.Trim().ToLowerInvariant()}-{number}";
+                var bySet = await cards.FirstOrDefaultAsync(ci => ci.PokemonTcgId == id, ct);
+                if (bySet != null) return MapLocal(bySet);
+            }
+            if (!string.IsNullOrWhiteSpace(lookup.Name) && parts.Length > 1 && int.TryParse(parts[1].Trim(), out var total))
+            {
+                var name = lookup.Name.Trim().ToLower();
+                var hits = await cards.Where(ci => ci.Name.ToLower() == name && ci.CardSet.PrintedTotal == total).ToListAsync(ct);
+                hits = hits.Where(h => NormalizeNumber(h.CardNumber ?? "") == number).ToList();
+                if (hits.Count == 1) return MapLocal(hits[0]);
+            }
+            return null;
+        }
+
+        private static CatalogCard MapLocal(CardInfo ci) => new()
+        {
+            ExternalId = ci.PokemonTcgId!,
+            Name = ci.Name,
+            SetCode = ci.CardSet?.PokemonTcgId,
+            SetName = ci.CardSet?.Name,
+            Number = ci.CardNumber,
+            Rarity = ci.Rarity,
+            ImageSmall = ci.ImageSmall,
+            ImageLarge = ci.ImageLarge ?? ci.ImageSmall,
+            PriceEur = ci.PriceEur
+        };
+
         public async Task<CatalogCard?> ResolveAsync(CatalogLookup lookup, CancellationToken ct = default)
         {
+            var local = await ResolveLocalAsync(lookup, ct);
+            if (local != null) return local;
+
             if (!string.IsNullOrWhiteSpace(lookup.SetCode) && !string.IsNullOrWhiteSpace(lookup.Number))
             {
                 var set = lookup.SetCode.Trim().Replace("\"", "");

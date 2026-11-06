@@ -55,6 +55,9 @@ namespace CardExchange.Core.Entities
 
         public DateTime? PokemonTcgUpdatedAt { get; set; }
 
+        /// <summary>Ultima copia locale completa delle carte del set (catalogo del gioco di punta).</summary>
+        public DateTime? MirroredAt { get; set; }
+
         // === Campi Yu-Gi-Oh! (YGOProDeck) ===
 
         [MaxLength(50)]

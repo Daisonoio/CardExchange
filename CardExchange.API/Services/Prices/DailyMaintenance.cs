@@ -269,6 +269,13 @@ namespace CardExchange.API.Services.Prices
                         expired, reminded, stale);
                 }
 
+                // Copia locale del catalogo del gioco di punta (Pokémon): ricerca e import anche con l'API ferma
+                if (_configuration.GetValue("Jobs:CatalogMirror:Enabled", true))
+                {
+                    using var mirrorScope = _scopeFactory.CreateScope();
+                    await mirrorScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Catalog.PokemonCatalogMirror>().RunAsync(DateTime.UtcNow, ct);
+                }
+
                 // Inviti con premio: nuovi invitati attivi e mesi Premium guadagnati
                 using (var referralScope = _scopeFactory.CreateScope())
                 {

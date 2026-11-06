@@ -113,7 +113,9 @@
     "times_other": "{{n}} volte",
     "lastSeen": "ultima {{when}}",
     "firstSeen": "prima volta {{when}}",
-    "resolve": "Segna come risolto"
+    "resolve": "Segna come risolto",
+    "localCopy": "Copia locale Pokémon: {{cards}} carte in {{sets}} espansioni, disponibili anche se il catalogo esterno non risponde",
+    "localCopyUpdated": "aggiornata {{when}}"
   },
   "metrics": {
     "menu": "Metriche del piano",

@@ -113,7 +113,9 @@
     "times_other": "{{n}} times",
     "lastSeen": "last {{when}}",
     "firstSeen": "first {{when}}",
-    "resolve": "Mark as resolved"
+    "resolve": "Mark as resolved",
+    "localCopy": "Local Pokémon copy: {{cards}} cards in {{sets}} sets, available even when the external catalogue is down",
+    "localCopyUpdated": "updated {{when}}"
   },
   "metrics": {
     "menu": "Plan metrics",
