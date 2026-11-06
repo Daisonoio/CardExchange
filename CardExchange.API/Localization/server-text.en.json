@@ -581,5 +581,12 @@
   "Evento vicino: {0}": "Event near you: {0}",
   "Sponsorizzato da {0}. {1}, {when}.": "Sponsored by {0}. {1}, {when}.",
   "{0} è qui vicino: {1}": "{0} is nearby: {1}",
-  "Sponsorizzato. Ha disponibile una carta che cerchi, fino alle {0}. Prezzo e scambio si concordano di persona.": "Sponsored. They have a card you're looking for, until {0}. Price and trade are agreed in person."
+  "Sponsorizzato. Ha disponibile una carta che cerchi, fino alle {0}. Prezzo e scambio si concordano di persona.": "Sponsored. They have a card you're looking for, until {0}. Price and trade are agreed in person.",
+  "Vetrina non trovata": "Showcase not found",
+  "Indirizzo non valido: da 3 a 40 caratteri, solo lettere minuscole, numeri e trattini": "Invalid address: 3 to 40 characters, lowercase letters, numbers and hyphens only",
+  "Il nome della vetrina deve avere da 2 a 60 caratteri": "The showcase name must be 2 to 60 characters",
+  "La descrizione può avere al massimo 500 caratteri": "The description can be at most 500 characters",
+  "L'immagine di copertina deve essere un indirizzo https": "The cover image must be an https address",
+  "Questo indirizzo è già usato da un'altra vetrina": "This address is already used by another showcase",
+  "Vetrina salvata": "Showcase saved"
 }

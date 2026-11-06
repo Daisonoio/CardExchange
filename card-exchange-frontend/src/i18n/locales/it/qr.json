@@ -34,5 +34,10 @@
     "login": "Ho già un account",
     "notFound": "Negozio non trovato",
     "notFoundDescription": "Il link non è più valido, ma puoi iscriverti comunque."
+  },
+  "showcase": {
+    "hint": "Stampalo e mettilo sul banco: chi lo inquadra vede le tue carte e può seguirti.",
+    "subtitle": "Le carte del banco su CardExchange",
+    "cta": "Inquadra per vedere le carte e seguirmi"
   }
 }

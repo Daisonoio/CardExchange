@@ -154,6 +154,21 @@ public class BroadcastServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task BancoPlan_SendsTheEighthBroadcast_FreeIsStoppedAtTheFourth()
+    {
+        var banco = PlanCatalog.All().Single(p => p.Name == "Banco");
+        _context.UserSubscriptions.Add(new UserSubscription { UserId = _seller.Id, Plan = banco, Status = SubscriptionStatus.Active, StartDate = DateTime.UtcNow.AddDays(-1), EndDate = DateTime.UtcNow.AddDays(29) });
+        var free = AddUser("free", Lat, Lon);
+        await _context.SaveChangesAsync();
+
+        for (var i = 0; i < 8; i++) (await _service.CreateAsync(_seller.Id, Here())).Error.Should().BeNull($"l'avviso {i + 1} rientra negli 8 del Banco");
+        (await _service.CreateAsync(_seller.Id, Here())).StatusCode.Should().Be(429);
+
+        for (var i = 0; i < 3; i++) (await _service.CreateAsync(free.Id, Here())).Error.Should().BeNull();
+        (await _service.CreateAsync(free.Id, Here())).StatusCode.Should().Be(429);
+    }
+
+    [Fact]
     public async Task Duration_IsClamped()
     {
         var shortOne = (await _service.CreateAsync(_seller.Id, Here(minutes: 5))).Broadcast!;

@@ -34,5 +34,10 @@
     "login": "I already have an account",
     "notFound": "Store not found",
     "notFoundDescription": "This link is no longer valid, but you can still sign up."
+  },
+  "showcase": {
+    "hint": "Print it and put it on your stall: whoever scans it sees your cards and can follow you.",
+    "subtitle": "The stall's cards on CardExchange",
+    "cta": "Scan to see the cards and follow me"
   }
 }

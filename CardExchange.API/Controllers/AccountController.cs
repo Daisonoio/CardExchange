@@ -129,6 +129,8 @@ namespace CardExchange.API.Controllers
                 .Where(x => x.UserId == userId)
                 .Select(x => new { type = x.Type.ToString(), x.IsEnabled })
                 .ToListAsync();
+            var showcase = await _context.SellerShowcases.AsNoTracking().Where(v => v.UserId == userId)
+                .Select(v => new { v.Slug, v.DisplayName, v.Bio, v.CoverImageUrl, v.CreatedAt }).FirstOrDefaultAsync();
             var loyaltyCards = await _context.LoyaltyCards.AsNoTracking()
                 .Where(x => x.UserId == userId)
                 .Select(x => new { store = x.Store.Name, x.Stamps, x.RewardsRedeemed, x.LastStampAt, x.CreatedAt })
@@ -162,6 +164,7 @@ namespace CardExchange.API.Controllers
                     storeOfOrigin
                 },
                 loyaltyCards,
+                showcase,
                 location = user.Location != null ? new
                 {
                     user.Location.City,
@@ -327,6 +330,10 @@ namespace CardExchange.API.Controllers
                          && (p.Status == PromotionStatus.Active || p.Status == PromotionStatus.PendingPayment)).ToListAsync())
                 p.Status = PromotionStatus.Cancelled;
             _context.PromotionDeliveries.RemoveRange(await _context.PromotionDeliveries.Where(d => d.UserId == userId).ToListAsync());
+
+            // Vetrina del Banco e visite: via del tutto
+            _context.SellerShowcases.RemoveRange(await _context.SellerShowcases.Where(v => v.UserId == userId).ToListAsync());
+            _context.ShowcaseVisits.RemoveRange(await _context.ShowcaseVisits.Where(v => v.ViewerId == userId).ToListAsync());
 
             // Tessere fedeltà: via del tutto (i timbri seguono la tessera)
             _context.LoyaltyCards.RemoveRange(await _context.LoyaltyCards.Where(c => c.UserId == userId).ToListAsync());

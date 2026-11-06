@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Loader2, QrCode } from 'lucide-react';
-import { broadcasts, stores } from '../api';
+import { broadcasts, showcase, stores } from '../api';
 import { useAuth } from '../context/AuthContext';
 import QrPoster from '../components/qr/QrPoster';
 import EmptyState from '../components/ui/EmptyState';
@@ -45,6 +45,19 @@ export default function QrPage() {
       }).catch(() => setPoster(null));
       return;
     }
+    if (kind === 'showcase') {
+      showcase.mine().then(({ data }) => {
+        if (!data.exists || !data.hasPlan) { setPoster(null); return; }
+        setPoster({
+          url: `${origin}/v/${data.slug}`,
+          title: data.displayName,
+          subtitle: t('showcase.subtitle'),
+          cta: t('showcase.cta'),
+          fileName: `cardexchange-banco-${data.slug}`,
+        });
+      }).catch(() => setPoster(null));
+      return;
+    }
     if (kind === 'live' && id) {
       broadcasts.get(Number(id)).then(({ data }) => {
         if (!data.isMine) { setPoster(null); return; }
@@ -69,7 +82,7 @@ export default function QrPage() {
         </button>
         <div className="min-w-0">
           <h1 className="text-xl font-bold text-text flex items-center gap-2"><QrCode size={20} className="text-primary" /> {t('title')}</h1>
-          <p className="text-sm text-text-secondary">{t(`${kind === 'store' ? 'store' : kind === 'live' ? 'live' : 'me'}.hint`)}</p>
+          <p className="text-sm text-text-secondary">{t(`${kind === 'store' ? 'store' : kind === 'live' ? 'live' : kind === 'showcase' ? 'showcase' : 'me'}.hint`)}</p>
         </div>
       </div>
       {poster === undefined && <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>}

@@ -2191,6 +2191,86 @@ namespace CardExchange.Infrastructure.Migrations
                     b.ToTable("SavedSearches");
                 });
 
+            modelBuilder.Entity("CardExchange.Core.Entities.SellerShowcase", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Bio")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("CoverImageUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("FeaturedCardIds")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("SellerShowcases");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.ShowcaseVisit", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<int>("ShowcaseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ViewerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShowcaseId", "Day");
+
+                    b.HasIndex("ShowcaseId", "ViewerId", "Day")
+                        .IsUnique();
+
+                    b.ToTable("ShowcaseVisits");
+                });
+
             modelBuilder.Entity("CardExchange.Core.Entities.Store", b =>
                 {
                     b.Property<int>("Id")
@@ -4037,6 +4117,17 @@ namespace CardExchange.Infrastructure.Migrations
                 {
                     b.HasOne("CardExchange.Core.Entities.User", "User")
                         .WithMany("SavedSearches")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.SellerShowcase", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.User", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

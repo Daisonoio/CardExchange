@@ -699,3 +699,27 @@ export const promotions = {
   click: (id: number) => client.post(`/promotions/${id}/click`),
   report: (id: number, reason?: string) => client.post(`/promotions/${id}/report`, { reason }),
 };
+
+export type ShowcaseCard = {
+  id: number; cardInfoId: number; name: string; setName?: string; number?: string; imageUrl?: string;
+  condition: string; finish: string; language?: string; price?: number; priceKind: 'asking' | 'market'; quantity: number;
+};
+export type Showcase = {
+  id: number; slug: string; displayName: string; bio?: string; coverImageUrl?: string; isOwner: boolean;
+  seller: { id: number; username: string; avatarUrl?: string; reputationScore: number; totalTradesCompleted: number; followers: number };
+  live?: { id: number; placeName: string; spotDetail?: string; endsAt: string; approxKm?: number } | null;
+  featured: ShowcaseCard[]; cards: ShowcaseCard[]; totalCards: number;
+};
+export type MyShowcase = {
+  hasPlan: boolean; exists: boolean; slug: string; displayName: string; bio?: string; coverImageUrl?: string;
+  featuredCardIds: number[]; cards: ShowcaseCard[];
+};
+export type ShowcaseStats = { visits: number; savedCards: number; contacts: number; broadcasts: number; reached: number; followers: number };
+
+export const showcase = {
+  get: (slug: string) => client.get<Showcase>(`/showcase/${encodeURIComponent(slug)}`),
+  mine: () => client.get<MyShowcase>('/me/showcase'),
+  save: (body: { slug: string; displayName: string; bio?: string; coverImageUrl?: string; featuredCardIds: number[] }) =>
+    client.put<{ message: string; slug: string }>('/me/showcase', body),
+  stats: () => client.get<ShowcaseStats>('/me/showcase/stats'),
+};

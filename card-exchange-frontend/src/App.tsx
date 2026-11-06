@@ -43,6 +43,8 @@ const ReservationsPage = lazyPage(() => import('./pages/ReservationsPage'));
 const StoreBuyListPage = lazyPage(() => import('./pages/StoreBuyListPage'));
 const SellPage = lazyPage(() => import('./pages/SellPage'));
 const PurchasesPage = lazyPage(() => import('./pages/PurchasesPage'));
+const ShowcasePage = lazyPage(() => import('./pages/ShowcasePage'));
+const MyShowcasePage = lazyPage(() => import('./pages/MyShowcasePage'));
 const PromotionsPage = lazyPage(() => import('./pages/PromotionsPage'));
 const LoyaltyPage = lazyPage(() => import('./pages/LoyaltyPage'));
 const StoreLoyaltyPage = lazyPage(() => import('./pages/StoreLoyaltyPage'));
@@ -135,6 +137,8 @@ export default function App() {
               <Route path="/stores/:id/loyalty" element={<StoreLoyaltyPage />} />
               <Route path="/loyalty" element={<LoyaltyPage />} />
               <Route path="/promotions" element={<PromotionsPage />} />
+              <Route path="/v/:slug" element={<ShowcasePage />} />
+              <Route path="/showcase" element={<MyShowcasePage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />
               <Route path="/moderation" element={<ModerationPage />} />

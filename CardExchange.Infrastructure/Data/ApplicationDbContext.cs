@@ -44,6 +44,8 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<CardImageFingerprint> CardImageFingerprints { get; set; }
         public DbSet<Promotion> Promotions { get; set; }
+        public DbSet<SellerShowcase> SellerShowcases { get; set; }
+        public DbSet<ShowcaseVisit> ShowcaseVisits { get; set; }
         public DbSet<PromotionDelivery> PromotionDeliveries { get; set; }
         public DbSet<PromotionReport> PromotionReports { get; set; }
         public DbSet<LoyaltyProgram> LoyaltyPrograms { get; set; }
@@ -431,6 +433,22 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
             });
 
+            modelBuilder.Entity<SellerShowcase>(entity =>
+            {
+                entity.HasIndex(v => v.UserId).IsUnique();
+                entity.HasIndex(v => v.Slug).IsUnique();
+                entity.Property(v => v.Slug).HasMaxLength(40);
+                entity.Property(v => v.DisplayName).HasMaxLength(60);
+                entity.Property(v => v.Bio).HasMaxLength(500);
+                entity.Property(v => v.CoverImageUrl).HasMaxLength(300);
+                entity.Property(v => v.FeaturedCardIds).HasMaxLength(200);
+                entity.HasOne(v => v.User).WithMany().HasForeignKey(v => v.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<ShowcaseVisit>(entity =>
+            {
+                entity.HasIndex(v => new { v.ShowcaseId, v.ViewerId, v.Day }).IsUnique();
+                entity.HasIndex(v => new { v.ShowcaseId, v.Day });
+            });
             modelBuilder.Entity<Promotion>(entity =>
             {
                 entity.HasIndex(p => new { p.Status, p.Type, p.EndsAt });
