@@ -411,7 +411,7 @@ namespace CardExchange.API.Controllers
         private static async Task<UserDto> WithBadgeAsync(UserDto dto, ISubscriptionService subscriptions)
         {
             var plans = await subscriptions.GetActivePaidPlansAsync(new[] { dto.Id });
-            if (plans.TryGetValue(dto.Id, out var plan) && plan.HasVerifiedBadge) dto.PlanBadge = plan.Tier.ToString();
+            if (plans.TryGetValue(dto.Id, out var plan) && plan.HasVerifiedBadge) dto.PlanBadge = CardExchange.Core.Rules.UserEntitlements.BadgeFor(plan.Tier);
             return dto;
         }
 

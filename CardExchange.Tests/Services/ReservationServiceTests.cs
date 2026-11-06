@@ -54,7 +54,7 @@ public class ReservationServiceTests : IDisposable
         db.Cards.Add(card);
         if (storePlan)
         {
-            var plan = new SubscriptionPlan { Name = "Negozio", Tier = SubscriptionTier.Store, Price = 19, IsActive = true };
+            var plan = CardExchange.Core.Rules.PlanCatalog.All().Single(p => p.Name == "Negozio Pro");
             db.UserSubscriptions.Add(new UserSubscription { UserId = owner.Id, Plan = plan, Status = SubscriptionStatus.Active, StartDate = _now.AddDays(-1), EndDate = _now.AddDays(30) });
         }
         await db.SaveChangesAsync();
@@ -134,7 +134,7 @@ public class ReservationServiceTests : IDisposable
         {
             var noPlan = () => Service(db).CreateAsync(_storeId, _users[0], _cardId, 1, _now);
             await noPlan.Should().ThrowAsync<ReservationException>().WithMessage("*non accetta prenotazioni*");
-            var plan = new SubscriptionPlan { Name = "Negozio", Tier = SubscriptionTier.Store, Price = 19, IsActive = true };
+            var plan = CardExchange.Core.Rules.PlanCatalog.All().Single(p => p.Name == "Negozio Pro");
             db.UserSubscriptions.Add(new UserSubscription { UserId = _ownerId, Plan = plan, Status = SubscriptionStatus.Active, StartDate = _now.AddDays(-1), EndDate = _now.AddDays(90) });
             await db.SaveChangesAsync();
         }

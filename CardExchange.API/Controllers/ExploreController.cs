@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Entitlements;
 using CardExchange.API.Authorization;
 using CardExchange.API.DTOs.Requests;
 using CardExchange.API.Services;
@@ -54,7 +55,7 @@ namespace CardExchange.API.Controllers
             if (userId == 0) return Unauthorized();
 
             var advanced = minPrice.HasValue || maxPrice.HasValue || maxCondition.HasValue || !string.IsNullOrWhiteSpace(language) || finish.HasValue;
-            var isPremium = await _subscriptions.HasActiveSubscriptionAsync(userId);
+            var isPremium = await this.Entitlements(_context).HasAsync(userId, Capability.AdvancedSearch);
             if (advanced && !isPremium)
                 return StatusCode(StatusCodes.Status403Forbidden, new { message = "I filtri per prezzo, condizione, lingua e finitura sono Premium.", code = "PREMIUM_FILTERS" });
 
@@ -127,7 +128,7 @@ namespace CardExchange.API.Controllers
                         id = h.Card.User.Id,
                         username = h.Card.User.Username,
                         reputationScore = h.Card.User.ReputationScore,
-                        planBadge = plans.TryGetValue(h.Card.UserId, out var plan) && plan.HasVerifiedBadge ? plan.Tier.ToString() : null
+                        planBadge = plans.TryGetValue(h.Card.UserId, out var plan) && plan.HasVerifiedBadge ? CardExchange.Core.Rules.UserEntitlements.BadgeFor(plan.Tier) : null
                     }
                 })
             });
@@ -194,7 +195,7 @@ namespace CardExchange.API.Controllers
                     totalTradesCompleted = card.User.TotalTradesCompleted,
                     memberSince = card.User.CreatedAt,
                     city = card.User.Location?.City,
-                    planBadge = plans.TryGetValue(card.UserId, out var plan) && plan.HasVerifiedBadge ? plan.Tier.ToString() : null
+                    planBadge = plans.TryGetValue(card.UserId, out var plan) && plan.HasVerifiedBadge ? CardExchange.Core.Rules.UserEntitlements.BadgeFor(plan.Tier) : null
                 }
             });
         }

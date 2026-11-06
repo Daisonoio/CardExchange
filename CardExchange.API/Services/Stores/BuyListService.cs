@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Entitlements;
 using System.Globalization;
 using CardExchange.API.Services.Moderation;
 using CardExchange.API.Services.Notifications;
@@ -39,8 +40,12 @@ namespace CardExchange.API.Services.Stores
         private readonly IUserBlockService _blocks;
         private readonly ILogger<BuyListService> _logger;
 
-        public BuyListService(ApplicationDbContext db, INotificationService notifications, IUserBlockService blocks, ILogger<BuyListService> logger)
+        private readonly IEntitlementService _entitlements;
+
+        public BuyListService(ApplicationDbContext db, INotificationService notifications, IUserBlockService blocks, ILogger<BuyListService> logger,
+            IEntitlementService? entitlements = null)
         {
+            _entitlements = entitlements.OrDefault(db);
             _db = db;
             _notifications = notifications;
             _blocks = blocks;
@@ -69,10 +74,9 @@ namespace CardExchange.API.Services.Stores
             };
         }
 
-        /// <summary>Il negozio può usare la lista acquisti: verificato e con il piano Negozio attivo.</summary>
+        /// <summary>Il negozio può usare la lista acquisti: verificato e con il piano Negozio Pro.</summary>
         public async Task<bool> StoreHasPlanAsync(Store store, DateTime nowUtc) =>
-            store.Status == StoreStatus.Verified && await _db.UserSubscriptions.AnyAsync(s => s.UserId == store.OwnerId
-                && s.Status == SubscriptionStatus.Active && s.StartDate <= nowUtc && s.EndDate > nowUtc && s.Plan.Tier == SubscriptionTier.Store);
+            store.Status == StoreStatus.Verified && await _entitlements.HasAsync(store.OwnerId, Capability.Buylist);
 
         private static void Validate(BuyOrderInput i)
         {

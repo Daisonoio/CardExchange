@@ -75,8 +75,12 @@ namespace CardExchange.API.Services.Billing
                 Locale = "it",
                 Metadata = metadata,
                 SubscriptionData = new SessionSubscriptionDataOptions { Metadata = metadata },
+                // Promozioni (es. codice dei partner fondatori: 6 mesi gratis, poi -50%) inseribili nel Checkout
+                AllowPromotionCodes = true,
                 LineItems = new List<SessionLineItemOptions>
                 {
+                    // Prezzo creato nella dashboard Stripe, se collegato al piano; altrimenti dal prezzo del piano
+                    !string.IsNullOrWhiteSpace(plan.StripePriceId) ? new() { Quantity = 1, Price = plan.StripePriceId } :
                     new()
                     {
                         Quantity = 1,

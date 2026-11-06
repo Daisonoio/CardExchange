@@ -3,7 +3,9 @@
   "tier": {
     "free": "Gratuito",
     "premium": "Premium",
-    "store": "Negozio"
+    "store": "Negozio",
+    "seller": "Banco",
+    "storePro": "Negozio Pro"
   },
   "method": {
     "stripe": "carta",
@@ -26,7 +28,17 @@
     "export": "Esportazione della collezione",
     "priority": "Più visibilità nei match degli altri utenti",
     "storeBadge": "Badge Negozio sul profilo",
-    "premiumBadge": "Badge Premium sul profilo"
+    "premiumBadge": "Badge Premium sul profilo",
+    "localDemand": "Domanda locale: cosa cercano i collezionisti vicino al negozio",
+    "buylist": "Lista acquisti: i collezionisti ti portano le carte che compri",
+    "reservations": "Prenota e ritira: vendi online, si paga in negozio",
+    "sellerShowcase": "Vetrina del banco per mercatini e fiere",
+    "promoCredits_one": "{{count}} credito promozione al mese",
+    "promoCredits_other": "{{count}} crediti promozione al mese",
+    "broadcasts": "Fino a {{count}} avvisi \"Sono qui\" al giorno",
+    "instantAlerts": "Avvisi immediati quando una carta che cerchi è disponibile",
+    "radius": "Ricerca e avvisi fino a {{km}} km",
+    "earlyAccess": "Accesso anticipato di 2 ore alle carte caricate da negozi e banchi"
   },
   "errors": {
     "loadPlans": "Impossibile caricare i piani.",
@@ -75,7 +87,8 @@
     "annualSaving": "Annuale −{{saving}}%",
     "perYear": "anno",
     "perMonth": "mese",
-    "monthlyEquivalent": "pari a {{price}} al mese"
+    "monthlyEquivalent": "pari a {{price}} al mese",
+    "perMonthShort": "mese"
   },
   "store": {
     "comingSoon": "Il piano per i negozi arriverà presto.",
@@ -90,5 +103,37 @@
     "reference": "Causale (obbligatoria)",
     "referenceNote": "Se la causale manca non possiamo collegare il bonifico al tuo account. La richiesta resta valida 30 giorni.",
     "gotIt": "Ho capito"
+  },
+  "compare": {
+    "title": "Confronta i piani",
+    "radius": "Raggio massimo",
+    "alerts": "Avvisi sulla wishlist",
+    "instant": "Subito",
+    "evening": "Alle 18",
+    "earlyAccess": "Accesso anticipato",
+    "unlimited": "Wishlist e messaggi illimitati",
+    "advancedSearch": "Ricerca avanzata",
+    "statistics": "Statistiche",
+    "broadcasts": "\"Sono qui\" al giorno",
+    "promoCredits": "Crediti promozione/mese",
+    "sellerShowcase": "Vetrina del banco",
+    "storeListing": "Negozio in evidenza",
+    "localDemand": "Domanda locale",
+    "buylist": "Lista acquisti",
+    "reservations": "Prenota e ritira",
+    "yes": "Incluso",
+    "no": "Non incluso"
+  },
+  "gate": {
+    "premium": "Funzione Premium: scopri i piani",
+    "store": "Inclusa nel piano Negozio: scopri i piani",
+    "storePro": "Inclusa nel piano Negozio Pro: scopri i piani",
+    "seller": "Inclusa nel piano Banco: scopri i piani"
+  },
+  "tag": {
+    "premium": "Premium",
+    "store": "Negozio",
+    "storePro": "Pro",
+    "seller": "Banco"
   }
 }

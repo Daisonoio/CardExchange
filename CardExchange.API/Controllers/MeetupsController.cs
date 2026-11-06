@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Entitlements;
 using CardExchange.API.Services.Stores;
 using CardExchange.API.Services;
 using CardExchange.Core.Entities;
@@ -119,12 +120,8 @@ namespace CardExchange.API.Controllers
             var stores = await _context.Stores.AsNoTracking()
                 .Where(s => s.Status == StoreStatus.Verified && s.IsSafeMeetupSpot)
                 .ToListAsync();
-            var now = DateTime.UtcNow;
             var ownerIds = stores.Select(s => s.OwnerId).Distinct().ToList();
-            var partners = (await _context.UserSubscriptions
-                .Where(s => ownerIds.Contains(s.UserId) && s.Status == SubscriptionStatus.Active
-                            && s.StartDate <= now && s.EndDate > now && s.Plan.Tier == SubscriptionTier.Store)
-                .Select(s => s.UserId).Distinct().ToListAsync()).ToHashSet();
+            var partners = await this.Entitlements(_context).HoldersAsync(ownerIds, Capability.FeaturedStore);
 
             var ranked = MeetupSpots.Rank(
                 stores.Select(s => new MeetupSpots.Candidate(s.Id, (double)s.Latitude, (double)s.Longitude, partners.Contains(s.OwnerId))),

@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Entitlements;
 using CardExchange.API.Services.Moderation;
 using CardExchange.API.Services.Notifications;
 using CardExchange.Core.Entities;
@@ -34,8 +35,12 @@ namespace CardExchange.API.Services.Social
         private readonly IUserBlockService _blocks;
         private readonly ILogger<BroadcastService> _logger;
 
-        public BroadcastService(ApplicationDbContext context, INotificationDispatcher dispatcher, IUserBlockService blocks, ILogger<BroadcastService> logger)
+        private readonly IEntitlementService _entitlements;
+
+        public BroadcastService(ApplicationDbContext context, INotificationDispatcher dispatcher, IUserBlockService blocks, ILogger<BroadcastService> logger,
+            IEntitlementService? entitlements = null)
         {
+            _entitlements = entitlements.OrDefault(context);
             _context = context;
             _dispatcher = dispatcher;
             _blocks = blocks;
@@ -81,8 +86,9 @@ namespace CardExchange.API.Services.Social
             // Limite giornaliero anti-spam (giorno UTC)
             var since = DateTime.UtcNow.Date;
             var today = await _context.LocationBroadcasts.CountAsync(b => b.AuthorId == authorId && b.CreatedAt >= since);
-            if (today >= BroadcastRules.MaxPerDay)
-                return new(null, $"Puoi inviare al massimo {BroadcastRules.MaxPerDay} avvisi al giorno", 429);
+            var maxPerDay = await _entitlements.LimitAsync(authorId, PlanLimit.BroadcastsPerDay);
+            if (today >= maxPerDay)
+                return new(null, $"Puoi inviare al massimo {maxPerDay} avvisi al giorno", 429);
 
             var now = DateTime.UtcNow;
 

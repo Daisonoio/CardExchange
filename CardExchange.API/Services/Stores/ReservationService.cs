@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Entitlements;
 using System.Security.Cryptography;
 using CardExchange.API.Services.Moderation;
 using CardExchange.Core.Entities;
@@ -35,8 +36,12 @@ namespace CardExchange.API.Services.Stores
         private readonly IUserBlockService _blocks;
         private readonly ILogger<ReservationService> _logger;
 
-        public ReservationService(ApplicationDbContext db, INotificationService notifications, IUserBlockService blocks, ILogger<ReservationService> logger)
+        private readonly IEntitlementService _entitlements;
+
+        public ReservationService(ApplicationDbContext db, INotificationService notifications, IUserBlockService blocks, ILogger<ReservationService> logger,
+            IEntitlementService? entitlements = null)
         {
+            _entitlements = entitlements.OrDefault(db);
             _db = db;
             _notifications = notifications;
             _blocks = blocks;
@@ -64,17 +69,13 @@ namespace CardExchange.API.Services.Stores
         public static string NewCode() =>
             new string(Enumerable.Range(0, 6).Select(_ => CodeAlphabet[RandomNumberGenerator.GetInt32(CodeAlphabet.Length)]).ToArray());
 
-        /// <summary>Il negozio accetta prenotazioni: verificato e con il piano Negozio attivo.</summary>
+        /// <summary>Il negozio accetta prenotazioni: verificato e con il piano Negozio Pro.</summary>
         public async Task<bool> StoreAcceptsReservationsAsync(Store store, DateTime nowUtc)
         {
             if (store.Status != StoreStatus.Verified) return false;
-            return await _db.UserSubscriptions.AnyAsync(s => s.UserId == store.OwnerId && s.Status == SubscriptionStatus.Active
-                && s.StartDate <= nowUtc && s.EndDate > nowUtc && s.Plan.Tier == SubscriptionTier.Store);
+            return await _entitlements.HasAsync(store.OwnerId, Capability.Reservations);
         }
 
-        private async Task<bool> IsPremiumAsync(int userId, DateTime nowUtc) =>
-            await _db.UserSubscriptions.AnyAsync(s => s.UserId == userId && s.Status == SubscriptionStatus.Active
-                && s.StartDate <= nowUtc && s.EndDate > nowUtc && s.Plan.Tier != SubscriptionTier.Free);
 
         public async Task<Reservation> CreateAsync(int storeId, int userId, int cardId, int quantity, DateTime nowUtc)
         {
@@ -93,7 +94,7 @@ namespace CardExchange.API.Services.Stores
                 throw new ReservationException($"Dopo {NoShowLimit} prenotazioni non ritirate puoi prenotare di nuovo dal {TimeZones.ToLocal(noShows[0] + NoShowPause, null):dd/MM/yyyy}");
 
             var active = await _db.Reservations.CountAsync(r => r.UserId == userId && ActiveStatuses.Contains(r.Status));
-            var max = await IsPremiumAsync(userId, nowUtc) ? MaxActivePremium : MaxActive;
+            var max = await _entitlements.LimitAsync(userId, PlanLimit.ActiveReservations);
             if (active >= max) throw new ReservationException($"Hai già {max} prenotazioni attive: ritirale o annullane una");
 
             var card = await _db.Cards.AsNoTracking().Include(c => c.CardInfo).FirstOrDefaultAsync(c => c.Id == cardId)

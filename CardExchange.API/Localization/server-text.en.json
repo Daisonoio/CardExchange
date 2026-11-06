@@ -511,5 +511,11 @@
   "{0} in credito o {1} in contanti": "{0} in store credit or {1} cash",
   "{0} in credito": "{0} in store credit",
   "{0} in contanti": "{0} cash",
-  "prezzo da concordare": "price to be agreed"
+  "prezzo da concordare": "price to be agreed",
+  "La domanda locale è inclusa nel piano Negozio Pro": "Local demand is included in the Store Pro plan",
+  "La lista acquisti è inclusa nel piano Negozio Pro": "The buylist is included in the Store Pro plan",
+  "Prenota e ritira è incluso nel piano Negozio Pro": "Reserve & collect is included in the Store Pro plan",
+  "Funzione inclusa nel piano Negozio": "Feature included in the Store plan",
+  "Funzione inclusa nel piano Banco": "Feature included in the Market Stall plan",
+  "Puoi inviare al massimo {n} avvisi al giorno": "You can send at most {n} alerts per day"
 }

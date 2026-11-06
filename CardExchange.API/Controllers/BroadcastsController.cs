@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Entitlements;
 using CardExchange.API.Services.Moderation;
 using CardExchange.API.Services.Social;
 using CardExchange.Core.Entities;
@@ -85,11 +86,12 @@ namespace CardExchange.API.Controllers
                 if (dto != null) items.Add(dto);
             }
             var today = await _context.LocationBroadcasts.CountAsync(b => b.AuthorId == me && b.CreatedAt >= since);
+            var maxPerDay = await this.Entitlements(_context).LimitAsync(me, PlanLimit.BroadcastsPerDay);
             return Ok(new
             {
                 items,
-                remainingToday = Math.Max(0, BroadcastRules.MaxPerDay - today),
-                maxPerDay = BroadcastRules.MaxPerDay,
+                remainingToday = Math.Max(0, maxPerDay - today),
+                maxPerDay,
                 followers = await _context.Follows.CountAsync(f => f.FollowedUserId == me)
             });
         }

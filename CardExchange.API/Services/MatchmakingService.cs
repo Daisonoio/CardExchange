@@ -160,7 +160,7 @@ namespace CardExchange.API.Services
                 {
                     if (!plans.TryGetValue(r.UserId, out var plan)) continue;
                     if (plan.HasPriorityListing) r.Score = Math.Round(r.Score + PriorityListingBonus, 1);
-                    if (plan.HasVerifiedBadge) r.PlanBadge = plan.Tier.ToString();
+                    if (plan.HasVerifiedBadge) r.PlanBadge = CardExchange.Core.Rules.UserEntitlements.BadgeFor(plan.Tier);
                 }
             }
 

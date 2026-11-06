@@ -103,7 +103,7 @@ namespace CardExchange.API.Controllers
         /// Senza coordinate usa la posizione del profilo. Esclude le proprie carte, gli utenti bloccati e i sospesi.
         /// </summary>
         [HttpPost("advanced")]
-        [RequirePremium]
+        [RequireCapability(Capability.AdvancedSearch)]
         public async Task<IActionResult> AdvancedSearch([FromBody] AdvancedSearchRequest request,
             [FromServices] CardExchange.API.Services.CardSearchService search)
         {
@@ -151,7 +151,7 @@ namespace CardExchange.API.Controllers
                             username = x.Card.User.Username,
                             reputationScore = x.Card.User.ReputationScore,
                             totalTradesCompleted = x.Card.User.TotalTradesCompleted,
-                            planBadge = ownerPlans.TryGetValue(x.Card.UserId, out var plan) && plan.HasVerifiedBadge ? plan.Tier.ToString() : null
+                            planBadge = ownerPlans.TryGetValue(x.Card.UserId, out var plan) && plan.HasVerifiedBadge ? CardExchange.Core.Rules.UserEntitlements.BadgeFor(plan.Tier) : null
                         },
                         location = x.Card.User.Location != null
                             ? new { x.Card.User.Location.City, x.Card.User.Location.Province }
@@ -164,7 +164,7 @@ namespace CardExchange.API.Controllers
         /// Cross-matching: trova carte che matchano la tua wishlist offerte da chi cerca le tue (PREMIUM)
         /// </summary>
         [HttpGet("matches")]
-        [RequirePremium]
+        [RequireCapability(Capability.AdvancedSearch)]
         public async Task<IActionResult> FindMatches()
         {
             var userId = GetCurrentUserId();
@@ -241,7 +241,7 @@ namespace CardExchange.API.Controllers
         /// Salva una ricerca (PREMIUM)
         /// </summary>
         [HttpPost("saved")]
-        [RequirePremium]
+        [RequireCapability(Capability.SavedSearches)]
         public async Task<IActionResult> SaveSearch([FromBody] SaveSearchRequest request)
         {
             var userId = GetCurrentUserId();
@@ -265,7 +265,7 @@ namespace CardExchange.API.Controllers
         /// Lista ricerche salvate (PREMIUM)
         /// </summary>
         [HttpGet("saved")]
-        [RequirePremium]
+        [RequireCapability(Capability.SavedSearches)]
         public async Task<IActionResult> GetSavedSearches()
         {
             var userId = GetCurrentUserId();
@@ -292,7 +292,7 @@ namespace CardExchange.API.Controllers
         /// Elimina ricerca salvata
         /// </summary>
         [HttpDelete("saved/{id}")]
-        [RequirePremium]
+        [RequireCapability(Capability.SavedSearches)]
         public async Task<IActionResult> DeleteSavedSearch(int id)
         {
             var userId = GetCurrentUserId();

@@ -13,6 +13,7 @@ import EmptyState from '../components/ui/EmptyState';
 import EmptyStateLink from '../components/ui/EmptyStateLink';
 import FollowButton from '../components/social/FollowButton';
 import StoreCardsSection from '../components/stores/StoreCardsSection';
+import { PlanTag } from '../components/ui/Gate';
 
 const STATUS_LABEL: Record<Store['status'], { textKey: string; cls: string }> = {
   Pending: { textKey: 'page.status.Pending', cls: 'bg-amber-50 text-amber-700' },
@@ -101,7 +102,7 @@ export default function StorePage() {
         <Link to={`/stores/${store.id}/buylist`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
           <ShoppingCart size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
-            <strong className="block text-sm text-text">{t('buylist:entry')}</strong>
+            <strong className="block text-sm text-text">{t('buylist:entry')}<PlanTag capability="Buylist" /></strong>
             <span className="text-xs text-text-secondary">{t('buylist:entryHint')}</span>
           </span>
         </Link>
@@ -111,7 +112,7 @@ export default function StorePage() {
         <Link to={`/stores/${store.id}/reservations`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
           <PackageCheck size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
-            <strong className="block text-sm text-text">{t('reservations:store.entry')}</strong>
+            <strong className="block text-sm text-text">{t('reservations:store.entry')}<PlanTag capability="Reservations" /></strong>
             <span className="text-xs text-text-secondary">{t('reservations:store.entryHint')}</span>
           </span>
         </Link>
@@ -121,7 +122,7 @@ export default function StorePage() {
         <Link to={`/stores/${store.id}/demand`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
           <Target size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
-            <strong className="block text-sm text-text">{t('demand.entry')}</strong>
+            <strong className="block text-sm text-text">{t('demand.entry')}<PlanTag capability="LocalDemand" /></strong>
             <span className="text-xs text-text-secondary">{t('demand.entryHint')}</span>
           </span>
         </Link>

@@ -791,7 +791,8 @@ export interface EventLive {
 
 
 // === Abbonamenti alla piattaforma (Premium, Negozio) ===
-export type SubscriptionTier = 'Free' | 'Premium' | 'Store';
+export type SubscriptionTier = 'Free' | 'Premium' | 'Store' | 'Seller' | 'StorePro';
+export const isStoreTier = (t?: string | null) => t === 'Store' || t === 'StorePro';
 
 export interface SubscriptionPlan {
   id: number;
@@ -809,6 +810,24 @@ export interface SubscriptionPlan {
   hasPriorityListing: boolean;
   hasVerifiedBadge: boolean;
   hasWishlistAlerts: boolean;
+  sortOrder?: number;
+  maxRadiusKm?: number;
+  maxBroadcastsPerDay?: number;
+  maxActiveReservations?: number;
+  monthlyPromotionCredits?: number;
+  maxWishlistItems?: number;
+  /** Nomi delle funzioni incluse (Capability lato server). */
+  capabilities?: string[];
+}
+
+/** Diritti effettivi dell'utente (GET /api/me/entitlements). */
+export interface Entitlements {
+  tier: SubscriptionTier;
+  planName: string;
+  isPaid: boolean;
+  capabilities: string[];
+  /** null = illimitato */
+  limits: Record<string, number | null>;
 }
 
 export interface UserSubscription {

@@ -1,3 +1,4 @@
+using CardExchange.Core.Rules;
 using CardExchange.API.Authorization;
 using CardExchange.API.DTOs.Responses;
 using CardExchange.API.Services;
@@ -34,7 +35,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene il riepilogo del portfolio dell'utente (valore totale, variazione 24h, carta più preziosa)
         /// </summary>
         [HttpGet("portfolio")]
-        [RequirePremium]
+        [RequireCapability(Capability.Statistics)]
         public async Task<ActionResult<PortfolioSummaryDto>> GetPortfolioSummary()
         {
             try
@@ -75,7 +76,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene le carte con la maggiore variazione di prezzo nel portfolio
         /// </summary>
         [HttpGet("portfolio/movers")]
-        [RequirePremium]
+        [RequireCapability(Capability.Statistics)]
         public async Task<ActionResult<IEnumerable<MoverDto>>> GetPortfolioMovers([FromQuery] int limit = 10)
         {
             try
@@ -111,7 +112,7 @@ namespace CardExchange.API.Controllers
         /// Salva uno snapshot dei prezzi attuali per il portfolio dell'utente
         /// </summary>
         [HttpPost("portfolio/snapshot")]
-        [RequirePremium]
+        [RequireCapability(Capability.Statistics)]
         public async Task<ActionResult> TakePortfolioSnapshot()
         {
             try
@@ -172,7 +173,7 @@ namespace CardExchange.API.Controllers
         /// Ottiene gli alert di prezzo dell'utente
         /// </summary>
         [HttpGet("alerts")]
-        [RequirePremium]
+        [RequireCapability(Capability.PriceAlerts)]
         public async Task<ActionResult<IEnumerable<PriceAlertDto>>> GetMyAlerts()
         {
             try
@@ -221,7 +222,7 @@ namespace CardExchange.API.Controllers
         /// Crea un nuovo alert di prezzo
         /// </summary>
         [HttpPost("alerts")]
-        [RequirePremium]
+        [RequireCapability(Capability.PriceAlerts)]
         public async Task<ActionResult<PriceAlertDto>> CreateAlert([FromBody] CreatePriceAlertRequest request)
         {
             try
@@ -277,7 +278,7 @@ namespace CardExchange.API.Controllers
         /// Elimina un alert di prezzo
         /// </summary>
         [HttpDelete("alerts/{id}")]
-        [RequirePremium]
+        [RequireCapability(Capability.PriceAlerts)]
         public async Task<ActionResult> DeleteAlert(int id)
         {
             try
@@ -302,7 +303,7 @@ namespace CardExchange.API.Controllers
         /// Controlla e scatena gli alert dell'utente basandosi sui prezzi correnti
         /// </summary>
         [HttpPost("alerts/check")]
-        [RequirePremium]
+        [RequireCapability(Capability.PriceAlerts)]
         public async Task<ActionResult> CheckAlerts()
         {
             try

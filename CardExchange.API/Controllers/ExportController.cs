@@ -28,7 +28,7 @@ namespace CardExchange.API.Controllers
         }
 
         [HttpGet("collection/csv")]
-        [RequirePremium]
+        [RequireCapability(Capability.ExportCollection)]
         public async Task<IActionResult> ExportCollectionCsv()
         {
             var userId = GetCurrentUserId();
@@ -62,7 +62,7 @@ namespace CardExchange.API.Controllers
         }
 
         [HttpGet("collection/json")]
-        [RequirePremium]
+        [RequireCapability(Capability.ExportCollection)]
         public async Task<IActionResult> ExportCollectionJson()
         {
             var userId = GetCurrentUserId();
@@ -99,7 +99,7 @@ namespace CardExchange.API.Controllers
         }
 
         [HttpGet("wishlist/csv")]
-        [RequirePremium]
+        [RequireCapability(Capability.ExportCollection)]
         public async Task<IActionResult> ExportWishlistCsv()
         {
             var userId = GetCurrentUserId();

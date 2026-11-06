@@ -19,7 +19,7 @@ namespace CardExchange.Infrastructure.Configuration
                               connectionString.Contains("Server=", StringComparison.OrdinalIgnoreCase) ||
                               connectionString.Contains("TrustServerCertificate", StringComparison.OrdinalIgnoreCase);
 
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContext<ApplicationDbContext>((sp, options) =>
             {
                 if (isSqlServer)
                 {
@@ -36,6 +36,9 @@ namespace CardExchange.Infrastructure.Configuration
                     // Assume SQLite for other connection strings (typically "Data Source=filename.db")
                     options.UseSqlite(connectionString);
                 }
+
+                // Intercettori registrati dall'API (es. cache dei diritti dei piani)
+                options.AddInterceptors(sp.GetServices<Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor>());
 
                 options.EnableSensitiveDataLogging(false)
                        .EnableDetailedErrors(false);

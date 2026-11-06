@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, BadgeCheck, Check, Copy, CreditCard, Crown, Info, Landmark, Loader2, Store as StoreIcon } from 'lucide-react';
+import { ArrowLeft, BadgeCheck, Check, Copy, CreditCard, Crown, Info, Landmark, Loader2, Minus, Store as StoreIcon, Tent } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { billing } from '../api';
 import { formatDate, formatEuro } from '../i18n/format';
 import type { BankTransferInstructions, BillingOptions, SubscriptionPlan, SubscriptionState, UserSubscription } from '../types';
+import { isStoreTier } from '../types';
+import { refreshEntitlements } from '../hooks/useEntitlements';
 import { apiErrorMessage } from '../utils/apiError';
 import Button from '../components/ui/Button';
 import BottomSheet from '../components/ui/BottomSheet';
@@ -13,7 +15,7 @@ const euro = (v: number) => formatEuro(v);
 const day = (iso: string) => formatDate(iso, { day: 'numeric', month: 'long', year: 'numeric' });
 
 // Chiavi del namespace "premium"
-const TIER_LABEL = { Free: 'tier.free', Premium: 'tier.premium', Store: 'tier.store' } as const;
+const TIER_LABEL = { Free: 'tier.free', Premium: 'tier.premium', Store: 'tier.store', Seller: 'tier.seller', StorePro: 'tier.storePro' } as const;
 const METHOD_LABEL: Record<UserSubscription['paymentMethod'], string> = {
   Stripe: 'method.stripe',
   BankTransfer: 'method.bankTransfer',
@@ -28,19 +30,47 @@ const FREE_FEATURES = [
   'features.free.limits',
 ];
 
-/** Restituisce le chiavi (namespace "premium") delle funzioni incluse nel piano. */
-function planFeatures(p: SubscriptionPlan): string[] {
-  const f: string[] = [];
-  if (p.tier === 'Store') f.push('features.storeListing');
-  f.push('features.unlimited');
-  if (p.hasWishlistAlerts) f.push('features.wishlistAlerts');
-  if (p.canSearchAdvanced || p.canSearchGeographic) f.push('features.advancedSearch');
-  if (p.canViewStatistics) f.push('features.statistics');
-  if (p.canExportCollection) f.push('features.export');
-  if (p.hasPriorityListing) f.push('features.priority');
-  if (p.hasVerifiedBadge) f.push(p.tier === 'Store' ? 'features.storeBadge' : 'features.premiumBadge');
+const has = (p: SubscriptionPlan, c: string) => !!p.capabilities?.includes(c);
+const isStore = (p: SubscriptionPlan) => isStoreTier(p.tier);
+
+/** Funzioni incluse nel piano: [chiave nel namespace "premium", valori]. */
+function planFeatures(p: SubscriptionPlan): [string, Record<string, unknown>?][] {
+  const f: [string, Record<string, unknown>?][] = [];
+  if (has(p, 'FeaturedStore')) f.push(['features.storeListing']);
+  if (has(p, 'LocalDemand')) f.push(['features.localDemand']);
+  if (has(p, 'Buylist')) f.push(['features.buylist']);
+  if (has(p, 'Reservations')) f.push(['features.reservations']);
+  if (has(p, 'SellerShowcase')) f.push(['features.sellerShowcase']);
+  if ((p.monthlyPromotionCredits ?? 0) > 0) f.push(['features.promoCredits', { count: p.monthlyPromotionCredits }]);
+  if ((p.maxBroadcastsPerDay ?? 3) > 3) f.push(['features.broadcasts', { count: p.maxBroadcastsPerDay }]);
+  if (has(p, 'InstantAlerts')) f.push(['features.instantAlerts']);
+  if (p.maxRadiusKm) f.push(['features.radius', { km: p.maxRadiusKm }]);
+  if (has(p, 'EarlyAccess')) f.push(['features.earlyAccess']);
+  f.push(['features.unlimited']);
+  if (has(p, 'AdvancedSearch')) f.push(['features.advancedSearch']);
+  if (has(p, 'Statistics')) f.push(['features.statistics']);
+  if (has(p, 'ExportCollection')) f.push(['features.export']);
+  if (has(p, 'PriorityListing')) f.push(['features.priority']);
+  if (has(p, 'VerifiedBadge')) f.push([isStore(p) ? 'features.storeBadge' : 'features.premiumBadge']);
   return f;
 }
+
+/** Righe della tabella di confronto: funzione o limite. */
+const COMPARE: { key: string; cap?: string; value?: (p: SubscriptionPlan | null) => string | null }[] = [
+  { key: 'compare.radius', value: (p) => `${p?.maxRadiusKm ?? 30} km` },
+  { key: 'compare.alerts', value: (p) => (p && has(p, 'InstantAlerts') ? 'instant' : 'evening') },
+  { key: 'compare.earlyAccess', cap: 'EarlyAccess' },
+  { key: 'compare.unlimited', value: (p) => (p ? 'yes' : null) },
+  { key: 'compare.advancedSearch', cap: 'AdvancedSearch' },
+  { key: 'compare.statistics', cap: 'Statistics' },
+  { key: 'compare.broadcasts', value: (p) => String(p?.maxBroadcastsPerDay ?? 3) },
+  { key: 'compare.promoCredits', value: (p) => String(p?.monthlyPromotionCredits ?? 0) },
+  { key: 'compare.sellerShowcase', cap: 'SellerShowcase' },
+  { key: 'compare.storeListing', cap: 'FeaturedStore' },
+  { key: 'compare.localDemand', cap: 'LocalDemand' },
+  { key: 'compare.buylist', cap: 'Buylist' },
+  { key: 'compare.reservations', cap: 'Reservations' },
+];
 
 function CopyRow({ label, value }: { label: string; value?: string }) {
   const { t } = useTranslation('premium');
@@ -90,7 +120,7 @@ export default function PremiumPage() {
   }, []);
 
   // Chi ha già il piano Negozio vede subito la sezione negozi
-  const storeTier = state?.tier === 'Store';
+  const storeTier = isStoreTier(state?.tier);
   useEffect(() => {
     if (storeTier && !params.get('for')) setAudience('store');
   }, [storeTier]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -112,7 +142,7 @@ export default function PremiumPage() {
     const poll = async () => {
       const data = await loadState().catch(() => null);
       if (cancelled) return;
-      if (data?.active?.paymentMethod === 'Stripe' || tries++ >= 10) return;
+      if (data?.active?.paymentMethod === 'Stripe' || tries++ >= 10) { refreshEntitlements(); return; }
       setTimeout(poll, 2000);
     };
     poll();
@@ -120,7 +150,16 @@ export default function PremiumPage() {
   }, [checkout, loadState]);
 
   const premium = useMemo(() => (plans ?? []).filter((p) => p.tier === 'Premium'), [plans]);
-  const storePlans = useMemo(() => (plans ?? []).filter((p) => p.tier === 'Store'), [plans]);
+  const storePlans = useMemo(() => (plans ?? []).filter(isStore), [plans]);
+  const sellerPlans = useMemo(() => (plans ?? []).filter((p) => p.tier === 'Seller'), [plans]);
+  // Colonne della tabella di confronto: Gratuito, Premium (mensile), Banco, Negozio, Negozio Pro
+  const columns: (SubscriptionPlan | null)[] = useMemo(() => [
+    null,
+    (plans ?? []).find((p) => p.tier === 'Premium' && p.cycle === 'Monthly') ?? null,
+    (plans ?? []).find((p) => p.tier === 'Seller') ?? null,
+    (plans ?? []).find((p) => p.tier === 'Store') ?? null,
+    (plans ?? []).find((p) => p.tier === 'StorePro') ?? null,
+  ].filter((p, i) => i === 0 || p !== null), [plans]);
   const monthly = premium.find((p) => p.cycle === 'Monthly');
   const shownPremium = premium.find((p) => p.cycle === cycle) ?? premium[0];
   const annualSaving = monthly && premium.find((p) => p.cycle === 'Annual')
@@ -270,7 +309,7 @@ export default function PremiumPage() {
       <section className="p-4 rounded-2xl bg-white border border-border space-y-2">
         <div className="flex items-center gap-3">
           <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${state.tier === 'Free' ? 'bg-surface-dark text-text-secondary' : 'bg-secondary/15 text-amber-700'}`}>
-            {state.tier === 'Store' ? <StoreIcon size={20} /> : <Crown size={20} />}
+            {isStoreTier(state.tier) ? <StoreIcon size={20} /> : <Crown size={20} />}
           </span>
           <div className="flex-1 min-w-0">
             <p className="text-[11px] text-text-muted">{t('current.label')}</p>
@@ -365,13 +404,30 @@ export default function PremiumPage() {
                 )}
               </p>
               <ul className="space-y-1.5">
-                {planFeatures(shownPremium).map((f) => (
-                  <li key={f} className="flex gap-2 text-sm text-text"><Check size={16} className="text-green-600 shrink-0 mt-0.5" />{t(f)}</li>
+                {planFeatures(shownPremium).map(([f, v]) => (
+                  <li key={f} className="flex gap-2 text-sm text-text"><Check size={16} className="text-green-600 shrink-0 mt-0.5" />{t(f, v)}</li>
                 ))}
               </ul>
               <PayButtons plan={shownPremium} />
             </section>
           )}
+
+          {sellerPlans.map((plan) => (
+            <section key={plan.id} className="p-4 rounded-2xl bg-white border border-border space-y-3">
+              <h2 className="text-lg font-bold text-text flex items-center gap-1.5"><Tent size={18} className="text-primary" /> {plan.name}</h2>
+              {plan.description && <p className="text-sm text-text-secondary">{plan.description}</p>}
+              <p>
+                <span className="text-3xl font-bold text-text">{euro(plan.price)}</span>
+                <span className="text-sm text-text-secondary"> / {plan.cycle === 'Annual' ? t('cycle.perYear') : t('cycle.perMonth')}</span>
+              </p>
+              <ul className="space-y-1.5">
+                {planFeatures(plan).map(([f, v]) => (
+                  <li key={f} className="flex gap-2 text-sm text-text"><Check size={16} className="text-green-600 shrink-0 mt-0.5" />{t(f, v)}</li>
+                ))}
+              </ul>
+              <PayButtons plan={plan} />
+            </section>
+          ))}
 
           <section className="p-4 rounded-2xl bg-white border border-border space-y-2">
             <h2 className="text-base font-bold text-text">{t(TIER_LABEL.Free)}</h2>
@@ -386,7 +442,7 @@ export default function PremiumPage() {
         <p className="text-sm text-text-muted text-center py-6">{t('store.comingSoon')}</p>
       ) : (
         storePlans.map((plan) => (
-          <section key={plan.id} className="p-4 rounded-2xl bg-white border-2 border-primary space-y-3">
+          <section key={plan.id} className={`p-4 rounded-2xl bg-white space-y-3 ${plan.tier === 'StorePro' ? 'border-2 border-primary' : 'border border-border'}`}>
             <h2 className="text-lg font-bold text-text flex items-center gap-1.5"><StoreIcon size={18} className="text-primary" /> {plan.name}</h2>
             {plan.description && <p className="text-sm text-text-secondary">{plan.description}</p>}
             <p>
@@ -394,8 +450,8 @@ export default function PremiumPage() {
               <span className="text-sm text-text-secondary"> / {plan.cycle === 'Annual' ? t('cycle.perYear') : t('cycle.perMonth')}</span>
             </p>
             <ul className="space-y-1.5">
-              {planFeatures(plan).map((f) => (
-                <li key={f} className="flex gap-2 text-sm text-text"><Check size={16} className="text-green-600 shrink-0 mt-0.5" />{t(f)}</li>
+              {planFeatures(plan).map(([f, v]) => (
+                <li key={f} className="flex gap-2 text-sm text-text"><Check size={16} className="text-green-600 shrink-0 mt-0.5" />{t(f, v)}</li>
               ))}
             </ul>
             <p className="text-xs text-text-muted flex gap-1.5">
@@ -405,6 +461,44 @@ export default function PremiumPage() {
             <PayButtons plan={plan} />
           </section>
         ))
+      )}
+
+      {columns.length > 1 && (
+        <section className="bg-white rounded-2xl border border-border p-3">
+          <h2 className="text-sm font-semibold text-text mb-2">{t('compare.title')}</h2>
+          <div className="overflow-x-auto -mx-3 px-3">
+            <table className="w-full min-w-[34rem] text-xs">
+              <thead>
+                <tr className="text-text-secondary">
+                  <th className="sticky left-0 bg-white text-left font-medium py-1.5 pr-2" />
+                  {columns.map((p, i) => (
+                    <th key={i} className="font-semibold text-text px-1.5 text-center whitespace-nowrap">
+                      {p ? p.name.replace(' Mensile', '') : t(TIER_LABEL.Free)}
+                      <span className="block font-normal text-text-muted">{p ? `${euro(p.price)}/${t('cycle.perMonthShort')}` : '0 €'}</span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARE.map((row) => (
+                  <tr key={row.key} className="border-t border-border/60">
+                    <th scope="row" className="sticky left-0 bg-white text-left font-normal text-text-secondary py-1.5 pr-2">{t(row.key)}</th>
+                    {columns.map((p, i) => {
+                      const v = row.cap ? (p && has(p, row.cap) ? 'yes' : null) : row.value!(p);
+                      return (
+                        <td key={i} className="text-center px-1.5">
+                          {v === 'yes' ? <Check size={14} className="inline text-green-600" aria-label={t('compare.yes')} />
+                            : v === null || v === '0' ? <Minus size={14} className="inline text-text-muted" aria-label={t('compare.no')} />
+                            : v === 'instant' ? t('compare.instant') : v === 'evening' ? t('compare.evening') : v}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       )}
 
       <p className="text-xs text-text-muted flex gap-1.5 px-1">

@@ -226,81 +226,15 @@ namespace CardExchange.Infrastructure.Data
         /// </summary>
         public static async Task SeedSubscriptionPlans(ApplicationDbContext context)
         {
-
-            var plans = new List<SubscriptionPlan>
+            // Listino e diritti da PlanCatalog: i piani mancanti si creano, quelli esistenti ricevono i diritti
+            // aggiornati (il prezzo già in vendita non si tocca: si cambia da amministrazione o con un nuovo piano)
+            var existing = await context.SubscriptionPlans.ToListAsync();
+            foreach (var plan in CardExchange.Core.Rules.PlanCatalog.All())
             {
-                new SubscriptionPlan
-                {
-                    Name = "Premium Mensile",
-                    Description = "Abbonamento mensile con tutte le funzionalità premium: ricerca avanzata, messaggi illimitati, statistiche, export e molto altro",
-                    Tier = SubscriptionTier.Premium,
-                    Cycle = BillingCycle.Monthly,
-                    Price = 4.99m,
-                    Currency = "EUR",
-                    IsActive = true,
-                    MaxCards = int.MaxValue,
-                    MaxWishlistItems = int.MaxValue,
-                    MaxActiveTradeOffers = int.MaxValue,
-                    MaxDailyMessages = int.MaxValue,
-                    CanSearchAdvanced = true,
-                    CanSearchGeographic = true,
-                    CanExportCollection = true,
-                    CanViewStatistics = true,
-                    CanSaveSearches = true,
-                    HasPriorityListing = true,
-                    HasVerifiedBadge = true,
-                    HasWishlistAlerts = true
-                },
-                new SubscriptionPlan
-                {
-                    Name = "Premium Annuale",
-                    Description = "Abbonamento annuale con tutte le funzionalità premium. Risparmi il 20% rispetto al mensile!",
-                    Tier = SubscriptionTier.Premium,
-                    Cycle = BillingCycle.Annual,
-                    Price = 47.99m,
-                    Currency = "EUR",
-                    IsActive = true,
-                    MaxCards = int.MaxValue,
-                    MaxWishlistItems = int.MaxValue,
-                    MaxActiveTradeOffers = int.MaxValue,
-                    MaxDailyMessages = int.MaxValue,
-                    CanSearchAdvanced = true,
-                    CanSearchGeographic = true,
-                    CanExportCollection = true,
-                    CanViewStatistics = true,
-                    CanSaveSearches = true,
-                    HasPriorityListing = true,
-                    HasVerifiedBadge = true,
-                    HasWishlistAlerts = true
-                },
-                new SubscriptionPlan
-                {
-                    Name = "Negozio Annuale",
-                    Description = "Per i negozi: scheda negozio in evidenza nella sezione Locale, badge Negozio sul profilo, più visibilità nei match, nessun limite.",
-                    Tier = SubscriptionTier.Store,
-                    Cycle = BillingCycle.Annual,
-                    Price = 99.00m,
-                    Currency = "EUR",
-                    IsActive = true,
-                    MaxCards = int.MaxValue,
-                    MaxWishlistItems = int.MaxValue,
-                    MaxActiveTradeOffers = int.MaxValue,
-                    MaxDailyMessages = int.MaxValue,
-                    CanSearchAdvanced = true,
-                    CanSearchGeographic = true,
-                    CanExportCollection = true,
-                    CanViewStatistics = true,
-                    CanSaveSearches = true,
-                    HasPriorityListing = true,
-                    HasVerifiedBadge = true,
-                    HasWishlistAlerts = true
-                }
-            };
-
-            var existing = await context.SubscriptionPlans.Select(p => p.Name).ToListAsync();
-            var missing = plans.Where(p => !existing.Contains(p.Name)).ToList();
-            if (missing.Count == 0) return;
-            await context.SubscriptionPlans.AddRangeAsync(missing);
+                var saved = existing.FirstOrDefault(p => p.Name == plan.Name);
+                if (saved == null) context.SubscriptionPlans.Add(plan);
+                else CardExchange.Core.Rules.PlanCatalog.ApplyRights(plan, saved);
+            }
             await context.SaveChangesAsync();
         }
     }

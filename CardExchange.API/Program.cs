@@ -166,6 +166,9 @@ else
 // Limiti del piano gratuito (PlanLimits:FreeMaxCards vuoto = collezione illimitata)
 builder.Services.Configure<CardExchange.API.Configuration.PlanLimitsOptions>(builder.Configuration.GetSection("PlanLimits"));
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+// Diritti dei piani: unico servizio per tutti i controlli; cache invalidata a ogni modifica di un abbonamento
+builder.Services.AddScoped<CardExchange.API.Services.Entitlements.IEntitlementService, CardExchange.API.Services.Entitlements.EntitlementService>();
+builder.Services.AddSingleton<Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor, CardExchange.API.Services.Entitlements.EntitlementCacheInterceptor>();
 // Abbonamenti alla piattaforma: carta (Stripe) e bonifico confermato dall'amministratore
 builder.Services.Configure<CardExchange.API.Configuration.BillingOptions>(builder.Configuration.GetSection("Billing"));
 builder.Services.AddScoped<CardExchange.API.Services.Billing.IBillingService, CardExchange.API.Services.Billing.BillingService>();

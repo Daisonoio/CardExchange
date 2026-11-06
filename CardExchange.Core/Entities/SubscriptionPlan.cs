@@ -6,8 +6,12 @@ namespace CardExchange.Core.Entities
     {
         Free = 0,
         Premium = 1,
-        /// <summary>Piano per negozi: collezione illimitata, scheda in evidenza.</summary>
-        Store = 2
+        /// <summary>Piano Negozio: scheda in evidenza, badge, statistiche e riepilogo mensile.</summary>
+        Store = 2,
+        /// <summary>Piano Banco: per chi vende ai mercatini e alle fiere.</summary>
+        Seller = 3,
+        /// <summary>Piano Negozio Pro: domanda locale, lista acquisti, prenota e ritira.</summary>
+        StorePro = 4
     }
 
     public enum BillingCycle
@@ -49,6 +53,34 @@ namespace CardExchange.Core.Entities
         public bool HasPriorityListing { get; set; } = false;
         public bool HasVerifiedBadge { get; set; } = false;
         public bool HasWishlistAlerts { get; set; } = false;
+
+        // Diritti aggiunti con il nuovo listino (letti solo tramite IEntitlementService)
+        /// <summary>Avvisi "Sono qui" al giorno.</summary>
+        public int MaxBroadcastsPerDay { get; set; } = 3;
+        /// <summary>Raggio massimo di ricerca e avvisi (km).</summary>
+        public int MaxRadiusKm { get; set; } = 30;
+        /// <summary>Prenotazioni in negozio attive contemporaneamente.</summary>
+        public int MaxActiveReservations { get; set; } = 3;
+        /// <summary>Crediti promozione inclusi ogni mese.</summary>
+        public int MonthlyPromotionCredits { get; set; }
+        /// <summary>Avvisi sulle carte della wishlist subito (gli altri ricevono un riepilogo serale).</summary>
+        public bool HasInstantAlerts { get; set; }
+        /// <summary>Vede e prenota per primo le carte appena caricate da negozi e banchi.</summary>
+        public bool HasEarlyAccess { get; set; }
+        /// <summary>Avvisi di prezzo e storico prezzi.</summary>
+        public bool HasPriceAlerts { get; set; }
+        /// <summary>Negozio in evidenza nella sezione Locale e come punto d'incontro.</summary>
+        public bool HasFeaturedStore { get; set; }
+        public bool HasLocalDemand { get; set; }
+        public bool HasBuylist { get; set; }
+        public bool HasReservations { get; set; }
+        public bool HasSellerShowcase { get; set; }
+        public bool HidesBrandSponsors { get; set; }
+        /// <summary>Prezzo Stripe collegato (facoltativo: senza, il Checkout usa il prezzo del piano).</summary>
+        [System.ComponentModel.DataAnnotations.MaxLength(100)]
+        public string? StripePriceId { get; set; }
+        /// <summary>Ordine nella pagina dei piani.</summary>
+        public int SortOrder { get; set; }
 
         // Relazioni
         public virtual ICollection<UserSubscription> Subscriptions { get; set; } = new List<UserSubscription>();

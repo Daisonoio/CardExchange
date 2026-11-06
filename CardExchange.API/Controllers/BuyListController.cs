@@ -36,7 +36,7 @@ namespace CardExchange.API.Controllers
             if (store == null) return (null, NotFound(new { message = "Negozio non trovato" }));
             if (store.OwnerId != CurrentUserId()) return (null, Forbid());
             if (!await _buyList.StoreHasPlanAsync(store, DateTime.UtcNow))
-                return (null, StatusCode(402, new { code = "PLAN_REQUIRED", message = "La lista acquisti è inclusa nel piano Negozio" }));
+                return (null, StatusCode(402, new { code = "PLAN_REQUIRED", message = "La lista acquisti è inclusa nel piano Negozio Pro" }));
             return (store, null);
         }
 

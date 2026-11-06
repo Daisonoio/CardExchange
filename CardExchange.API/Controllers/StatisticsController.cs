@@ -51,7 +51,7 @@ namespace CardExchange.API.Controllers
         /// carte che si sono mosse di più, ripartizione per gioco e condizione. Valori di mercato di riferimento.
         /// </summary>
         [HttpGet("collection/insights")]
-        [RequirePremium]
+        [RequireCapability(Capability.Statistics)]
         public async Task<IActionResult> GetInsights([FromQuery] int days = 90)
         {
             var userId = GetCurrentUserId();

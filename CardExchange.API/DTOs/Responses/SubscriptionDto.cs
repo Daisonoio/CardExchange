@@ -25,6 +25,15 @@ namespace CardExchange.API.DTOs.Responses
         public bool HasPriorityListing { get; set; }
         public bool HasVerifiedBadge { get; set; }
         public bool HasWishlistAlerts { get; set; }
+
+        // Nuovo listino
+        public int SortOrder { get; set; }
+        public int MaxBroadcastsPerDay { get; set; }
+        public int MaxRadiusKm { get; set; }
+        public int MaxActiveReservations { get; set; }
+        public int MonthlyPromotionCredits { get; set; }
+        /// <summary>Diritti del piano (nomi di Capability), per la tabella di confronto.</summary>
+        public List<string> Capabilities { get; set; } = new();
     }
 
     public class UserSubscriptionDto

@@ -65,7 +65,7 @@ export default function AdminBillingPage() {
   useEffect(() => {
     billing.plans().then(({ data }) => {
       setPlans(data);
-      setGrant((g) => ({ ...g, planId: g.planId || data.find((p) => p.tier === 'Store')?.id || data[0]?.id || 0 }));
+      setGrant((g) => ({ ...g, planId: g.planId || data.find((p) => p.tier === 'Store' || p.tier === 'StorePro')?.id || data[0]?.id || 0 }));
     }).catch(() => undefined);
   }, []);
 

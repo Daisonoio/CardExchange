@@ -3,7 +3,9 @@
   "tier": {
     "free": "Free",
     "premium": "Premium",
-    "store": "Store"
+    "store": "Store",
+    "seller": "Market Stall",
+    "storePro": "Store Pro"
   },
   "method": {
     "stripe": "card",
@@ -26,7 +28,17 @@
     "export": "Collection export",
     "priority": "More visibility in other users' matches",
     "storeBadge": "Store badge on your profile",
-    "premiumBadge": "Premium badge on your profile"
+    "premiumBadge": "Premium badge on your profile",
+    "localDemand": "Local demand: what collectors near your store are looking for",
+    "buylist": "Buylist: collectors bring you the cards you buy",
+    "reservations": "Reserve & collect: sell online, paid in store",
+    "sellerShowcase": "Stall showcase for markets and fairs",
+    "promoCredits_one": "{{count}} promotion credit per month",
+    "promoCredits_other": "{{count}} promotion credits per month",
+    "broadcasts": "Up to {{count}} \"I'm here\" alerts per day",
+    "instantAlerts": "Instant alerts when a card you want becomes available",
+    "radius": "Search and alerts up to {{km}} km",
+    "earlyAccess": "2-hour early access to cards listed by stores and stalls"
   },
   "errors": {
     "loadPlans": "Couldn't load the plans.",
@@ -75,7 +87,8 @@
     "annualSaving": "Yearly −{{saving}}%",
     "perYear": "year",
     "perMonth": "month",
-    "monthlyEquivalent": "equal to {{price}} per month"
+    "monthlyEquivalent": "equal to {{price}} per month",
+    "perMonthShort": "mo"
   },
   "store": {
     "comingSoon": "The store plan is coming soon.",
@@ -90,5 +103,37 @@
     "reference": "Payment reference (required)",
     "referenceNote": "Without the reference we can't link the transfer to your account. The request is valid for 30 days.",
     "gotIt": "Got it"
+  },
+  "compare": {
+    "title": "Compare plans",
+    "radius": "Maximum radius",
+    "alerts": "Wishlist alerts",
+    "instant": "Instant",
+    "evening": "At 6 pm",
+    "earlyAccess": "Early access",
+    "unlimited": "Unlimited wishlist and messages",
+    "advancedSearch": "Advanced search",
+    "statistics": "Statistics",
+    "broadcasts": "\"I'm here\" per day",
+    "promoCredits": "Promotion credits/month",
+    "sellerShowcase": "Stall showcase",
+    "storeListing": "Featured store",
+    "localDemand": "Local demand",
+    "buylist": "Buylist",
+    "reservations": "Reserve & collect",
+    "yes": "Included",
+    "no": "Not included"
+  },
+  "gate": {
+    "premium": "Premium feature: see the plans",
+    "store": "Included in the Store plan: see the plans",
+    "storePro": "Included in the Store Pro plan: see the plans",
+    "seller": "Included in the Market Stall plan: see the plans"
+  },
+  "tag": {
+    "premium": "Premium",
+    "store": "Store",
+    "storePro": "Pro",
+    "seller": "Stall"
   }
 }

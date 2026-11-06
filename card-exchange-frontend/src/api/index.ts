@@ -431,6 +431,10 @@ export const referrals = {
 
 
 // === Abbonamenti alla piattaforma ===
+export const me = {
+  entitlements: () => client.get<import('../types').Entitlements>('/me/entitlements'),
+};
+
 export const billing = {
   plans: () => client.get<import('../types').SubscriptionPlan[]>('/subscriptions/plans'),
   options: () => client.get<import('../types').BillingOptions>('/subscriptions/billing-options'),

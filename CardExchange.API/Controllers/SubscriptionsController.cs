@@ -55,7 +55,7 @@ namespace CardExchange.API.Controllers
         {
             var plans = await _context.SubscriptionPlans.AsNoTracking().Where(p => p.IsActive).ToListAsync();
             // Ordinamento in memoria: SQLite (sviluppo) non supporta ORDER BY su decimal
-            return Ok(plans.OrderBy(p => p.Tier).ThenBy(p => p.Price).Select(MapToPlanDto));
+            return Ok(plans.OrderBy(p => p.SortOrder).ThenBy(p => p.Price).Select(MapToPlanDto));
         }
 
         /// <summary>Metodi di pagamento attivi sul server e dati per il bonifico.</summary>
@@ -325,7 +325,13 @@ namespace CardExchange.API.Controllers
             CanSaveSearches = plan.CanSaveSearches,
             HasPriorityListing = plan.HasPriorityListing,
             HasVerifiedBadge = plan.HasVerifiedBadge,
-            HasWishlistAlerts = plan.HasWishlistAlerts
+            HasWishlistAlerts = plan.HasWishlistAlerts,
+            SortOrder = plan.SortOrder,
+            MaxBroadcastsPerDay = plan.MaxBroadcastsPerDay,
+            MaxRadiusKm = plan.MaxRadiusKm,
+            MaxActiveReservations = plan.MaxActiveReservations,
+            MonthlyPromotionCredits = plan.MonthlyPromotionCredits,
+            Capabilities = CardExchange.Core.Rules.UserEntitlements.CapabilitiesOf(plan).Select(c => c.ToString()).ToList()
         };
 
         public static UserSubscriptionDto MapToSubscriptionDto(UserSubscription sub) => new()

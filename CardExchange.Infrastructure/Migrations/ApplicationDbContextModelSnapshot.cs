@@ -2233,7 +2233,31 @@ namespace CardExchange.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<bool>("HasBuylist")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasEarlyAccess")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasFeaturedStore")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasInstantAlerts")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasLocalDemand")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasPriceAlerts")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("HasPriorityListing")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasReservations")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasSellerShowcase")
                         .HasColumnType("bit");
 
                     b.Property<bool>("HasVerifiedBadge")
@@ -2242,13 +2266,22 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<bool>("HasWishlistAlerts")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("HidesBrandSponsors")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<int>("MaxActiveReservations")
+                        .HasColumnType("int");
+
                     b.Property<int>("MaxActiveTradeOffers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxBroadcastsPerDay")
                         .HasColumnType("int");
 
                     b.Property<int>("MaxCards")
@@ -2257,7 +2290,13 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<int>("MaxDailyMessages")
                         .HasColumnType("int");
 
+                    b.Property<int>("MaxRadiusKm")
+                        .HasColumnType("int");
+
                     b.Property<int>("MaxWishlistItems")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MonthlyPromotionCredits")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -2268,6 +2307,13 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<decimal>("Price")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StripePriceId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("Tier")
                         .HasColumnType("int");

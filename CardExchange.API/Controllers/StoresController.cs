@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Entitlements;
 using CardExchange.API.Services.Stores;
 using CardExchange.API.Authorization;
 using CardExchange.API.Services;
@@ -351,19 +352,9 @@ namespace CardExchange.API.Controllers
                 .ToDictionaryAsync(x => x.Key, x => x.Count);
         }
 
-        /// <summary>Proprietari con un abbonamento di livello Negozio in corso.</summary>
-        private async Task<HashSet<int>> FeaturedOwnerIdsAsync(List<int> ownerIds)
-        {
-            if (ownerIds.Count == 0) return new HashSet<int>();
-            var now = DateTime.UtcNow;
-            var ids = await _context.UserSubscriptions
-                .Where(s => ownerIds.Contains(s.UserId) && s.Status == SubscriptionStatus.Active
-                            && s.StartDate <= now && s.EndDate > now && s.Plan.Tier == SubscriptionTier.Store)
-                .Select(s => s.UserId)
-                .Distinct()
-                .ToListAsync();
-            return ids.ToHashSet();
-        }
+        /// <summary>Proprietari con un piano che mette il negozio in evidenza (Negozio, Negozio Pro).</summary>
+        private async Task<HashSet<int>> FeaturedOwnerIdsAsync(List<int> ownerIds) =>
+            ownerIds.Count == 0 ? new HashSet<int>() : await this.Entitlements(_context).HoldersAsync(ownerIds, Capability.FeaturedStore);
 
         private static StoreDto ToDto(Store s, int currentUserId, Dictionary<int, int> eventCounts, double? distanceKm,
             HashSet<int>? featuredOwners = null) => new()
@@ -496,13 +487,8 @@ namespace CardExchange.API.Controllers
             if (store == null) return (null, NotFound(new { message = "Negozio non trovato" }));
             if (store.OwnerId != CurrentUserId() && !IsModerator()) return (null, Forbid());
             if (store.Status != StoreStatus.Verified) return (null, BadRequest(new { message = "Il negozio deve essere verificato" }));
-            if (!IsModerator())
-            {
-                var now = DateTime.UtcNow;
-                var hasPlan = await _context.UserSubscriptions.AnyAsync(s => s.UserId == store.OwnerId && s.Status == SubscriptionStatus.Active
-                    && s.StartDate <= now && s.EndDate > now && s.Plan.Tier == SubscriptionTier.Store);
-                if (!hasPlan) return (null, StatusCode(402, new { code = "PLAN_REQUIRED", message = "La domanda locale è inclusa nel piano Negozio" }));
-            }
+            if (!IsModerator() && !await this.Entitlements(_context).HasAsync(store.OwnerId, Capability.LocalDemand))
+                return (null, StatusCode(402, new { code = "PLAN_REQUIRED", message = "La domanda locale è inclusa nel piano Negozio Pro" }));
             return (store, null);
         }
 
