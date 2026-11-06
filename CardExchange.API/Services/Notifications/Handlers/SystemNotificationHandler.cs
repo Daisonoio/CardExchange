@@ -19,7 +19,8 @@ namespace CardExchange.API.Services.Notifications.Handlers
             NotificationType.StoreActivity,
             NotificationType.EventUpdate,
             NotificationType.StoreOffer,
-            NotificationType.Loyalty
+            NotificationType.Loyalty,
+            NotificationType.Sponsored
         };
 
         public NotificationPayload BuildPayload(NotificationType type, Dictionary<string, object> parameters)

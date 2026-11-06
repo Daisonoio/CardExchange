@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, CalendarDays, Clock, Loader2, MapPin, Store as StoreIcon, Ticket, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock, Loader2, MapPin, Store as StoreIcon, Ticket, Users, Megaphone } from 'lucide-react';
 import { events, referrals } from '../api';
 import { shareLink } from '../utils/referral';
 import type { CardEventDetail } from '../types';
@@ -160,6 +160,11 @@ export default function EventPage() {
         )
       )}
       {isOrganizer && event.status === 'Published' && <EventAttendeesPanel eventId={event.id} />}
+      {isOrganizer && event.status === 'Published' && !ended && (
+        <Link to={`/promotions?type=event&target=${event.id}`} className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-amber-300 bg-amber-50 text-sm font-semibold text-amber-800">
+          <Megaphone size={15} /> {t('promotions:featureEvent')}
+        </Link>
+      )}
       {isOrganizer && event.status === 'Published' && !ended && (
         <button
           type="button"

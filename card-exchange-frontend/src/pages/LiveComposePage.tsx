@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
-import { ArrowLeft, Bell, Crosshair, Loader2, MapPin, Radio, Store as StoreIcon, CalendarDays } from 'lucide-react';
+import { ArrowLeft, Bell, Crosshair, Loader2, MapPin, Radio, Store as StoreIcon, CalendarDays, Megaphone } from 'lucide-react';
 import { broadcasts, events, follows, stores, type LiveBroadcast } from '../api';
 import { useAuth } from '../context/AuthContext';
 import type { CardEvent, Store } from '../types';
@@ -149,6 +149,11 @@ export default function LiveComposePage() {
 
       {info?.active && (
         <p className="text-xs p-3 rounded-xl bg-amber-50 text-amber-800">{t('compose.replaces')}</p>
+      )}
+      {info?.active && (
+        <Link to={`/promotions?type=broadcast&target=${info.active.id}`} className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-amber-300 bg-white text-sm font-semibold text-amber-800">
+          <Megaphone size={15} /> {t('promotions:sponsorBroadcast')}
+        </Link>
       )}
 
       <div className="bg-white rounded-2xl border border-border/60 p-4 space-y-4">

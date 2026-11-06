@@ -28,7 +28,8 @@
     "StoreActivity": "Activity at your store",
     "EventUpdate": "Event registrations",
     "StoreOffer": "Offers from nearby stores",
-    "Loyalty": "Loyalty cards"
+    "Loyalty": "Loyalty cards",
+    "Sponsored": "Offers from nearby stores and sellers"
   },
   "center": {
     "title": "Notifications",

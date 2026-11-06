@@ -1,0 +1,77 @@
+{
+  "title": "Promotions",
+  "menu": "Promotions",
+  "intro": "Let nearby people know about your event or your stand at a market. Every promotion is labelled \"Sponsored\".",
+  "label": "Sponsored",
+  "fewer": "fewer than 3",
+  "balance_one": "{{count}} credit",
+  "balance_other": "{{count}} credits",
+  "monthly_one": "+{{count}} credit every month with your plan",
+  "monthly_other": "+{{count}} credits every month with your plan",
+  "create": "New promotion",
+  "activated": "Promotion active: notifications are going out.",
+  "paidByCard": "Payment received: the promotion starts within a few minutes.",
+  "cancel": "Cancel",
+  "cancelConfirm": "Cancel the promotion? If you paid with credits they go back to your balance.",
+  "empty": {
+    "title": "No promotions yet",
+    "description": "Promote one of your upcoming events or a live \"I'm here\" post."
+  },
+  "rules": "Each person gets at most 2 sponsored notifications a week and never the same one twice. Minors don't get them and anyone can turn them off. No external links, contacts or off-app payments.",
+  "types": {
+    "FeaturedEvent": {
+      "name": "Featured event",
+      "hint": "At the top of nearby events, plus a notification to people in range."
+    },
+    "SponsoredBroadcast": {
+      "name": "Sponsored \"I'm here\"",
+      "hint": "Also reaches people who don't follow you, if they want one of your cards."
+    }
+  },
+  "status": {
+    "PendingPayment": "Awaiting payment",
+    "Active": "Active",
+    "Completed": "Completed",
+    "Rejected": "Stopped",
+    "Cancelled": "Cancelled",
+    "Draft": "Draft"
+  },
+  "stats": {
+    "reach": "Reached",
+    "impressions": "Views",
+    "clicks": "Opens"
+  },
+  "report": {
+    "action": "Report",
+    "confirm": "Report this promotion as inappropriate?"
+  },
+  "errors": {
+    "generic": "Something went wrong"
+  },
+  "wizard": {
+    "title": "New promotion",
+    "step1": "1. What",
+    "step2": "2. Where",
+    "step3": "3. Preview",
+    "next": "Next",
+    "back": "Back",
+    "preview": "See preview",
+    "noEvents": "You have no upcoming published events with a location.",
+    "noBroadcasts": "You have no live \"I'm here\" post.",
+    "until": "until {{time}}",
+    "radius": "Radius: {{km}} km",
+    "durationEvent": "Stays featured until the event starts (14 days at most).",
+    "durationBroadcast": "Lasts as long as your \"I'm here\" post.",
+    "inRadius": "People in range",
+    "reachable": "Will be notified",
+    "howEvent": "The notification goes to adults in range who haven't turned it off (and who play that game, if the event has one).",
+    "howBroadcast": "The notification goes to adults in range who don't follow you yet and want a card you have available.",
+    "price": "Price: {{credits}} credits ({{eur}})",
+    "payCredits": "Pay with credits",
+    "notEnough": "Not enough credits (you have {{balance}}).",
+    "buyCredits": "Buy credits",
+    "payCard": "Pay by card"
+  },
+  "featureEvent": "Feature this event",
+  "sponsorBroadcast": "Sponsor this \"I'm here\" post"
+}

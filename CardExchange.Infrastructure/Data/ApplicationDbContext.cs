@@ -43,6 +43,9 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<StoreDemandSnapshot> StoreDemandSnapshots { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<CardImageFingerprint> CardImageFingerprints { get; set; }
+        public DbSet<Promotion> Promotions { get; set; }
+        public DbSet<PromotionDelivery> PromotionDeliveries { get; set; }
+        public DbSet<PromotionReport> PromotionReports { get; set; }
         public DbSet<LoyaltyProgram> LoyaltyPrograms { get; set; }
         public DbSet<LoyaltyCard> LoyaltyCards { get; set; }
         public DbSet<LoyaltyStamp> LoyaltyStamps { get; set; }
@@ -428,6 +431,26 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
             });
 
+            modelBuilder.Entity<Promotion>(entity =>
+            {
+                entity.HasIndex(p => new { p.Status, p.Type, p.EndsAt });
+                entity.HasIndex(p => p.OwnerUserId);
+                entity.Property(p => p.Latitude).HasPrecision(9, 6);
+                entity.Property(p => p.Longitude).HasPrecision(9, 6);
+                entity.Property(p => p.RejectionReason).HasMaxLength(200);
+                entity.HasOne(p => p.OwnerUser).WithMany().HasForeignKey(p => p.OwnerUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<PromotionDelivery>(entity =>
+            {
+                // Mai la stessa promozione due volte alla stessa persona
+                entity.HasIndex(d => new { d.PromotionId, d.UserId }).IsUnique();
+                entity.HasIndex(d => new { d.UserId, d.SentAt });
+            });
+            modelBuilder.Entity<PromotionReport>(entity =>
+            {
+                entity.HasIndex(r => new { r.PromotionId, r.UserId }).IsUnique();
+                entity.Property(r => r.Reason).HasMaxLength(200);
+            });
             modelBuilder.Entity<CardImageFingerprint>(entity =>
             {
                 entity.HasIndex(f => f.CardInfoId).IsUnique();

@@ -276,6 +276,10 @@ namespace CardExchange.API.Services.Prices
                     await mirrorScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Catalog.PokemonCatalogMirror>().RunAsync(DateTime.UtcNow, ct);
                 }
 
+                // Crediti promozione dei piani (Banco, Negozio Pro): una volta per mese di calendario
+                using (var creditScope = _scopeFactory.CreateScope())
+                    await creditScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Billing.PromotionService>().GrantMonthlyCreditsAsync(DateTime.UtcNow, ct);
+
                 // Impronte visive per lo scanner: le carte nuove del catalogo (a blocchi)
                 if (_configuration.GetValue("Jobs:ScanIndex:Enabled", true))
                 {

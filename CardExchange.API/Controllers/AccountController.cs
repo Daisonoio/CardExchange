@@ -322,6 +322,12 @@ namespace CardExchange.API.Controllers
                 o.ClosedAt = DateTime.UtcNow;
             }
 
+            // Promozioni non ancora consegnate: annullate
+            foreach (var p in await _context.Promotions.Where(p => p.OwnerUserId == userId
+                         && (p.Status == PromotionStatus.Active || p.Status == PromotionStatus.PendingPayment)).ToListAsync())
+                p.Status = PromotionStatus.Cancelled;
+            _context.PromotionDeliveries.RemoveRange(await _context.PromotionDeliveries.Where(d => d.UserId == userId).ToListAsync());
+
             // Tessere fedeltà: via del tutto (i timbri seguono la tessera)
             _context.LoyaltyCards.RemoveRange(await _context.LoyaltyCards.Where(c => c.UserId == userId).ToListAsync());
 

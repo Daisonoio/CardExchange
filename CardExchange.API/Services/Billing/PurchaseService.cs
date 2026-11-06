@@ -1,3 +1,4 @@
+using CardExchange.Core.Rules;
 using CardExchange.Core.Entities;
 using CardExchange.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +57,20 @@ namespace CardExchange.API.Services.Billing
             return purchase;
         }
 
+        /// <summary>Acquisto diretto di una promozione con la carta: prezzo = crediti × 4 €.</summary>
+        public async Task<Purchase> CreateForPromotionAsync(int userId, Promotion promotion)
+        {
+            var purchase = new Purchase
+            {
+                UserId = userId, ProductType = PurchaseProductType.Promotion, ProductCode = $"promotion-{(int)promotion.Type}",
+                Quantity = promotion.PriceCredits, RefId = promotion.Id,
+                AmountEur = promotion.PriceCredits * PromotionRules.CreditPriceEur, Status = PurchaseStatus.Pending
+            };
+            _db.Purchases.Add(purchase);
+            await _db.SaveChangesAsync();
+            return purchase;
+        }
+
         /// <summary>Pagamento confermato da Stripe: attiva il prodotto una sola volta, anche se l'evento arriva due volte.</summary>
         public async Task<bool> MarkPaidAsync(int purchaseId, string? sessionId, string? paymentIntentId, decimal? amountEur, string? invoiceNumber)
         {
@@ -83,7 +98,30 @@ namespace CardExchange.API.Services.Billing
                         PurchaseId = purchase.Id, CreatedAt = DateTime.UtcNow
                     });
                     break;
-                // Promozioni (F12) e pacchetti organizzatori (F14) si attivano qui quando esisteranno
+                case PurchaseProductType.Promotion:
+                {
+                    var promo = purchase.RefId == null ? null : await _db.Promotions.FirstOrDefaultAsync(p => p.Id == purchase.RefId);
+                    // Il pagamento deve coprire il prezzo attuale (la bozza può essere stata cambiata dopo l'apertura del pagamento)
+                    if (promo != null && promo.Status == PromotionStatus.PendingPayment && promo.EndsAt > DateTime.UtcNow && purchase.Quantity >= promo.PriceCredits)
+                    {
+                        // Si consegna al prossimo giro del servizio (entro 15 minuti)
+                        promo.Status = PromotionStatus.Active;
+                        promo.PaidWith = PromotionPayment.Purchase;
+                        promo.PurchaseId = purchase.Id;
+                        promo.StartsAt = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        // Promozione annullata o scaduta nel frattempo: il pagamento diventa credito da usare
+                        _db.PromotionCreditEntries.Add(new PromotionCreditEntry
+                        {
+                            UserId = purchase.UserId, Delta = purchase.Quantity, Reason = $"Promozione #{purchase.RefId} non più attivabile",
+                            PurchaseId = purchase.Id, CreatedAt = DateTime.UtcNow
+                        });
+                    }
+                    break;
+                }
+                // I pacchetti organizzatori (F14) si attivano qui quando esisteranno
             }
             await _db.SaveChangesAsync();
             await NotifyAsync(purchase.UserId, "Pagamento ricevuto",
@@ -113,6 +151,13 @@ namespace CardExchange.API.Services.Billing
                         UserId = purchase.UserId, Delta = -delta, Reason = $"Rimborso {purchase.ProductCode}",
                         PurchaseId = purchase.Id, CreatedAt = DateTime.UtcNow
                     });
+            }
+            if (purchase.ProductType == PurchaseProductType.Promotion && purchase.RefId != null)
+            {
+                // Rimborsata prima della consegna: la promozione non parte
+                var promo = await _db.Promotions.FirstOrDefaultAsync(p => p.Id == purchase.RefId && p.DeliveredAt == null
+                    && (p.Status == PromotionStatus.Active || p.Status == PromotionStatus.PendingPayment));
+                if (promo != null) promo.Status = PromotionStatus.Cancelled;
             }
             if (fullyRefunded)
             {

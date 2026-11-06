@@ -33,7 +33,9 @@ namespace CardExchange.Core.Entities
         /// <summary>Un negozio vicino ha una carta della wishlist (disattivabile).</summary>
         StoreOffer = 21,
         /// <summary>Tessera fedeltà: timbro ricevuto, premio pronto.</summary>
-        Loyalty = 22
+        Loyalty = 22,
+        /// <summary>Proposte sponsorizzate di negozi e venditori vicini (disattivabile).</summary>
+        Sponsored = 23
     }
 
     public class Notification : BaseEntity

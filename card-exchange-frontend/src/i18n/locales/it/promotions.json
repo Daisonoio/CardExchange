@@ -1,0 +1,77 @@
+{
+  "title": "Promozioni",
+  "menu": "Promozioni",
+  "intro": "Fai conoscere un tuo evento o la tua presenza a un mercatino alle persone vicine. Ogni promozione è etichettata \"Sponsorizzato\".",
+  "label": "Sponsorizzato",
+  "fewer": "meno di 3",
+  "balance_one": "{{count}} credito",
+  "balance_other": "{{count}} crediti",
+  "monthly_one": "+{{count}} credito ogni mese con il tuo piano",
+  "monthly_other": "+{{count}} crediti ogni mese con il tuo piano",
+  "create": "Nuova promozione",
+  "activated": "Promozione attiva: le notifiche stanno partendo.",
+  "paidByCard": "Pagamento ricevuto: la promozione parte entro pochi minuti.",
+  "cancel": "Annulla",
+  "cancelConfirm": "Annullare la promozione? Se l'hai pagata con i crediti tornano sul tuo saldo.",
+  "empty": {
+    "title": "Nessuna promozione",
+    "description": "Promuovi un tuo evento futuro o un \"Sono qui\" in corso."
+  },
+  "rules": "Ogni persona riceve al massimo 2 notifiche sponsorizzate a settimana e mai due volte la stessa. I minorenni non le ricevono e chiunque può disattivarle. Niente link esterni, contatti o pagamenti fuori dall'app.",
+  "types": {
+    "FeaturedEvent": {
+      "name": "Evento in evidenza",
+      "hint": "In cima agli eventi vicini, più una notifica a chi è nel raggio."
+    },
+    "SponsoredBroadcast": {
+      "name": "\"Sono qui\" sponsorizzato",
+      "hint": "Raggiunge anche chi non ti segue, se cerca una tua carta."
+    }
+  },
+  "status": {
+    "PendingPayment": "Da pagare",
+    "Active": "Attiva",
+    "Completed": "Conclusa",
+    "Rejected": "Fermata",
+    "Cancelled": "Annullata",
+    "Draft": "Bozza"
+  },
+  "stats": {
+    "reach": "Raggiunte",
+    "impressions": "Viste",
+    "clicks": "Aperture"
+  },
+  "report": {
+    "action": "Segnala",
+    "confirm": "Segnalare questa promozione come inappropriata?"
+  },
+  "errors": {
+    "generic": "Operazione non riuscita"
+  },
+  "wizard": {
+    "title": "Nuova promozione",
+    "step1": "1. Cosa",
+    "step2": "2. Dove",
+    "step3": "3. Anteprima",
+    "next": "Avanti",
+    "back": "Indietro",
+    "preview": "Vedi l'anteprima",
+    "noEvents": "Non hai eventi futuri pubblicati con una posizione.",
+    "noBroadcasts": "Non hai un \"Sono qui\" in corso.",
+    "until": "fino alle {{time}}",
+    "radius": "Raggio: {{km}} km",
+    "durationEvent": "Resta in evidenza fino all'inizio dell'evento (al massimo 14 giorni).",
+    "durationBroadcast": "Dura quanto il tuo \"Sono qui\".",
+    "inRadius": "Persone nel raggio",
+    "reachable": "Riceveranno la notifica",
+    "howEvent": "La notifica arriva ai maggiorenni nel raggio che non l'hanno disattivata (e che giocano a quel gioco, se l'evento ne ha uno).",
+    "howBroadcast": "La notifica arriva ai maggiorenni nel raggio che non ti seguono ancora e cercano una carta che hai disponibile.",
+    "price": "Prezzo: {{credits}} crediti ({{eur}})",
+    "payCredits": "Paga con i crediti",
+    "notEnough": "Crediti insufficienti (ne hai {{balance}}).",
+    "buyCredits": "Compra crediti",
+    "payCard": "Paga con la carta"
+  },
+  "featureEvent": "Metti in evidenza l'evento",
+  "sponsorBroadcast": "Sponsorizza questo \"Sono qui\""
+}

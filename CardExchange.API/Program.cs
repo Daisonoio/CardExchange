@@ -222,6 +222,7 @@ builder.Services.AddScoped<CardExchange.API.Services.ReferralRewards>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.ReservationService>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.BuyListService>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.LoyaltyService>();
+builder.Services.AddScoped<CardExchange.API.Services.Billing.PromotionService>();
 builder.Services.AddScoped<CardExchange.API.Services.Scan.CardFingerprintIndexer>();
 builder.Services.AddSingleton<CardExchange.API.Services.Scan.CardFingerprintIndex>();
 builder.Services.AddHttpClient("card-images", c => { c.Timeout = TimeSpan.FromSeconds(20); c.DefaultRequestHeaders.UserAgent.ParseAdd("CardExchange/1.0"); });

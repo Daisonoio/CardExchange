@@ -15,6 +15,7 @@ import {
   Store,
   type LucideIcon,
   Stamp,
+  Megaphone,
 } from 'lucide-react';
 import i18n from '../../i18n';
 
@@ -71,6 +72,12 @@ export const notificationRegistry: Record<string, NotificationTypeConfig> = {
     color: 'text-primary bg-primary/10',
     get label() { return i18n.t('notifications:types.StoreOffer'); },
     category: 'collection',
+  },
+  Sponsored: {
+    icon: Megaphone,
+    color: 'text-amber-700 bg-amber-100',
+    get label() { return i18n.t('notifications:types.Sponsored'); },
+    category: 'social',
   },
   Loyalty: {
     icon: Stamp,

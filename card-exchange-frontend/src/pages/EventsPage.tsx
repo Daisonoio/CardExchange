@@ -9,6 +9,7 @@ import { apiErrorMessage } from '../utils/apiError';
 import { formatEventDate } from '../utils/eventDate';
 import EmptyState from '../components/ui/EmptyState';
 import EmptyStateLink from '../components/ui/EmptyStateLink';
+import SponsoredEvents from '../components/promotions/SponsoredEvents';
 import { useFormat } from '../i18n/format';
 
 type Mode = 'nearby' | 'all';
@@ -46,6 +47,8 @@ export default function EventsPage() {
           </button>
         ))}
       </div>
+
+      <SponsoredEvents />
 
       <Link to="/events/new" className="flex items-center justify-center gap-2 p-3 rounded-2xl border-2 border-dashed border-border text-sm font-semibold text-primary hover:bg-surface-dark">
         <Plus size={16} /> {t('list.organize')}

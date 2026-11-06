@@ -9,6 +9,7 @@ import { useGeolocation } from '../hooks/useGeolocation';
 import CardCarousel from '../components/cards/CardCarousel';
 import LiveStrip from '../components/social/LiveStrip';
 import NearbyCardsGrid from '../components/home/NearbyCardsGrid';
+import SponsoredEvents from '../components/promotions/SponsoredEvents';
 import IosPushBanner from '../components/notifications/IosPushBanner';
 import { useSearchRadius } from '../hooks/useSearchRadius';
 import type { CarouselCard } from '../components/cards/CardCarousel';
@@ -107,6 +108,11 @@ export default function HomePage() {
       <div className="lg:order-1 min-w-0">
 
       <IosPushBanner />
+
+      {/* Eventi in evidenza vicino (sponsorizzati, sempre etichettati) */}
+      {(hasProfileLocation || position) && (
+        <SponsoredEvents coords={hasProfileLocation ? null : position} className="mb-4" />
+      )}
 
       {/* Location prompt */}
       {showLocationPrompt && (

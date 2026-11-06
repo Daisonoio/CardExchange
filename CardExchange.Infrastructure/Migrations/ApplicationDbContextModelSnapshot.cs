@@ -1731,6 +1731,95 @@ namespace CardExchange.Infrastructure.Migrations
                     b.ToTable("ProcessedWebhookEvents");
                 });
 
+            modelBuilder.Entity("CardExchange.Core.Entities.Promotion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Clicks")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeliveredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("GameId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Impressions")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Latitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<decimal>("Longitude")
+                        .HasPrecision(9, 6)
+                        .HasColumnType("decimal(9,6)");
+
+                    b.Property<int>("OwnerUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PaidWith")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PriceCredits")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PurchaseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RadiusKm")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Reach")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Reports")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TargetId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("Status", "Type", "EndsAt");
+
+                    b.ToTable("Promotions");
+                });
+
             modelBuilder.Entity("CardExchange.Core.Entities.PromotionCreditEntry", b =>
                 {
                     b.Property<long>("Id")
@@ -1761,6 +1850,62 @@ namespace CardExchange.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("PromotionCreditEntries");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.PromotionDelivery", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("PromotionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PromotionId", "UserId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "SentAt");
+
+                    b.ToTable("PromotionDeliveries");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.PromotionReport", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PromotionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PromotionId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("PromotionReports");
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.Purchase", b =>
@@ -3798,6 +3943,17 @@ namespace CardExchange.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("CardInfo");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.Promotion", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.User", "OwnerUser")
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OwnerUser");
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.PromotionCreditEntry", b =>

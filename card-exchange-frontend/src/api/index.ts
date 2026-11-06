@@ -666,3 +666,36 @@ export const scan = {
   match: (body: { gameId?: number | null; vectors: string[]; names?: string[]; number?: string | null }) =>
     client.post<ScanMatch>('/scan/match', body),
 };
+
+export type PromotionTypeName = 'FeaturedEvent' | 'SponsoredBroadcast';
+export const PROMOTION_TYPE: Record<PromotionTypeName, number> = { FeaturedEvent: 1, SponsoredBroadcast: 2 };
+export type Promotion = {
+  id: number; type: PromotionTypeName; targetId: number; title?: string; radiusKm: number; startsAt: string; endsAt: string;
+  status: 'PendingPayment' | 'Active' | 'Completed' | 'Rejected' | 'Cancelled' | 'Draft'; paidWith: string;
+  priceCredits: number; priceEur: number; reach: number; impressions: number; clicks: number; deliveredAt?: string; rejectionReason?: string;
+};
+export type PromotionPricing = {
+  creditPriceEur: number; minRadiusKm: number; maxRadiusKm: number; balance: number; monthlyCredits: number;
+  types: { type: PromotionTypeName; prices: { upToKm: number; credits: number; eur: number }[] }[];
+};
+export type PromotionEstimate = { inRadius: number; reachable: number; priceCredits: number; priceEur: number };
+export type SponsoredEvent = {
+  promotionId: number; sponsored: true; sponsor: string; id: number; title: string; type: string; startDate: string;
+  city: string; address: string; imageUrl?: string; storeId?: number;
+};
+
+export const promotions = {
+  pricing: () => client.get<PromotionPricing>('/promotions/pricing'),
+  targets: () => client.get<{ events: { id: number; title: string; city: string; startsAt: string; hasLocation: boolean }[]; broadcasts: { id: number; title: string; endsAt: string }[] }>('/promotions/targets'),
+  estimate: (type: PromotionTypeName, targetId: number, radiusKm: number) =>
+    client.get<PromotionEstimate>('/promotions/estimate', { params: { type: PROMOTION_TYPE[type], targetId, radiusKm } }),
+  create: (type: PromotionTypeName, targetId: number, radiusKm: number, days?: number) =>
+    client.post<Promotion>('/promotions', { type: PROMOTION_TYPE[type], targetId, radiusKm, days }),
+  pay: (id: number, method: 'credits' | 'card') => client.post<{ message?: string; url?: string; promotion?: Promotion }>(`/promotions/${id}/pay`, { method }),
+  cancel: (id: number) => client.post(`/promotions/${id}/cancel`),
+  mine: () => client.get<Promotion[]>('/promotions/mine'),
+  featuredEvents: (coords?: { latitude: number; longitude: number } | null) =>
+    client.get<SponsoredEvent[]>('/promotions/featured-events', { params: coords ?? {} }),
+  click: (id: number) => client.post(`/promotions/${id}/click`),
+  report: (id: number, reason?: string) => client.post(`/promotions/${id}/report`, { reason }),
+};
