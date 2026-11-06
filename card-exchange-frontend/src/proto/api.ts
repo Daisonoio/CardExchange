@@ -51,6 +51,8 @@ export interface ExploreFilters {
   finish?: CardFinish;
   page?: number;
   pageSize?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface ExploreCardDetail extends Omit<ExploreCard, 'owner'> {

@@ -20,5 +20,17 @@
     "title": "No cards found",
     "description": "None of the cards on your wishlist are available within your search radius. Try adding cards to your wishlist or increasing the radius.",
     "descriptionGame": "No {{game}} cards from your wishlist within {{km}} km. Try showing all games or increasing the radius."
+  },
+  "all": {
+    "title": "All cards near you",
+    "hint": "Closest first, stores and collectors together. Prices and trades are agreed in person.",
+    "count_one": "{{count}} card",
+    "count_other": "{{count}} cards",
+    "km": "~{{km}} km",
+    "wanted": "It's on your wishlist",
+    "store": "Store",
+    "asking": "asking",
+    "market": "market",
+    "more": "Show more"
   }
 }

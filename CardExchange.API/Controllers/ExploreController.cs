@@ -49,6 +49,7 @@ namespace CardExchange.API.Controllers
             [FromQuery] string? q, [FromQuery] int? gameId, [FromQuery] int? radiusKm, [FromQuery] string? sort,
             [FromQuery] decimal? minPrice, [FromQuery] decimal? maxPrice, [FromQuery] int? maxCondition,
             [FromQuery] string? language, [FromQuery] CardFinish? finish,
+            [FromQuery] decimal? latitude = null, [FromQuery] decimal? longitude = null,
             [FromQuery] int page = 1, [FromQuery] int pageSize = 30)
         {
             var userId = CurrentUserId();
@@ -65,7 +66,10 @@ namespace CardExchange.API.Controllers
             {
                 SearchTerm = q, GameId = gameId, RadiusKm = Math.Min(Math.Clamp(radiusKm ?? 25, 1, 500), maxRadius), SortBy = sort,
                 MinPrice = minPrice, MaxPrice = maxPrice, MaxCondition = maxCondition, Language = language, Finish = finish,
-                Page = page, PageSize = Math.Clamp(pageSize, 1, 60)
+                Page = page, PageSize = Math.Clamp(pageSize, 1, 60),
+                // Posizione del dispositivo, per chi non ha ancora la zona nel profilo (Home)
+                Latitude = latitude is >= -90 and <= 90 ? latitude : null,
+                Longitude = longitude is >= -180 and <= 180 ? longitude : null
             };
             var result = await _search.SearchAsync(userId, request);
             // Accesso anticipato: le carte appena caricate da negozi e banchi le vedono prima i Premium

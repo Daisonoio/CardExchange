@@ -20,5 +20,17 @@
     "title": "Nessuna carta trovata",
     "description": "Non ci sono carte dalla tua wishlist disponibili nel raggio di ricerca. Prova ad aggiungere carte alla wishlist o ad aumentare il raggio.",
     "descriptionGame": "Nessuna carta {{game}} della tua wishlist entro {{km}} km. Prova a mostrare tutti i giochi o ad aumentare il raggio."
+  },
+  "all": {
+    "title": "Tutte le carte vicine",
+    "hint": "Dalla più vicina, negozi e collezionisti insieme. Prezzi e scambi si concordano di persona.",
+    "count_one": "{{count}} carta",
+    "count_other": "{{count}} carte",
+    "km": "~{{km}} km",
+    "wanted": "È nella tua wishlist",
+    "store": "Negozio",
+    "asking": "richiesto",
+    "market": "mercato",
+    "more": "Mostra altre"
   }
 }

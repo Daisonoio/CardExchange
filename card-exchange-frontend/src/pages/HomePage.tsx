@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MapPin, Navigation, Loader2, Settings, Sparkles, X } from 'lucide-react';
@@ -8,6 +8,7 @@ import { useGame } from '../context/GameContext';
 import { useGeolocation } from '../hooks/useGeolocation';
 import CardCarousel from '../components/cards/CardCarousel';
 import LiveStrip from '../components/social/LiveStrip';
+import NearbyCardsGrid from '../components/home/NearbyCardsGrid';
 import IosPushBanner from '../components/notifications/IosPushBanner';
 import { useSearchRadius } from '../hooks/useSearchRadius';
 import type { CarouselCard } from '../components/cards/CardCarousel';
@@ -27,6 +28,9 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const hasProfileLocation = !!(user?.location?.latitude && user?.location?.longitude);
+  // Tutte le carte vicine (sotto le carte della wishlist): undefined finché non arriva la prima pagina
+  const [allTotal, setAllTotal] = useState<number | undefined>(undefined);
+  const onAllTotal = useCallback((n: number) => setAllTotal(n), []);
 
   useEffect(() => {
     if (!user) return;
@@ -153,7 +157,7 @@ export default function HomePage() {
       )}
 
       {/* No matches */}
-      {!isLoading && !showLocationPrompt && (hasProfileLocation || position) && topCards.length === 0 && (
+      {!isLoading && !showLocationPrompt && (hasProfileLocation || position) && topCards.length === 0 && allTotal === 0 && (
         <EmptyState
           icon={Sparkles}
           title={t('empty.title')}
@@ -174,6 +178,12 @@ export default function HomePage() {
             </div>
           }
         />
+      )}
+
+      {/* Tutte le carte vicine: negozi e privati insieme, dalla più vicina */}
+      {!showLocationPrompt && (hasProfileLocation || position) && (
+        <NearbyCardsGrid gameId={selectedGameId} radiusKm={radiusKm}
+          coords={hasProfileLocation ? null : position} onTotal={onAllTotal} />
       )}
       </div>
     </div>
