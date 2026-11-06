@@ -189,6 +189,48 @@ namespace CardExchange.Infrastructure.Migrations
                     b.ToTable("Cards");
                 });
 
+            modelBuilder.Entity("CardExchange.Core.Entities.CardImageFingerprint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CardInfoId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ComputedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Failed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("Vector")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("varbinary(1024)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CardInfoId")
+                        .IsUnique();
+
+                    b.ToTable("CardImageFingerprints");
+                });
+
             modelBuilder.Entity("CardExchange.Core.Entities.CardInfo", b =>
                 {
                     b.Property<int>("Id")
@@ -3451,6 +3493,17 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Navigation("CardInfo");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.CardImageFingerprint", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.CardInfo", "CardInfo")
+                        .WithMany()
+                        .HasForeignKey("CardInfoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CardInfo");
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.CardInfo", b =>

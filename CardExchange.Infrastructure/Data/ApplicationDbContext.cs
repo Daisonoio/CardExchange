@@ -42,6 +42,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<UserActiveDay> UserActiveDays { get; set; }
         public DbSet<StoreDemandSnapshot> StoreDemandSnapshots { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
+        public DbSet<CardImageFingerprint> CardImageFingerprints { get; set; }
         public DbSet<LoyaltyProgram> LoyaltyPrograms { get; set; }
         public DbSet<LoyaltyCard> LoyaltyCards { get; set; }
         public DbSet<LoyaltyStamp> LoyaltyStamps { get; set; }
@@ -427,6 +428,12 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
             });
 
+            modelBuilder.Entity<CardImageFingerprint>(entity =>
+            {
+                entity.HasIndex(f => f.CardInfoId).IsUnique();
+                entity.Property(f => f.Vector).HasMaxLength(1024);
+                entity.HasOne(f => f.CardInfo).WithMany().HasForeignKey(f => f.CardInfoId).OnDelete(DeleteBehavior.Cascade);
+            });
             modelBuilder.Entity<LoyaltyProgram>(entity =>
             {
                 entity.HasIndex(p => p.StoreId).IsUnique();

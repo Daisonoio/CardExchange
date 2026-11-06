@@ -380,6 +380,7 @@ export default function CollectionPage() {
         open={showScanner}
         onClose={() => setShowScanner(false)}
         gameKey={selectedGame?.catalogKey}
+        gameId={selectedGameId}
         onSearch={(q) => searchGameCards(selectedGame?.name, selectedGame?.catalogKey, q)}
         onSelect={(card) => { setShowScanner(false); handleSelectCard(card); setShowAddModal(true); }}
       />

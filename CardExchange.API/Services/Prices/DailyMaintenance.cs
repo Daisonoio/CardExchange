@@ -276,6 +276,14 @@ namespace CardExchange.API.Services.Prices
                     await mirrorScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Catalog.PokemonCatalogMirror>().RunAsync(DateTime.UtcNow, ct);
                 }
 
+                // Impronte visive per lo scanner: le carte nuove del catalogo (a blocchi)
+                if (_configuration.GetValue("Jobs:ScanIndex:Enabled", true))
+                {
+                    using var scanScope = _scopeFactory.CreateScope();
+                    await scanScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Scan.CardFingerprintIndexer>()
+                        .RunAsync(_configuration.GetValue("Jobs:ScanIndex:BatchSize", 1500), DateTime.UtcNow, ct);
+                }
+
                 // Immagini One Piece: se è configurata una sorgente (diritti verificati), il catalogo già salvato passa a quella
                 if (CardExchange.API.Services.Catalog.OnePieceImageSource.Template(_configuration) is { } opTemplate)
                 {

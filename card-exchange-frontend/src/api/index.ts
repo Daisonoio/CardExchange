@@ -655,3 +655,14 @@ export const loyalty = {
   mine: () => client.get<LoyaltyCardInfo[]>('/me/loyalty'),
   pass: () => client.get<{ token: string; expiresAt: string }>('/me/loyalty/pass'),
 };
+
+export type ScanCandidate = {
+  cardInfoId: number; externalId?: string; name: string; setName?: string; number?: string; rarity?: string;
+  imageSmall?: string; imageLarge?: string; score: number; textMatch: boolean;
+};
+export type ScanMatch = { indexed: boolean; confident?: boolean; candidates: ScanCandidate[] };
+
+export const scan = {
+  match: (body: { gameId?: number | null; vectors: string[]; names?: string[]; number?: string | null }) =>
+    client.post<ScanMatch>('/scan/match', body),
+};

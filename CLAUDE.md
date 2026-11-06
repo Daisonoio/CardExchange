@@ -26,5 +26,6 @@ I negozi sono il canale principale: l'app non deve mai metterli in competizione 
 - Frontend React 19 + TypeScript + Tailwind in `card-exchange-frontend`; testi in `src/i18n/locales/{it,en}`.
 - Testi del server (messaggi API, notifiche, email) scritti in italiano nel codice; la traduzione inglese va in `CardExchange.API/Localization/server-text.en.json` (frasi esatte o modelli con `{0}`, `{n}`, `{when}`, `{month}`).
 - Piani e diritti: listino in `Core/Rules/Entitlements.cs` (`PlanCatalog`); ogni controllo di piano passa da `IEntitlementService` (`[RequireCapability]`, `HasAsync`, `LimitAsync`), mai da `Plan.Tier`.
+- Impronta visiva dello scanner: `Core/Rules/CardFingerprint.cs` e `card-exchange-frontend/src/utils/cardFingerprint.ts` fanno lo stesso calcolo; si cambiano insieme, alzando `CardFingerprint.Version`.
 - Transazioni sul database con `InTransactionAsync` (compatibile con la strategia di retry di SQL Server).
 - Test: `dotnet test CardExchange.Tests`; frontend `npx tsc -b` e `npx eslint src`.

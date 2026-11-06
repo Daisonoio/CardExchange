@@ -3,7 +3,7 @@
   "hint": "Fit the card in the frame with the name clearly readable",
   "capture": "Take photo",
   "uploadPhoto": "Upload a photo",
-  "privacy": "Recognition happens on your device: the photo is never sent, only the name it reads to search the catalogue.",
+  "privacy": "The photo never leaves your device: only a numeric fingerprint of the image and the text read are sent, to find it in the catalogue.",
   "noCamera": "This browser can't use the camera. You can upload a photo of the card instead.",
   "cameraDenied": "The camera couldn't be used (permission denied or unavailable). You can upload a photo of the card instead.",
   "loadingEngine": "Getting text recognition ready…",
@@ -15,5 +15,10 @@
   "editQuery": "Fix the name and search",
   "search": "Search",
   "noResults": "No cards found with this name.",
-  "scanAnother": "Scan another card"
+  "scanAnother": "Scan another card",
+  "matching": "Recognising the card…",
+  "visualConfident": "Recognised from the image: tap to add it",
+  "visualMaybe": "It might be one of these:",
+  "notThisOne": "Not this one? Show the others",
+  "readingText": "Reading the text to confirm the print…"
 }
