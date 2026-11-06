@@ -70,6 +70,14 @@ builder.Services.AddEndpointsApiExplorer();
 // ============================================================
 builder.Services.AddSwaggerGen(c =>
 {
+    // Più controller hanno richieste con lo stesso nome (es. CheckoutRequest): nomi completi, così non si scontrano
+    static string SchemaId(Type t)
+    {
+        var name = t.IsNested ? $"{SchemaId(t.DeclaringType!)}.{t.Name}" : t.Name;
+        if (!t.IsGenericType) return name;
+        return $"{name[..name.IndexOf('`')]}Of{string.Concat(t.GetGenericArguments().Select(SchemaId))}";
+    }
+    c.CustomSchemaIds(SchemaId);
     c.SwaggerDoc("v1", new()
     {
         Title = "Card Exchange API",
