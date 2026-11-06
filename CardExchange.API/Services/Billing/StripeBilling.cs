@@ -20,6 +20,8 @@ namespace CardExchange.API.Services.Billing
         /// <summary>Disdice il rinnovo: l'abbonamento resta attivo fino a fine periodo.</summary>
         Task CancelAtPeriodEndAsync(string subscriptionId);
         Task<WebhookResult> HandleWebhookAsync(string json, string? signatureHeader);
+        /// <summary>Checkout per un pagamento una tantum (promozioni, crediti, pacchetti), con ricevuta.</summary>
+        Task<string> CreatePaymentCheckoutAsync(User user, Purchase purchase, string productName, string successUrl, string cancelUrl);
     }
 
     /// <summary>
@@ -36,9 +38,12 @@ namespace CardExchange.API.Services.Billing
         private readonly StripeOptions _options;
         private readonly ILogger<StripeBilling> _logger;
 
+        private readonly PurchaseService? _purchases;
+
         public StripeBilling(ApplicationDbContext context, IBillingService billing, INotificationService notifications,
-            IOptions<BillingOptions> options, ILogger<StripeBilling> logger)
+            IOptions<BillingOptions> options, ILogger<StripeBilling> logger, PurchaseService? purchases = null)
         {
+            _purchases = purchases;
             _context = context;
             _billing = billing;
             _notifications = notifications;
@@ -105,6 +110,48 @@ namespace CardExchange.API.Services.Billing
             return session.Url;
         }
 
+        public async Task<string> CreatePaymentCheckoutAsync(User user, Purchase purchase, string productName, string successUrl, string cancelUrl)
+        {
+            var metadata = new Dictionary<string, string> { ["userId"] = user.Id.ToString(), ["purchaseId"] = purchase.Id.ToString() };
+            var customerId = await _context.UserSubscriptions
+                .Where(s => s.UserId == user.Id && s.ExternalCustomerId != null)
+                .OrderByDescending(s => s.CreatedAt).Select(s => s.ExternalCustomerId).FirstOrDefaultAsync();
+            var options = new SessionCreateOptions
+            {
+                Mode = "payment",
+                ClientReferenceId = user.Id.ToString(),
+                Customer = customerId,
+                CustomerEmail = customerId == null ? user.Email : null,
+                CustomerCreation = customerId == null ? "always" : null,
+                SuccessUrl = successUrl,
+                CancelUrl = cancelUrl,
+                Locale = "it",
+                Metadata = metadata,
+                PaymentIntentData = new SessionPaymentIntentDataOptions { Metadata = metadata },
+                // Ricevuta e fattura con i dati inseriti nel Checkout
+                BillingAddressCollection = "required",
+                TaxIdCollection = new SessionTaxIdCollectionOptions { Enabled = true },
+                InvoiceCreation = new SessionInvoiceCreationOptions { Enabled = true },
+                LineItems = new List<SessionLineItemOptions>
+                {
+                    new()
+                    {
+                        Quantity = 1,
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            Currency = "eur",
+                            UnitAmount = (long)Math.Round(purchase.AmountEur * 100m),
+                            ProductData = new SessionLineItemPriceDataProductDataOptions { Name = $"CardExchange · {productName}" }
+                        }
+                    }
+                }
+            };
+            var session = await new SessionService(Client()).CreateAsync(options);
+            purchase.StripeSessionId = session.Id;
+            await _context.SaveChangesAsync();
+            return session.Url;
+        }
+
         public async Task<string> CreatePortalAsync(string customerId, string returnUrl)
         {
             var session = await new Stripe.BillingPortal.SessionService(Client()).CreateAsync(
@@ -137,6 +184,9 @@ namespace CardExchange.API.Services.Billing
             var handled = stripeEvent.Type switch
             {
                 EventTypes.CheckoutSessionCompleted => await OnCheckoutCompletedAsync((Session)stripeEvent.Data.Object),
+                EventTypes.CheckoutSessionAsyncPaymentSucceeded => await OnPaymentCheckoutAsync((Session)stripeEvent.Data.Object),
+                EventTypes.CheckoutSessionExpired => await OnPaymentExpiredAsync((Session)stripeEvent.Data.Object),
+                EventTypes.ChargeRefunded => await OnChargeRefundedAsync((Charge)stripeEvent.Data.Object),
                 EventTypes.InvoicePaid => await OnInvoicePaidAsync((Invoice)stripeEvent.Data.Object),
                 EventTypes.InvoicePaymentFailed => await OnPaymentFailedAsync((Invoice)stripeEvent.Data.Object),
                 EventTypes.CustomerSubscriptionUpdated => await OnSubscriptionUpdatedAsync((Subscription)stripeEvent.Data.Object),
@@ -162,8 +212,37 @@ namespace CardExchange.API.Services.Billing
             return handled ? WebhookResult.Processed : WebhookResult.Ignored;
         }
 
+        /// <summary>Pagamento una tantum: si attiva solo qui, mai dal ritorno del browser.</summary>
+        private async Task<bool> OnPaymentCheckoutAsync(Session session)
+        {
+            if (_purchases == null || session.Mode != "payment") return false;
+            if (session.PaymentStatus != "paid") return true; // pagamento differito: arriverà async_payment_succeeded
+            if (session.Metadata == null || !session.Metadata.TryGetValue("purchaseId", out var raw) || !int.TryParse(raw, out var purchaseId))
+            {
+                _logger.LogError("Checkout {Session} senza acquisto nei metadati", session.Id);
+                return false;
+            }
+            return await _purchases.MarkPaidAsync(purchaseId, session.Id, session.PaymentIntentId,
+                session.AmountTotal.HasValue ? session.AmountTotal.Value / 100m : null, session.InvoiceId);
+        }
+
+        private async Task<bool> OnPaymentExpiredAsync(Session session)
+        {
+            if (_purchases == null || session.Mode != "payment") return false;
+            if (session.Metadata != null && session.Metadata.TryGetValue("purchaseId", out var raw) && int.TryParse(raw, out var purchaseId))
+                await _purchases.MarkExpiredAsync(purchaseId);
+            return true;
+        }
+
+        private async Task<bool> OnChargeRefundedAsync(Charge charge)
+        {
+            if (_purchases == null || string.IsNullOrEmpty(charge.PaymentIntentId)) return false;
+            return await _purchases.MarkRefundedAsync(charge.PaymentIntentId, charge.AmountRefunded, charge.Refunded);
+        }
+
         private async Task<bool> OnCheckoutCompletedAsync(Session session)
         {
+            if (session.Mode == "payment") return await OnPaymentCheckoutAsync(session);
             if (session.Mode != "subscription" || string.IsNullOrEmpty(session.SubscriptionId)) return false;
             if (!TryReadIds(session.Metadata, out var userId, out var planId) &&
                 !(int.TryParse(session.ClientReferenceId, out userId) && planId > 0))

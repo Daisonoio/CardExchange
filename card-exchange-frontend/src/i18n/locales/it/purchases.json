@@ -1,0 +1,19 @@
+{
+  "title": "Crediti e acquisti",
+  "credits_one": "{{count}} credito promozione",
+  "credits_other": "{{count}} crediti promozione",
+  "creditsHint": "I crediti servono a promuovere eventi e avvisi \"Sono qui\" nella tua zona.",
+  "buy": "Acquista",
+  "notYet": "L'acquisto di crediti sarà disponibile insieme alle promozioni.",
+  "history": "Storico",
+  "none": "Nessun acquisto.",
+  "success": "Pagamento ricevuto: i crediti arrivano appena Stripe conferma (pochi secondi).",
+  "cancelled": "Pagamento annullato: non ti è stato addebitato nulla.",
+  "status": {
+    "Pending": "In attesa",
+    "Paid": "Pagato",
+    "Refunded": "Rimborsato",
+    "Failed": "Non riuscito",
+    "Expired": "Scaduto"
+  }
+}

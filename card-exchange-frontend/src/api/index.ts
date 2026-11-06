@@ -431,6 +431,12 @@ export const referrals = {
 
 
 // === Abbonamenti alla piattaforma ===
+export const purchases = {
+  products: () => client.get<{ enabled: boolean; products: { code: string; type: string; name: string; quantity: number; priceEur: number }[] }>('/purchases/products'),
+  checkout: (productCode: string, refId?: number) => client.post<{ url: string; purchaseId: number }>('/purchases/checkout', { productCode, refId }),
+  mine: () => client.get<{ credits: number; purchases: { id: number; productCode: string; type: string; quantity: number; amountEur: number; status: string; createdAt: string; paidAt?: string | null; refundedAt?: string | null }[] }>('/purchases/mine'),
+};
+
 export const me = {
   entitlements: () => client.get<import('../types').Entitlements>('/me/entitlements'),
 };

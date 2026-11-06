@@ -528,5 +528,10 @@
   " Con Premium l'avresti saputo {0} prima.": " With Premium you'd have known {0} earlier.",
   "1 ora": "1 hour",
   "{n} ore": "{n} hours",
-  "{0} e altre {n}": "{0} and {n} more"
+  "{0} e altre {n}": "{0} and {n} more",
+  "Gli acquisti non sono ancora disponibili": "Purchases aren't available yet",
+  "Prodotto non trovato": "Product not found",
+  "Pagamento ricevuto": "Payment received",
+  "Abbiamo aggiunto {n} crediti promozione al tuo account. La ricevuta arriva via email.": "We've added {n} promotion credits to your account. The receipt is on its way by email.",
+  "Il tuo acquisto è attivo. La ricevuta arriva via email.": "Your purchase is active. The receipt is on its way by email."
 }

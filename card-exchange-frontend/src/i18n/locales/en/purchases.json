@@ -1,0 +1,19 @@
+{
+  "title": "Credits and purchases",
+  "credits_one": "{{count}} promotion credit",
+  "credits_other": "{{count}} promotion credits",
+  "creditsHint": "Credits let you promote events and \"I'm here\" alerts in your area.",
+  "buy": "Buy",
+  "notYet": "Buying credits will be available together with promotions.",
+  "history": "History",
+  "none": "No purchases.",
+  "success": "Payment received: credits arrive as soon as Stripe confirms (a few seconds).",
+  "cancelled": "Payment cancelled: you haven't been charged.",
+  "status": {
+    "Pending": "Pending",
+    "Paid": "Paid",
+    "Refunded": "Refunded",
+    "Failed": "Failed",
+    "Expired": "Expired"
+  }
+}

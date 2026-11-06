@@ -46,6 +46,8 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<StoreBuyOffer> StoreBuyOffers { get; set; }
         public DbSet<StoreBuyAlert> StoreBuyAlerts { get; set; }
         public DbSet<PendingWishlistAlert> PendingWishlistAlerts { get; set; }
+        public DbSet<Purchase> Purchases { get; set; }
+        public DbSet<PromotionCreditEntry> PromotionCreditEntries { get; set; }
         public DbSet<StoreStockAlert> StoreStockAlerts { get; set; }
         public DbSet<CatalogStatus> CatalogStatuses { get; set; }
         public DbSet<LocationBroadcast> LocationBroadcasts { get; set; }
@@ -336,6 +338,25 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(e => new { e.IsResolved, e.LastSeenAt });
             });
             modelBuilder.Entity<CatalogStatus>().HasIndex(c => c.Key).IsUnique();
+
+            modelBuilder.Entity<Purchase>(entity =>
+            {
+                entity.HasIndex(p => p.StripeSessionId);
+                entity.HasIndex(p => p.StripePaymentIntentId);
+                entity.HasIndex(p => new { p.UserId, p.Status });
+                entity.Property(p => p.AmountEur).HasPrecision(10, 2);
+                entity.Property(p => p.ProductCode).HasMaxLength(40);
+                entity.Property(p => p.StripeSessionId).HasMaxLength(255);
+                entity.Property(p => p.StripePaymentIntentId).HasMaxLength(255);
+                entity.Property(p => p.InvoiceNumber).HasMaxLength(100);
+                entity.HasOne(p => p.User).WithMany().HasForeignKey(p => p.UserId).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<PromotionCreditEntry>(entity =>
+            {
+                entity.HasIndex(e => e.UserId);
+                entity.Property(e => e.Reason).HasMaxLength(200);
+                entity.HasOne<User>().WithMany().HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
 
             modelBuilder.Entity<PendingWishlistAlert>(entity =>
             {

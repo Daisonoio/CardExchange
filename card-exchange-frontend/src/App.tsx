@@ -40,6 +40,7 @@ import StoreDemandPage from './pages/StoreDemandPage';
 import ReservationsPage from './pages/ReservationsPage';
 import StoreBuyListPage from './pages/StoreBuyListPage';
 import SellPage from './pages/SellPage';
+import PurchasesPage from './pages/PurchasesPage';
 import StoreReservationsPage from './pages/StoreReservationsPage';
 import NotificationsGuidePage from './pages/NotificationsGuidePage';
 import LivePage from './pages/LivePage';
@@ -122,6 +123,7 @@ export default function App() {
               <Route path="/reservations" element={<ReservationsPage />} />
               <Route path="/stores/:id/buylist" element={<StoreBuyListPage />} />
               <Route path="/sell" element={<SellPage />} />
+              <Route path="/purchases" element={<PurchasesPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />
               <Route path="/moderation" element={<ModerationPage />} />
