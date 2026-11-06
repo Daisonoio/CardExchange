@@ -26,6 +26,14 @@
     "SponsoredBroadcast": {
       "name": "Sponsored \"I'm here\"",
       "hint": "Also reaches people who don't follow you, if they want one of your cards."
+    },
+    "StoreSlot": {
+      "name": "Store slot",
+      "hint": "A card on the Home and in the store list, for 7 days."
+    },
+    "ShowcaseSlot": {
+      "name": "Stall slot",
+      "hint": "A card on the Home and in Explore that leads to your showcase, for 7 days."
     }
   },
   "status": {
@@ -56,22 +64,94 @@
     "next": "Next",
     "back": "Back",
     "preview": "See preview",
-    "noEvents": "You have no upcoming published events with a location.",
-    "noBroadcasts": "You have no live \"I'm here\" post.",
     "until": "until {{time}}",
     "radius": "Radius: {{km}} km",
-    "durationEvent": "Stays featured until the event starts (14 days at most).",
-    "durationBroadcast": "Lasts as long as your \"I'm here\" post.",
     "inRadius": "People in range",
     "reachable": "Will be notified",
-    "howEvent": "The notification goes to adults in range who haven't turned it off (and who play that game, if the event has one).",
-    "howBroadcast": "The notification goes to adults in range who don't follow you yet and want a card you have available.",
     "price": "Price: {{credits}} credits ({{eur}})",
     "payCredits": "Pay with credits",
     "notEnough": "Not enough credits (you have {{balance}}).",
     "buyCredits": "Buy credits",
-    "payCard": "Pay by card"
+    "payCard": "Pay by card",
+    "none": {
+      "FeaturedEvent": "You have no upcoming published events with a location.",
+      "SponsoredBroadcast": "You have no live \"I'm here\" post.",
+      "StoreSlot": "You don't have a verified store.",
+      "ShowcaseSlot": "You don't have a Stall showcase yet."
+    },
+    "duration": {
+      "FeaturedEvent": "Stays featured until the event starts (14 days at most).",
+      "SponsoredBroadcast": "Lasts as long as your \"I'm here\" post.",
+      "StoreSlot": "Visible for 7 days, at most 3 times a day per person.",
+      "ShowcaseSlot": "Visible for 7 days, at most 3 times a day per person."
+    },
+    "how": {
+      "FeaturedEvent": "The notification goes to adults in range who haven't turned it off (and who play that game, if the event has one).",
+      "SponsoredBroadcast": "The notification goes to adults in range who don't follow you yet and want a card you have available.",
+      "StoreSlot": "The card appears among the Home cards and the stores, only to adults in range. No notifications.",
+      "ShowcaseSlot": "The card appears among the Home and Explore cards, only to adults in range. No notifications."
+    },
+    "slotTitle": "Card title",
+    "slotTitlePlaceholder": "E.g. New Pokémon arrivals every Saturday",
+    "slotBody": "Text (optional)",
+    "couldSee": "Could see it"
   },
   "featureEvent": "Feature this event",
-  "sponsorBroadcast": "Sponsor this \"I'm here\" post"
+  "sponsorBroadcast": "Sponsor this \"I'm here\" post",
+  "why": {
+    "action": "Why am I seeing this?",
+    "zone": "You see it because you're within {{km}} km of {{city}}.",
+    "italy": "It's shown across Italy, without using your location.",
+    "game": "Game: {{game}}.",
+    "anyGame": "For all games.",
+    "brand": "It's a brand sponsor: with Premium you don't see it.",
+    "local": "It's a promotion from a nearby store or seller."
+  },
+  "offeredBy": "Offered by {{sponsor}}",
+  "nightOfferedBy": "This trade night is offered by {{sponsor}}",
+  "sponsorPage": {
+    "visit": "Visit website",
+    "note": "Supports community prizes and nights. CardExchange doesn't share your data with sponsors.",
+    "notFound": "Sponsor not found"
+  },
+  "admin": {
+    "menu": "Brand sponsors",
+    "title": "Brand sponsors",
+    "newSponsor": "New sponsor",
+    "name": "Name",
+    "logo": "Logo (https)",
+    "website": "Website (https)",
+    "email": "Contact email",
+    "description": "Description",
+    "save": "Save",
+    "clicks": "website clicks",
+    "newShip": "New sponsorship",
+    "scope": "Coverage",
+    "scopeRef": "Event (id) or city",
+    "placement": "Where",
+    "from": "From",
+    "to": "To",
+    "slotPlacement": "Slot",
+    "slotTitle": "Slot title",
+    "slotBody": "Slot text",
+    "add": "Add",
+    "delete": "Delete",
+    "empty": "No sponsors yet.",
+    "scopes": {
+      "Event": "One event",
+      "CityTradeNights": "A city's trade nights",
+      "Month": "All events in the period"
+    },
+    "placements": {
+      "EventPage": "Event page",
+      "TradeNightBanner": "Trade night banner",
+      "Slot": "Sponsored slot"
+    },
+    "slots": {
+      "HomeFeed": "Home",
+      "ExploreCards": "Explore: cards",
+      "ExploreStores": "Explore: stores"
+    },
+    "stats": "{{impressions}} people · {{clicks}} clicks"
+  }
 }

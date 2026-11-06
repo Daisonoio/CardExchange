@@ -50,6 +50,7 @@ export default function ProfilePage() {
     ...(hasRole('Admin', 'SuperAdmin') ? [{ label: t('menu.subscriptions'), icon: Receipt, to: '/admin/billing' }] : []),
     ...(hasRole('Admin', 'SuperAdmin') ? [{ label: t('admin:monitoring.menu'), icon: Activity, to: '/admin/monitoring' }] : []),
     ...(hasRole('Admin', 'SuperAdmin') ? [{ label: t('admin:metrics.menu'), icon: Gauge, to: '/admin/metrics' }] : []),
+    ...(hasRole('Admin', 'SuperAdmin') ? [{ label: t('promotions:admin.menu'), icon: Megaphone, to: '/admin/sponsors' }] : []),
   ] as { label: string; icon: typeof Star; to: string | null; action?: () => void }[];
 
   return (

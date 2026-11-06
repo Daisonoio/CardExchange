@@ -385,6 +385,10 @@ namespace CardExchange.API.Controllers
                         })
                 };
 
+                var content = HttpContext.RequestServices.GetService<CardExchange.API.Services.Billing.SponsoredContent>();
+                if (content != null)
+                    dto.Sponsors = (await content.ForEventAsync(eventEntity, DateTime.UtcNow))
+                        .Select(x => (object)new { id = x.SponsorId, name = x.Name, logoUrl = x.LogoUrl, placement = x.Placement.ToString() }).ToList();
                 return Ok(dto);
             }
             catch (Exception ex)

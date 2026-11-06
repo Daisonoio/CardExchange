@@ -72,6 +72,12 @@ export default function EventPage() {
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-text">{event.title}</h1>
           <p className="text-sm text-text-secondary">{EVENT_TYPE_LABELS[event.type] ?? event.type} · {t('detail.organizedBy', { username: event.organizer.username })}</p>
+          {event.sponsors?.filter((s) => s.placement === 'EventPage').map((s) => (
+            <Link key={s.id} to={`/sponsors/${s.id}`} className="mt-1 inline-flex items-center gap-1.5 text-xs text-text-secondary hover:underline" data-testid="event-sponsor">
+              {s.logoUrl && <img src={s.logoUrl} alt="" className="w-4 h-4 rounded object-contain" />}
+              {t('promotions:offeredBy', { sponsor: s.name })}
+            </Link>
+          ))}
         </div>
       </div>
 
@@ -117,6 +123,12 @@ export default function EventPage() {
         )}
       </ul>
 
+      {event.sponsors?.filter((s) => s.placement === 'TradeNightBanner').map((s) => (
+        <Link key={s.id} to={`/sponsors/${s.id}`} className="flex items-center gap-3 p-3 rounded-2xl bg-amber-50 border border-amber-200" data-testid="tradenight-sponsor">
+          {s.logoUrl ? <img src={s.logoUrl} alt="" className="w-9 h-9 rounded-lg object-contain bg-white" /> : <span className="w-9 h-9 rounded-lg bg-white" />}
+          <span className="text-sm text-text"><strong>{t('promotions:nightOfferedBy', { sponsor: s.name })}</strong></span>
+        </Link>
+      ))}
       {event.status === 'Published' && !ended && <TradeNightPanel eventId={event.id} />}
 
       {event.description && <p className="text-sm text-text whitespace-pre-line">{event.description}</p>}

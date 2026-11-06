@@ -387,6 +387,8 @@ export interface EventAttendee {
 
 export interface CardEventDetail extends CardEvent {
   participants: { userId: number; username: string; avatarUrl?: string; status: string; joinedAt: string }[];
+  /** Sponsor di marca che coprono l'evento ("Offerto da …"). */
+  sponsors?: { id: number; name: string; logoUrl?: string; placement: 'EventPage' | 'TradeNightBanner' }[];
 }
 
 export const EVENT_TYPE_LABELS: Record<string, string> = translatedLabels('eventType', ['Trademeetup', 'Tournament', 'CardShow', 'DraftEvent', 'SealedEvent', 'CasualPlay', 'Other']);

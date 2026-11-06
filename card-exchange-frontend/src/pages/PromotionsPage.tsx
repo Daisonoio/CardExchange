@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, CalendarDays, Coins, Loader2, Megaphone, Radio, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Coins, LayoutList, Loader2, Megaphone, Radio, Store, Users } from 'lucide-react';
 import { promotions, type Promotion, type PromotionEstimate, type PromotionPricing, type PromotionTypeName } from '../api';
 import { apiErrorMessage } from '../utils/apiError';
 import { formatEventDate } from '../utils/eventDate';
@@ -25,8 +25,10 @@ function Wizard({ pricing, initialType, initialTarget, onDone }: {
   const [estimate, setEstimate] = useState<PromotionEstimate | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [slotText, setSlotText] = useState({ title: '', body: '' });
+  const isSlot = type === 'StoreSlot' || type === 'ShowcaseSlot';
 
-  useEffect(() => { promotions.targets().then(({ data }) => setTargets(data)).catch(() => setTargets({ events: [], broadcasts: [] })); }, []);
+  useEffect(() => { promotions.targets().then(({ data }) => setTargets(data)).catch(() => setTargets({ events: [], broadcasts: [], stores: [], showcases: [] })); }, []);
   useEffect(() => {
     if (step !== 3 || targetId == null) return;
     let cancelled = false;
@@ -40,7 +42,7 @@ function Wizard({ pricing, initialType, initialTarget, onDone }: {
     if (targetId == null) return;
     setBusy(true); setError(null);
     try {
-      const { data: promo } = await promotions.create(type, targetId, radius);
+      const { data: promo } = await promotions.create(type, targetId, radius, undefined, isSlot ? slotText : undefined);
       const { data } = await promotions.pay(promo.id, method);
       if (data.url) { window.location.href = data.url; return; }
       onDone();
@@ -53,7 +55,12 @@ function Wizard({ pricing, initialType, initialTarget, onDone }: {
 
   const options = type === 'FeaturedEvent'
     ? (targets?.events ?? []).filter((e) => e.hasLocation).map((e) => ({ id: e.id, title: e.title, sub: `${formatEventDate(e.startsAt)} · ${e.city}` }))
-    : (targets?.broadcasts ?? []).map((b) => ({ id: b.id, title: b.title, sub: t('wizard.until', { time: new Date(b.endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }) }));
+    : type === 'SponsoredBroadcast'
+      ? (targets?.broadcasts ?? []).map((b) => ({ id: b.id, title: b.title, sub: t('wizard.until', { time: new Date(b.endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }) }))
+      : type === 'StoreSlot'
+        ? (targets?.stores ?? []).map((x) => ({ id: x.id, title: x.title, sub: x.city }))
+        : (targets?.showcases ?? []).map((x) => ({ id: x.id, title: x.title, sub: `/v/${x.slug}` }));
+  const icons = { FeaturedEvent: CalendarDays, SponsoredBroadcast: Radio, StoreSlot: Store, ShowcaseSlot: LayoutList };
   const price = pricing.types.find((x) => x.type === type)?.prices.find((p) => radius <= p.upToKm);
   const enough = price != null && pricing.balance >= price.credits;
 
@@ -68,17 +75,20 @@ function Wizard({ pricing, initialType, initialTarget, onDone }: {
       {step === 1 && (
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            {(['FeaturedEvent', 'SponsoredBroadcast'] as PromotionTypeName[]).map((k) => (
+            {(['FeaturedEvent', 'SponsoredBroadcast', 'StoreSlot', 'ShowcaseSlot'] as PromotionTypeName[]).map((k) => {
+              const Icon = icons[k];
+              return (
               <button key={k} type="button" onClick={() => { setType(k); setTargetId(null); }} aria-pressed={type === k}
                 className={`p-3 rounded-xl border text-left ${type === k ? 'border-primary bg-primary/5' : 'border-border'}`}>
-                {k === 'FeaturedEvent' ? <CalendarDays size={18} className="text-primary" /> : <Radio size={18} className="text-primary" />}
+                <Icon size={18} className="text-primary" />
                 <strong className="block text-sm mt-1">{t(`types.${k}.name`)}</strong>
                 <span className="block text-[11px] text-text-secondary">{t(`types.${k}.hint`)}</span>
               </button>
-            ))}
+              );
+            })}
           </div>
           {targets === null ? <Loader2 className="animate-spin text-primary mx-auto" /> : options.length === 0 ? (
-            <p className="text-sm text-text-muted">{type === 'FeaturedEvent' ? t('wizard.noEvents') : t('wizard.noBroadcasts')}</p>
+            <p className="text-sm text-text-muted">{t(`wizard.none.${type}`)}</p>
           ) : (
             <ul className="space-y-1.5">
               {options.map((o) => (
@@ -103,10 +113,24 @@ function Wizard({ pricing, initialType, initialTarget, onDone }: {
             <input type="range" min={pricing.minRadiusKm} max={pricing.maxRadiusKm} step={5} value={radius}
               onChange={(e) => setRadius(Number(e.target.value))} className="w-full accent-primary" />
           </label>
-          <p className="text-xs text-text-secondary">{type === 'FeaturedEvent' ? t('wizard.durationEvent') : t('wizard.durationBroadcast')}</p>
+          <p className="text-xs text-text-secondary">{t(`wizard.duration.${type}`)}</p>
+          {isSlot && (
+            <>
+              <label className="block">
+                <span className="text-xs font-semibold text-text-secondary">{t('wizard.slotTitle')}</span>
+                <input value={slotText.title} maxLength={80} onChange={(e) => setSlotText({ ...slotText, title: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 rounded-xl border border-border text-sm" placeholder={t('wizard.slotTitlePlaceholder')} />
+              </label>
+              <label className="block">
+                <span className="text-xs font-semibold text-text-secondary">{t('wizard.slotBody')}</span>
+                <textarea value={slotText.body} maxLength={200} rows={2} onChange={(e) => setSlotText({ ...slotText, body: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 rounded-xl border border-border text-sm" />
+              </label>
+            </>
+          )}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setStep(1)}>{t('wizard.back')}</Button>
-            <Button className="flex-1" onClick={() => setStep(3)}>{t('wizard.preview')}</Button>
+            <Button className="flex-1" disabled={isSlot && slotText.title.trim().length < 3} onClick={() => setStep(3)}>{t('wizard.preview')}</Button>
           </div>
         </div>
       )}
@@ -119,11 +143,18 @@ function Wizard({ pricing, initialType, initialTarget, onDone }: {
               <dd className="text-lg font-bold">{estimate ? (estimate.inRadius || t('fewer')) : '…'}</dd>
             </div>
             <div className="p-3 rounded-xl bg-surface-dark">
-              <dt className="text-[11px] text-text-muted">{t('wizard.reachable')}</dt>
+              <dt className="text-[11px] text-text-muted">{isSlot ? t('wizard.couldSee') : t('wizard.reachable')}</dt>
               <dd className="text-lg font-bold" data-testid="promo-reachable">{estimate ? (estimate.reachable || t('fewer')) : '…'}</dd>
             </div>
           </div>
-          <p className="text-[11px] text-text-muted">{type === 'FeaturedEvent' ? t('wizard.howEvent') : t('wizard.howBroadcast')}</p>
+          {isSlot && (
+            <div className="p-3 rounded-2xl border border-amber-200 bg-amber-50/60">
+              <span className="block text-[10px] font-bold uppercase tracking-wide text-amber-800">{t('label')}</span>
+              <span className="block text-sm font-bold">{slotText.title}</span>
+              {slotText.body && <span className="block text-xs text-text-secondary">{slotText.body}</span>}
+            </div>
+          )}
+          <p className="text-[11px] text-text-muted">{t(`wizard.how.${type}`)}</p>
           {price && (
             <p className="text-sm font-semibold">{t('wizard.price', { credits: price.credits, eur: euro(price.eur) })}</p>
           )}

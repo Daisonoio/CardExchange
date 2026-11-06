@@ -13,6 +13,10 @@ namespace CardExchange.Core.Rules
         public const int MaxSponsoredPerWeek = 2;
         public static readonly TimeSpan CapWindow = TimeSpan.FromDays(7);
         public const int MaxFeaturedDays = 14;
+        /// <summary>Durata di uno spazio sponsorizzato locale.</summary>
+        public const int SlotDays = 7;
+
+        public static bool IsSlot(PromotionType t) => t is PromotionType.StoreSlot or PromotionType.ShowcaseSlot;
         /// <summary>Sopra 2 segnalazioni ogni 1.000 consegne (e almeno 3 segnalazioni) la promozione si ferma.</summary>
         public const int ReportsToPause = 3;
         public const double ReportsPerThousandAlarm = 2;
@@ -27,6 +31,7 @@ namespace CardExchange.Core.Rules
             {
                 PromotionType.FeaturedEvent => 3 + step,
                 PromotionType.SponsoredBroadcast => 1 + step,
+                PromotionType.StoreSlot or PromotionType.ShowcaseSlot => 2 + step,
                 _ => throw new ArgumentOutOfRangeException(nameof(type))
             };
         }

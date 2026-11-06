@@ -45,6 +45,10 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<CardImageFingerprint> CardImageFingerprints { get; set; }
         public DbSet<Promotion> Promotions { get; set; }
         public DbSet<SellerShowcase> SellerShowcases { get; set; }
+        public DbSet<SponsoredSlot> SponsoredSlots { get; set; }
+        public DbSet<SlotImpression> SlotImpressions { get; set; }
+        public DbSet<Sponsor> Sponsors { get; set; }
+        public DbSet<Sponsorship> Sponsorships { get; set; }
         public DbSet<ShowcaseVisit> ShowcaseVisits { get; set; }
         public DbSet<PromotionDelivery> PromotionDeliveries { get; set; }
         public DbSet<PromotionReport> PromotionReports { get; set; }
@@ -433,6 +437,39 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
             });
 
+            modelBuilder.Entity<SponsoredSlot>(entity =>
+            {
+                entity.HasIndex(s => new { s.Placement, s.IsActive, s.EndsAt });
+                entity.Property(s => s.Title).HasMaxLength(80);
+                entity.Property(s => s.Body).HasMaxLength(200);
+                entity.Property(s => s.ImageUrl).HasMaxLength(300);
+                entity.Property(s => s.TargetUrl).HasMaxLength(200);
+                entity.Property(s => s.City).HasMaxLength(100);
+                entity.Property(s => s.Latitude).HasPrecision(9, 6);
+                entity.Property(s => s.Longitude).HasPrecision(9, 6);
+                entity.Ignore(s => s.IsBrand);
+            });
+            modelBuilder.Entity<SlotImpression>(entity =>
+            {
+                entity.HasIndex(i => new { i.SlotId, i.UserId, i.Day }).IsUnique();
+                entity.HasIndex(i => new { i.UserId, i.Day });
+            });
+            modelBuilder.Entity<Sponsor>(entity =>
+            {
+                entity.Property(s => s.Name).HasMaxLength(80);
+                entity.Property(s => s.LogoUrl).HasMaxLength(300);
+                entity.Property(s => s.WebsiteUrl).HasMaxLength(300);
+                entity.Property(s => s.ContactEmail).HasMaxLength(200);
+                entity.Property(s => s.Description).HasMaxLength(500);
+            });
+            modelBuilder.Entity<Sponsorship>(entity =>
+            {
+                entity.HasIndex(s => new { s.Placement, s.EndsAt });
+                entity.Property(s => s.ScopeRef).HasMaxLength(100);
+                entity.Property(s => s.SlotTitle).HasMaxLength(80);
+                entity.Property(s => s.SlotBody).HasMaxLength(200);
+                entity.HasOne(s => s.Sponsor).WithMany().HasForeignKey(s => s.SponsorId).OnDelete(DeleteBehavior.Cascade);
+            });
             modelBuilder.Entity<SellerShowcase>(entity =>
             {
                 entity.HasIndex(v => v.UserId).IsUnique();
@@ -456,6 +493,8 @@ namespace CardExchange.Infrastructure.Data
                 entity.Property(p => p.Latitude).HasPrecision(9, 6);
                 entity.Property(p => p.Longitude).HasPrecision(9, 6);
                 entity.Property(p => p.RejectionReason).HasMaxLength(200);
+                entity.Property(p => p.SlotTitle).HasMaxLength(80);
+                entity.Property(p => p.SlotBody).HasMaxLength(200);
                 entity.HasOne(p => p.OwnerUser).WithMany().HasForeignKey(p => p.OwnerUserId).OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<PromotionDelivery>(entity =>

@@ -27,7 +27,7 @@ namespace CardExchange.API.Controllers
             _promotions = promotions;
         }
 
-        public record CreateRequest(PromotionType Type, int TargetId, int RadiusKm, int? Days);
+        public record CreateRequest(PromotionType Type, int TargetId, int RadiusKm, int? Days, string? SlotTitle = null, string? SlotBody = null);
         public record PayRequest(string Method);
         public record ReportRequest(string? Reason);
 
@@ -46,7 +46,7 @@ namespace CardExchange.API.Controllers
                 maxRadiusKm = PromotionRules.MaxRadiusKm,
                 balance = await _promotions.CreditBalanceAsync(Me),
                 monthlyCredits = monthly,
-                types = new[] { PromotionType.FeaturedEvent, PromotionType.SponsoredBroadcast }.Select(t => new
+                types = new[] { PromotionType.FeaturedEvent, PromotionType.SponsoredBroadcast, PromotionType.StoreSlot, PromotionType.ShowcaseSlot }.Select(t => new
                 {
                     type = t.ToString(),
                     prices = new[] { 10, 25, 50 }.Select(km => new { upToKm = km, credits = PromotionRules.PriceCredits(t, km), eur = PromotionRules.PriceEur(t, km) })
@@ -69,7 +69,11 @@ namespace CardExchange.API.Controllers
                 .OrderByDescending(b => b.CreatedAt).Take(10)
                 .Select(b => new { id = b.Id, title = b.PlaceName, endsAt = b.EndsAt })
                 .ToListAsync();
-            return Ok(new { events, broadcasts });
+            var stores = await _context.Stores.AsNoTracking().Where(s => s.OwnerId == Me && s.Status == StoreStatus.Verified)
+                .Select(s => new { id = s.Id, title = s.Name, city = s.City }).ToListAsync();
+            var showcases = await _context.SellerShowcases.AsNoTracking().Where(v => v.UserId == Me)
+                .Select(v => new { id = v.Id, title = v.DisplayName, slug = v.Slug }).ToListAsync();
+            return Ok(new { events, broadcasts, stores, showcases });
         }
 
         [HttpGet("estimate")]
@@ -84,7 +88,7 @@ namespace CardExchange.API.Controllers
         {
             try
             {
-                var p = await _promotions.CreateAsync(Me, request.Type, request.TargetId, request.RadiusKm, request.Days, DateTime.UtcNow);
+                var p = await _promotions.CreateAsync(Me, request.Type, request.TargetId, request.RadiusKm, request.Days, DateTime.UtcNow, request.SlotTitle, request.SlotBody);
                 return Ok(Dto(p, null));
             }
             catch (PromotionException ex) { return Fail(ex); }
@@ -142,6 +146,7 @@ namespace CardExchange.API.Controllers
         [HttpGet("mine")]
         public async Task<IActionResult> Mine()
         {
+            // Titoli dei bersagli: eventi e avvisi qui sotto, spazi dal testo della scheda
             var list = await _context.Promotions.AsNoTracking().Where(p => p.OwnerUserId == Me)
                 .OrderByDescending(p => p.CreatedAt).Take(50).ToListAsync();
             var eventIds = list.Where(p => p.Type == PromotionType.FeaturedEvent).Select(p => p.TargetId).ToList();
@@ -150,7 +155,7 @@ namespace CardExchange.API.Controllers
                 .ToDictionary(e => (PromotionType.FeaturedEvent, e.Id), e => e.Title);
             foreach (var b in await _context.LocationBroadcasts.AsNoTracking().Where(b => broadcastIds.Contains(b.Id)).Select(b => new { b.Id, b.PlaceName }).ToListAsync())
                 titles[(PromotionType.SponsoredBroadcast, b.Id)] = b.PlaceName;
-            return Ok(list.Select(p => Dto(p, titles.GetValueOrDefault((p.Type, p.TargetId)))));
+            return Ok(list.Select(p => Dto(p, p.SlotTitle ?? titles.GetValueOrDefault((p.Type, p.TargetId)))));
         }
 
         /// <summary>Eventi in evidenza vicino a chi guarda, con l'etichetta "Sponsorizzato".</summary>

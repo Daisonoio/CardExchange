@@ -27,4 +27,16 @@ export default defineConfig([
       'react-refresh/only-export-components': 'warn',
     },
   },
+  {
+    // Mai spazi sponsorizzati o promozioni in chat, proposte di scambio, conferme e appuntamenti (regola di prodotto F13)
+    files: [
+      'src/pages/ChatPage.tsx', 'src/pages/TradesPage.tsx', 'src/pages/TradeRequestPage.tsx',
+      'src/components/chat/**', 'src/components/trades/**', 'src/components/meetups/**',
+    ],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [{ group: ['**/promotions/*', '**/SponsoredSlotCard', '**/SponsoredEvents'], message: 'Niente contenuti sponsorizzati in chat, scambi e appuntamenti.' }],
+      }],
+    },
+  },
 ])

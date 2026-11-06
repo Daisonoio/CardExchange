@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense, useRef, Fragment } from 'react';
 import { Compass, MapPin, Search, ArrowLeftRight, Loader2, Navigation, Map, Settings, SlidersHorizontal, ChevronRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import { useGame } from '../context/GameContext';
 import type { Card, User } from '../types';
 import { useGeolocation } from '../hooks/useGeolocation';
 import CardItem from '../components/cards/CardItem';
+import SponsoredSlotCard from '../components/promotions/SponsoredSlotCard';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import EmptyStateLink from '../components/ui/EmptyStateLink';
@@ -308,8 +309,11 @@ export default function ExplorePage() {
                   <p className="text-xs text-text-muted mb-2">
                     {t('cards.count', { count: filteredCards.length, radius: effectiveRadius })}
                   </p>
-                  {filteredCards.map((card) => (
-                    <CardItem key={card.id} card={card} showUser onClick={handleCardClick} />
+                  {filteredCards.map((card, i) => (
+                    <Fragment key={card.id}>
+                      <CardItem card={card} showUser onClick={handleCardClick} />
+                      {i === 7 && <SponsoredSlotCard placement="ExploreCards" gameId={selectedGameId} />}
+                    </Fragment>
                   ))}
                 </div>
               )}

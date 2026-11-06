@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight, Loader2, Plus, ShieldCheck, Sparkles, Store as StoreIcon } from 'lucide-react';
@@ -7,6 +7,7 @@ import type { Store } from '../../types';
 import { useGame } from '../../context/GameContext';
 import EmptyState from '../ui/EmptyState';
 import EmptyStateLink from '../ui/EmptyStateLink';
+import SponsoredSlotCard from '../promotions/SponsoredSlotCard';
 import StoresMap from './StoresMap';
 
 /** Negozi verificati vicini (in base alla posizione del profilo) e negozi gestiti dall'utente. */
@@ -63,8 +64,9 @@ export default function StoresTab() {
         <>
           <StoresMap items={items} />
           <ul className="space-y-2">
-            {items.map((s) => (
-              <li key={s.id}>
+            {items.map((s, i) => (
+              <Fragment key={s.id}>
+              <li>
                 <Link to={`/stores/${s.id}`} className={`flex items-center gap-3 p-3 rounded-2xl bg-white border hover:shadow-sm ${s.isFeatured ? 'border-secondary ring-1 ring-secondary/40' : 'border-border'}`}>
                   <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0"><StoreIcon size={18} /></span>
                   <span className="flex-1 min-w-0">
@@ -81,6 +83,9 @@ export default function StoresTab() {
                   <ChevronRight size={16} className="text-text-muted shrink-0" />
                 </Link>
               </li>
+              {/* Al massimo uno spazio sponsorizzato, dopo l'ottavo negozio */}
+              {i === 7 && <li><SponsoredSlotCard placement="ExploreStores" gameId={selectedGameId} /></li>}
+              </Fragment>
             ))}
           </ul>
         </>

@@ -53,6 +53,8 @@ namespace CardExchange.API.DTOs.Responses
     public class EventDetailDto : EventDto
     {
         public IEnumerable<EventParticipantDto> Participants { get; set; } = new List<EventParticipantDto>();
+        /// <summary>"Offerto da …": sponsor di marca che coprono l'evento (pagina evento o serata di scambio).</summary>
+        public IEnumerable<object> Sponsors { get; set; } = new List<object>();
     }
 
     /// <summary>Iscritto visto dall'organizzatore (con presenza e lista d'attesa).</summary>

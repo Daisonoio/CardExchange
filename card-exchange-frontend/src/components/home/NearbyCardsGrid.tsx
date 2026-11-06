@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Heart, Loader2, MapPin, Store } from 'lucide-react';
 import { explore, type ExploreCard } from '../../proto/api';
 import { useFormat } from '../../i18n/format';
+import SponsoredSlotCard from '../promotions/SponsoredSlotCard';
 
 const PAGE_SIZE = 12;
 
@@ -108,7 +109,13 @@ export default function NearbyCardsGrid({ gameId, radiusKm, coords, onTotal }: P
       </div>
       <p className="text-xs text-text-muted -mt-2 mb-3">{t('all.hint')}</p>
       <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-testid="home-all-cards">
-        {cards.map((c) => <li key={c.id}><Tile card={c} /></li>)}
+        {cards.map((c, i) => (
+          <Fragment key={c.id}>
+            <li><Tile card={c} /></li>
+            {/* Al massimo uno spazio sponsorizzato, dopo l'ottava carta */}
+            {i === 7 && <li className="col-span-full"><SponsoredSlotCard placement="HomeFeed" coords={coords} gameId={gameId} /></li>}
+          </Fragment>
+        ))}
       </ul>
       {loading ? (
         <div className="flex justify-center py-6"><Loader2 className="animate-spin text-primary" /></div>

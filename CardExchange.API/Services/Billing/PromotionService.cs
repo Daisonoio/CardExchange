@@ -72,6 +72,24 @@ namespace CardExchange.API.Services.Billing
                     if (b.EndedAt != null || b.EndsAt <= nowUtc) throw new PromotionException("L'avviso è già terminato");
                     return new(b.AuthorId, b.StoreId, b.PlaceName, b.Message, b.Latitude, b.Longitude, b.EndsAt, null, null);
                 }
+                case PromotionType.StoreSlot:
+                {
+                    var store = await _db.Stores.AsNoTracking().FirstOrDefaultAsync(x => x.Id == targetId)
+                        ?? throw new PromotionException("Negozio non trovato", status: 404);
+                    if (store.OwnerId != userId) throw new PromotionException("Puoi promuovere solo il tuo negozio", status: 403);
+                    if (store.Status != StoreStatus.Verified) throw new PromotionException("Il negozio deve essere verificato");
+                    return new(store.OwnerId, store.Id, store.Name, store.Description, store.Latitude, store.Longitude, DateTime.MaxValue, null, store.City);
+                }
+                case PromotionType.ShowcaseSlot:
+                {
+                    var showcase = await _db.SellerShowcases.AsNoTracking().FirstOrDefaultAsync(x => x.Id == targetId)
+                        ?? throw new PromotionException("Vetrina non trovata", status: 404);
+                    if (showcase.UserId != userId) throw new PromotionException("Puoi promuovere solo la tua vetrina", status: 403);
+                    if (!await _entitlements.HasAsync(userId, Capability.SellerShowcase)) throw new PromotionException("La vetrina è inclusa nel piano Banco", "PLAN_REQUIRED", 402);
+                    var loc = await _db.UserLocations.AsNoTracking().FirstOrDefaultAsync(l => l.UserId == userId);
+                    if (loc?.Latitude == null || loc.Longitude == null) throw new PromotionException("Imposta la tua zona nel profilo per promuovere la vetrina");
+                    return new(userId, null, showcase.DisplayName, showcase.Bio, loc.Latitude.Value, loc.Longitude.Value, DateTime.MaxValue, null, loc.City);
+                }
                 default:
                     throw new PromotionException("Tipo di promozione non valido");
             }
@@ -151,7 +169,8 @@ namespace CardExchange.API.Services.Billing
 
         // ---------------------------------------------------------------- ciclo di vita
 
-        public async Task<Promotion> CreateAsync(int userId, PromotionType type, int targetId, int radiusKm, int? days, DateTime nowUtc)
+        public async Task<Promotion> CreateAsync(int userId, PromotionType type, int targetId, int radiusKm, int? days, DateTime nowUtc,
+            string? slotTitle = null, string? slotBody = null)
         {
             await EnsureAdultAsync(userId);
             radiusKm = PromotionRules.ClampRadius(radiusKm);
@@ -160,12 +179,20 @@ namespace CardExchange.API.Services.Billing
                 throw new PromotionException("Questa promozione è già attiva o in attesa di pagamento", "DUPLICATE", 409);
 
             // Revisione automatica: niente link, contatti o pagamenti fuori dall'app
-            var reason = PromotionRules.Review(target.Title, target.Text);
+            slotTitle = slotTitle?.Trim();
+            slotBody = slotBody?.Trim();
+            if (PromotionRules.IsSlot(type))
+            {
+                if (slotTitle is not { Length: >= 3 and <= 80 }) throw new PromotionException("Il titolo della scheda deve avere da 3 a 80 caratteri");
+                if (slotBody is { Length: > 200 }) throw new PromotionException("Il testo della scheda può avere al massimo 200 caratteri");
+            }
+            else slotTitle = slotBody = null;
+            var reason = PromotionRules.IsSlot(type) ? PromotionRules.Review(slotTitle, slotBody) : PromotionRules.Review(target.Title, target.Text);
             if (reason != null) throw new PromotionException(reason, "REJECTED");
 
             var endsAt = type == PromotionType.FeaturedEvent
                 ? new[] { target.EndsAt, nowUtc.AddDays(Math.Clamp(days ?? PromotionRules.MaxFeaturedDays, 1, PromotionRules.MaxFeaturedDays)) }.Min()
-                : target.EndsAt;
+                : PromotionRules.IsSlot(type) ? nowUtc.AddDays(PromotionRules.SlotDays) : target.EndsAt;
             // Pagamento non riuscito o abbandonato: si riprende la stessa bozza con le nuove scelte
             var pending = await _db.Promotions.FirstOrDefaultAsync(p => p.OwnerUserId == userId && p.Type == type && p.TargetId == targetId
                 && p.Status == PromotionStatus.PendingPayment);
@@ -175,6 +202,8 @@ namespace CardExchange.API.Services.Billing
                 pending.PriceCredits = PromotionRules.PriceCredits(type, radiusKm);
                 pending.EndsAt = endsAt;
                 pending.CreatedAt = nowUtc;
+                pending.SlotTitle = slotTitle;
+                pending.SlotBody = slotBody;
                 await _db.SaveChangesAsync();
                 return pending;
             }
@@ -182,7 +211,8 @@ namespace CardExchange.API.Services.Billing
             {
                 OwnerUserId = userId, StoreId = target.StoreId, Type = type, TargetId = targetId, RadiusKm = radiusKm, GameId = target.GameId,
                 Latitude = target.Latitude, Longitude = target.Longitude, StartsAt = nowUtc, EndsAt = endsAt,
-                Status = PromotionStatus.PendingPayment, PriceCredits = PromotionRules.PriceCredits(type, radiusKm), CreatedAt = nowUtc
+                Status = PromotionStatus.PendingPayment, PriceCredits = PromotionRules.PriceCredits(type, radiusKm), CreatedAt = nowUtc,
+                SlotTitle = slotTitle, SlotBody = slotBody
             };
             _db.Promotions.Add(promo);
             await _db.SaveChangesAsync();
@@ -224,6 +254,7 @@ namespace CardExchange.API.Services.Billing
             var refund = p.Status == PromotionStatus.Active && p.DeliveredAt == null && p.PaidWith != PromotionPayment.None;
             p.Status = PromotionStatus.Cancelled;
             p.EndsAt = new[] { p.EndsAt, nowUtc }.Min();
+            await _db.SponsoredSlots.Where(x => x.PromotionId == p.Id).ExecuteUpdateAsync(u => u.SetProperty(x => x.IsActive, false));
             if (refund)
                 _db.PromotionCreditEntries.Add(new PromotionCreditEntry { UserId = userId, Delta = p.PriceCredits, Reason = $"Promozione #{p.Id} annullata", CreatedAt = nowUtc });
             await _db.SaveChangesAsync();
@@ -249,6 +280,8 @@ namespace CardExchange.API.Services.Billing
                 _logger.LogInformation("Promozione {Id} non consegnata: {Reason}", promo.Id, ex.Message);
                 return 0;
             }
+            if (PromotionRules.IsSlot(promo.Type)) return await CreateSlotsAsync(promo, target);
+
             var (_, eligible) = await AudienceAsync(promo.Type, target, promo.RadiusKm, promo.TargetId, promo.GameId);
             if (eligible.Count == 0) return 0;
 
@@ -285,6 +318,33 @@ namespace CardExchange.API.Services.Billing
             promo.Reach += recipients.Count;
             _logger.LogInformation("Promozione {Id}: {Count} notifiche consegnate", promo.Id, delivered);
             return recipients.Count;
+        }
+
+        /// <summary>Spazi sponsorizzati della promozione: nessuna notifica, solo schede nella Home e negli elenchi.</summary>
+        private async Task<int> CreateSlotsAsync(Promotion promo, PromotionTarget target)
+        {
+            string url;
+            SlotPlacement[] placements;
+            if (promo.Type == PromotionType.StoreSlot)
+            {
+                url = $"/stores/{promo.TargetId}";
+                placements = new[] { SlotPlacement.HomeFeed, SlotPlacement.ExploreStores };
+            }
+            else
+            {
+                var slug = await _db.SellerShowcases.AsNoTracking().Where(v => v.Id == promo.TargetId).Select(v => v.Slug).FirstAsync();
+                url = $"/v/{slug}";
+                placements = new[] { SlotPlacement.HomeFeed, SlotPlacement.ExploreCards };
+            }
+            _db.SponsoredSlots.AddRange(placements.Select(pl => new SponsoredSlot
+            {
+                PromotionId = promo.Id, OwnerUserId = promo.OwnerUserId, Placement = pl,
+                Title = promo.SlotTitle ?? target.Title, Body = promo.SlotBody ?? "", TargetUrl = url,
+                Latitude = promo.Latitude, Longitude = promo.Longitude, RadiusKm = promo.RadiusKm, City = target.City,
+                StartsAt = promo.StartsAt, EndsAt = promo.EndsAt
+            }));
+            await _db.SaveChangesAsync();
+            return placements.Length;
         }
 
         /// <summary>Ogni 15 minuti: consegna le promozioni pagate con un acquisto e chiude quelle finite.</summary>
@@ -370,6 +430,7 @@ namespace CardExchange.API.Services.Billing
             {
                 p.Status = PromotionStatus.Rejected;
                 p.RejectionReason = "Fermata per troppe segnalazioni";
+                await _db.SponsoredSlots.Where(x => x.PromotionId == p.Id).ExecuteUpdateAsync(u => u.SetProperty(x => x.IsActive, false));
                 _logger.LogWarning("Promozione {Id} fermata: {Reports} segnalazioni su {Reach} consegne", p.Id, p.Reports, p.Reach);
             }
             await _db.SaveChangesAsync();

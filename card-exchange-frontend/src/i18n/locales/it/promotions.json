@@ -26,6 +26,14 @@
     "SponsoredBroadcast": {
       "name": "\"Sono qui\" sponsorizzato",
       "hint": "Raggiunge anche chi non ti segue, se cerca una tua carta."
+    },
+    "StoreSlot": {
+      "name": "Spazio del negozio",
+      "hint": "Una scheda nella Home e nell'elenco dei negozi, per 7 giorni."
+    },
+    "ShowcaseSlot": {
+      "name": "Spazio del banco",
+      "hint": "Una scheda nella Home e in Esplora che porta alla tua vetrina, per 7 giorni."
     }
   },
   "status": {
@@ -56,22 +64,94 @@
     "next": "Avanti",
     "back": "Indietro",
     "preview": "Vedi l'anteprima",
-    "noEvents": "Non hai eventi futuri pubblicati con una posizione.",
-    "noBroadcasts": "Non hai un \"Sono qui\" in corso.",
     "until": "fino alle {{time}}",
     "radius": "Raggio: {{km}} km",
-    "durationEvent": "Resta in evidenza fino all'inizio dell'evento (al massimo 14 giorni).",
-    "durationBroadcast": "Dura quanto il tuo \"Sono qui\".",
     "inRadius": "Persone nel raggio",
     "reachable": "Riceveranno la notifica",
-    "howEvent": "La notifica arriva ai maggiorenni nel raggio che non l'hanno disattivata (e che giocano a quel gioco, se l'evento ne ha uno).",
-    "howBroadcast": "La notifica arriva ai maggiorenni nel raggio che non ti seguono ancora e cercano una carta che hai disponibile.",
     "price": "Prezzo: {{credits}} crediti ({{eur}})",
     "payCredits": "Paga con i crediti",
     "notEnough": "Crediti insufficienti (ne hai {{balance}}).",
     "buyCredits": "Compra crediti",
-    "payCard": "Paga con la carta"
+    "payCard": "Paga con la carta",
+    "none": {
+      "FeaturedEvent": "Non hai eventi futuri pubblicati con una posizione.",
+      "SponsoredBroadcast": "Non hai un \"Sono qui\" in corso.",
+      "StoreSlot": "Non hai un negozio verificato.",
+      "ShowcaseSlot": "Non hai ancora una vetrina del Banco."
+    },
+    "duration": {
+      "FeaturedEvent": "Resta in evidenza fino all'inizio dell'evento (al massimo 14 giorni).",
+      "SponsoredBroadcast": "Dura quanto il tuo \"Sono qui\".",
+      "StoreSlot": "Resta visibile 7 giorni, al massimo 3 volte al giorno per persona.",
+      "ShowcaseSlot": "Resta visibile 7 giorni, al massimo 3 volte al giorno per persona."
+    },
+    "how": {
+      "FeaturedEvent": "La notifica arriva ai maggiorenni nel raggio che non l'hanno disattivata (e che giocano a quel gioco, se l'evento ne ha uno).",
+      "SponsoredBroadcast": "La notifica arriva ai maggiorenni nel raggio che non ti seguono ancora e cercano una carta che hai disponibile.",
+      "StoreSlot": "La scheda compare tra le carte della Home e tra i negozi, solo ai maggiorenni nel raggio. Nessuna notifica.",
+      "ShowcaseSlot": "La scheda compare tra le carte della Home e di Esplora, solo ai maggiorenni nel raggio. Nessuna notifica."
+    },
+    "slotTitle": "Titolo della scheda",
+    "slotTitlePlaceholder": "Es. Nuovi arrivi Pokémon ogni sabato",
+    "slotBody": "Testo (facoltativo)",
+    "couldSee": "Potranno vederla"
   },
   "featureEvent": "Metti in evidenza l'evento",
-  "sponsorBroadcast": "Sponsorizza questo \"Sono qui\""
+  "sponsorBroadcast": "Sponsorizza questo \"Sono qui\"",
+  "why": {
+    "action": "Perché vedo questo?",
+    "zone": "Lo vedi perché sei entro {{km}} km da {{city}}.",
+    "italy": "È mostrato in tutta Italia, senza usare la tua posizione.",
+    "game": "Gioco: {{game}}.",
+    "anyGame": "Per tutti i giochi.",
+    "brand": "È uno sponsor di marca: con Premium non lo vedi.",
+    "local": "È una promozione di un negozio o venditore vicino."
+  },
+  "offeredBy": "Offerto da {{sponsor}}",
+  "nightOfferedBy": "La serata di scambio è offerta da {{sponsor}}",
+  "sponsorPage": {
+    "visit": "Visita il sito",
+    "note": "Sostiene premi e serate della community. CardExchange non condivide i tuoi dati con gli sponsor.",
+    "notFound": "Sponsor non trovato"
+  },
+  "admin": {
+    "menu": "Sponsor di marca",
+    "title": "Sponsor di marca",
+    "newSponsor": "Nuovo sponsor",
+    "name": "Nome",
+    "logo": "Logo (https)",
+    "website": "Sito (https)",
+    "email": "Email del contatto",
+    "description": "Descrizione",
+    "save": "Salva",
+    "clicks": "clic al sito",
+    "newShip": "Nuova sponsorizzazione",
+    "scope": "Copertura",
+    "scopeRef": "Evento (id) o città",
+    "placement": "Dove",
+    "from": "Dal",
+    "to": "Al",
+    "slotPlacement": "Spazio",
+    "slotTitle": "Titolo dello spazio",
+    "slotBody": "Testo dello spazio",
+    "add": "Aggiungi",
+    "delete": "Elimina",
+    "empty": "Nessuno sponsor.",
+    "scopes": {
+      "Event": "Un evento",
+      "CityTradeNights": "Serate di scambio di una città",
+      "Month": "Tutti gli eventi del periodo"
+    },
+    "placements": {
+      "EventPage": "Pagina evento",
+      "TradeNightBanner": "Banner della serata",
+      "Slot": "Spazio sponsorizzato"
+    },
+    "slots": {
+      "HomeFeed": "Home",
+      "ExploreCards": "Esplora: carte",
+      "ExploreStores": "Esplora: negozi"
+    },
+    "stats": "{{impressions}} persone · {{clicks}} clic"
+  }
 }

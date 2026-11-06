@@ -5,7 +5,11 @@ namespace CardExchange.Core.Entities
         /// <summary>Evento fissato in cima agli eventi vicini, più una notifica a chi è nel raggio.</summary>
         FeaturedEvent = 1,
         /// <summary>"Sono qui" che raggiunge anche chi non segue l'autore, se cerca una sua carta.</summary>
-        SponsoredBroadcast = 2
+        SponsoredBroadcast = 2,
+        /// <summary>Spazio sponsorizzato del negozio (Home ed elenco negozi) per 7 giorni.</summary>
+        StoreSlot = 3,
+        /// <summary>Spazio sponsorizzato della vetrina del banco (Home ed Esplora) per 7 giorni.</summary>
+        ShowcaseSlot = 4
     }
 
     public enum PromotionStatus { Draft = 0, PendingPayment = 1, Active = 2, Completed = 3, Rejected = 4, Cancelled = 5 }
@@ -39,6 +43,9 @@ namespace CardExchange.Core.Entities
         public int Reports { get; set; }
         public DateTime? DeliveredAt { get; set; }
         public string? RejectionReason { get; set; }
+        /// <summary>Titolo e testo della scheda, solo per gli spazi.</summary>
+        public string? SlotTitle { get; set; }
+        public string? SlotBody { get; set; }
 
         public virtual User OwnerUser { get; set; } = null!;
     }

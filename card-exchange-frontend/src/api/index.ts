@@ -667,8 +667,8 @@ export const scan = {
     client.post<ScanMatch>('/scan/match', body),
 };
 
-export type PromotionTypeName = 'FeaturedEvent' | 'SponsoredBroadcast';
-export const PROMOTION_TYPE: Record<PromotionTypeName, number> = { FeaturedEvent: 1, SponsoredBroadcast: 2 };
+export type PromotionTypeName = 'FeaturedEvent' | 'SponsoredBroadcast' | 'StoreSlot' | 'ShowcaseSlot';
+export const PROMOTION_TYPE: Record<PromotionTypeName, number> = { FeaturedEvent: 1, SponsoredBroadcast: 2, StoreSlot: 3, ShowcaseSlot: 4 };
 export type Promotion = {
   id: number; type: PromotionTypeName; targetId: number; title?: string; radiusKm: number; startsAt: string; endsAt: string;
   status: 'PendingPayment' | 'Active' | 'Completed' | 'Rejected' | 'Cancelled' | 'Draft'; paidWith: string;
@@ -686,11 +686,11 @@ export type SponsoredEvent = {
 
 export const promotions = {
   pricing: () => client.get<PromotionPricing>('/promotions/pricing'),
-  targets: () => client.get<{ events: { id: number; title: string; city: string; startsAt: string; hasLocation: boolean }[]; broadcasts: { id: number; title: string; endsAt: string }[] }>('/promotions/targets'),
+  targets: () => client.get<{ events: { id: number; title: string; city: string; startsAt: string; hasLocation: boolean }[]; broadcasts: { id: number; title: string; endsAt: string }[]; stores: { id: number; title: string; city: string }[]; showcases: { id: number; title: string; slug: string }[] }>('/promotions/targets'),
   estimate: (type: PromotionTypeName, targetId: number, radiusKm: number) =>
     client.get<PromotionEstimate>('/promotions/estimate', { params: { type: PROMOTION_TYPE[type], targetId, radiusKm } }),
-  create: (type: PromotionTypeName, targetId: number, radiusKm: number, days?: number) =>
-    client.post<Promotion>('/promotions', { type: PROMOTION_TYPE[type], targetId, radiusKm, days }),
+  create: (type: PromotionTypeName, targetId: number, radiusKm: number, days?: number, slot?: { title: string; body?: string }) =>
+    client.post<Promotion>('/promotions', { type: PROMOTION_TYPE[type], targetId, radiusKm, days, slotTitle: slot?.title, slotBody: slot?.body }),
   pay: (id: number, method: 'credits' | 'card') => client.post<{ message?: string; url?: string; promotion?: Promotion }>(`/promotions/${id}/pay`, { method }),
   cancel: (id: number) => client.post(`/promotions/${id}/cancel`),
   mine: () => client.get<Promotion[]>('/promotions/mine'),
@@ -722,4 +722,36 @@ export const showcase = {
   save: (body: { slug: string; displayName: string; bio?: string; coverImageUrl?: string; featuredCardIds: number[] }) =>
     client.put<{ message: string; slug: string }>('/me/showcase', body),
   stats: () => client.get<ShowcaseStats>('/me/showcase/stats'),
+};
+
+export const SLOT_PLACEMENT = { HomeFeed: 1, ExploreCards: 2, ExploreStores: 3 } as const;
+export type SlotPlacementName = keyof typeof SLOT_PLACEMENT;
+export type SponsoredSlotView = {
+  id: number; title: string; body: string; imageUrl?: string; targetUrl: string; sponsor: string; brand: boolean;
+  why: { zone: 'Italia' | 'Zona'; city?: string; radiusKm?: number; game?: string };
+};
+export type SponsorInfo = { id: number; name: string; logoUrl?: string; description?: string; hasWebsite: boolean };
+export type AdminSponsorship = {
+  id: number; scope: 'Event' | 'CityTradeNights' | 'Month'; scopeRef?: string; placement: 'EventPage' | 'TradeNightBanner' | 'Slot';
+  startsAt: string; endsAt: string; slotPlacement?: SlotPlacementName; slotTitle?: string; slotBody?: string; gameId?: number;
+  impressions: number; clicks: number;
+};
+export type AdminSponsor = {
+  id: number; name: string; logoUrl?: string; websiteUrl?: string; contactEmail?: string; description?: string; isActive: boolean;
+  websiteClicks: number; sponsorships: AdminSponsorship[];
+};
+
+export const sponsored = {
+  slot: (placement: SlotPlacementName, params: { lat?: number; lon?: number; gameId?: number | null }) =>
+    client.get<SponsoredSlotView | ''>('/slots', { params: { placement: SLOT_PLACEMENT[placement], lat: params.lat, lon: params.lon, gameId: params.gameId ?? undefined } }),
+  click: (id: number) => client.post(`/slots/${id}/click`),
+  sponsor: (id: number) => client.get<SponsorInfo>(`/sponsors/${id}`),
+  adminList: () => client.get<AdminSponsor[]>('/admin/sponsors'),
+  adminSave: (body: { name: string; logoUrl?: string; websiteUrl?: string; contactEmail?: string; description?: string; isActive: boolean }, id?: number) =>
+    id ? client.put(`/admin/sponsors/${id}`, body) : client.post('/admin/sponsors', body),
+  adminSaveShip: (body: {
+    sponsorId: number; scope: number; scopeRef?: string; placement: number; startsAt: string; endsAt: string;
+    slotPlacement?: number; slotTitle?: string; slotBody?: string; gameId?: number;
+  }) => client.post('/admin/sponsorships', body),
+  adminDeleteShip: (id: number) => client.delete(`/admin/sponsorships/${id}`),
 };
