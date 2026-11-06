@@ -22,6 +22,8 @@ namespace CardExchange.API.Services.Billing
         Task<WebhookResult> HandleWebhookAsync(string json, string? signatureHeader);
         /// <summary>Checkout per un pagamento una tantum (promozioni, crediti, pacchetti), con ricevuta.</summary>
         Task<string> CreatePaymentCheckoutAsync(User user, Purchase purchase, string productName, string successUrl, string cancelUrl);
+        /// <summary>Sconto sul conto Stripe del cliente (saldo a credito, scalato dalle fatture successive). Restituisce l'id del movimento.</summary>
+        Task<string> CreditCustomerAsync(string customerId, decimal amountEur, string description);
     }
 
     /// <summary>
@@ -39,10 +41,12 @@ namespace CardExchange.API.Services.Billing
         private readonly ILogger<StripeBilling> _logger;
 
         private readonly PurchaseService? _purchases;
+        private readonly StoreCommissions? _commissions;
 
         public StripeBilling(ApplicationDbContext context, IBillingService billing, INotificationService notifications,
-            IOptions<BillingOptions> options, ILogger<StripeBilling> logger, PurchaseService? purchases = null)
+            IOptions<BillingOptions> options, ILogger<StripeBilling> logger, PurchaseService? purchases = null, StoreCommissions? commissions = null)
         {
+            _commissions = commissions;
             _purchases = purchases;
             _context = context;
             _billing = billing;
@@ -152,6 +156,17 @@ namespace CardExchange.API.Services.Billing
             return session.Url;
         }
 
+        public async Task<string> CreditCustomerAsync(string customerId, decimal amountEur, string description)
+        {
+            var txn = await new CustomerBalanceTransactionService(Client()).CreateAsync(customerId, new CustomerBalanceTransactionCreateOptions
+            {
+                Amount = -(long)Math.Round(amountEur * 100m), // negativo = credito a favore del cliente
+                Currency = "eur",
+                Description = description
+            });
+            return txn.Id;
+        }
+
         public async Task<string> CreatePortalAsync(string customerId, string returnUrl)
         {
             var session = await new Stripe.BillingPortal.SessionService(Client()).CreateAsync(
@@ -236,8 +251,23 @@ namespace CardExchange.API.Services.Billing
 
         private async Task<bool> OnChargeRefundedAsync(Charge charge)
         {
-            if (_purchases == null || string.IsNullOrEmpty(charge.PaymentIntentId)) return false;
-            return await _purchases.MarkRefundedAsync(charge.PaymentIntentId, charge.AmountRefunded, charge.Refunded);
+            if (string.IsNullOrEmpty(charge.PaymentIntentId)) return false;
+            var handled = false;
+            if (_purchases != null) handled = await _purchases.MarkRefundedAsync(charge.PaymentIntentId, charge.AmountRefunded, charge.Refunded);
+            // Abbonamento rimborsato: niente commissione al negozio
+            if (_commissions != null) handled |= await _commissions.ReverseAsync(charge.PaymentIntentId);
+            return handled;
+        }
+
+        /// <summary>Commissione al negozio che ha portato l'utente (se c'è) sul pagamento appena incassato.</summary>
+        private async Task RecordCommissionAsync(Invoice invoice, string subscriptionId)
+        {
+            if (_commissions == null) return;
+            var sub = await FindAsync(subscriptionId);
+            if (sub == null) return;
+            var paymentIntentId = invoice.Payments?.Data?.Select(p => p.Payment?.PaymentIntentId).FirstOrDefault(id => !string.IsNullOrEmpty(id));
+            var netCents = invoice.TotalExcludingTax ?? invoice.AmountPaid;
+            await _commissions.OnPremiumPaidAsync(sub.Id, invoice.Id, paymentIntentId, netCents / 100m, DateTime.UtcNow);
         }
 
         private async Task<bool> OnCheckoutCompletedAsync(Session session)
@@ -269,6 +299,7 @@ namespace CardExchange.API.Services.Billing
                 // invoice.paid può arrivare prima di checkout.session.completed
                 if (!TryReadIds(details?.Metadata, out var userId, out var planId)) return false;
                 await EnsureSubscriptionAsync(userId, planId, subscriptionId, invoice.CustomerId, amount, periodEnd, invoice.Id);
+                await RecordCommissionAsync(invoice, subscriptionId);
                 return true;
             }
 
@@ -282,6 +313,7 @@ namespace CardExchange.API.Services.Billing
             existing.PaymentReference = invoice.Id;
             await _context.SaveChangesAsync();
             await _billing.SyncPremiumRoleAsync(existing.UserId);
+            await RecordCommissionAsync(invoice, subscriptionId);
             return true;
         }
 

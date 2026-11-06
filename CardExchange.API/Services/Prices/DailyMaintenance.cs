@@ -276,6 +276,19 @@ namespace CardExchange.API.Services.Prices
                     await mirrorScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Catalog.PokemonCatalogMirror>().RunAsync(DateTime.UtcNow, ct);
                 }
 
+                // Commissioni ai negozi: maturano dopo 30 giorni; il primo del mese si liquidano come sconto sul piano
+                using (var commissionScope = _scopeFactory.CreateScope())
+                {
+                    var sp = commissionScope.ServiceProvider;
+                    var commissions = sp.GetRequiredService<CardExchange.API.Services.Billing.StoreCommissions>();
+                    var now = DateTime.UtcNow;
+                    if (CardExchange.Core.Rules.TimeZones.ToLocal(now, null).Day == 1
+                        && !await sp.GetRequiredService<ApplicationDbContext>().StorePayouts.AnyAsync(p => p.CreatedAt >= now.AddDays(-2), ct))
+                        await commissions.PayoutAsync(now, sp.GetRequiredService<CardExchange.API.Services.Billing.IStripeBilling>(), ct);
+                    else
+                        await commissions.ApproveAsync(now, ct);
+                }
+
                 // Inviti con premio: nuovi invitati attivi e mesi Premium guadagnati
                 using (var referralScope = _scopeFactory.CreateScope())
                 {

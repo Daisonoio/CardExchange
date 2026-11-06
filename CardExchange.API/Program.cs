@@ -224,6 +224,7 @@ builder.Services.AddScoped<CardExchange.API.Services.Stores.BuyListService>();
 builder.Services.AddScoped<CardExchange.API.Services.Catalog.PokemonCatalogMirror>();
 builder.Services.AddScoped<CardExchange.API.Services.WishlistDigest>();
 builder.Services.AddScoped<CardExchange.API.Services.Billing.PurchaseService>();
+builder.Services.AddScoped<CardExchange.API.Services.Billing.StoreCommissions>();
 
 // Monitoraggio: errori (anche quelli solo registrati nei log) e stato dei cataloghi esterni
 builder.Services.AddSingleton<CardExchange.API.Services.Monitoring.IErrorTracker, CardExchange.API.Services.Monitoring.ErrorTracker>();

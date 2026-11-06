@@ -431,6 +431,14 @@ export const referrals = {
 
 
 // === Abbonamenti alla piattaforma ===
+export const commissions = {
+  forStore: (storeId: number) => client.get<{
+    rate: number; maturingEur: number; availableEur: number; creditedEur: number; thisMonthEur: number; thisMonthCount: number;
+    recent: { paidAt: string; amountEur: number; status: string }[];
+    payouts: { id: number; month: string; amountEur: number; method: string; status: string }[];
+  }>(`/stores/${storeId}/commissions`),
+};
+
 export const purchases = {
   products: () => client.get<{ enabled: boolean; products: { code: string; type: string; name: string; quantity: number; priceEur: number }[] }>('/purchases/products'),
   checkout: (productCode: string, refId?: number) => client.post<{ url: string; purchaseId: number }>('/purchases/checkout', { productCode, refId }),

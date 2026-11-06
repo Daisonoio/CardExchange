@@ -104,6 +104,12 @@ namespace CardExchange.API.Services.Stores
                 $"{s.NewFollowers} nuovi follower, {s.QrSignups} iscritti dal tuo QR",
                 $"{s.ProfileViews} visite alla scheda del negozio"
             };
+            // Commissioni sul Premium dei clienti portati dal negozio, maturate nel mese
+            var (fromUtc, toUtc) = MonthBounds(month);
+            var commissions = await _db.StoreCommissions.Where(c => c.StoreId == store.Id && c.PaidAt >= fromUtc && c.PaidAt < toUtc
+                && c.Status != CommissionStatus.Reversed).Select(c => c.AmountEur).ToListAsync(ct);
+            if (commissions.Count > 0)
+                lines.Add($"{commissions.Sum():0.00} € di commissioni dal Premium dei tuoi clienti");
             var link = $"{_emailSettings.FrontendBaseUrl.TrimEnd('/')}/stores/{store.Id}/results";
             await _notifications.SendAsync(store.OwnerId, NotificationType.StoreActivity, $"Il tuo mese a {monthName}: {store.Name}",
                 Headline(s) + ". " + string.Join(" · ", lines), store.Id, "StoreReport");

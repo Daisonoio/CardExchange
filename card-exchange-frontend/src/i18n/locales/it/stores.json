@@ -140,5 +140,30 @@
     "planTitle": "Inclusa nel piano Negozio",
     "planText": "Scopri quante persone vicino a te cercano le carte che hai, quali carte mancano in zona e avvisa gli interessati quando arrivano.",
     "planCta": "Scopri il piano Negozio"
+  },
+  "earnings": {
+    "entry": "Guadagni",
+    "entryHint": "Il 25% del Premium dei clienti che si iscrivono dal tuo QR, scalato dal tuo piano",
+    "title": "Guadagni",
+    "intro": "Ricevi il {{rate}}% (al netto dell'IVA) di ogni pagamento Premium dei clienti che si sono iscritti dal tuo QR, per 12 mesi dalla loro iscrizione. Dopo 30 giorni la commissione è disponibile e ogni mese la scaliamo dalla fattura del tuo piano.",
+    "thisMonth_one": "Questo mese: {{amount}} da {{count}} pagamento",
+    "thisMonth_other": "Questo mese: {{amount}} da {{count}} pagamenti",
+    "maturing": "In maturazione",
+    "available": "Disponibile",
+    "credited": "Già scalato",
+    "recent": "Commissioni",
+    "none": "Ancora nessuna commissione: invita i tuoi clienti con il QR del negozio.",
+    "qr": "Apri il QR del negozio",
+    "payouts": "Accrediti mensili",
+    "payoutPending": "da applicare",
+    "payoutDone": "scalato dal piano",
+    "status": {
+      "Pending": "In maturazione",
+      "Approved": "Disponibile",
+      "Credited": "Scalata",
+      "Paid": "Pagata",
+      "Reversed": "Annullata (rimborso)"
+    },
+    "privacy": "Vedi solo importi e date: mai chi si è abbonato."
   }
 }

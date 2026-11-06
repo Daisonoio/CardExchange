@@ -533,5 +533,9 @@
   "Prodotto non trovato": "Product not found",
   "Pagamento ricevuto": "Payment received",
   "Abbiamo aggiunto {n} crediti promozione al tuo account. La ricevuta arriva via email.": "We've added {n} promotion credits to your account. The receipt is on its way by email.",
-  "Il tuo acquisto è attivo. La ricevuta arriva via email.": "Your purchase is active. The receipt is on its way by email."
+  "Il tuo acquisto è attivo. La ricevuta arriva via email.": "Your purchase is active. The receipt is on its way by email.",
+  "Commissioni del mese": "This month's commissions",
+  "Hai maturato {0} € da 1 pagamento Premium dei clienti portati da te: li scaliamo dalla prossima fattura del tuo piano.": "You earned €{0} from 1 Premium payment by customers you brought in: we'll deduct it from your plan's next invoice.",
+  "Hai maturato {0} € da {n} pagamenti Premium dei clienti portati da te: li scaliamo dalla prossima fattura del tuo piano.": "You earned €{0} from {n} Premium payments by customers you brought in: we'll deduct it from your plan's next invoice.",
+  "{0} € di commissioni dal Premium dei tuoi clienti": "€{0} in commissions from your customers' Premium"
 }

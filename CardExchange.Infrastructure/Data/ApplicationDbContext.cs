@@ -47,6 +47,8 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<StoreBuyAlert> StoreBuyAlerts { get; set; }
         public DbSet<PendingWishlistAlert> PendingWishlistAlerts { get; set; }
         public DbSet<Purchase> Purchases { get; set; }
+        public DbSet<StoreCommission> StoreCommissions { get; set; }
+        public DbSet<StorePayout> StorePayouts { get; set; }
         public DbSet<PromotionCreditEntry> PromotionCreditEntries { get; set; }
         public DbSet<StoreStockAlert> StoreStockAlerts { get; set; }
         public DbSet<CatalogStatus> CatalogStatuses { get; set; }
@@ -338,6 +340,26 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(e => new { e.IsResolved, e.LastSeenAt });
             });
             modelBuilder.Entity<CatalogStatus>().HasIndex(c => c.Key).IsUnique();
+
+            modelBuilder.Entity<StoreCommission>(entity =>
+            {
+                entity.HasIndex(c => c.PaymentReference).IsUnique();
+                entity.HasIndex(c => c.PaymentIntentId);
+                entity.HasIndex(c => new { c.StoreId, c.Status });
+                entity.Property(c => c.GrossEur).HasPrecision(10, 2);
+                entity.Property(c => c.AmountEur).HasPrecision(10, 2);
+                entity.Property(c => c.Rate).HasPrecision(5, 4);
+                entity.Property(c => c.PaymentReference).HasMaxLength(255);
+                entity.Property(c => c.PaymentIntentId).HasMaxLength(255);
+                entity.HasOne<Store>().WithMany().HasForeignKey(c => c.StoreId).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<StorePayout>(entity =>
+            {
+                entity.HasIndex(p => new { p.StoreId, p.PeriodMonth });
+                entity.Property(p => p.AmountEur).HasPrecision(10, 2);
+                entity.Property(p => p.Reference).HasMaxLength(255);
+                entity.HasOne<Store>().WithMany().HasForeignKey(p => p.StoreId).OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<Purchase>(entity =>
             {

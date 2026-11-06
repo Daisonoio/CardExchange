@@ -140,5 +140,30 @@
     "planTitle": "Included in the Store plan",
     "planText": "See how many people near you want the cards you have, which cards are missing nearby, and notify interested people when they arrive.",
     "planCta": "See the Store plan"
+  },
+  "earnings": {
+    "entry": "Earnings",
+    "entryHint": "25% of Premium from customers who join via your QR, deducted from your plan",
+    "title": "Earnings",
+    "intro": "You get {{rate}}% (excluding VAT) of every Premium payment from customers who signed up via your QR, for 12 months after they join. After 30 days the commission becomes available and each month we deduct it from your plan's invoice.",
+    "thisMonth_one": "This month: {{amount}} from {{count}} payment",
+    "thisMonth_other": "This month: {{amount}} from {{count}} payments",
+    "maturing": "Maturing",
+    "available": "Available",
+    "credited": "Already deducted",
+    "recent": "Commissions",
+    "none": "No commissions yet: invite your customers with your store QR.",
+    "qr": "Open the store QR",
+    "payouts": "Monthly credits",
+    "payoutPending": "to be applied",
+    "payoutDone": "deducted from plan",
+    "status": {
+      "Pending": "Maturing",
+      "Approved": "Available",
+      "Credited": "Deducted",
+      "Paid": "Paid",
+      "Reversed": "Cancelled (refund)"
+    },
+    "privacy": "You only see amounts and dates: never who subscribed."
   }
 }

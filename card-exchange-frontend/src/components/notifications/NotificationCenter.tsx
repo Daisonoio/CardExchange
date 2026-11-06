@@ -41,6 +41,7 @@ function getNavigationTarget(notification: Notification): string | null {
     case 'Event': return `/events/${referenceId}`;
     case 'StoreReservations': return `/stores/${referenceId}/reservations`;
     case 'StoreBuyList': return `/stores/${referenceId}/buylist`;
+    case 'StoreEarnings': return `/stores/${referenceId}/earnings`;
     default: return null;
   }
 }

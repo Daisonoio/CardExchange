@@ -41,8 +41,12 @@ namespace CardExchange.API.Services.Billing
         private readonly INotificationService _notifications;
         private readonly ILogger<BillingService> _logger;
 
-        public BillingService(ApplicationDbContext context, INotificationService notifications, ILogger<BillingService> logger)
+        private readonly StoreCommissions? _commissions;
+
+        public BillingService(ApplicationDbContext context, INotificationService notifications, ILogger<BillingService> logger,
+            StoreCommissions? commissions = null)
         {
+            _commissions = commissions;
             _context = context;
             _notifications = notifications;
             _logger = logger;
@@ -116,6 +120,10 @@ namespace CardExchange.API.Services.Billing
             await _context.SaveChangesAsync();
             await SyncPremiumRoleAsync(pending.UserId);
             await NotifyActivatedAsync(pending, plan);
+            // Bonifico: importo IVA inclusa; la commissione al negozio si calcola sul netto
+            if (_commissions != null && pending.PaymentReference != null)
+                await _commissions.OnPremiumPaidAsync(pending.Id, $"bank:{pending.PaymentReference}", null,
+                    Math.Round(pending.AmountPaid / (1 + StoreCommissions.VatRate), 2), now);
             return pending;
         }
 
