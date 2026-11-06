@@ -19,8 +19,11 @@ namespace CardExchange.API.Services
         private readonly ApplicationDbContext _db;
         private readonly IUserBlockService _blocks;
 
-        public NearbyWishlistMatches(ApplicationDbContext db, IUserBlockService blocks)
+        private readonly Entitlements.IEntitlementService _entitlements;
+
+        public NearbyWishlistMatches(ApplicationDbContext db, IUserBlockService blocks, Entitlements.IEntitlementService? entitlements = null)
         {
+            _entitlements = Entitlements.EntitlementExtensions.OrDefault(entitlements, db);
             _db = db;
             _blocks = blocks;
         }
@@ -51,10 +54,11 @@ namespace CardExchange.API.Services
                 .Include(c => c.User).ThenInclude(u => u.Location)
                 .ToListAsync(ct);
 
+            var hidden = await Entitlements.EarlyAccess.HiddenAsync(_entitlements, userId, cards.Select(c => (c.Id, c.UserId, c.CreatedAt)), DateTime.UtcNow);
             var result = new List<NearbyMatch>();
             foreach (var card in cards)
             {
-                if (blocked.Contains(card.UserId)) continue;
+                if (blocked.Contains(card.UserId) || hidden.Contains(card.Id)) continue;
                 if (!byCardInfo[card.CardInfoId].Any(w => WishlistMatchRules.Satisfies(card, w))) continue;
                 var loc = card.User.Location!;
                 var distance = Geo.DistanceKm(lat, lon, (double)loc.Latitude!.Value, (double)loc.Longitude!.Value);

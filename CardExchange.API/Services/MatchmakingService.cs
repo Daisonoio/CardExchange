@@ -44,6 +44,9 @@ namespace CardExchange.API.Services
             double? searchLat = latitude ?? (double?)me.Location?.Latitude;
             double? searchLon = longitude ?? (double?)me.Location?.Longitude;
             int searchRadius = radiusKm ?? me.Location?.MaxDistanceKm ?? 100;
+            // Raggio massimo del piano (gratuito 30 km, Premium 200 km); alla serata di scambio conta solo chi è presente
+            if (onlyUserIds == null && _subscriptions != null)
+                searchRadius = Math.Min(searchRadius, (await _subscriptions.GetUserActivePlanAsync(userId))?.MaxRadiusKm ?? searchRadius);
 
             // 1-2. Cosa cerco e cosa offro (filtrati per gioco nel database)
             var myWishlist = await _context.WishlistItems.AsNoTracking()

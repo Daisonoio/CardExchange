@@ -56,16 +56,22 @@ namespace CardExchange.API.Controllers
 
             var advanced = minPrice.HasValue || maxPrice.HasValue || maxCondition.HasValue || !string.IsNullOrWhiteSpace(language) || finish.HasValue;
             var isPremium = await this.Entitlements(_context).HasAsync(userId, Capability.AdvancedSearch);
+            // Raggio massimo del piano (gratuito 30 km, Premium 200 km)
+            var maxRadius = await this.Entitlements(_context).LimitAsync(userId, PlanLimit.RadiusKm);
             if (advanced && !isPremium)
                 return StatusCode(StatusCodes.Status403Forbidden, new { message = "I filtri per prezzo, condizione, lingua e finitura sono Premium.", code = "PREMIUM_FILTERS" });
 
             var request = new AdvancedSearchRequest
             {
-                SearchTerm = q, GameId = gameId, RadiusKm = Math.Clamp(radiusKm ?? 25, 1, 500), SortBy = sort,
+                SearchTerm = q, GameId = gameId, RadiusKm = Math.Min(Math.Clamp(radiusKm ?? 25, 1, 500), maxRadius), SortBy = sort,
                 MinPrice = minPrice, MaxPrice = maxPrice, MaxCondition = maxCondition, Language = language, Finish = finish,
                 Page = page, PageSize = Math.Clamp(pageSize, 1, 60)
             };
             var result = await _search.SearchAsync(userId, request);
+            // Accesso anticipato: le carte appena caricate da negozi e banchi le vedono prima i Premium
+            var hidden = await EarlyAccess.HiddenAsync(this.Entitlements(_context), userId,
+                result.Hits.Select(h => (h.Card.Id, h.Card.UserId, h.Card.CreatedAt)), DateTime.UtcNow);
+            if (hidden.Count > 0) result.Hits.RemoveAll(h => hidden.Contains(h.Card.Id));
 
             var pageHits = result.Hits.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToList();
             var plans = await _subscriptions.GetActivePaidPlansAsync(pageHits.Select(h => h.Card.UserId).Distinct());

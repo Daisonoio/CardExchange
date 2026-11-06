@@ -58,6 +58,8 @@ public class ReservationServiceTests : IDisposable
             db.UserSubscriptions.Add(new UserSubscription { UserId = owner.Id, Plan = plan, Status = SubscriptionStatus.Active, StartDate = _now.AddDays(-1), EndDate = _now.AddDays(30) });
         }
         await db.SaveChangesAsync();
+        // Carta caricata da più di 2 ore: fuori dall'accesso anticipato Premium
+        await db.Database.ExecuteSqlRawAsync("UPDATE Cards SET CreatedAt = {0} WHERE Id = {1}", _now.AddHours(-3), card.Id);
         (_storeId, _ownerId, _cardId) = (store.Id, owner.Id, card.Id);
         _users.AddRange(await db.Users.Where(u => u.Id != owner.Id).Select(u => u.Id).ToListAsync());
     }
@@ -180,4 +182,20 @@ public class ReservationServiceTests : IDisposable
     [InlineData("2026-11-03T09:00:00Z", "2026-11-05T09:00:00Z")]  // martedì → giovedì
     public void Expiry_SkipsSundays(string now, string expected) =>
         ReservationService.ExpiryFrom(DateTime.Parse(now).ToUniversalTime()).Should().Be(DateTime.Parse(expected).ToUniversalTime());
+
+    [Fact]
+    public async Task NewStoreCard_IsReservedForPremium_ForTwoHours()
+    {
+        await SeedAsync(copies: 2);
+        await using var db = NewContext();
+        await db.Database.ExecuteSqlRawAsync("UPDATE Cards SET CreatedAt = {0} WHERE Id = {1}", _now.AddMinutes(-30), _cardId);
+        var free = () => Service(db).CreateAsync(_storeId, _users[0], _cardId, 1, _now);
+        await free.Should().ThrowAsync<ReservationException>().WithMessage("*90 minuti*solo i Premium*");
+
+        db.UserSubscriptions.Add(new UserSubscription { UserId = _users[1], Plan = CardExchange.Core.Rules.PlanCatalog.All().First(p => p.Name == "Premium Mensile"),
+            Status = SubscriptionStatus.Active, StartDate = _now.AddDays(-1), EndDate = _now.AddDays(30) });
+        await db.SaveChangesAsync();
+        (await Service(db).CreateAsync(_storeId, _users[1], _cardId, 1, _now)).Should().NotBeNull();
+        (await Service(db).CreateAsync(_storeId, _users[0], _cardId, 1, _now.AddMinutes(91))).Should().NotBeNull("dopo 2 ore la vedono tutti");
+    }
 }

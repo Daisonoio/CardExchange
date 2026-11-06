@@ -44,6 +44,11 @@ namespace CardExchange.API.Controllers
                 .OrderBy(c => c.CardInfo.Name).ThenBy(c => c.Id)
                 .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
             var acceptsReservations = await _reservations.StoreAcceptsReservationsAsync(store, DateTime.UtcNow);
+            var viewer = CurrentUserId();
+            var hidden = await CardExchange.API.Services.Entitlements.EarlyAccess.HiddenAsync(
+                this.HttpContext.RequestServices.GetRequiredService<CardExchange.API.Services.Entitlements.IEntitlementService>(),
+                viewer == 0 ? null : viewer, cards.Select(c => (c.Id, c.UserId, c.CreatedAt)), DateTime.UtcNow);
+            cards = cards.Where(c => !hidden.Contains(c.Id)).ToList();
             return Ok(new
             {
                 total,

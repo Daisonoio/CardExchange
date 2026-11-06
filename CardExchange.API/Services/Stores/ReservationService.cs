@@ -101,6 +101,9 @@ namespace CardExchange.API.Services.Stores
                        ?? throw new ReservationException("Carta non trovata");
             if (card.UserId != store.OwnerId || !card.IsAvailableForTrade)
                 throw new ReservationException("Questa carta non è disponibile in negozio");
+            var early = await EarlyAccess.HiddenAsync(_entitlements, userId, new[] { (card.Id, card.UserId, card.CreatedAt) }, nowUtc);
+            if (early.Count > 0)
+                throw new ReservationException($"Carta appena arrivata: per {EarlyAccess.MinutesLeft(card.CreatedAt, nowUtc)} minuti la possono prenotare solo i Premium");
 
             var reservation = await _db.InTransactionAsync(async () =>
             {

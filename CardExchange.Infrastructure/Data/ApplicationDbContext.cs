@@ -45,6 +45,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<StoreBuyOrder> StoreBuyOrders { get; set; }
         public DbSet<StoreBuyOffer> StoreBuyOffers { get; set; }
         public DbSet<StoreBuyAlert> StoreBuyAlerts { get; set; }
+        public DbSet<PendingWishlistAlert> PendingWishlistAlerts { get; set; }
         public DbSet<StoreStockAlert> StoreStockAlerts { get; set; }
         public DbSet<CatalogStatus> CatalogStatuses { get; set; }
         public DbSet<LocationBroadcast> LocationBroadcasts { get; set; }
@@ -335,6 +336,13 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(e => new { e.IsResolved, e.LastSeenAt });
             });
             modelBuilder.Entity<CatalogStatus>().HasIndex(c => c.Key).IsUnique();
+
+            modelBuilder.Entity<PendingWishlistAlert>(entity =>
+            {
+                entity.HasIndex(a => new { a.SentAt, a.UserId });
+                entity.HasIndex(a => new { a.UserId, a.CardId }).IsUnique();
+                entity.HasOne<User>().WithMany().HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
 
             modelBuilder.Entity<StoreBuyOrder>(entity =>
             {

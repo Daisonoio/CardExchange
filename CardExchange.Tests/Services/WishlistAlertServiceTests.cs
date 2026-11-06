@@ -52,7 +52,7 @@ public class WishlistAlertServiceTests : IDisposable
     }
 
     private async Task<(User owner, User wisher, Card card)> SeedAsync(decimal? wisherLat = MilanLat + 0.045m, int radius = 50,
-        CardCondition wantedCondition = CardCondition.NearMint)
+        CardCondition wantedCondition = CardCondition.NearMint, bool premium = true)
     {
         var owner = NewUser("owner", MilanLat, MilanLon);
         var wisher = NewUser("wisher", wisherLat, wisherLat.HasValue ? MilanLon : null, radius);
@@ -62,6 +62,13 @@ public class WishlistAlertServiceTests : IDisposable
         _context.Cards.Add(card);
         _context.WishlistItems.Add(new WishlistItem { User = wisher, CardInfo = info, PreferredCondition = wantedCondition });
         await _context.SaveChangesAsync();
+        // Avvisi immediati: solo con il Premium (gli altri ricevono il riepilogo delle 18)
+        if (premium)
+        {
+            _context.UserSubscriptions.Add(new UserSubscription { UserId = wisher.Id, Plan = CardExchange.Core.Rules.PlanCatalog.All().First(p => p.Name == "Premium Mensile"),
+                Status = SubscriptionStatus.Active, StartDate = DateTime.UtcNow.AddDays(-1), EndDate = DateTime.UtcNow.AddDays(30) });
+            await _context.SaveChangesAsync();
+        }
         return (owner, wisher, card);
     }
 
@@ -136,5 +143,37 @@ public class WishlistAlertServiceTests : IDisposable
 
         _sent.Should().HaveCount(WishlistAlertService.DailyLimitPerUser);
         _sent.Should().OnlyContain(p => (int)p["UserId"] == wisher.Id);
+    }
+
+    [Fact]
+    public async Task FreeUser_GetsNoInstantAlert_ButAnEveningDigest()
+    {
+        var (_, wisher, card) = await SeedAsync(premium: false);
+        wisher.TimeZone = "Europe/Rome";
+        await _context.SaveChangesAsync();
+
+        await _service.NotifyAvailableAsync(new[] { card.Id });
+        await _service.NotifyAvailableAsync(new[] { card.Id });
+
+        _sent.Should().BeEmpty();
+        (await _context.PendingWishlistAlerts.CountAsync()).Should().Be(1, "lo stesso avviso non si accoda due volte");
+
+        var payloads = new List<NotificationPayload>();
+        _dispatcher.Setup(d => d.DeliverManyAsync(It.IsAny<IReadOnlyList<NotificationPayload>>()))
+            .Callback<IReadOnlyList<NotificationPayload>>(p => payloads.AddRange(p)).ReturnsAsync(1);
+        var digest = new WishlistDigest(_context, _dispatcher.Object, new Mock<ILogger<WishlistDigest>>().Object);
+        var created = (await _context.PendingWishlistAlerts.SingleAsync()).CreatedAt;
+        var rome = TimeZoneInfo.FindSystemTimeZoneById("Europe/Rome");
+        var local = TimeZoneInfo.ConvertTimeFromUtc(created, rome);
+        var sixPm = TimeZoneInfo.ConvertTimeToUtc(local.Date.AddHours(local.Hour >= 18 ? 42 : 18), rome);
+
+        (await digest.RunAsync(sixPm.AddMinutes(-30))).Should().Be(0, "prima delle 18 non parte");
+        card.IsAvailableForTrade = false;   // nel frattempo l'ha presa qualcun altro
+        await _context.SaveChangesAsync();
+        (await digest.RunAsync(sixPm.AddMinutes(5))).Should().Be(1);
+        (await digest.RunAsync(sixPm.AddMinutes(20))).Should().Be(0, "un solo riepilogo per gli stessi avvisi");
+
+        payloads.Should().ContainSingle();
+        payloads[0].Body.Should().Contain("Lightning Bolt").And.Contain("già stata presa").And.Contain("Con Premium l'avresti saputo");
     }
 }

@@ -517,5 +517,16 @@
   "Prenota e ritira è incluso nel piano Negozio Pro": "Reserve & collect is included in the Store Pro plan",
   "Funzione inclusa nel piano Negozio": "Feature included in the Store plan",
   "Funzione inclusa nel piano Banco": "Feature included in the Market Stall plan",
-  "Puoi inviare al massimo {n} avvisi al giorno": "You can send at most {n} alerts per day"
+  "Puoi inviare al massimo {n} avvisi al giorno": "You can send at most {n} alerts per day",
+  "Carta appena arrivata: per {n} minuti la possono prenotare solo i Premium": "Just arrived: for {n} minutes only Premium members can reserve it",
+  "Una carta che cerchi è disponibile": "A card you want is available",
+  "{n} carte che cerchi sono disponibili": "{n} cards you want are available",
+  "Oggi è stata disponibile vicino a te una carta che cerchi: {0}.{1}": "Today a card you want was available near you: {0}.{1}",
+  "Oggi sono state disponibili vicino a te {n} carte che cerchi: {0}.{1}": "Today {n} cards you want were available near you: {0}.{1}",
+  " Una è già stata presa. Con Premium l'avresti saputo {0} prima.": " One has already been taken. With Premium you'd have known {0} earlier.",
+  " {n} sono già state prese. Con Premium l'avresti saputo {0} prima.": " {n} have already been taken. With Premium you'd have known {0} earlier.",
+  " Con Premium l'avresti saputo {0} prima.": " With Premium you'd have known {0} earlier.",
+  "1 ora": "1 hour",
+  "{n} ore": "{n} hours",
+  "{0} e altre {n}": "{0} and {n} more"
 }

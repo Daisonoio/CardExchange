@@ -155,6 +155,10 @@ namespace CardExchange.API.Services
                     using (var eventsScope = _scopeFactory.CreateScope())
                         await eventsScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Events.EventRegistrations>().RunAsync(DateTime.UtcNow, stoppingToken);
 
+                    // Riepilogo serale degli avvisi wishlist (piano gratuito)
+                    using (var digestScope = _scopeFactory.CreateScope())
+                        await digestScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.WishlistDigest>().RunAsync(DateTime.UtcNow, stoppingToken);
+
                     // Prenota e ritira: promemoria e scadenze
                     using (var reservationsScope = _scopeFactory.CreateScope())
                         await reservationsScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Stores.ReservationService>().RunAsync(DateTime.UtcNow, stoppingToken);

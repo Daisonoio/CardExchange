@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Entitlements;
 using CardExchange.Core.Constants;
 using CardExchange.Core.Rules;
 ﻿using CardExchange.API.DTOs.Requests;
@@ -648,7 +649,8 @@ namespace CardExchange.API.Controllers
         public async Task<ActionResult> GetNearbyWishlistMatches(
             int userId,
             [FromQuery] int radiusKm = 50,
-            [FromQuery] int? priority = null)
+            [FromQuery] int? priority = null,
+            [FromServices] CardExchange.Infrastructure.Data.ApplicationDbContext nearbyDb = null!)
         {
             try
             {
@@ -668,6 +670,7 @@ namespace CardExchange.API.Controllers
                 {
                     return BadRequest(new { message = "Il raggio deve essere tra 1 e 1000 km" });
                 }
+                radiusKm = Math.Min(radiusKm, await this.Entitlements(nearbyDb).LimitAsync(userId, PlanLimit.RadiusKm));
 
                 // Ottieni la wishlist dell'utente
                 var wishlistItems = await _wishlistRepository.GetUserWishlistAsync(userId);
@@ -899,7 +902,8 @@ namespace CardExchange.API.Controllers
             [FromQuery] double? latitude = null,
             [FromQuery] double? longitude = null,
             [FromQuery] int? gameId = null,
-            [FromServices] CardExchange.API.Services.NearbyWishlistMatches nearby = null!)
+            [FromServices] CardExchange.API.Services.NearbyWishlistMatches nearby = null!,
+            [FromServices] CardExchange.Infrastructure.Data.ApplicationDbContext nearbyDb = null!)
         {
             try
             {
@@ -931,6 +935,7 @@ namespace CardExchange.API.Controllers
                 {
                     return BadRequest(new { message = "NO_LOCATION" });
                 }
+                searchRadius = Math.Min(searchRadius, await this.Entitlements(nearbyDb).LimitAsync(userId, PlanLimit.RadiusKm));
 
                 var top20 = await nearby.FindAsync(userId, searchLat, searchLon, searchRadius, gameId);
 

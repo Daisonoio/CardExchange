@@ -1354,6 +1354,36 @@ namespace CardExchange.Infrastructure.Migrations
                     b.ToTable("NotificationPreferences");
                 });
 
+            modelBuilder.Entity("CardExchange.Core.Entities.PendingWishlistAlert", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("CardId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SentAt", "UserId");
+
+                    b.HasIndex("UserId", "CardId")
+                        .IsUnique();
+
+                    b.ToTable("PendingWishlistAlerts");
+                });
+
             modelBuilder.Entity("CardExchange.Core.Entities.Permission", b =>
                 {
                     b.Property<int>("Id")
@@ -3297,6 +3327,15 @@ namespace CardExchange.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.PendingWishlistAlert", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.PriceAlert", b =>

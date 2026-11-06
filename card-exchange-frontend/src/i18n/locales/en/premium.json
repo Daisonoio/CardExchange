@@ -135,5 +135,6 @@
     "store": "Store",
     "storePro": "Pro",
     "seller": "Stall"
-  }
+  },
+  "radiusLocked": "Beyond {{km}} km with Premium (up to {{max}} km)"
 }

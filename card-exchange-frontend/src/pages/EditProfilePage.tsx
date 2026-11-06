@@ -7,7 +7,8 @@ import i18n from '../i18n';
 import { useAuth } from '../context/AuthContext';
 import { useGeolocation } from '../hooks/useGeolocation';
 import Button from '../components/ui/Button';
-import { RADIUS_MAX, RADIUS_MIN, RADIUS_STEP, resetSearchRadius } from '../hooks/useSearchRadius';
+import { resetSearchRadius } from '../hooks/useSearchRadius';
+import RadiusSlider from '../components/ui/RadiusSlider';
 
 export default function EditProfilePage() {
   const { t } = useTranslation('profile');
@@ -341,17 +342,8 @@ export default function EditProfilePage() {
             <label className={labelClass}>
               {t('edit.searchRadius', { km: locationForm.maxDistanceKm })}
             </label>
-            <input
-              type="range"
-              min={RADIUS_MIN}
-              max={RADIUS_MAX}
-              step={RADIUS_STEP}
-              value={locationForm.maxDistanceKm}
-              onChange={(e) =>
-                setLocationForm({ ...locationForm, maxDistanceKm: parseInt(e.target.value) })
-              }
-              className="w-full accent-primary"
-            />
+            <RadiusSlider id="profile-radius" value={locationForm.maxDistanceKm}
+              onChange={(km) => setLocationForm({ ...locationForm, maxDistanceKm: km })} />
           </div>
         </div>
 

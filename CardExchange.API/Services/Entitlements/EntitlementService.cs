@@ -127,3 +127,32 @@ namespace CardExchange.API.Services.Entitlements
             (await service.GetManyAsync(userIds)).Where(kv => kv.Value.Has(capability)).Select(kv => kv.Key).ToHashSet();
     }
 }
+
+namespace CardExchange.API.Services.Entitlements
+{
+    /// <summary>
+    /// Accesso anticipato Premium: le carte caricate da negozi e banchi nelle ultime 2 ore sono visibili e
+    /// prenotabili solo da chi ha il diritto EarlyAccess (e dal proprietario).
+    /// </summary>
+    public static class EarlyAccess
+    {
+        public static readonly TimeSpan Window = TimeSpan.FromHours(2);
+
+        /// <summary>Id delle carte che chi guarda non può ancora vedere (vuoto per chi ha l'accesso anticipato).</summary>
+        public static async Task<HashSet<int>> HiddenAsync(IEntitlementService entitlements, int? viewerId,
+            IEnumerable<(int CardId, int OwnerId, DateTime CreatedAt)> cards, DateTime nowUtc)
+        {
+            var recent = cards.Where(c => c.CreatedAt > nowUtc - Window && c.OwnerId != viewerId).ToList();
+            if (recent.Count == 0) return new HashSet<int>();
+            if (viewerId is > 0 && await entitlements.HasAsync(viewerId.Value, CardExchange.Core.Rules.Capability.EarlyAccess)) return new HashSet<int>();
+            var sellers = (await entitlements.GetManyAsync(recent.Select(c => c.OwnerId)))
+                .Where(kv => kv.Value.Has(CardExchange.Core.Rules.Capability.FeaturedStore) || kv.Value.Has(CardExchange.Core.Rules.Capability.SellerShowcase))
+                .Select(kv => kv.Key).ToHashSet();
+            return recent.Where(c => sellers.Contains(c.OwnerId)).Select(c => c.CardId).ToHashSet();
+        }
+
+        /// <summary>Minuti che mancano alla fine dell'accesso anticipato di una carta.</summary>
+        public static int MinutesLeft(DateTime createdAt, DateTime nowUtc) =>
+            Math.Max(1, (int)Math.Ceiling((createdAt + Window - nowUtc).TotalMinutes));
+    }
+}

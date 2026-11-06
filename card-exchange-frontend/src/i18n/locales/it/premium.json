@@ -135,5 +135,6 @@
     "store": "Negozio",
     "storePro": "Pro",
     "seller": "Banco"
-  }
+  },
+  "radiusLocked": "Oltre {{km}} km con Premium (fino a {{max}} km)"
 }

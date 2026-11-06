@@ -27,8 +27,12 @@ namespace CardExchange.API.Services
         private readonly IUserBlockService _blocks;
         private readonly ILogger<WishlistAlertService> _logger;
 
-        public WishlistAlertService(ApplicationDbContext context, INotificationDispatcher dispatcher, IUserBlockService blocks, ILogger<WishlistAlertService> logger)
+        private readonly Entitlements.IEntitlementService _entitlements;
+
+        public WishlistAlertService(ApplicationDbContext context, INotificationDispatcher dispatcher, IUserBlockService blocks, ILogger<WishlistAlertService> logger,
+            Entitlements.IEntitlementService? entitlements = null)
         {
+            _entitlements = Entitlements.EntitlementExtensions.OrDefault(entitlements, context);
             _context = context;
             _dispatcher = dispatcher;
             _blocks = blocks;
@@ -82,6 +86,12 @@ namespace CardExchange.API.Services
                 .Select(x => (x.UserId, x.CardId))
                 .ToHashSet();
 
+            // Avvisi immediati solo con il piano che li include; gli altri vanno nel riepilogo delle 18
+            var rights = await _entitlements.GetManyAsync(wisherIds);
+            var queued = (await _context.PendingWishlistAlerts.Where(a => wisherIds.Contains(a.UserId) && ids.Contains(a.CardId))
+                .Select(a => new { a.UserId, a.CardId }).ToListAsync()).Select(a => (a.UserId, a.CardId)).ToHashSet();
+            var now = DateTime.UtcNow;
+
             int sent = 0;
             foreach (var card in cards)
             {
@@ -99,7 +109,16 @@ namespace CardExchange.API.Services
                     var distance = Geo.DistanceKm((double)wisherLocation.Latitude.Value, (double)wisherLocation.Longitude.Value,
                         (double)ownerLocation.Latitude.Value, (double)ownerLocation.Longitude.Value);
                     var radius = wisherLocation.MaxDistanceKm > 0 ? wisherLocation.MaxDistanceKm : DefaultRadiusKm;
+                    var wisherRights = rights.GetValueOrDefault(wish.UserId);
+                    if (wisherRights != null) radius = Math.Min(radius, wisherRights.Limit(PlanLimit.RadiusKm));
                     if (distance > radius) continue;
+
+                    if (wisherRights == null || !wisherRights.Has(Capability.InstantAlerts))
+                    {
+                        if (queued.Add((wish.UserId, card.Id)))
+                            _context.PendingWishlistAlerts.Add(new PendingWishlistAlert { UserId = wish.UserId, CardId = card.Id, CreatedAt = now });
+                        continue;
+                    }
 
                     if (sentToday.GetValueOrDefault(wish.UserId) >= DailyLimitPerUser) continue;
 
@@ -120,6 +139,7 @@ namespace CardExchange.API.Services
                 }
             }
 
+            await _context.SaveChangesAsync();
             if (sent > 0)
                 _logger.LogInformation("Avvisi wishlist inviati: {Count}", sent);
         }
