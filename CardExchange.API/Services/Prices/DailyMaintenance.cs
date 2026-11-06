@@ -275,6 +275,14 @@ namespace CardExchange.API.Services.Prices
                     await referralScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.ReferralRewards>().RunAsync(DateTime.UtcNow, ct);
                 }
 
+                // Lista acquisti dei negozi: avvisi settimanali a chi ha le carte richieste
+                using (var buyScope = _scopeFactory.CreateScope())
+                {
+                    var sp = buyScope.ServiceProvider;
+                    await sp.GetRequiredService<CardExchange.API.Services.Stores.BuyListService>()
+                        .SendAlertsAsync(DateTime.UtcNow, sp.GetRequiredService<CardExchange.API.Services.Notifications.INotificationDispatcher>(), ct);
+                }
+
                 // Domanda locale dei negozi
                 using (var demandScope = _scopeFactory.CreateScope())
                 {

@@ -42,6 +42,9 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<UserActiveDay> UserActiveDays { get; set; }
         public DbSet<StoreDemandSnapshot> StoreDemandSnapshots { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
+        public DbSet<StoreBuyOrder> StoreBuyOrders { get; set; }
+        public DbSet<StoreBuyOffer> StoreBuyOffers { get; set; }
+        public DbSet<StoreBuyAlert> StoreBuyAlerts { get; set; }
         public DbSet<StoreStockAlert> StoreStockAlerts { get; set; }
         public DbSet<CatalogStatus> CatalogStatuses { get; set; }
         public DbSet<LocationBroadcast> LocationBroadcasts { get; set; }
@@ -332,6 +335,31 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasIndex(e => new { e.IsResolved, e.LastSeenAt });
             });
             modelBuilder.Entity<CatalogStatus>().HasIndex(c => c.Key).IsUnique();
+
+            modelBuilder.Entity<StoreBuyOrder>(entity =>
+            {
+                entity.HasIndex(o => new { o.StoreId, o.IsActive });
+                entity.HasIndex(o => new { o.CardInfoId, o.IsActive });
+                entity.Property(o => o.PriceCashEur).HasPrecision(10, 2);
+                entity.Property(o => o.PriceCreditEur).HasPrecision(10, 2);
+                entity.Property(o => o.Language).HasMaxLength(8);
+                entity.HasOne(o => o.Store).WithMany().HasForeignKey(o => o.StoreId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(o => o.CardInfo).WithMany().HasForeignKey(o => o.CardInfoId).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<StoreBuyOffer>(entity =>
+            {
+                entity.HasIndex(o => new { o.BuyOrderId, o.Status });
+                entity.HasIndex(o => new { o.UserId, o.Status });
+                entity.Property(o => o.StoreNote).HasMaxLength(300);
+                entity.HasOne(o => o.BuyOrder).WithMany().HasForeignKey(o => o.BuyOrderId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(o => o.User).WithMany().HasForeignKey(o => o.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(o => o.Card).WithMany().HasForeignKey(o => o.CardId).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<StoreBuyAlert>(entity =>
+            {
+                entity.HasIndex(a => new { a.StoreId, a.UserId, a.SentAt });
+                entity.HasOne<User>().WithMany().HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.Cascade);
+            });
 
             modelBuilder.Entity<Reservation>(entity =>
             {

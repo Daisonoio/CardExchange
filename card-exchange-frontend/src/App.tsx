@@ -38,6 +38,8 @@ import StorePage from './pages/StorePage';
 import StoreResultsPage from './pages/StoreResultsPage';
 import StoreDemandPage from './pages/StoreDemandPage';
 import ReservationsPage from './pages/ReservationsPage';
+import StoreBuyListPage from './pages/StoreBuyListPage';
+import SellPage from './pages/SellPage';
 import StoreReservationsPage from './pages/StoreReservationsPage';
 import NotificationsGuidePage from './pages/NotificationsGuidePage';
 import LivePage from './pages/LivePage';
@@ -118,6 +120,8 @@ export default function App() {
               <Route path="/stores/:id/demand" element={<StoreDemandPage />} />
               <Route path="/stores/:id/reservations" element={<StoreReservationsPage />} />
               <Route path="/reservations" element={<ReservationsPage />} />
+              <Route path="/stores/:id/buylist" element={<StoreBuyListPage />} />
+              <Route path="/sell" element={<SellPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />
               <Route path="/moderation" element={<ModerationPage />} />

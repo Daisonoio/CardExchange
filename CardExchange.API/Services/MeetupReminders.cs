@@ -159,6 +159,10 @@ namespace CardExchange.API.Services
                     using (var reservationsScope = _scopeFactory.CreateScope())
                         await reservationsScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Stores.ReservationService>().RunAsync(DateTime.UtcNow, stoppingToken);
 
+                    // Lista acquisti: promemoria e scadenze delle consegne
+                    using (var buyScope = _scopeFactory.CreateScope())
+                        await buyScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Stores.BuyListService>().RunAsync(DateTime.UtcNow, stoppingToken);
+
                     // Metrica "match entro 48 ore" per i nuovi iscritti
                     using (var metricsScope = _scopeFactory.CreateScope())
                         await metricsScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.Metrics.ActivationCheck>().RunAsync(DateTime.UtcNow, stoppingToken);

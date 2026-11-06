@@ -375,6 +375,18 @@ export const pushApi = {
 };
 
 // === Negozi ===
+export const buyList = {
+  list: (storeId: number) => client.get<import('../types').StoreBuyOrder[]>(`/stores/${storeId}/buy-orders`),
+  create: (storeId: number, data: import('../types').BuyOrderInput) => client.post<{ id: number }>(`/stores/${storeId}/buy-orders`, data),
+  update: (storeId: number, orderId: number, data: import('../types').BuyOrderInput) => client.put<{ id: number }>(`/stores/${storeId}/buy-orders/${orderId}`, data),
+  accept: (offerId: number, note?: string) => client.post(`/buy-offers/${offerId}/accept`, { note }),
+  reject: (offerId: number, note?: string) => client.post(`/buy-offers/${offerId}/reject`, { note }),
+  complete: (offerId: number) => client.post(`/buy-offers/${offerId}/complete`),
+  forMe: () => client.get<import('../types').BuyOrderForMe[]>('/buy-orders/for-me'),
+  propose: (orderId: number, cardId: number, quantity: number) => client.post(`/buy-orders/${orderId}/offers`, { cardId, quantity }),
+  withdraw: (offerId: number) => client.post(`/buy-offers/${offerId}/withdraw`),
+};
+
 export const reservations = {
   storeCards: (storeId: number, params?: { q?: string; gameId?: number; page?: number }) =>
     client.get<import('../types').StoreCardsPage>(`/stores/${storeId}/cards`, { params }),

@@ -307,6 +307,16 @@ namespace CardExchange.API.Controllers
                 if (reservedCard != null) reservedCard.ReservedQuantity = Math.Max(0, reservedCard.ReservedQuantity - r.Quantity);
             }
 
+            // Proposte alla lista acquisti ancora aperte: ritirate, le copie accettate tornano disponibili al negozio
+            var openBuyOffers = await _context.StoreBuyOffers.Include(o => o.BuyOrder)
+                .Where(o => o.UserId == userId && (o.Status == BuyOfferStatus.Proposed || o.Status == BuyOfferStatus.Accepted)).ToListAsync();
+            foreach (var o in openBuyOffers)
+            {
+                if (o.Status == BuyOfferStatus.Accepted) o.BuyOrder.QuantityPending = Math.Max(0, o.BuyOrder.QuantityPending - o.Quantity);
+                o.Status = BuyOfferStatus.Withdrawn;
+                o.ClosedAt = DateTime.UtcNow;
+            }
+
             var subscriptions = await _context.UserSubscriptions.Where(s => s.UserId == userId).ToListAsync();
             foreach (var s in subscriptions) { s.IsDeleted = true; s.Status = SubscriptionStatus.Cancelled; }
 

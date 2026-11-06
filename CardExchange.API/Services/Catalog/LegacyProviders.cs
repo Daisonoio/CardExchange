@@ -110,6 +110,18 @@ namespace CardExchange.API.Services.Catalog
             if (string.IsNullOrWhiteSpace(lookup.Name)) return null;
             var nameQuery = $"name:\"{lookup.Name.Trim().Replace("\"", "")}\"";
             if (!string.IsNullOrWhiteSpace(lookup.SetName)) nameQuery += $" set.name:\"{lookup.SetName.Trim().Replace("\"", "")}\"";
+            // Se il file indica un numero, il solo nome non basta: meglio nessun risultato che una stampa sbagliata
+            if (!string.IsNullOrWhiteSpace(lookup.Number))
+            {
+                var wanted = NormalizeNumber(lookup.Number);
+                var hits = (await SearchWithRetryAsync(nameQuery, 1, 50))?.Data ?? new List<PokemonTcgCard>();
+                var sameNumber = hits.Where(h => NormalizeNumber(h.Number ?? "") == wanted).ToList();
+                var setCode = lookup.SetCode?.Trim();
+                var pick = sameNumber.FirstOrDefault(h => setCode != null && (string.Equals(h.Set?.Id, setCode, StringComparison.OrdinalIgnoreCase)
+                                                                              || string.Equals(h.Set?.PtcgoCode, setCode, StringComparison.OrdinalIgnoreCase)))
+                           ?? (sameNumber.Count == 1 ? sameNumber[0] : null);
+                return pick == null ? null : Map(pick);
+            }
             var byName = (await SearchWithRetryAsync(nameQuery, 1, 1))?.Data?.FirstOrDefault();
             return byName == null ? null : Map(byName);
         }

@@ -1067,3 +1067,69 @@ const CONDITION_BY_NAME: Record<string, CardCondition> = {
 
 /** Etichetta tradotta di una condizione restituita per nome dal server ("NearMint" → "Near Mint"/"Quasi perfetta"). */
 export const conditionLabel = (name: string) => (CONDITION_BY_NAME[name] ? CONDITION_LABELS[CONDITION_BY_NAME[name]] : name);
+
+// === Lista acquisti dei negozi ===
+export interface BuyOfferForStore {
+  id: number;
+  userId: number;
+  username: string;
+  quantity: number;
+  status: 'Proposed' | 'Accepted' | 'Rejected' | 'Completed' | 'Expired' | 'Withdrawn';
+  condition: CardCondition;
+  language?: string | null;
+  finish: CardFinish;
+  dropOffBy?: string | null;
+  createdAt: string;
+}
+
+export interface StoreBuyOrder {
+  id: number;
+  cardInfoId: number;
+  cardName: string;
+  setName?: string | null;
+  imageUrl?: string | null;
+  minCondition: CardCondition;
+  finish?: CardFinish | null;
+  language?: string | null;
+  priceCashEur?: number | null;
+  priceCreditEur?: number | null;
+  quantityWanted: number;
+  quantityFilled: number;
+  quantityPending: number;
+  expiresAt?: string | null;
+  isActive: boolean;
+  offers: BuyOfferForStore[];
+}
+
+export interface BuyOrderInput {
+  cardInfoId: number;
+  minCondition: number;
+  finish?: number | null;
+  language?: string | null;
+  priceCashEur?: number | null;
+  priceCreditEur?: number | null;
+  quantityWanted: number;
+  expiresAt?: string | null;
+  isActive?: boolean;
+}
+
+export interface BuyOrderForMe {
+  orderId: number;
+  storeId: number;
+  storeName: string;
+  storeCity: string;
+  storeOwnerId: number;
+  distanceKm: number;
+  cardInfoId: number;
+  cardName: string;
+  setName?: string | null;
+  imageUrl?: string | null;
+  minCondition: CardCondition;
+  finish?: CardFinish | null;
+  language?: string | null;
+  priceCashEur?: number | null;
+  priceCreditEur?: number | null;
+  remaining: number;
+  myCards: { id: number; condition: CardCondition; language?: string | null; finish: CardFinish; available: number }[];
+  myOffer?: { id: number; quantity: number; status: BuyOfferForStore['status']; dropOffBy?: string | null; storeNote?: string | null } | null;
+}
