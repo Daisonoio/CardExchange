@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+import PageLoader from '../ui/PageLoader';
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import TopBar from './TopBar';
@@ -54,14 +56,14 @@ export default function Layout() {
         // Il fondo lascia spazio alla barra in basso e al cerchio della Home che sporge sopra
         <main className="flex-1 min-h-0 flex flex-col pt-14 md:pt-0 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-4">
           <div className="flex-1 min-h-0 flex flex-col w-full max-w-2xl md:max-w-4xl mx-auto px-3 py-3 md:px-4">
-            <Outlet />
+            <Suspense fallback={<PageLoader />}><Outlet /></Suspense>
           </div>
         </main>
       ) : (
         <main className="flex-1 pb-28 md:pb-4 pt-14 md:pt-0">
           {/* La Home ha il carosello: su desktop più larga, così le carte laterali si vedono intere */}
           <div className={`max-w-2xl mx-auto px-4 py-4 ${pathname === '/home' ? 'md:max-w-5xl' : ''}`}>
-            <Outlet />
+            <Suspense fallback={<PageLoader />}><Outlet /></Suspense>
           </div>
         </main>
       )}

@@ -1,4 +1,6 @@
-import { Fragment } from 'react';
+import { Fragment, Suspense } from 'react';
+import { lazyPage } from './utils/lazyPage';
+import PageLoader from './components/ui/PageLoader';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -9,54 +11,54 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/layout/Layout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import VerifyEmailPage from './pages/VerifyEmailPage';
-import ExplorePage from './pages/ExplorePage';
-import CollectionPage from './pages/CollectionPage';
-import WishlistPage from './pages/WishlistPage';
-import ProfilePage from './pages/ProfilePage';
-import EditProfilePage from './pages/EditProfilePage';
+const ForgotPasswordPage = lazyPage(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazyPage(() => import('./pages/ResetPasswordPage'));
+const VerifyEmailPage = lazyPage(() => import('./pages/VerifyEmailPage'));
+const ExplorePage = lazyPage(() => import('./pages/ExplorePage'));
+const CollectionPage = lazyPage(() => import('./pages/CollectionPage'));
+const WishlistPage = lazyPage(() => import('./pages/WishlistPage'));
+const ProfilePage = lazyPage(() => import('./pages/ProfilePage'));
+const EditProfilePage = lazyPage(() => import('./pages/EditProfilePage'));
 import HomePage from './pages/HomePage';
-import UserCollectionPage from './pages/UserCollectionPage';
-import TradesPage from './pages/TradesPage';
-import TradeRequestPage from './pages/TradeRequestPage';
-import ChatPage from './pages/ChatPage';
-import MatchmakingPage from './pages/MatchmakingPage';
-import ModerationPage from './pages/ModerationPage';
-import PremiumPage from './pages/PremiumPage';
-import StatsPage from './pages/StatsPage';
-import SearchPage from './pages/SearchPage';
-import AdminBillingPage from './pages/AdminBillingPage';
-import ProtoShell from './proto/ProtoShell';
-import ExplorePreview from './proto/ExplorePreview';
-import CardPreview from './proto/CardPreview';
-import MapPreview from './proto/MapPreview';
-import CollectionPreview from './proto/CollectionPreview';
-import LocalPage from './pages/LocalPage';
-import StorePage from './pages/StorePage';
-import StoreResultsPage from './pages/StoreResultsPage';
-import StoreDemandPage from './pages/StoreDemandPage';
-import ReservationsPage from './pages/ReservationsPage';
-import StoreBuyListPage from './pages/StoreBuyListPage';
-import SellPage from './pages/SellPage';
-import PurchasesPage from './pages/PurchasesPage';
-import StoreEarningsPage from './pages/StoreEarningsPage';
-import StoreReservationsPage from './pages/StoreReservationsPage';
-import NotificationsGuidePage from './pages/NotificationsGuidePage';
-import LivePage from './pages/LivePage';
-import QrPage from './pages/QrPage';
-import LegalPage from './pages/legal/LegalPage';
-import AccountPrivacyPage from './pages/AccountPrivacyPage';
-import AdminMonitoringPage from './pages/AdminMonitoringPage';
-import AdminMetricsPage from './pages/AdminMetricsPage';
-import WelcomePage from './pages/WelcomePage';
-import StoreLinkPage from './pages/StoreLinkPage';
-import LiveComposePage from './pages/LiveComposePage';
-import FollowingPage from './pages/FollowingPage';
-import StoreFormPage from './pages/StoreFormPage';
-import EventPage from './pages/EventPage';
-import EventFormPage from './pages/EventFormPage';
+const UserCollectionPage = lazyPage(() => import('./pages/UserCollectionPage'));
+const TradesPage = lazyPage(() => import('./pages/TradesPage'));
+const TradeRequestPage = lazyPage(() => import('./pages/TradeRequestPage'));
+const ChatPage = lazyPage(() => import('./pages/ChatPage'));
+const MatchmakingPage = lazyPage(() => import('./pages/MatchmakingPage'));
+const ModerationPage = lazyPage(() => import('./pages/ModerationPage'));
+const PremiumPage = lazyPage(() => import('./pages/PremiumPage'));
+const StatsPage = lazyPage(() => import('./pages/StatsPage'));
+const SearchPage = lazyPage(() => import('./pages/SearchPage'));
+const AdminBillingPage = lazyPage(() => import('./pages/AdminBillingPage'));
+const ProtoShell = lazyPage(() => import('./proto/ProtoShell'));
+const ExplorePreview = lazyPage(() => import('./proto/ExplorePreview'));
+const CardPreview = lazyPage(() => import('./proto/CardPreview'));
+const MapPreview = lazyPage(() => import('./proto/MapPreview'));
+const CollectionPreview = lazyPage(() => import('./proto/CollectionPreview'));
+const LocalPage = lazyPage(() => import('./pages/LocalPage'));
+const StorePage = lazyPage(() => import('./pages/StorePage'));
+const StoreResultsPage = lazyPage(() => import('./pages/StoreResultsPage'));
+const StoreDemandPage = lazyPage(() => import('./pages/StoreDemandPage'));
+const ReservationsPage = lazyPage(() => import('./pages/ReservationsPage'));
+const StoreBuyListPage = lazyPage(() => import('./pages/StoreBuyListPage'));
+const SellPage = lazyPage(() => import('./pages/SellPage'));
+const PurchasesPage = lazyPage(() => import('./pages/PurchasesPage'));
+const StoreEarningsPage = lazyPage(() => import('./pages/StoreEarningsPage'));
+const StoreReservationsPage = lazyPage(() => import('./pages/StoreReservationsPage'));
+const NotificationsGuidePage = lazyPage(() => import('./pages/NotificationsGuidePage'));
+const LivePage = lazyPage(() => import('./pages/LivePage'));
+const QrPage = lazyPage(() => import('./pages/QrPage'));
+const LegalPage = lazyPage(() => import('./pages/legal/LegalPage'));
+const AccountPrivacyPage = lazyPage(() => import('./pages/AccountPrivacyPage'));
+const AdminMonitoringPage = lazyPage(() => import('./pages/AdminMonitoringPage'));
+const AdminMetricsPage = lazyPage(() => import('./pages/AdminMetricsPage'));
+const WelcomePage = lazyPage(() => import('./pages/WelcomePage'));
+const StoreLinkPage = lazyPage(() => import('./pages/StoreLinkPage'));
+const LiveComposePage = lazyPage(() => import('./pages/LiveComposePage'));
+const FollowingPage = lazyPage(() => import('./pages/FollowingPage'));
+const StoreFormPage = lazyPage(() => import('./pages/StoreFormPage'));
+const EventPage = lazyPage(() => import('./pages/EventPage'));
+const EventFormPage = lazyPage(() => import('./pages/EventFormPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,6 +81,7 @@ export default function App() {
           <RealtimeProvider>
           <GameProvider>
           <LanguageRoot>
+          <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
@@ -149,6 +152,7 @@ export default function App() {
             {/* Default redirect */}
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Routes>
+          </Suspense>
           </LanguageRoot>
           </GameProvider>
           </RealtimeProvider>
