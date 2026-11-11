@@ -9,6 +9,7 @@ import type { Card, User } from '../types';
 import { useGeolocation } from '../hooks/useGeolocation';
 import CardItem from '../components/cards/CardItem';
 import SponsoredSlotCard from '../components/promotions/SponsoredSlotCard';
+import { useEntitlements } from '../hooks/useEntitlements';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import EmptyStateLink from '../components/ui/EmptyStateLink';
@@ -23,6 +24,7 @@ export default function ExplorePage() {
   const { t } = useTranslation('explore');
   const { user: currentUser } = useAuth();
   const { selectedGameId } = useGame();
+  const { paidPlans, has } = useEntitlements();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('cards');
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
@@ -226,12 +228,14 @@ export default function ExplorePage() {
           <h1 className="text-xl font-bold text-text mb-1">{t('title')}</h1>
           <p className="text-sm text-text-secondary">{t('subtitle')}</p>
         </div>
+        {(paidPlans || has('AdvancedSearch')) && (
         <button
           onClick={() => navigate('/search')}
           className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-white text-xs font-semibold text-primary"
         >
           <SlidersHorizontal size={13} /> {t('advancedSearch')}
         </button>
+        )}
       </div>
 
       {/* Tabs */}

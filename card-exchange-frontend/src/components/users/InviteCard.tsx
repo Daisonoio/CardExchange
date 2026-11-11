@@ -3,19 +3,22 @@ import { Gift, Share2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { referrals } from '../../api';
 import { shareLink } from '../../utils/referral';
+import { useEntitlements } from '../../hooks/useEntitlements';
 
 /** Link personale di invito e amici che si sono iscritti. */
 export default function InviteCard() {
   const { t } = useTranslation('users');
   const [data, setData] = useState<Awaited<ReturnType<typeof referrals.mine>>['data'] | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  // Il premio degli inviti (mesi Premium) esiste solo con i piani a pagamento accesi
+  const { paidPlans } = useEntitlements();
 
   useEffect(() => {
     referrals.mine().then(({ data }) => setData(data)).catch(() => setData(null));
   }, []);
 
   if (!data) return null;
-  const reward = data.reward;
+  const reward = paidPlans ? data.reward : null;
   const capped = !!reward && reward.monthsThisYear >= reward.maxMonthsPerYear;
 
   const share = async () => {
@@ -32,7 +35,7 @@ export default function InviteCard() {
         </span>
         <div className="flex-1">
           <p className="text-sm font-medium text-text">{t('invite.title')}</p>
-          <p className="text-xs text-text-muted">{t('invite.subtitle')}</p>
+          <p className="text-xs text-text-muted">{paidPlans ? t('invite.subtitle') : t('invite.subtitleFree')}</p>
         </div>
       </div>
       <div className="flex items-center gap-2">

@@ -1,3 +1,4 @@
+using CardExchange.API.Services.Entitlements;
 using CardExchange.Core.Rules;
 using CardExchange.Core.Constants;
 ﻿using CardExchange.API.Authorization;
@@ -698,6 +699,11 @@ namespace CardExchange.API.Controllers
                 {
                     return NotFound(new { message = $"Utente con ID {userId} non trovato" });
                 }
+
+                // Raggio massimo del profilo (80 km al lancio): il cursore può chiedere di più, il server non lo supera
+                var viewerId = GetCurrentUserId();
+                if (viewerId > 0)
+                    radiusKm = Math.Min(Math.Clamp(radiusKm, 1, 500), await this.Entitlements(_context).LimitAsync(viewerId, CardExchange.Core.Rules.PlanLimit.RadiusKm));
 
                 // Usa le coordinate fornite via query, oppure quelle salvate nel profilo
                 double searchLat;

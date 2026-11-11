@@ -12,13 +12,15 @@ interface RadiusSliderProps {
 
 /**
  * Cursore della distanza, uguale in tutte le sezioni: a destra il valore scelto.
- * Oltre il raggio del piano (gratuito 30 km) la parte del cursore è bloccata, con l'invito al Premium.
+ * Con i piani a pagamento accesi, oltre il raggio del piano la parte del cursore è bloccata con l'invito al Premium;
+ * con i piani spenti il cursore va sempre a fine corsa.
  */
 export default function RadiusSlider({ id, value, onChange }: RadiusSliderProps) {
   const { t } = useTranslation('premium');
-  const { limit } = useEntitlements();
+  const { limit, paidPlans } = useEntitlements();
   const planMax = limit('RadiusKm');
-  const max = typeof planMax === 'number' ? Math.min(RADIUS_MAX, planMax) : RADIUS_MAX;
+  // Con i piani spenti il cursore arriva sempre a fine corsa: il limite lo applica il server, senza mostrarlo
+  const max = paidPlans && typeof planMax === 'number' ? Math.min(RADIUS_MAX, planMax) : RADIUS_MAX;
   const shown = Math.min(value, max);
   const lockedPct = ((RADIUS_MAX - max) / (RADIUS_MAX - RADIUS_MIN)) * 100;
   return (

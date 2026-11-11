@@ -4,6 +4,7 @@ import { Check, Copy, Loader2, Package, Trash2 } from 'lucide-react';
 import { eventPackages, type EventPackageInfo, type ManagedExhibitor, type PackageTier } from '../../api';
 import { apiErrorMessage } from '../../utils/apiError';
 import { useFormat } from '../../i18n/format';
+import { useEntitlements } from '../../hooks/useEntitlements';
 import Button from '../ui/Button';
 
 const input = 'w-full px-3 py-2 rounded-xl border border-border text-sm';
@@ -12,6 +13,7 @@ const input = 'w-full px-3 py-2 rounded-xl border border-border text-sm';
 export default function OrganizerPackagePanel({ eventId }: { eventId: number }) {
   const { t } = useTranslation('organizers');
   const { euro } = useFormat();
+  const { paidPlans } = useEntitlements();
   const [info, setInfo] = useState<EventPackageInfo | null>(null);
   const [list, setList] = useState<ManagedExhibitor[]>([]);
   const [form, setForm] = useState({ name: '', boothCode: '', description: '' });
@@ -45,6 +47,8 @@ export default function OrganizerPackagePanel({ eventId }: { eventId: number }) 
   };
 
   if (!info) return null;
+  // Piani spenti: senza espositori nel profilo non c'è niente da comprare né da mostrare
+  if (!info.active && !paidPlans) return null;
   return (
     <section className="bg-white rounded-2xl border border-border/60 p-4 space-y-3" data-testid="organizer-package">
       <h2 className="text-sm font-bold text-text flex items-center gap-2"><Package size={16} className="text-primary" /> {t('panel.title')}</h2>
@@ -66,7 +70,7 @@ export default function OrganizerPackagePanel({ eventId }: { eventId: number }) 
         </>
       ) : (
         <>
-          <p className="text-xs text-text-secondary">{t('panel.active', { tier: t(`tiers.${info.tier}.name`) })}</p>
+          <p className="text-xs text-text-secondary">{info.byProfile ? t('panel.byProfile') : t('panel.active', { tier: t(`tiers.${info.tier}.name`) })}</p>
           {info.results && (
             <dl className="grid grid-cols-4 gap-2 text-center">
               {(['pageViews', 'accepted', 'broadcasts', 'newFollowers'] as const).map((k) => (
@@ -104,7 +108,7 @@ export default function OrganizerPackagePanel({ eventId }: { eventId: number }) 
             ))}
           </ul>
 
-          {(info.tier === 'Plus' || info.tier === 'Region') && (
+          {(info.floorPlan || info.tier === 'Plus' || info.tier === 'Region') && (
             <div className="flex gap-2">
               <input className={input} type="url" placeholder={t('panel.floorPlan')} value={floor} onChange={(e) => setFloor(e.target.value)} />
               <Button size="sm" variant="outline" isLoading={busy} onClick={() => run(() => eventPackages.floorPlan(eventId, floor))}>{t('panel.save')}</Button>

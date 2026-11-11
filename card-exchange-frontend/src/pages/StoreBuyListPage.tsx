@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, FileUp, Loader2, Lock, MessageCircle, Plus, ShoppingCart } from 'lucide-react';
 import { buyList, catalog, collectionImport, scryfall } from '../api';
@@ -11,6 +11,7 @@ import { apiErrorMessage } from '../utils/apiError';
 import { readPrices } from '../utils/buyListCsv';
 import GameCardSearch, { importGameCard } from '../components/cards/GameCardSearch';
 import Button from '../components/ui/Button';
+import { useEntitlements } from '../hooks/useEntitlements';
 
 type GameCardPick = { externalId: string; name: string; imageUrl?: string; setName?: string };
 
@@ -19,6 +20,7 @@ const emptyForm = { minCondition: 5, finish: 0, language: '', cash: '', credit: 
 /** Lista acquisti del negozio: cosa compra, a che prezzo, proposte ricevute e consegne. */
 export default function StoreBuyListPage() {
   const { t } = useTranslation('buylist');
+  const { paidPlans } = useEntitlements();
   const { id } = useParams<{ id: string }>();
   const storeId = Number(id);
   const { selectedGame } = useGame();
@@ -135,6 +137,7 @@ export default function StoreBuyListPage() {
   );
 
   if (needsPlan) {
+    if (!paidPlans) return <Navigate to="/" replace />;
     return (
       <div className="max-w-2xl mx-auto space-y-4">
         {header}

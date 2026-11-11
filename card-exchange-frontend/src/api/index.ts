@@ -760,6 +760,10 @@ export type PackageTier = 'Base' | 'Plus' | 'Region';
 export const PACKAGE_TIER: Record<PackageTier, number> = { Base: 1, Plus: 2, Region: 3 };
 export type EventPackageInfo = {
   active: boolean; tier?: PackageTier; floorPlanImageUrl?: string; canBuyByCard: boolean;
+  /** Espositori inclusi nel profilo (Negozio, Organizzatore), senza acquisto. */
+  byProfile?: boolean;
+  /** Piantina disponibile. */
+  floorPlan?: boolean;
   tiers: { tier: PackageTier; priceEur: number; featuredRadiusKm?: number }[];
   results?: { pageViews: number; exhibitors: number; accepted: number; broadcasts: number; newFollowers: number } | null;
 };

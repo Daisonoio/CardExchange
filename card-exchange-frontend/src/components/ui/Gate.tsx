@@ -16,10 +16,12 @@ const PLAN_FOR: Record<string, 'premium' | 'store' | 'storePro' | 'seller'> = {
  */
 export default function Gate({ capability, children, fallback }: { capability: string; children: ReactNode; fallback?: ReactNode }) {
   const { t } = useTranslation('premium');
-  const { entitlements, has } = useEntitlements();
+  const { entitlements, has, paidPlans } = useEntitlements();
   if (!entitlements) return null;
   if (has(capability)) return <>{children}</>;
   if (fallback !== undefined) return <>{fallback}</>;
+  // Piani spenti: nessun invito all'upgrade, la funzione semplicemente non c'è
+  if (!paidPlans) return null;
   const plan = PLAN_FOR[capability] ?? 'premium';
   return (
     <Link to={plan === 'store' || plan === 'storePro' ? '/premium?for=store' : '/premium'}
@@ -32,8 +34,8 @@ export default function Gate({ capability, children, fallback }: { capability: s
 /** Etichetta "Pro"/"Premium" accanto a una funzione non inclusa nel piano. */
 export function PlanTag({ capability }: { capability: string }) {
   const { t } = useTranslation('premium');
-  const { entitlements, has } = useEntitlements();
-  if (!entitlements || has(capability)) return null;
+  const { entitlements, has, paidPlans } = useEntitlements();
+  if (!entitlements || !paidPlans || has(capability)) return null;
   const plan = PLAN_FOR[capability] ?? 'premium';
   return <span className="ml-1.5 align-middle text-[10px] font-semibold px-1.5 py-0.5 rounded bg-secondary/20 text-amber-800">{t(`tag.${plan}`)}</span>;
 }

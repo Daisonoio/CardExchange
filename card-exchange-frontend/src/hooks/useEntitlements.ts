@@ -32,6 +32,9 @@ export function useEntitlements() {
 
   return {
     entitlements: data,
+    /** Piani a pagamento visibili (false finché non si accendono dal server). */
+    paidPlans: !!data?.paidPlans,
+    profileType: data?.profileType ?? 'Collector',
     has: (capability: string) => !!data?.capabilities.includes(capability),
     /** null = illimitato; undefined = non ancora caricato */
     limit: (name: string) => (data ? data.limits[name] : undefined),

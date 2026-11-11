@@ -13,6 +13,7 @@ import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import EmptyStateLink from '../components/ui/EmptyStateLink';
 import TradeNightPanel from '../components/events/TradeNightPanel';
+import { useEntitlements } from '../hooks/useEntitlements';
 import EventExhibitors from '../components/events/EventExhibitors';
 import OrganizerPackagePanel from '../components/events/OrganizerPackagePanel';
 import EventAttendeesPanel from '../components/events/EventAttendeesPanel';
@@ -24,6 +25,7 @@ const fmt = (iso: string) =>
 /** Dettaglio evento: informazioni, luogo, partecipanti, iscrizione. */
 export default function EventPage() {
   const { t } = useTranslation('events');
+  const { paidPlans } = useEntitlements();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -176,7 +178,7 @@ export default function EventPage() {
       )}
       {isOrganizer && event.status === 'Published' && <EventAttendeesPanel eventId={event.id} />}
       {isOrganizer && event.status === 'Published' && !ended && <OrganizerPackagePanel eventId={event.id} />}
-      {isOrganizer && event.status === 'Published' && !ended && (
+      {isOrganizer && event.status === 'Published' && !ended && paidPlans && (
         <Link to={`/promotions?type=event&target=${event.id}`} className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-amber-300 bg-amber-50 text-sm font-semibold text-amber-800">
           <Megaphone size={15} /> {t('promotions:featureEvent')}
         </Link>

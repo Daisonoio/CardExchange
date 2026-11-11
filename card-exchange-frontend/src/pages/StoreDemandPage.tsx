@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, BellRing, Download, Loader2, Lock, Target, Users } from 'lucide-react';
 import { stores } from '../api';
@@ -8,6 +8,7 @@ import { useFormat } from '../i18n/format';
 import { apiErrorMessage } from '../utils/apiError';
 import EmptyState from '../components/ui/EmptyState';
 import Button from '../components/ui/Button';
+import { useEntitlements } from '../hooks/useEntitlements';
 
 type State = { kind: 'loading' } | { kind: 'ok'; data: StoreDemand } | { kind: 'plan' } | { kind: 'error'; message: string };
 
@@ -27,6 +28,7 @@ function downloadCsv(rows: DemandCard[], filename: string) {
 /** Domanda locale per il negozio: carte cercate in zona tra quelle che ha e quelle che non ha. Solo numeri, mai nomi. */
 export default function StoreDemandPage() {
   const { t } = useTranslation('stores');
+  const { paidPlans } = useEntitlements();
   const { id } = useParams<{ id: string }>();
   const { euro, dateTime } = useFormat();
   const [state, setState] = useState<State>({ kind: 'loading' });
@@ -66,6 +68,7 @@ export default function StoreDemandPage() {
   if (state.kind === 'loading') return <div className="flex justify-center py-16"><Loader2 className="animate-spin text-primary" /></div>;
   if (state.kind === 'error') return <EmptyState icon={Users} title={state.message} />;
   if (state.kind === 'plan') {
+    if (!paidPlans) return <Navigate to="/" replace />;
     return (
       <div className="max-w-2xl mx-auto space-y-4">
         {header}

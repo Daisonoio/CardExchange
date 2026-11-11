@@ -9,6 +9,7 @@ import type { CardEvent, Store } from '../types';
 import { apiErrorMessage } from '../utils/apiError';
 import Button from '../components/ui/Button';
 import '../components/map/leafletSetup';
+import { useEntitlements } from '../hooks/useEntitlements';
 
 type Point = { lat: number; lng: number };
 const DURATIONS = ['60', '120', '240', '480', 'eod'] as const;
@@ -36,6 +37,7 @@ function FollowPoint({ point }: { point: Point }) {
 /** "Fai sapere dove sei": avviso ai follower con posto, punto preciso e durata. */
 export default function LiveComposePage() {
   const { t } = useTranslation('live');
+  const { paidPlans } = useEntitlements();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [params] = useSearchParams();
@@ -150,7 +152,7 @@ export default function LiveComposePage() {
       {info?.active && (
         <p className="text-xs p-3 rounded-xl bg-amber-50 text-amber-800">{t('compose.replaces')}</p>
       )}
-      {info?.active && (
+      {info?.active && paidPlans && (
         <Link to={`/promotions?type=broadcast&target=${info.active.id}`} className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-amber-300 bg-white text-sm font-semibold text-amber-800">
           <Megaphone size={15} /> {t('promotions:sponsorBroadcast')}
         </Link>

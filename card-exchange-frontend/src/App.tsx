@@ -1,6 +1,7 @@
 import { Fragment, Suspense } from 'react';
 import { lazyPage } from './utils/lazyPage';
 import PageLoader from './components/ui/PageLoader';
+import PaidOnly from './components/ui/PaidOnly';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -135,11 +136,11 @@ export default function App() {
               <Route path="/reservations" element={<ReservationsPage />} />
               <Route path="/stores/:id/buylist" element={<StoreBuyListPage />} />
               <Route path="/sell" element={<SellPage />} />
-              <Route path="/purchases" element={<PurchasesPage />} />
-              <Route path="/stores/:id/earnings" element={<StoreEarningsPage />} />
+              <Route path="/purchases" element={<PaidOnly><PurchasesPage /></PaidOnly>} />
+              <Route path="/stores/:id/earnings" element={<PaidOnly><StoreEarningsPage /></PaidOnly>} />
               <Route path="/stores/:id/loyalty" element={<StoreLoyaltyPage />} />
               <Route path="/loyalty" element={<LoyaltyPage />} />
-              <Route path="/promotions" element={<PromotionsPage />} />
+              <Route path="/promotions" element={<PaidOnly><PromotionsPage /></PaidOnly>} />
               <Route path="/exhibit/:token" element={<ExhibitorInvitePage />} />
               <Route path="/sponsors/:id" element={<SponsorPage />} />
               <Route path="/admin/sponsors" element={<AdminSponsorsPage />} />
@@ -148,7 +149,7 @@ export default function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/profile/edit" element={<EditProfilePage />} />
               <Route path="/moderation" element={<ModerationPage />} />
-              <Route path="/premium" element={<PremiumPage />} />
+              <Route path="/premium" element={<PaidOnly><PremiumPage /></PaidOnly>} />
               <Route path="/stats" element={<StatsPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/admin/billing" element={<AdminBillingPage />} />

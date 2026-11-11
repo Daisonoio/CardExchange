@@ -60,6 +60,15 @@ namespace CardExchange.Infrastructure.Data
                 }
             }
 
+            // Dati da allineare quando arriva una colonna nuova (come nella migrazione corrispondente)
+            if (columnsAdded.Contains("Users.ProfileType"))
+            {
+                // Titolari di negozi verificati → Negozio (2); piano Banco attivo → Venditore (1)
+                await context.Database.ExecuteSqlRawAsync("UPDATE Users SET ProfileType = 2 WHERE Id IN (SELECT OwnerId FROM Stores WHERE Status = 2)", ct);
+                await context.Database.ExecuteSqlRawAsync(@"UPDATE Users SET ProfileType = 1 WHERE ProfileType = 0 AND Id IN (
+                    SELECT s.UserId FROM UserSubscriptions s JOIN SubscriptionPlans p ON p.Id = s.PlanId WHERE s.Status = 1 AND p.Tier = 3)", ct);
+            }
+
             // 3. Indici: tutti con IF NOT EXISTS; un indice univoco può fallire se i dati esistenti hanno doppioni
             foreach (var stmt in statements.Where(s => s.StartsWith("CREATE INDEX", StringComparison.OrdinalIgnoreCase) || s.StartsWith("CREATE UNIQUE INDEX", StringComparison.OrdinalIgnoreCase)))
             {

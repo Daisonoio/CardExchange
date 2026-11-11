@@ -13,7 +13,7 @@
     "wanted_other": "{{count}} carte che cerchi"
   },
   "panel": {
-    "title": "Pacchetto organizzatori",
+    "title": "Espositori",
     "intro": "Per fiere e mercatini: elenco degli espositori con chi è qui adesso e le carte che i visitatori cercano. Gli espositori pubblicano \"Sono qui\" con lo stand già compilato, senza consumare il loro limite.",
     "buy": "Acquista",
     "bankTransfer": "Per il bonifico scrivici: attiviamo il pacchetto a mano.",
@@ -29,7 +29,8 @@
     "remove": "Rimuovi",
     "removeConfirm": "Rimuovere l'espositore?",
     "floorPlan": "Piantina (indirizzo https dell'immagine)",
-    "save": "Salva"
+    "save": "Salva",
+    "byProfile": "Espositori, piantina e \"Sono qui\" dagli stand sono inclusi nel tuo profilo."
   },
   "tiers": {
     "Base": {

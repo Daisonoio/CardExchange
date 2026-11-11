@@ -3,11 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ArrowLeft, Crown, Download, FileJson, FileSpreadsheet, Info, Loader2, Lock, TrendingDown, TrendingUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { billing, downloadExport, statistics } from '../api';
+import { downloadExport, statistics } from '../api';
 import { formatDate, formatEuro, formatNumber } from '../i18n/format';
 import type { BasicStats, CollectionInsights, StatsCardLine, ValueChange } from '../types';
 import { apiErrorMessage } from '../utils/apiError';
 import Button from '../components/ui/Button';
+import { useEntitlements } from '../hooks/useEntitlements';
 
 const euro = (v: number, opts?: Intl.NumberFormatOptions) => formatEuro(v, opts);
 const shortDate = (iso: string) => formatDate(`${iso}T00:00:00`, { day: 'numeric', month: 'short' });
@@ -119,7 +120,8 @@ export default function StatsPage() {
   const { t } = useTranslation('stats');
   const navigate = useNavigate();
   const [basic, setBasic] = useState<BasicStats | null>(null);
-  const [premium, setPremium] = useState<boolean | null>(null);
+  const { entitlements, has, paidPlans } = useEntitlements();
+  const premium = entitlements ? has('Statistics') : null;
   const [days, setDays] = useState<(typeof RANGES)[number]>(90);
   const [insights, setInsights] = useState<CollectionInsights | null>(null);
   const [loadedDays, setLoadedDays] = useState<number | null>(null);
@@ -127,7 +129,6 @@ export default function StatsPage() {
 
   useEffect(() => {
     statistics.basic().then(({ data }) => setBasic(data)).catch((err) => setError(apiErrorMessage(err, t('unavailable'))));
-    billing.current().then(({ data }) => setPremium(data.tier !== 'Free')).catch(() => setPremium(false));
   }, [t]);
 
   useEffect(() => {
@@ -195,7 +196,7 @@ export default function StatsPage() {
       </div>
 
       {!premium ? (
-        <>
+        paidPlans && <>
           <section className="bg-white rounded-2xl p-4 border-2 border-secondary space-y-2">
             <h2 className="text-base font-bold text-text flex items-center gap-1.5"><Lock size={16} className="text-amber-700" /> {t('upsell.title')}</h2>
             <ul className="text-sm text-text-secondary space-y-1 list-disc pl-5">

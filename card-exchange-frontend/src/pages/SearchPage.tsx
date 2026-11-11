@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Crown, Loader2, Lock, MapPin, Search, SlidersHorizontal, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { advancedSearch, billing } from '../api';
+import { advancedSearch } from '../api';
 import { formatEuro } from '../i18n/format';
 import { useGame } from '../context/GameContext';
 import type { AdvancedSearchCard, AdvancedSearchParams, AdvancedSearchResponse, CardFinish } from '../types';
@@ -11,6 +11,7 @@ import { apiErrorMessage } from '../utils/apiError';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import PlanBadge from '../components/users/PlanBadge';
+import { useEntitlements } from '../hooks/useEntitlements';
 
 const euro = (v: number) => formatEuro(v);
 const CONDITION_BY_NAME: Record<string, number> = {
@@ -104,7 +105,8 @@ export default function SearchPage() {
   const { t } = useTranslation('search');
   const navigate = useNavigate();
   const { games } = useGame();
-  const [premium, setPremium] = useState<boolean | null>(null);
+  const { entitlements, has, paidPlans } = useEntitlements();
+  const premium = entitlements ? has('AdvancedSearch') : null;
   const [filters, setFilters] = useState<Filters>(EMPTY);
   const [result, setResult] = useState<AdvancedSearchResponse | null>(null);
   const [items, setItems] = useState<AdvancedSearchCard[]>([]);
@@ -112,9 +114,6 @@ export default function SearchPage() {
   const [showFilters, setShowFilters] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    billing.current().then(({ data }) => setPremium(data.tier !== 'Free')).catch(() => setPremium(false));
-  }, []);
 
   const run = async (page = 1, f = filters) => {
     setLoading(true);
@@ -147,6 +146,7 @@ export default function SearchPage() {
   }
 
   if (!premium) {
+    if (!paidPlans) return <Navigate to="/" replace />;
     return (
       <div className="max-w-lg mx-auto space-y-4">
         {header}

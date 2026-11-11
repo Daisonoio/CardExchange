@@ -22,7 +22,8 @@
     "capReached": "Hai ricevuto i {{max}} mesi Premium di quest'anno: grazie!",
     "activeRule": "Un amico è attivo quando conferma l'email, inserisce almeno 10 carte tra collezione e wishlist e usa l'app in 3 giorni diversi entro un mese.",
     "activeBadge": "attivo",
-    "pendingBadge": "in attesa"
+    "pendingBadge": "in attesa",
+    "subtitleFree": "Più amici ci sono nella tua zona, più scambi trovi."
   },
   "planBadge": {
     "storeTitle": "Negozio con piano attivo",

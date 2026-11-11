@@ -22,7 +22,8 @@
     "capReached": "You've received this year's {{max}} Premium months: thank you!",
     "activeRule": "A friend is active once they confirm their email, add at least 10 cards to collection and wishlist, and use the app on 3 different days within a month.",
     "activeBadge": "active",
-    "pendingBadge": "pending"
+    "pendingBadge": "pending",
+    "subtitleFree": "The more friends nearby, the more trades you find."
   },
   "planBadge": {
     "storeTitle": "Shop with an active plan",

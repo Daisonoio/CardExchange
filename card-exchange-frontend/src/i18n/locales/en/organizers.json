@@ -13,7 +13,7 @@
     "wanted_other": "{{count}} cards you want"
   },
   "panel": {
-    "title": "Organiser package",
+    "title": "Exhibitors",
     "intro": "For fairs and markets: the exhibitor list showing who's here now and the cards visitors want. Exhibitors post \"I'm here\" with their booth already filled in, without using their limit.",
     "buy": "Buy",
     "bankTransfer": "To pay by bank transfer, write to us: we'll activate the package manually.",
@@ -29,7 +29,8 @@
     "remove": "Remove",
     "removeConfirm": "Remove this exhibitor?",
     "floorPlan": "Floor plan (https image address)",
-    "save": "Save"
+    "save": "Save",
+    "byProfile": "Exhibitors, floor plan and \"I'm here\" from the booths are included in your profile."
   },
   "tiers": {
     "Base": {

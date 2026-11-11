@@ -830,6 +830,10 @@ export interface Entitlements {
   capabilities: string[];
   /** null = illimitato */
   limits: Record<string, number | null>;
+  /** Tipo di profilo: decide le funzioni (Collector, Seller, Store, Organizer). */
+  profileType?: 'Collector' | 'Seller' | 'Store' | 'Organizer';
+  /** Piani a pagamento accesi: con false l'interfaccia non mostra piani, prezzi né inviti all'upgrade. */
+  paidPlans?: boolean;
 }
 
 export interface UserSubscription {

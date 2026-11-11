@@ -7,6 +7,7 @@ import { useGame } from '../context/GameContext';
 import { apiErrorMessage } from '../utils/apiError';
 import { explore, type ExploreCard, type ExploreFilters, type ExploreResponse } from './api';
 import { CardTile, ThemeToggle } from './parts';
+import { useEntitlements } from '../hooks/useEntitlements';
 
 const RADII = [1, 5, 10, 25, 50, 100];
 const CONDITIONS = [{ value: 2, key: 'nm' }, { value: 3, key: 'ex' }, { value: 4, key: 'gd' }, { value: 5, key: 'lp' }] as const;
@@ -146,6 +147,7 @@ export default function ExplorePreview() {
 function FilterSheet({ initial, isPremium, onClose, onApply }: {
   initial: ExploreFilters; isPremium: boolean; onClose: () => void; onApply: (f: ExploreFilters) => void;
 }) {
+  const { paidPlans } = useEntitlements();
   const { t } = useTranslation('proto');
   const [f, setF] = useState<ExploreFilters>(initial);
   const radiusIndex = Math.max(0, RADII.indexOf(f.radiusKm ?? 25));
@@ -171,6 +173,7 @@ function FilterSheet({ initial, isPremium, onClose, onApply }: {
           <div className="flex justify-between text-[11px] cx-muted mt-1">{RADII.map((r) => <span key={r}>{r} km</span>)}</div>
         </section>
 
+        {(isPremium || paidPlans) && (
         <section className={`mb-6 ${isPremium ? '' : 'opacity-60'}`} aria-disabled={!isPremium}>
           <div className="flex items-center gap-2 mb-3">
             <span className="font-bold">{t('filters.price')}</span>
@@ -184,6 +187,7 @@ function FilterSheet({ initial, isPremium, onClose, onApply }: {
               onChange={(e) => setF({ ...f, maxPrice: num(e.target.value) })} className="cx-input h-11 px-3 w-full" aria-label={t('filters.max')} />
           </div>
         </section>
+        )}
 
         <section className={`mb-6 ${isPremium ? '' : 'opacity-60'}`}>
           <p className="font-bold mb-3">{t('filters.condition')}</p>
@@ -195,7 +199,7 @@ function FilterSheet({ initial, isPremium, onClose, onApply }: {
             <button disabled={!isPremium} className="cx-chip px-3.5 py-2 text-sm font-semibold" aria-pressed={f.finish === 2}
               onClick={() => setF({ ...f, finish: f.finish === 2 ? undefined : 2 })}>{t('filters.foilOnly')}</button>
           </div>
-          {!isPremium && <Link to="/premium" className="block text-sm font-semibold mt-3 cx-accent-text underline underline-offset-2">{t('filters.unlock')}</Link>}
+          {!isPremium && paidPlans && <Link to="/premium" className="block text-sm font-semibold mt-3 cx-accent-text underline underline-offset-2">{t('filters.unlock')}</Link>}
         </section>
 
         <button onClick={() => onApply(f)} className="cx-btn w-full h-13 py-3.5 text-base">{t('filters.apply')}</button>

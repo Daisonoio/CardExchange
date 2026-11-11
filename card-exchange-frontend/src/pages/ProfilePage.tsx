@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { useEntitlements } from '../hooks/useEntitlements';
 import {
   Star, ArrowLeftRight, MessageCircle, MapPin, LogOut,
   ChevronRight, Pencil, Library, Heart, Trophy, Ban, ShieldCheck, Crown, Receipt, BarChart3, Search, Sparkles, QrCode, Activity, Gauge, ShoppingBag, Tag, Stamp, Megaphone, Store, } from 'lucide-react';
@@ -18,6 +19,7 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const [showReviews, setShowReviews] = useState(false);
   const [showBlocked, setShowBlocked] = useState(false);
+  const { paidPlans, has } = useEntitlements();
 
   if (!user) return null;
 
@@ -32,18 +34,19 @@ export default function ProfilePage() {
     { label: t('menu.editProfile'), icon: Pencil, to: '/profile/edit' },
     { label: t('qr:me.menu'), icon: QrCode, to: '/qr/me' },
     { label: t('legal:account.menu'), icon: ShieldCheck, to: '/profile/privacy' },
-    { label: t('menu.myPlan'), icon: Crown, to: '/premium' },
+    ...(paidPlans ? [{ label: t('menu.myPlan'), icon: Crown, to: '/premium' }] : []),
     { label: t('menu.newDesignPreview'), icon: Sparkles, to: '/preview' },
-    { label: t('menu.stats'), icon: BarChart3, to: '/stats' },
-    { label: t('menu.advancedSearch'), icon: Search, to: '/search' },
+    ...(paidPlans || has('Statistics') ? [{ label: t('menu.stats'), icon: BarChart3, to: '/stats' }] : []),
+    ...(paidPlans || has('AdvancedSearch') ? [{ label: t('menu.advancedSearch'), icon: Search, to: '/search' }] : []),
     { label: t('menu.myCards'), icon: Library, to: '/collection' },
     { label: t('menu.wishlist'), icon: Heart, to: '/wishlist' },
     { label: t('menu.myTrades'), icon: ArrowLeftRight, to: '/trades' },
     { label: t('reservations:menu'), icon: ShoppingBag, to: '/reservations' },
     { label: t('buylist:menu'), icon: Tag, to: '/sell' },
     { label: t('loyalty:menu'), icon: Stamp, to: '/loyalty' },
-    { label: t('promotions:menu'), icon: Megaphone, to: '/promotions' },
-    { label: t('showcase:menu'), icon: Store, to: '/showcase' },
+    ...(paidPlans ? [{ label: t('promotions:menu'), icon: Megaphone, to: '/promotions' }] : []),
+    // Vetrina: solo per il profilo Venditore (o con i piani accesi, dove si può acquistare)
+    ...(paidPlans || has('SellerShowcase') ? [{ label: t('showcase:menu'), icon: Store, to: '/showcase' }] : []),
     { label: t('menu.reviews'), icon: Trophy, to: null, action: () => setShowReviews(true) },
     { label: t('menu.blockedUsers'), icon: Ban, to: null, action: () => setShowBlocked(true) },
     ...(hasPermission('ADMIN.REPORTS.MANAGE') ? [{ label: t('menu.moderation'), icon: ShieldCheck, to: '/moderation' }] : []),

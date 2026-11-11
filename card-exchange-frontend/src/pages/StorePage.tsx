@@ -14,6 +14,7 @@ import EmptyStateLink from '../components/ui/EmptyStateLink';
 import FollowButton from '../components/social/FollowButton';
 import StoreCardsSection from '../components/stores/StoreCardsSection';
 import { PlanTag } from '../components/ui/Gate';
+import { useEntitlements } from '../hooks/useEntitlements';
 
 const STATUS_LABEL: Record<Store['status'], { textKey: string; cls: string }> = {
   Pending: { textKey: 'page.status.Pending', cls: 'bg-amber-50 text-amber-700' },
@@ -25,6 +26,7 @@ const STATUS_LABEL: Record<Store['status'], { textKey: string; cls: string }> = 
 /** Scheda pubblica di un negozio. */
 export default function StorePage() {
   const { t } = useTranslation('stores');
+  const { paidPlans, has } = useEntitlements();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { games } = useGame();
@@ -102,7 +104,7 @@ export default function StorePage() {
         </Link>
       )}
 
-      {store.isOwner && store.status === 'Verified' && (
+      {store.isOwner && store.status === 'Verified' && paidPlans && (
         <Link to={`/stores/${store.id}/earnings`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
           <PiggyBank size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
@@ -112,7 +114,7 @@ export default function StorePage() {
         </Link>
       )}
 
-      {store.isOwner && store.status === 'Verified' && (
+      {store.isOwner && store.status === 'Verified' && (paidPlans || has('Loyalty')) && (
         <Link to={`/stores/${store.id}/loyalty`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
           <Stamp size={18} className="shrink-0 text-amber-600" />
           <span className="min-w-0">
@@ -133,7 +135,7 @@ export default function StorePage() {
         </Link>
       )}
 
-      {store.isOwner && store.status === 'Verified' && (
+      {store.isOwner && store.status === 'Verified' && (paidPlans || has('Buylist')) && (
         <Link to={`/stores/${store.id}/buylist`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
           <ShoppingCart size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
@@ -143,7 +145,7 @@ export default function StorePage() {
         </Link>
       )}
 
-      {store.isOwner && store.status === 'Verified' && (
+      {store.isOwner && store.status === 'Verified' && (paidPlans || has('Reservations')) && (
         <Link to={`/stores/${store.id}/reservations`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
           <PackageCheck size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
@@ -153,7 +155,7 @@ export default function StorePage() {
         </Link>
       )}
 
-      {store.isOwner && store.status === 'Verified' && (
+      {store.isOwner && store.status === 'Verified' && (paidPlans || has('LocalDemand')) && (
         <Link to={`/stores/${store.id}/demand`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
           <Target size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
@@ -193,7 +195,7 @@ export default function StorePage() {
         </div>
       )}
 
-      {store.isOwner && store.status === 'Verified' && !store.isFeatured && (
+      {store.isOwner && store.status === 'Verified' && !store.isFeatured && paidPlans && (
         <Link to="/premium?for=store" className="block p-3 rounded-xl bg-secondary/10 text-sm text-text hover:bg-secondary/20">
           <strong className="flex items-center gap-1"><Sparkles size={14} className="text-amber-700" /> {t('page.promoteTitle')}</strong>
           <span className="text-xs text-text-secondary">{t('page.promoteDescription')}</span>
