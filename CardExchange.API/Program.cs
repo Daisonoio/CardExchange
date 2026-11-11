@@ -173,6 +173,7 @@ else
     builder.Services.AddScoped<CardExchange.API.Services.Email.IEmailSender, CardExchange.API.Services.Email.LogOnlyEmailSender>();
 // Limiti del piano gratuito (PlanLimits:FreeMaxCards vuoto = collezione illimitata)
 builder.Services.Configure<CardExchange.API.Configuration.PlanLimitsOptions>(builder.Configuration.GetSection("PlanLimits"));
+builder.Services.Configure<CardExchange.API.Configuration.FeatureOptions>(builder.Configuration.GetSection("Features"));
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 // Diritti dei piani: unico servizio per tutti i controlli; cache invalidata a ogni modifica di un abbonamento
 builder.Services.AddScoped<CardExchange.API.Services.Entitlements.IEntitlementService, CardExchange.API.Services.Entitlements.EntitlementService>();

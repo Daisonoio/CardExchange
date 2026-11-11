@@ -284,6 +284,12 @@ namespace CardExchange.API.Controllers
             store.ReviewedAt = DateTime.UtcNow;
             store.ReviewedById = CurrentUserId();
             store.ReviewNote = request.Note?.Trim();
+            // Negozio verificato: il titolare passa al profilo Negozio (le funzioni del negozio dipendono dal profilo)
+            if (newStatus == StoreStatus.Verified)
+            {
+                var owner = await _context.Users.FirstOrDefaultAsync(u => u.Id == store.OwnerId);
+                if (owner != null && owner.ProfileType == ProfileType.Collector) owner.ProfileType = ProfileType.Store;
+            }
             await _context.SaveChangesAsync();
 
             var (title, body) = newStatus switch
@@ -488,7 +494,7 @@ namespace CardExchange.API.Controllers
             if (store.OwnerId != CurrentUserId() && !IsModerator()) return (null, Forbid());
             if (store.Status != StoreStatus.Verified) return (null, BadRequest(new { message = "Il negozio deve essere verificato" }));
             if (!IsModerator() && !await this.Entitlements(_context).HasAsync(store.OwnerId, Capability.LocalDemand))
-                return (null, StatusCode(402, new { code = "PLAN_REQUIRED", message = "La domanda locale è inclusa nel piano Negozio Pro" }));
+                return (null, StatusCode(402, new { code = "PLAN_REQUIRED", message = CardExchange.API.Authorization.CapabilityText.UpgradeMessage(Capability.LocalDemand) }));
             return (store, null);
         }
 

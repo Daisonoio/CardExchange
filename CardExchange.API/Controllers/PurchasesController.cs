@@ -1,3 +1,4 @@
+using CardExchange.API.Authorization;
 using System.Security.Claims;
 using CardExchange.API.Configuration;
 using CardExchange.API.Services.Billing;
@@ -47,6 +48,7 @@ namespace CardExchange.API.Controllers
         });
 
         /// <summary>Crea l'acquisto (in attesa) e la sessione Stripe; il prodotto si attiva solo dal webhook.</summary>
+        [RequirePaidPlans]
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout([FromBody] CheckoutRequest request)
         {

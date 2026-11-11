@@ -40,7 +40,7 @@ public class PromotionServiceTests : IDisposable
     private ApplicationDbContext NewContext() =>
         new(new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite($"Data Source={_path};Default Timeout=30").Options);
 
-    private PromotionService Service(ApplicationDbContext db) => new(db, _dispatcher.Object, _blocks.Object, new Mock<ILogger<PromotionService>>().Object);
+    private PromotionService Service(ApplicationDbContext db) => new(db, _dispatcher.Object, _blocks.Object, new Mock<ILogger<PromotionService>>().Object, TestEntitlements.Paid(db));
 
     private static User Person(string name, DateOnly? birth, decimal lat, decimal lon) => new()
     {

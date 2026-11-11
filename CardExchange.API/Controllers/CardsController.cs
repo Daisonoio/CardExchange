@@ -306,7 +306,7 @@ namespace CardExchange.API.Controllers
                     var plan = await _subscriptionService.GetUserActivePlanAsync(userId);
                     return StatusCode(403, new
                     {
-                        message = $"Hai raggiunto il limite di {plan?.MaxCards} carte diverse del tuo piano",
+                        message = $"Hai raggiunto il limite di {plan?.MaxCards} carte diverse in collezione",
                         upgradeUrl = "/api/subscriptions/plans"
                     });
                 }

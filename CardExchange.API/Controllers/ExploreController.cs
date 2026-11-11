@@ -60,7 +60,7 @@ namespace CardExchange.API.Controllers
             // Raggio massimo del piano (gratuito 30 km, Premium 200 km)
             var maxRadius = await this.Entitlements(_context).LimitAsync(userId, PlanLimit.RadiusKm);
             if (advanced && !isPremium)
-                return StatusCode(StatusCodes.Status403Forbidden, new { message = "I filtri per prezzo, condizione, lingua e finitura sono Premium.", code = "PREMIUM_FILTERS" });
+                return StatusCode(StatusCodes.Status403Forbidden, new { message = "I filtri per prezzo, condizione, lingua e finitura non sono disponibili.", code = "PREMIUM_FILTERS" });
 
             var request = new AdvancedSearchRequest
             {

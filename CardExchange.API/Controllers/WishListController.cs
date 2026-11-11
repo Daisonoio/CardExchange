@@ -300,7 +300,7 @@ namespace CardExchange.API.Controllers
                     var plan = await _subscriptionService.GetUserActivePlanAsync(userId);
                     return StatusCode(403, new
                     {
-                        message = $"Hai raggiunto il limite di {plan?.MaxWishlistItems ?? 20} elementi nella wishlist del tuo piano",
+                        message = $"Hai raggiunto il limite di {plan?.MaxWishlistItems ?? 20} elementi nella wishlist",
                         upgradeUrl = "/api/subscriptions/plans"
                     });
                 }

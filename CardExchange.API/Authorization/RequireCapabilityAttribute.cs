@@ -41,8 +41,7 @@ namespace CardExchange.API.Authorization
                     status = 403,
                     code = "PLAN_REQUIRED",
                     capability = _capability.ToString(),
-                    message = CapabilityText.UpgradeMessage(_capability),
-                    upgradeUrl = "/premium"
+                    message = CapabilityText.UpgradeMessage(_capability)
                 }) { StatusCode = 403 };
                 return;
             }
@@ -52,15 +51,14 @@ namespace CardExchange.API.Authorization
 
     public static class CapabilityText
     {
+        /// <summary>Messaggio quando manca una funzione: dice a quale tipo di profilo è riservata.</summary>
         public static string UpgradeMessage(Capability c) => c switch
         {
-            Capability.FeaturedStore => "Funzione inclusa nel piano Negozio",
-            Capability.LocalDemand => "La domanda locale è inclusa nel piano Negozio Pro",
-            Capability.Buylist => "La lista acquisti è inclusa nel piano Negozio Pro",
-            Capability.Reservations => "Prenota e ritira è incluso nel piano Negozio Pro",
-            Capability.Loyalty => "La tessera fedeltà è inclusa nel piano Negozio",
-            Capability.SellerShowcase => "Funzione inclusa nel piano Banco",
-            _ => "Funzionalità riservata agli utenti Premium"
+            Capability.FeaturedStore or Capability.LocalDemand or Capability.Buylist or Capability.Reservations or Capability.Loyalty
+                => "Funzione riservata ai negozi",
+            Capability.SellerShowcase => "Funzione riservata ai venditori",
+            Capability.EventExhibitors => "Funzione riservata a negozi e organizzatori",
+            _ => "Funzione non disponibile"
         };
     }
 }

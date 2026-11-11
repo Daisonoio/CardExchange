@@ -85,7 +85,7 @@ namespace CardExchange.API.Services.Billing
                     var showcase = await _db.SellerShowcases.AsNoTracking().FirstOrDefaultAsync(x => x.Id == targetId)
                         ?? throw new PromotionException("Vetrina non trovata", status: 404);
                     if (showcase.UserId != userId) throw new PromotionException("Puoi promuovere solo la tua vetrina", status: 403);
-                    if (!await _entitlements.HasAsync(userId, Capability.SellerShowcase)) throw new PromotionException("La vetrina è inclusa nel piano Banco", "PLAN_REQUIRED", 402);
+                    if (!await _entitlements.HasAsync(userId, Capability.SellerShowcase)) throw new PromotionException(CardExchange.API.Authorization.CapabilityText.UpgradeMessage(Capability.SellerShowcase), "PLAN_REQUIRED", 402);
                     var loc = await _db.UserLocations.AsNoTracking().FirstOrDefaultAsync(l => l.UserId == userId);
                     if (loc?.Latitude == null || loc.Longitude == null) throw new PromotionException("Imposta la tua zona nel profilo per promuovere la vetrina");
                     return new(userId, null, showcase.DisplayName, showcase.Bio, loc.Latitude.Value, loc.Longitude.Value, DateTime.MaxValue, null, loc.City);

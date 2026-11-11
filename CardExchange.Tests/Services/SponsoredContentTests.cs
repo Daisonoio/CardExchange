@@ -33,7 +33,7 @@ public class SponsoredContentTests : IDisposable
     private ApplicationDbContext NewContext() =>
         new(new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite($"Data Source={_path};Default Timeout=30").Options);
 
-    private SponsoredContent Service(ApplicationDbContext db) => new(db, _blocks.Object);
+    private SponsoredContent Service(ApplicationDbContext db) => new(db, _blocks.Object, TestEntitlements.Paid(db));
 
     private async Task SeedAsync()
     {

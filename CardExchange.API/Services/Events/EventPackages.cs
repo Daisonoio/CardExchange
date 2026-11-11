@@ -68,6 +68,21 @@ namespace CardExchange.API.Services.Events
         }
 
         /// <summary>
+        /// Pacchetto dell'evento. Se manca e l'organizzatore ha il profilo giusto (Negozio od Organizzatore),
+        /// viene creato senza acquisto: le funzioni dipendono dal tipo di profilo.
+        /// </summary>
+        public static async Task<EventPackage?> EnsureAsync(ApplicationDbContext db, CardExchange.API.Services.Entitlements.IEntitlementService entitlements, Event ev, DateTime nowUtc)
+        {
+            var package = await db.EventPackages.FirstOrDefaultAsync(p => p.EventId == ev.Id);
+            if (package != null) return package;
+            if (!await entitlements.HasAsync(ev.OrganizerId, Capability.EventExhibitors)) return null;
+            package = new EventPackage { EventId = ev.Id, Tier = EventPackageTier.Base, ActivatedAt = nowUtc };
+            db.EventPackages.Add(package);
+            await db.SaveChangesAsync();
+            return package;
+        }
+
+        /// <summary>
         /// L'espositore accettato di un evento con pacchetto attivo, se l'avviso è pubblicato il giorno dell'evento
         /// (a nome proprio o del proprio negozio). Null altrimenti.
         /// </summary>

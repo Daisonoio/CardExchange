@@ -310,7 +310,8 @@ namespace CardExchange.API.Services.Prices
                         await commissions.ApproveAsync(now, ct);
                 }
 
-                // Inviti con premio: nuovi invitati attivi e mesi Premium guadagnati
+                // Inviti con premio: nuovi invitati attivi e mesi Premium guadagnati (solo con i piani a pagamento accesi)
+                if (_configuration.GetValue("Features:PaidPlans", false))
                 using (var referralScope = _scopeFactory.CreateScope())
                 {
                     await referralScope.ServiceProvider.GetRequiredService<CardExchange.API.Services.ReferralRewards>().RunAsync(DateTime.UtcNow, ct);

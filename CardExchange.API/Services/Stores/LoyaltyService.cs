@@ -127,7 +127,7 @@ namespace CardExchange.API.Services.Stores
 
         public async Task<LoyaltyProgram> ConfigureAsync(Store store, int stampsRequired, string reward, bool isActive)
         {
-            if (!await StoreHasPlanAsync(store)) throw new LoyaltyException("La tessera fedeltà è inclusa nel piano Negozio", "PLAN_REQUIRED", 402);
+            if (!await StoreHasPlanAsync(store)) throw new LoyaltyException(CardExchange.API.Authorization.CapabilityText.UpgradeMessage(Capability.Loyalty), "PLAN_REQUIRED", 402);
             reward = (reward ?? "").Trim();
             if (stampsRequired is < MinStamps or > MaxStamps) throw new LoyaltyException($"I timbri devono essere tra {MinStamps} e {MaxStamps}");
             if (reward.Length is < 3 or > 120) throw new LoyaltyException("Descrivi il premio (da 3 a 120 caratteri)");

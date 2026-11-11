@@ -22,7 +22,9 @@ namespace CardExchange.Core.Rules
         Reservations,
         SellerShowcase,
         HidesBrandSponsors,
-        Loyalty
+        Loyalty,
+        /// <summary>Espositori, piantina e "Sono qui" dagli stand sui propri eventi.</summary>
+        EventExhibitors
     }
 
     /// <summary>Limiti numerici che dipendono dal piano (int.MaxValue = illimitato).</summary>
@@ -45,12 +47,15 @@ namespace CardExchange.Core.Rules
         IReadOnlySet<Capability> Capabilities,
         IReadOnlyDictionary<PlanLimit, int> Limits)
     {
+        /// <summary>Tipo di profilo da cui vengono le funzioni.</summary>
+        public ProfileType Profile { get; init; } = ProfileType.Collector;
+
         public bool Has(Capability c) => Capabilities.Contains(c);
         public int Limit(PlanLimit l) => Limits.TryGetValue(l, out var v) ? v : 0;
         public bool IsPaid => Tier != SubscriptionTier.Free;
 
         /// <summary>Etichetta mostrata accanto al nome (Premium, Negozio…), solo con il badge verificato.</summary>
-        public string? Badge => Has(Capability.VerifiedBadge) ? BadgeFor(Tier) : null;
+        public string? Badge => Has(Capability.VerifiedBadge) ? (Profile == ProfileType.Store ? "Store" : BadgeFor(Tier)) : null;
 
         /// <summary>Etichetta pubblica del piano: "Store" per Negozio e Negozio Pro, "Premium" per Premium e Banco.</summary>
         public static string BadgeFor(SubscriptionTier t) => t switch
@@ -90,6 +95,7 @@ namespace CardExchange.Core.Rules
             if (p.HasSellerShowcase) yield return Capability.SellerShowcase;
             if (p.HidesBrandSponsors) yield return Capability.HidesBrandSponsors;
             if (p.HasLoyalty) yield return Capability.Loyalty;
+            if (p.HasEventExhibitors) yield return Capability.EventExhibitors;
         }
 
         public static IReadOnlyDictionary<PlanLimit, int> LimitsOf(SubscriptionPlan p) => new Dictionary<PlanLimit, int>
@@ -104,6 +110,19 @@ namespace CardExchange.Core.Rules
             [PlanLimit.MonthlyPromotionCredits] = p.MonthlyPromotionCredits,
         };
 
+        /// <summary>
+        /// Diritti dal tipo di profilo, più quelli dei piani attivi solo se i piani a pagamento sono accesi.
+        /// </summary>
+        public static UserEntitlements ForProfile(ProfileType profile, int freeMaxCards, IEnumerable<SubscriptionPlan> activePlans, bool paidPlans)
+        {
+            var baseRights = ProfileCatalog.Rights(profile, freeMaxCards, paidPlans);
+            var e = Combine(baseRights, paidPlans ? activePlans : Array.Empty<SubscriptionPlan>());
+            // Il badge del negozio viene dal profilo, non da un abbonamento
+            var tier = e.Tier == SubscriptionTier.Free && profile == ProfileType.Store ? SubscriptionTier.Store : e.Tier;
+            var name = e.Tier == SubscriptionTier.Free ? ProfileCatalog.Name(profile) : e.PlanName;
+            return e with { Tier = tier, PlanName = name, Profile = profile };
+        }
+
         /// <summary>Unisce il piano gratuito con i piani attivi: diritti sommati, limiti massimi.</summary>
         public static UserEntitlements Combine(SubscriptionPlan free, IEnumerable<SubscriptionPlan> active)
         {
@@ -117,6 +136,52 @@ namespace CardExchange.Core.Rules
             }
             var top = plans.OrderByDescending(p => Rank(p.Tier)).FirstOrDefault();
             return new UserEntitlements(top?.Tier ?? SubscriptionTier.Free, top?.Name ?? "Gratuito", caps, limits);
+        }
+    }
+
+    /// <summary>
+    /// Funzioni e limiti di ogni tipo di profilo: unica fonte per decidere cosa può fare un utente.
+    /// Ogni tipo parte dal Collezionista e aggiunge le sue funzioni.
+    /// </summary>
+    public static class ProfileCatalog
+    {
+        /// <summary>Raggio di ricerca per tutti durante il lancio.</summary>
+        public const int RadiusKm = 80;
+
+        public static string Name(ProfileType p) => p switch
+        {
+            ProfileType.Seller => "Venditore",
+            ProfileType.Store => "Negozio",
+            ProfileType.Organizer => "Organizzatore",
+            _ => "Collezionista"
+        };
+
+        /// <summary>Diritti del profilo, espressi come un piano (così si combinano con eventuali piani a pagamento).</summary>
+        public static SubscriptionPlan Rights(ProfileType profile, int freeMaxCards, bool paidPlans = false)
+        {
+            var p = PlanCatalog.Free(freeMaxCards);
+            p.Name = Name(profile);
+            p.MaxRadiusKm = RadiusKm;
+            // Con i piani spenti nessuno compra l'accesso anticipato: nessuna carta nuova resta nascosta per due ore
+            p.HasEarlyAccess = !paidPlans;
+            switch (profile)
+            {
+                case ProfileType.Seller:
+                    p.HasSellerShowcase = true;
+                    p.MaxBroadcastsPerDay = 8;
+                    break;
+                case ProfileType.Store:
+                    p.HasFeaturedStore = p.HasLoyalty = p.HasLocalDemand = p.HasBuylist = p.HasReservations = true;
+                    p.HasVerifiedBadge = true;
+                    p.HasEventExhibitors = true;
+                    p.MaxBroadcastsPerDay = 8;
+                    break;
+                case ProfileType.Organizer:
+                    p.HasEventExhibitors = true;
+                    p.MaxBroadcastsPerDay = 8;
+                    break;
+            }
+            return p;
         }
     }
 
@@ -203,7 +268,7 @@ namespace CardExchange.Core.Rules
             target.HasInstantAlerts = source.HasInstantAlerts; target.HasEarlyAccess = source.HasEarlyAccess;
             target.HasPriceAlerts = source.HasPriceAlerts; target.HasFeaturedStore = source.HasFeaturedStore;
             target.HasLocalDemand = source.HasLocalDemand; target.HasBuylist = source.HasBuylist;
-            target.HasReservations = source.HasReservations; target.HasLoyalty = source.HasLoyalty; target.HasSellerShowcase = source.HasSellerShowcase;
+            target.HasReservations = source.HasReservations; target.HasLoyalty = source.HasLoyalty; target.HasEventExhibitors = source.HasEventExhibitors; target.HasSellerShowcase = source.HasSellerShowcase;
             target.HidesBrandSponsors = source.HidesBrandSponsors;
             if (!source.IsActive) target.IsActive = false;
         }

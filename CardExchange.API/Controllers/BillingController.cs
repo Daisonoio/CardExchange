@@ -1,3 +1,4 @@
+using CardExchange.API.Authorization;
 using CardExchange.API.Configuration;
 using CardExchange.API.Services.Billing;
 using CardExchange.Core.Entities;
@@ -36,6 +37,7 @@ namespace CardExchange.API.Controllers
             public int PlanId { get; set; }
         }
 
+        [RequirePaidPlans]
         [HttpPost("stripe/checkout")]
         public async Task<IActionResult> Checkout([FromBody] CheckoutRequest request)
         {
@@ -67,6 +69,7 @@ namespace CardExchange.API.Controllers
             }
         }
 
+        [RequirePaidPlans]
         [HttpPost("stripe/portal")]
         public async Task<IActionResult> Portal()
         {

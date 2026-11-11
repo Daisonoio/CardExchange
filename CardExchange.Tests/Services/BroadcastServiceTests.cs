@@ -154,10 +154,9 @@ public class BroadcastServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task BancoPlan_SendsTheEighthBroadcast_FreeIsStoppedAtTheFourth()
+    public async Task SellerProfile_SendsTheEighthBroadcast_CollectorIsStoppedAtTheFourth()
     {
-        var banco = PlanCatalog.All().Single(p => p.Name == "Banco");
-        _context.UserSubscriptions.Add(new UserSubscription { UserId = _seller.Id, Plan = banco, Status = SubscriptionStatus.Active, StartDate = DateTime.UtcNow.AddDays(-1), EndDate = DateTime.UtcNow.AddDays(29) });
+        _seller.ProfileType = ProfileType.Seller;
         var free = AddUser("free", Lat, Lon);
         await _context.SaveChangesAsync();
 

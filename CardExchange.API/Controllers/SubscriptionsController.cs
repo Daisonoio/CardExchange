@@ -49,6 +49,7 @@ namespace CardExchange.API.Controllers
         }
 
         /// <summary>Piani disponibili.</summary>
+        [RequirePaidPlans]
         [HttpGet("plans")]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<SubscriptionPlanDto>>> GetPlans()
@@ -147,6 +148,7 @@ namespace CardExchange.API.Controllers
         /// Attivazione immediata senza pagamento: solo in sviluppo (Subscriptions:AllowSimulatedPayments=true).
         /// In produzione si paga con carta (Stripe) o con bonifico.
         /// </summary>
+        [RequirePaidPlans]
         [HttpPost("subscribe")]
         public async Task<ActionResult<UserSubscriptionDto>> Subscribe([FromBody] CreateSubscriptionRequest request)
         {
@@ -181,6 +183,7 @@ namespace CardExchange.API.Controllers
         /// Richiesta di pagamento con bonifico: restituisce importo, IBAN e causale. Il piano si attiva quando un
         /// amministratore registra il bonifico ricevuto.
         /// </summary>
+        [RequirePaidPlans]
         [HttpPost("bank-transfer")]
         public async Task<IActionResult> RequestBankTransfer([FromBody] BankTransferRequest request)
         {

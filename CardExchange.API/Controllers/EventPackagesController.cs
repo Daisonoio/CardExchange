@@ -1,6 +1,8 @@
+using CardExchange.API.Authorization;
 using System.Security.Claims;
 using CardExchange.API.Configuration;
 using CardExchange.API.Services.Billing;
+using CardExchange.API.Services.Entitlements;
 using CardExchange.API.Services.Events;
 using CardExchange.API.Services.Moderation;
 using CardExchange.Core.Entities;
@@ -53,9 +55,11 @@ namespace CardExchange.API.Controllers
             var (ev, error) = await OwnEventAsync(id);
             if (ev == null) return error!;
             var package = await _context.EventPackages.AsNoTracking().FirstOrDefaultAsync(p => p.EventId == id);
+            // Negozi e organizzatori hanno gli espositori dal profilo, senza acquisto
+            var byProfile = await this.Entitlements(_context).HasAsync(ev.OrganizerId, Capability.EventExhibitors);
             var tiers = Products.Select(kv => new { tier = kv.Key.ToString(), priceEur = PurchaseCatalog.Find(kv.Value)!.PriceEur, featuredRadiusKm = EventPackages.FeaturedRadiusKm(kv.Key) });
             object? results = null;
-            if (package != null)
+            if (package != null || byProfile)
             {
                 var exhibitors = await _context.EventExhibitors.AsNoTracking().Where(x => x.EventId == id).ToListAsync();
                 var accepted = exhibitors.Where(x => x.AcceptedAt != null).ToList();
@@ -66,11 +70,13 @@ namespace CardExchange.API.Controllers
                 var to = (ev.EndDate ?? ev.StartDate).AddDays(1);
                 var newFollowers = await _context.Follows.AsNoTracking().CountAsync(f => f.CreatedAt >= from && f.CreatedAt <= to
                     && ((f.FollowedUserId != null && userIds.Contains(f.FollowedUserId.Value)) || (f.FollowedStoreId != null && storeIds.Contains(f.FollowedStoreId.Value))));
-                results = new { pageViews = package.PageViews, exhibitors = exhibitors.Count, accepted = accepted.Count, broadcasts, newFollowers };
+                results = new { pageViews = package?.PageViews ?? 0, exhibitors = exhibitors.Count, accepted = accepted.Count, broadcasts, newFollowers };
             }
             return Ok(new
             {
-                active = package != null,
+                active = package != null || byProfile,
+                byProfile,
+                floorPlan = byProfile || (package != null && EventPackages.HasFloorPlan(package.Tier)),
                 tier = package?.Tier.ToString(),
                 floorPlanImageUrl = package?.FloorPlanImageUrl,
                 canBuyByCard = configuration.GetValue("Purchases:Enabled", false) && stripe.IsEnabled,
@@ -80,6 +86,7 @@ namespace CardExchange.API.Controllers
         }
 
         /// <summary>Acquisto con la carta (Stripe): il pacchetto si attiva dalla conferma del pagamento.</summary>
+        [RequirePaidPlans]
         [HttpPost("api/events/{id:int}/package")]
         public async Task<IActionResult> Buy(int id, [FromBody] BuyRequest request, [FromServices] PurchaseService purchases,
             [FromServices] IStripeBilling stripe, [FromServices] IConfiguration configuration, [FromServices] IOptions<EmailSettings> email)
@@ -122,8 +129,9 @@ namespace CardExchange.API.Controllers
         {
             var (ev, error) = await OwnEventAsync(id);
             if (ev == null) return error!;
-            var package = await _context.EventPackages.FirstOrDefaultAsync(p => p.EventId == id);
-            if (package == null || !EventPackages.HasFloorPlan(package.Tier)) return StatusCode(402, new { message = "La piantina è inclusa nei pacchetti Plus e Regione" });
+            var byProfile = await this.Entitlements(_context).HasAsync(ev.OrganizerId, Capability.EventExhibitors);
+            var package = await EventPackages.EnsureAsync(_context, this.Entitlements(_context), ev, DateTime.UtcNow);
+            if (package == null || (!byProfile && !EventPackages.HasFloorPlan(package.Tier))) return StatusCode(402, new { message = "La piantina è inclusa nei pacchetti Plus e Regione" });
             var url = string.IsNullOrWhiteSpace(request.Url) ? null : request.Url.Trim();
             if (url != null && (url.Length > 300 || !Uri.TryCreate(url, UriKind.Absolute, out var u) || u.Scheme != Uri.UriSchemeHttps))
                 return BadRequest(new { message = "La piantina deve essere un indirizzo https" });
@@ -153,7 +161,8 @@ namespace CardExchange.API.Controllers
         {
             var (ev, error) = await OwnEventAsync(id);
             if (ev == null) return error!;
-            if (!await _context.EventPackages.AnyAsync(p => p.EventId == id)) return StatusCode(402, new { message = "Gli espositori sono inclusi nel pacchetto organizzatori" });
+            if (await EventPackages.EnsureAsync(_context, this.Entitlements(_context), ev, DateTime.UtcNow) == null)
+                return StatusCode(402, new { message = "Gli espositori sono inclusi nel pacchetto organizzatori" });
             var name = (request.Name ?? "").Trim();
             var booth = (request.BoothCode ?? "").Trim();
             if (name.Length is < 2 or > 80) return BadRequest(new { message = "Indica il nome dell'espositore (da 2 a 80 caratteri)" });

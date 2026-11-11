@@ -3223,6 +3223,9 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Property<bool>("HasEarlyAccess")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("HasEventExhibitors")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("HasFeaturedStore")
                         .HasColumnType("bit");
 
@@ -3636,6 +3639,9 @@ namespace CardExchange.Infrastructure.Migrations
 
                     b.Property<decimal>("PriceSpikeThreshold")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProfileType")
+                        .HasColumnType("int");
 
                     b.Property<string>("ReferralCode")
                         .HasMaxLength(12)

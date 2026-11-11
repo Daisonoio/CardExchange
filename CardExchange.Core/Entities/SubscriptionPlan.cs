@@ -76,6 +76,8 @@ namespace CardExchange.Core.Entities
         public bool HasReservations { get; set; }
         /// <summary>Tessera fedeltà con timbri (Negozio e Negozio Pro).</summary>
         public bool HasLoyalty { get; set; }
+        /// <summary>Espositori sui propri eventi (profili Negozio e Organizzatore).</summary>
+        public bool HasEventExhibitors { get; set; }
         public bool HasSellerShowcase { get; set; }
         public bool HidesBrandSponsors { get; set; }
         /// <summary>Prezzo Stripe collegato (facoltativo: senza, il Checkout usa il prezzo del piano).</summary>

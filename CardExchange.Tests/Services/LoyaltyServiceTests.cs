@@ -38,17 +38,15 @@ public class LoyaltyServiceTests : IDisposable
     private LoyaltyService Service(ApplicationDbContext db) =>
         new(db, _notifications.Object, Options.Create(new JwtSettings { SecretKey = Key }));
 
-    private async Task<Store> SeedAsync(string plan = "Negozio", bool program = true)
+    private async Task<Store> SeedAsync(ProfileType profile = ProfileType.Store, bool program = true)
     {
         await using var db = NewContext();
-        var owner = new User { Email = "o@t.it", Username = "owner", PasswordHash = "x" };
+        var owner = new User { Email = "o@t.it", Username = "owner", PasswordHash = "x", ProfileType = profile };
         var user = new User { Email = "u@t.it", Username = "giulia", PasswordHash = "x" };
         db.Users.AddRange(owner, user);
         await db.SaveChangesAsync();
         var store = new Store { Name = "Games Corner", City = "Milano", Address = "Via Roma 1", OwnerId = owner.Id, Status = StoreStatus.Verified };
         db.Stores.Add(store);
-        var p = CardExchange.Core.Rules.PlanCatalog.All().Single(x => x.Name == plan);
-        db.UserSubscriptions.Add(new UserSubscription { UserId = owner.Id, Plan = p, Status = SubscriptionStatus.Active, StartDate = DateTime.UtcNow.AddDays(-1), EndDate = DateTime.UtcNow.AddDays(30) });
         await db.SaveChangesAsync();
         if (program) db.LoyaltyPrograms.Add(new LoyaltyProgram { StoreId = store.Id, StampsRequired = 3, RewardDescription = "Una bustina in omaggio" });
         await db.SaveChangesAsync();
@@ -158,7 +156,7 @@ public class LoyaltyServiceTests : IDisposable
     [Fact]
     public async Task WithoutStorePlan_NoStampAndConfigureRefused()
     {
-        var store = await SeedAsync(plan: "Premium Mensile");
+        var store = await SeedAsync(profile: ProfileType.Collector);
         await using var db = NewContext();
         var r = await Service(db).StampAsync(store, _userId, LoyaltyStampSource.EventCheckIn, null, _now);
         r.Outcome.Should().Be(StampOutcome.NoProgram);

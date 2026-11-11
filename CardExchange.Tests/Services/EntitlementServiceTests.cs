@@ -29,7 +29,7 @@ public class EntitlementServiceTests : IDisposable
         _cache.Dispose();
     }
 
-    private EntitlementService Service => new(_db, _cache);
+    private EntitlementService Service => new(_db, _cache, null, TestEntitlements.PaidOptions);
 
     private async Task<int> UserWithAsync(params string[] plans)
     {
@@ -53,7 +53,7 @@ public class EntitlementServiceTests : IDisposable
         var pro = await Service.GetAsync(await UserWithAsync("Negozio Pro"));
 
         free.Should().Match<UserEntitlements>(e => e.Tier == SubscriptionTier.Free && !e.IsPaid && e.Capabilities.Count == 0);
-        (free.Limit(PlanLimit.RadiusKm), free.Limit(PlanLimit.BroadcastsPerDay), free.Limit(PlanLimit.WishlistItems)).Should().Be((30, 3, 20));
+        (free.Limit(PlanLimit.RadiusKm), free.Limit(PlanLimit.BroadcastsPerDay), free.Limit(PlanLimit.WishlistItems)).Should().Be((ProfileCatalog.RadiusKm, 3, 20));
 
         premium.Has(Capability.InstantAlerts).Should().BeTrue();
         premium.Has(Capability.FeaturedStore).Should().BeFalse();
@@ -115,5 +115,63 @@ public class EntitlementServiceTests : IDisposable
         var old = PlanCatalog.All().Single(p => p.Name == "Negozio Annuale");
         old.IsActive.Should().BeFalse();
         UserEntitlements.CapabilitiesOf(old).Should().Contain(Capability.FeaturedStore).And.NotContain(Capability.LocalDemand);
+    }
+
+    // ---------------------------------------------------------------- tipi di profilo (piani spenti, come al lancio)
+
+    private EntitlementService ProfileService => new(_db, _cache);
+
+    private async Task<int> UserAsync(ProfileType profile, params string[] plans)
+    {
+        var u = new User { Email = $"{Guid.NewGuid():N}@t.it", Username = Guid.NewGuid().ToString("N")[..10], PasswordHash = "x", ProfileType = profile };
+        _db.Users.Add(u);
+        await _db.SaveChangesAsync();
+        foreach (var name in plans)
+            _db.UserSubscriptions.Add(new UserSubscription { UserId = u.Id, PlanId = _db.SubscriptionPlans.Single(p => p.Name == name).Id,
+                Status = SubscriptionStatus.Active, StartDate = _now.AddDays(-1), EndDate = _now.AddDays(30) });
+        await _db.SaveChangesAsync();
+        return u.Id;
+    }
+
+    [Fact]
+    public async Task ProfileTypes_DecideTheFeatures_PlansAreIgnoredWhileOff()
+    {
+        var svc = ProfileService;
+        var collector = await svc.GetAsync(await UserAsync(ProfileType.Collector, "Negozio Pro"));
+        var seller = await svc.GetAsync(await UserAsync(ProfileType.Seller));
+        var store = await svc.GetAsync(await UserAsync(ProfileType.Store));
+        var organizer = await svc.GetAsync(await UserAsync(ProfileType.Organizer));
+
+        // Un piano pagato non conta finché i piani sono spenti
+        collector.Has(Capability.Buylist).Should().BeFalse();
+        collector.Limit(PlanLimit.RadiusKm).Should().Be(80);
+        collector.Limit(PlanLimit.BroadcastsPerDay).Should().Be(3);
+        collector.Has(Capability.EarlyAccess).Should().BeTrue("nessuna carta nuova resta nascosta a chi non paga");
+
+        seller.Has(Capability.SellerShowcase).Should().BeTrue();
+        seller.Limit(PlanLimit.BroadcastsPerDay).Should().Be(8);
+        seller.Has(Capability.Buylist).Should().BeFalse();
+
+        store.Has(Capability.Buylist).Should().BeTrue();
+        store.Has(Capability.Reservations).Should().BeTrue();
+        store.Has(Capability.Loyalty).Should().BeTrue();
+        store.Has(Capability.LocalDemand).Should().BeTrue();
+        store.Has(Capability.EventExhibitors).Should().BeTrue();
+        store.Badge.Should().Be("Store");
+        store.Has(Capability.SellerShowcase).Should().BeFalse();
+
+        organizer.Has(Capability.EventExhibitors).Should().BeTrue();
+        organizer.Has(Capability.Buylist).Should().BeFalse();
+        organizer.Badge.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ChangingTheProfileType_RefreshesTheCache()
+    {
+        var id = await UserAsync(ProfileType.Collector);
+        (await ProfileService.HasAsync(id, Capability.Buylist)).Should().BeFalse();
+        (await _db.Users.SingleAsync(u => u.Id == id)).ProfileType = ProfileType.Store;
+        await _db.SaveChangesAsync();
+        (await ProfileService.HasAsync(id, Capability.Buylist)).Should().BeTrue();
     }
 }

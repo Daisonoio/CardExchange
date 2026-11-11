@@ -51,8 +51,7 @@ public class BuyListServiceTests : IDisposable
         await db.SaveChangesAsync();
         _store = new Store { Name = "Games Corner", City = "Milano", Address = "Via Roma 1", OwnerId = owner.Id, Status = StoreStatus.Verified, Latitude = 45.46m, Longitude = 9.19m };
         db.Stores.Add(_store);
-        db.UserSubscriptions.Add(new UserSubscription { UserId = owner.Id, Plan = CardExchange.Core.Rules.PlanCatalog.All().Single(p => p.Name == "Negozio Pro"),
-            Status = SubscriptionStatus.Active, StartDate = _now.AddDays(-1), EndDate = _now.AddDays(60) });
+        owner.ProfileType = ProfileType.Store;
         foreach (var (name, cond, age) in new[] { ("good", CardCondition.NearMint, 30), ("good2", CardCondition.Excellent, 25), ("worn", CardCondition.HeavilyPlayed, 30), ("minor", CardCondition.Mint, 15) })
         {
             var u = new User { Email = $"{name}@t.it", Username = name, PasswordHash = "x", BirthDate = DateOnly.FromDateTime(_now).AddYears(-age),

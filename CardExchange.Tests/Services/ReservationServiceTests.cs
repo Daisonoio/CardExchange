@@ -36,6 +36,7 @@ public class ReservationServiceTests : IDisposable
         new(new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite($"Data Source={_path};Default Timeout=30").Options);
 
     private ReservationService Service(ApplicationDbContext db) => new(db, _notifications.Object, _blocks.Object, new Mock<ILogger<ReservationService>>().Object);
+    private ReservationService PaidService(ApplicationDbContext db) => new(db, _notifications.Object, _blocks.Object, new Mock<ILogger<ReservationService>>().Object, TestEntitlements.Paid(db));
 
     private async Task SeedAsync(int copies = 1, bool storePlan = true, int users = 3)
     {
@@ -54,8 +55,8 @@ public class ReservationServiceTests : IDisposable
         db.Cards.Add(card);
         if (storePlan)
         {
-            var plan = CardExchange.Core.Rules.PlanCatalog.All().Single(p => p.Name == "Negozio Pro");
-            db.UserSubscriptions.Add(new UserSubscription { UserId = owner.Id, Plan = plan, Status = SubscriptionStatus.Active, StartDate = _now.AddDays(-1), EndDate = _now.AddDays(30) });
+            // Le funzioni del negozio vengono dal tipo di profilo
+            owner.ProfileType = ProfileType.Store;
         }
         await db.SaveChangesAsync();
         // Carta caricata da più di 2 ore: fuori dall'accesso anticipato Premium
@@ -136,8 +137,7 @@ public class ReservationServiceTests : IDisposable
         {
             var noPlan = () => Service(db).CreateAsync(_storeId, _users[0], _cardId, 1, _now);
             await noPlan.Should().ThrowAsync<ReservationException>().WithMessage("*non accetta prenotazioni*");
-            var plan = CardExchange.Core.Rules.PlanCatalog.All().Single(p => p.Name == "Negozio Pro");
-            db.UserSubscriptions.Add(new UserSubscription { UserId = _ownerId, Plan = plan, Status = SubscriptionStatus.Active, StartDate = _now.AddDays(-1), EndDate = _now.AddDays(90) });
+            (await db.Users.SingleAsync(u => u.Id == _ownerId)).ProfileType = ProfileType.Store;
             await db.SaveChangesAsync();
         }
         await using (var db = NewContext())
@@ -189,13 +189,19 @@ public class ReservationServiceTests : IDisposable
         await SeedAsync(copies: 2);
         await using var db = NewContext();
         await db.Database.ExecuteSqlRawAsync("UPDATE Cards SET CreatedAt = {0} WHERE Id = {1}", _now.AddMinutes(-30), _cardId);
-        var free = () => Service(db).CreateAsync(_storeId, _users[0], _cardId, 1, _now);
+        // Piani spenti: nessun accesso anticipato, la carta nuova è subito prenotabile da tutti
+        (await Service(db).CreateAsync(_storeId, _users[2], _cardId, 1, _now)).Should().NotBeNull();
+        await db.Database.ExecuteSqlRawAsync("UPDATE Cards SET ReservedQuantity = 0 WHERE Id = {0}", _cardId);
+        await db.Database.ExecuteSqlRawAsync("DELETE FROM Reservations");
+
+        // Piani accesi: per 2 ore solo i Premium
+        var free = () => PaidService(db).CreateAsync(_storeId, _users[0], _cardId, 1, _now);
         await free.Should().ThrowAsync<ReservationException>().WithMessage("*90 minuti*solo i Premium*");
 
         db.UserSubscriptions.Add(new UserSubscription { UserId = _users[1], Plan = CardExchange.Core.Rules.PlanCatalog.All().First(p => p.Name == "Premium Mensile"),
             Status = SubscriptionStatus.Active, StartDate = _now.AddDays(-1), EndDate = _now.AddDays(30) });
         await db.SaveChangesAsync();
-        (await Service(db).CreateAsync(_storeId, _users[1], _cardId, 1, _now)).Should().NotBeNull();
-        (await Service(db).CreateAsync(_storeId, _users[0], _cardId, 1, _now.AddMinutes(91))).Should().NotBeNull("dopo 2 ore la vedono tutti");
+        (await PaidService(db).CreateAsync(_storeId, _users[1], _cardId, 1, _now)).Should().NotBeNull();
+        (await PaidService(db).CreateAsync(_storeId, _users[0], _cardId, 1, _now.AddMinutes(91))).Should().NotBeNull("dopo 2 ore la vedono tutti");
     }
 }

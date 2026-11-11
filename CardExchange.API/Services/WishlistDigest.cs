@@ -18,8 +18,12 @@ namespace CardExchange.API.Services
         private readonly INotificationDispatcher _dispatcher;
         private readonly ILogger<WishlistDigest> _logger;
 
-        public WishlistDigest(ApplicationDbContext db, INotificationDispatcher dispatcher, ILogger<WishlistDigest> logger)
+        private readonly bool _paidPlans;
+
+        public WishlistDigest(ApplicationDbContext db, INotificationDispatcher dispatcher, ILogger<WishlistDigest> logger,
+            Microsoft.Extensions.Options.IOptions<CardExchange.API.Configuration.FeatureOptions>? features = null)
         {
+            _paidPlans = features?.Value.PaidPlans ?? false;
             _db = db;
             _dispatcher = dispatcher;
             _logger = logger;
@@ -51,7 +55,7 @@ namespace CardExchange.API.Services
                 var list = string.Join(", ", names.Take(MaxNames)) + (names.Count > MaxNames ? $" e altre {names.Count - MaxNames}" : "");
                 var body = (due.Count == 1 ? $"Oggi è stata disponibile vicino a te una carta che cerchi: {list}." : $"Oggi sono state disponibili vicino a te {due.Count} carte che cerchi: {list}.")
                            + (gone > 0 ? (gone == 1 ? " Una è già stata presa." : $" {gone} sono già state prese.") : "")
-                           + $" Con Premium l'avresti saputo {(hoursEarlier == 1 ? "1 ora" : $"{hoursEarlier} ore")} prima.";
+                           + (_paidPlans ? $" Con Premium l'avresti saputo {(hoursEarlier == 1 ? "1 ora" : $"{hoursEarlier} ore")} prima." : "");
                 payloads.Add(new NotificationPayload
                 {
                     UserId = group.Key, Type = NotificationType.WishlistMatch,

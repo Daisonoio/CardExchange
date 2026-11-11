@@ -23,6 +23,9 @@ namespace CardExchange.Core.Entities
         /// <summary>Data di nascita, per verificare l'età minima (null per gli account creati prima del controllo).</summary>
         public DateOnly? BirthDate { get; set; }
 
+        /// <summary>Tipo di profilo (funzioni disponibili). Si cambia solo dall'amministrazione.</summary>
+        public ProfileType ProfileType { get; set; } = ProfileType.Collector;
+
         /// <summary>Quando ha accettato termini d'uso e preso visione dell'informativa, e quale versione.</summary>
         public DateTime? TermsAcceptedAt { get; set; }
         [MaxLength(20)]

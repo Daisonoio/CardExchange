@@ -1,3 +1,4 @@
+using CardExchange.API.Authorization;
 using System.Security.Claims;
 using CardExchange.API.Configuration;
 using CardExchange.API.Services.Billing;
@@ -35,6 +36,7 @@ namespace CardExchange.API.Controllers
         private IActionResult Fail(PromotionException ex) => StatusCode(ex.Status, new { message = ex.Message, code = ex.Code });
 
         /// <summary>Tariffe in crediti per tipo e raggio, saldo e crediti mensili del piano.</summary>
+        [RequirePaidPlans]
         [HttpGet("pricing")]
         public async Task<IActionResult> Pricing()
         {
@@ -55,6 +57,7 @@ namespace CardExchange.API.Controllers
         }
 
         /// <summary>Cosa posso promuovere: i miei eventi futuri pubblicati e i miei "Sono qui" in corso.</summary>
+        [RequirePaidPlans]
         [HttpGet("targets")]
         public async Task<IActionResult> Targets()
         {
@@ -76,6 +79,7 @@ namespace CardExchange.API.Controllers
             return Ok(new { events, broadcasts, stores, showcases });
         }
 
+        [RequirePaidPlans]
         [HttpGet("estimate")]
         public async Task<IActionResult> Estimate([FromQuery] PromotionType type, [FromQuery] int targetId, [FromQuery] int radiusKm = 10)
         {
@@ -83,6 +87,7 @@ namespace CardExchange.API.Controllers
             catch (PromotionException ex) { return Fail(ex); }
         }
 
+        [RequirePaidPlans]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateRequest request)
         {
@@ -95,6 +100,7 @@ namespace CardExchange.API.Controllers
         }
 
         /// <summary>Paga con i crediti (consegna subito) o con la carta (Stripe; consegna dopo la conferma del pagamento).</summary>
+        [RequirePaidPlans]
         [HttpPost("{id:int}/pay")]
         public async Task<IActionResult> Pay(int id, [FromBody] PayRequest request,
             [FromServices] PurchaseService purchases, [FromServices] IStripeBilling stripe, [FromServices] IConfiguration configuration,

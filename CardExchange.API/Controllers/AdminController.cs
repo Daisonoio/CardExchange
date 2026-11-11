@@ -176,5 +176,20 @@ namespace CardExchange.API.Controllers
 
             return Ok(roles);
         }
+
+        public record ProfileTypeRequest(ProfileType ProfileType);
+
+        /// <summary>Cambia il tipo di profilo (Collezionista, Venditore, Negozio, Organizzatore): decide le funzioni disponibili.</summary>
+        [HttpPut("users/{id:int}/profile-type")]
+        public async Task<IActionResult> SetProfileType(int id, [FromBody] ProfileTypeRequest request)
+        {
+            if (!Enum.IsDefined(request.ProfileType)) return BadRequest(new { message = "Tipo di profilo non valido" });
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null) return NotFound(new { message = "Utente non trovato" });
+            user.ProfileType = request.ProfileType;
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Profilo dell'utente {UserId} cambiato in {Profile}", id, request.ProfileType);
+            return Ok(new { id, profileType = user.ProfileType.ToString(), message = "Tipo di profilo aggiornato" });
+        }
     }
 }

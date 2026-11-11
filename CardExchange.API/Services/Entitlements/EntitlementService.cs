@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace CardExchange.API.Services.Entitlements
 {
-    /// <summary>Unico punto da cui l'app decide cosa può fare un utente in base ai suoi piani.</summary>
+    /// <summary>Unico punto da cui l'app decide cosa può fare un utente: tipo di profilo (più i piani, se accesi).</summary>
     public interface IEntitlementService
     {
         Task<UserEntitlements> GetAsync(int userId);
@@ -18,6 +18,8 @@ namespace CardExchange.API.Services.Entitlements
         /// <summary>Diritti di più utenti in una sola lettura (badge, priorità nei match, negozi in evidenza).</summary>
         Task<Dictionary<int, UserEntitlements>> GetManyAsync(IEnumerable<int> userIds);
         void Invalidate(int userId);
+        /// <summary>Piani a pagamento accesi (Features:PaidPlans).</summary>
+        bool PaidPlans { get; }
     }
 
     public class EntitlementService : IEntitlementService
@@ -25,21 +27,26 @@ namespace CardExchange.API.Services.Entitlements
         public static readonly TimeSpan CacheFor = TimeSpan.FromMinutes(5);
         private readonly ApplicationDbContext _db;
         private readonly IMemoryCache _cache;
-        private readonly SubscriptionPlan _free;
+        private readonly int _freeMaxCards;
 
-        public EntitlementService(ApplicationDbContext db, IMemoryCache cache, IOptions<PlanLimitsOptions>? limits = null)
+        public EntitlementService(ApplicationDbContext db, IMemoryCache cache, IOptions<PlanLimitsOptions>? limits = null, IOptions<FeatureOptions>? features = null)
         {
             _db = db;
             _cache = cache;
-            _free = PlanCatalog.Free((limits?.Value ?? new PlanLimitsOptions()).EffectiveFreeMaxCards);
+            _freeMaxCards = (limits?.Value ?? new PlanLimitsOptions()).EffectiveFreeMaxCards;
+            PaidPlans = features?.Value.PaidPlans ?? false;
         }
+
+        public bool PaidPlans { get; }
+
+        private UserEntitlements Default => UserEntitlements.ForProfile(ProfileType.Collector, _freeMaxCards, Array.Empty<SubscriptionPlan>(), PaidPlans);
 
         public static string Key(int userId) => $"entitlements:{userId}";
 
         public async Task<UserEntitlements> GetAsync(int userId)
         {
             if (_cache.TryGetValue(Key(userId), out UserEntitlements? cached) && cached != null) return cached;
-            var result = (await LoadAsync(new[] { userId })).GetValueOrDefault(userId) ?? UserEntitlements.Combine(_free, Array.Empty<SubscriptionPlan>());
+            var result = (await LoadAsync(new[] { userId })).GetValueOrDefault(userId) ?? Default;
             _cache.Set(Key(userId), result, CacheFor);
             return result;
         }
@@ -62,7 +69,7 @@ namespace CardExchange.API.Services.Entitlements
             var loaded = await LoadAsync(missing);
             foreach (var id in missing)
             {
-                var e = loaded.GetValueOrDefault(id) ?? UserEntitlements.Combine(_free, Array.Empty<SubscriptionPlan>());
+                var e = loaded.GetValueOrDefault(id) ?? Default;
                 _cache.Set(Key(id), e, CacheFor);
                 result[id] = e;
             }
@@ -74,11 +81,15 @@ namespace CardExchange.API.Services.Entitlements
         private async Task<Dictionary<int, UserEntitlements>> LoadAsync(IReadOnlyCollection<int> userIds)
         {
             var now = DateTime.UtcNow;
-            var subs = await _db.UserSubscriptions.AsNoTracking().Include(s => s.Plan)
+            var profiles = await _db.Users.AsNoTracking().IgnoreQueryFilters().Where(u => userIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.ProfileType }).ToDictionaryAsync(u => u.Id, u => u.ProfileType);
+            var subs = !PaidPlans ? new List<UserSubscription>() : await _db.UserSubscriptions.AsNoTracking().Include(s => s.Plan)
                 .Where(s => userIds.Contains(s.UserId) && s.Status == SubscriptionStatus.Active && s.StartDate <= now && s.EndDate > now)
                 .ToListAsync();
-            return subs.GroupBy(s => s.UserId)
-                .ToDictionary(g => g.Key, g => UserEntitlements.Combine(_free, g.Select(s => s.Plan)));
+            var byUser = subs.GroupBy(s => s.UserId).ToDictionary(g => g.Key, g => g.Select(s => s.Plan).ToList());
+            return userIds.ToDictionary(id => id, id => UserEntitlements.ForProfile(
+                profiles.GetValueOrDefault(id, ProfileType.Collector), _freeMaxCards,
+                byUser.GetValueOrDefault(id) ?? new List<SubscriptionPlan>(), PaidPlans));
         }
     }
 
@@ -106,6 +117,10 @@ namespace CardExchange.API.Services.Entitlements
             foreach (var entry in context.ChangeTracker.Entries<UserSubscription>())
                 if (entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
                     _cache.Remove(EntitlementService.Key(entry.Entity.UserId));
+            // Cambio del tipo di profilo dall'app (dal database: entro 5 minuti, alla scadenza della cache)
+            foreach (var entry in context.ChangeTracker.Entries<User>())
+                if (entry.State == EntityState.Modified && entry.Property(u => u.ProfileType).IsModified)
+                    _cache.Remove(EntitlementService.Key(entry.Entity.Id));
         }
     }
 }

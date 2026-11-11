@@ -17,7 +17,7 @@ public class SubscriptionServiceTests : IDisposable
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         _context = new ApplicationDbContext(options);
-        _service = new SubscriptionService(_context);
+        _service = new SubscriptionService(_context, null, TestEntitlements.Paid(_context));
     }
 
     [Fact]

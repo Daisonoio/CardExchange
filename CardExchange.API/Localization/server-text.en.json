@@ -258,8 +258,6 @@
   "Notifiche push non disponibili su questo server": "Push notifications aren't available on this server",
   "Hai raggiunto il limite di {0} messaggi giornalieri": "You've reached the limit of {0} messages per day",
   "Hai raggiunto il limite di {0} offerte attive": "You've reached the limit of {0} active offers",
-  "Hai raggiunto il limite di {0} carte diverse del tuo piano": "You've reached your plan's limit of {0} different cards",
-  "Hai raggiunto il limite di {0} elementi nella wishlist del tuo piano": "You've reached your plan's limit of {0} wishlist items",
   "Il file contiene {0} righe: il massimo per singolo import è {1}. Dividilo in più file.": "The file has {0} rows: the maximum per import is {1}. Split it into several files.",
   "Per {0} il massimo è {1} righe per import: dividi il file.": "For {0} the maximum is {1} rows per import: split the file.",
   "Massimo {0} righe per import.": "Maximum {0} rows per import.",
@@ -624,5 +622,14 @@
   "Invito non valido": "Invalid invitation",
   "Questo invito è già stato usato": "This invitation has already been used",
   "Puoi partecipare solo a nome dei tuoi negozi verificati": "You can only take part on behalf of your verified stores",
-  "Sei tra gli espositori": "You're an exhibitor"
+  "Sei tra gli espositori": "You're an exhibitor",
+  "Funzione non disponibile": "Feature not available",
+  "Hai raggiunto il limite di {0} elementi nella wishlist": "You've reached the limit of {0} wishlist items",
+  "Hai raggiunto il limite di {0} carte diverse in collezione": "You've reached the limit of {0} different cards in your collection",
+  "Funzione riservata ai negozi": "Feature reserved for stores",
+  "Funzione riservata ai venditori": "Feature reserved for sellers",
+  "Funzione riservata a negozi e organizzatori": "Feature reserved for stores and organisers",
+  "I filtri per prezzo, condizione, lingua e finitura non sono disponibili.": "Price, condition, language and finish filters aren't available.",
+  "Tipo di profilo non valido": "Invalid profile type",
+  "Tipo di profilo aggiornato": "Profile type updated"
 }

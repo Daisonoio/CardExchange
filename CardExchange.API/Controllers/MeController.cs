@@ -25,6 +25,8 @@ namespace CardExchange.API.Controllers
                 tier = e.Tier.ToString(),
                 planName = e.PlanName,
                 isPaid = e.IsPaid,
+                profileType = e.Profile.ToString(),
+                paidPlans = _entitlements.PaidPlans,
                 capabilities = e.Capabilities.Select(c => c.ToString()).OrderBy(c => c),
                 // int.MaxValue = illimitato → null
                 limits = e.Limits.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value == PlanCatalog.Unlimited ? (int?)null : kv.Value)

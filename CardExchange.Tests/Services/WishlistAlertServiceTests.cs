@@ -38,7 +38,8 @@ public class WishlistAlertServiceTests : IDisposable
                 _context.SaveChanges();
             })
             .Returns(Task.CompletedTask);
-        _service = new WishlistAlertService(_context, _dispatcher.Object, new UserBlockService(_context), new Mock<ILogger<WishlistAlertService>>().Object);
+        _service = new WishlistAlertService(_context, _dispatcher.Object, new UserBlockService(_context), new Mock<ILogger<WishlistAlertService>>().Object,
+            TestEntitlements.Paid(_context));
     }
 
     public void Dispose() => _context.Dispose();
@@ -174,6 +175,6 @@ public class WishlistAlertServiceTests : IDisposable
         (await digest.RunAsync(sixPm.AddMinutes(20))).Should().Be(0, "un solo riepilogo per gli stessi avvisi");
 
         payloads.Should().ContainSingle();
-        payloads[0].Body.Should().Contain("Lightning Bolt").And.Contain("già stata presa").And.Contain("Con Premium l'avresti saputo");
+        payloads[0].Body.Should().Contain("Lightning Bolt").And.Contain("già stata presa").And.NotContain("Premium", "con i piani spenti non si cita il Premium");
     }
 }
