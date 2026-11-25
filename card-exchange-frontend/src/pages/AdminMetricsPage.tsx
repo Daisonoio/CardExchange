@@ -69,7 +69,7 @@ export default function AdminMetricsPage() {
       <label className="block">
         <span className="sr-only">{t('metrics.allCities')}</span>
         <select value={city} onChange={(e) => setCity(e.target.value)}
-          className="w-full sm:w-auto px-3 py-2 rounded-xl border border-border bg-white text-sm">
+          className="w-full sm:w-auto px-3 py-2 rounded-xl border border-border bg-surface-card text-sm">
           <option value="">{t('metrics.allCities')}</option>
           {data?.cities.map((c) => <option key={c.city} value={c.city}>{c.city} · {t('metrics.users', { count: c.users })}</option>)}
           {city && data && !data.cities.some((c) => c.city === city) && <option value={city}>{city}</option>}
@@ -88,7 +88,7 @@ export default function AdminMetricsPage() {
               const tg = TARGETS[key];
               const status = statusOf(key, value);
               return (
-                <div key={key} className="bg-white rounded-2xl border border-border/60 p-4">
+                <div key={key} className="bg-surface-card rounded-2xl border border-border/60 p-4">
                   <div className="flex items-start justify-between gap-2">
                     <h2 className="text-sm font-semibold text-text">{t(`metrics.m.${key}.label`)}</h2>
                     <span className={`shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full ${STATUS_CLS[status]}`}>{t(`metrics.status.${status}`)}</span>
@@ -107,7 +107,7 @@ export default function AdminMetricsPage() {
             })}
           </section>
 
-          <section className="bg-white rounded-2xl border border-border/60 p-4">
+          <section className="bg-surface-card rounded-2xl border border-border/60 p-4">
             <h2 className="font-semibold text-text">{t('metrics.weeks')}</h2>
             <div className="mt-2 overflow-x-auto">
               <table className="w-full text-sm tabular-nums">

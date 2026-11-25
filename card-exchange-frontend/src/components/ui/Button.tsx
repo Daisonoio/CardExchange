@@ -8,8 +8,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants = {
-  primary: 'bg-primary text-white hover:bg-primary-dark active:scale-[0.98]',
-  secondary: 'bg-secondary text-white hover:bg-amber-600 active:scale-[0.98]',
+  primary: 'bg-primary text-on-primary hover:bg-primary-dark active:scale-[0.98]',
+  secondary: 'bg-secondary text-on-primary hover:bg-amber-600 active:scale-[0.98]',
   outline: 'border border-border text-text hover:bg-surface-dark',
   ghost: 'text-text-secondary hover:bg-surface-dark',
   danger: 'bg-danger text-white hover:bg-red-600 active:scale-[0.98]',

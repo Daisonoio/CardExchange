@@ -226,7 +226,7 @@ function Carousel({ cards, onCardClick }: CardCarouselProps) {
           50% { box-shadow: 0 34px 64px rgba(15, 23, 42, 0.32), 0 14px 24px rgba(15, 23, 42, 0.24); }
         }
       `}</style>
-      <div className="relative w-full overflow-hidden rounded-2xl bg-white">
+      <div className="relative w-full overflow-hidden rounded-2xl bg-surface-card">
         {/* Slider area with perspective */}
         <div
           ref={sliderRef}
@@ -255,7 +255,7 @@ function Carousel({ cards, onCardClick }: CardCarouselProps) {
                   className="rounded-xl overflow-hidden"
                 >
                   {/* Fallback background (always present for clickable area) */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-4">
+                  <div className="absolute inset-0 bg-gradient-to-br from-surface-raised to-night flex items-center justify-center p-4">
                     <span className="text-white text-center text-sm font-bold leading-tight">
                       {card.cardName}
                     </span>
@@ -291,7 +291,7 @@ function Carousel({ cards, onCardClick }: CardCarouselProps) {
 
         {/* Info section */}
         <div className="px-4 pb-2">
-          <div className="max-w-lg mx-auto rounded-2xl bg-white/75 backdrop-blur-md border border-white/70 shadow-[0_14px_34px_rgba(15,23,42,0.12)] px-4 py-3 text-center">
+          <div className="max-w-lg mx-auto rounded-2xl bg-surface-card/85 backdrop-blur-md border border-border shadow-[0_14px_34px_rgba(0,0,0,0.35)] px-4 py-3 text-center">
             <h3 className="text-lg sm:text-xl font-bold text-text uppercase tracking-[0.08em] truncate">
               {currentCard.cardName}
             </h3>
@@ -303,10 +303,10 @@ function Carousel({ cards, onCardClick }: CardCarouselProps) {
               <span className="w-5 h-[2px] bg-border inline-block" />
             </div>
             <div className="flex items-center justify-center gap-3 mt-2 flex-wrap">
-              <span className="text-base font-bold text-amber-600 bg-amber-50 border border-amber-200/70 px-2.5 py-1 rounded-full">
+              <span className="text-base font-bold text-primary bg-primary/10 border border-primary/30 px-2.5 py-1 rounded-full">
                 {euro(currentCard.priceEur)}
               </span>
-              <span className="text-xs text-text-muted bg-white/70 px-2.5 py-1 rounded-full border border-border/60">
+              <span className="text-xs text-text-muted bg-surface-raised px-2.5 py-1 rounded-full border border-border/60">
                 {currentCard.distanceKm} km · @{currentCard.ownerUsername}
               </span>
             </div>
@@ -322,8 +322,8 @@ function Carousel({ cards, onCardClick }: CardCarouselProps) {
                 onClick={() => { if (!isAnimating) goTo(i); }}
                 className={`rounded-full transition-all duration-500 border ${
                   i === current
-                    ? 'w-7 h-2 bg-primary border-primary/70 shadow-[0_0_0_3px_rgba(59,130,246,0.18)]'
-                    : 'w-2 h-2 bg-white/85 border-gray-300/80 hover:bg-gray-100'
+                    ? 'w-7 h-2 bg-primary border-primary/70 shadow-[0_0_0_3px_rgba(245,184,46,0.18)]'
+                    : 'w-2 h-2 bg-text-muted/60 border-transparent hover:bg-text-secondary'
                 }`}
               />
             ))}

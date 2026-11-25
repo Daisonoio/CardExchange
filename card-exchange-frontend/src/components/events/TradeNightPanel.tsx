@@ -58,7 +58,7 @@ export default function TradeNightPanel({ eventId }: { eventId: number }) {
   const notStarted = new Date(live.opensAt).getTime() > Date.now();
 
   return (
-    <section className="rounded-2xl border-2 border-primary/30 bg-white p-3 space-y-3">
+    <section className="rounded-2xl border-2 border-primary/30 bg-surface-card p-3 space-y-3">
       <div className="flex items-center gap-2">
         <Radio size={16} className={live.isOpen ? 'text-red-500 animate-pulse' : 'text-text-muted'} />
         <h2 className="text-sm font-semibold flex-1">{t('tradeNight.title')}</h2>

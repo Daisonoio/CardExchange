@@ -39,7 +39,7 @@ export default function RadiusSlider({ id, value, onChange }: RadiusSliderProps)
             className="w-full accent-primary"
           />
           {lockedPct > 0 && (
-            <span aria-hidden className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 h-2 rounded-r-full bg-[repeating-linear-gradient(45deg,#e5e7eb_0_4px,#f3f4f6_4px_8px)]"
+            <span aria-hidden className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 h-2 rounded-r-full bg-[repeating-linear-gradient(45deg,#22324f_0_4px,#1b2a45_4px_8px)]"
               style={{ width: `${lockedPct}%` }} />
           )}
         </div>

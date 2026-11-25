@@ -33,7 +33,7 @@ export default function IosPushBanner() {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-border/50 mb-4">
+    <div className="bg-surface-card rounded-2xl p-4 shadow-sm border border-border/50 mb-4">
       <div className="flex items-start gap-3">
         <span className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0"><BellRing size={16} /></span>
         <div className="flex-1 min-w-0">

@@ -41,7 +41,7 @@ export default function CardGridItem({ card, onClick, selected, onPhotoClick, is
   return (
     // Nessun pulsante dentro un altro: un pulsante trasparente copre la carta, le azioni piccole stanno sopra
     <div
-      className={`relative bg-white rounded-xl overflow-hidden shadow-sm border-2 transition-all text-left ${
+      className={`relative bg-surface-card rounded-xl overflow-hidden shadow-sm border-2 transition-all text-left ${
         selected
           ? 'ring-2 ring-primary border-primary'
           : hasPriceSpike
@@ -82,7 +82,7 @@ export default function CardGridItem({ card, onClick, selected, onPhotoClick, is
 
         {/* Trade badge */}
         {card.isAvailableForTrade && (
-          <span className="absolute top-1 left-1 bg-primary text-white p-1 rounded-full shadow">
+          <span className="absolute top-1 left-1 bg-primary text-on-primary p-1 rounded-full shadow">
             <ArrowLeftRight size={10} />
           </span>
         )}

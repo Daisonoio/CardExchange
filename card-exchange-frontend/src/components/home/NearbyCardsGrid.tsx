@@ -23,7 +23,7 @@ function Tile({ card }: { card: ExploreCard }) {
   const { euro } = useFormat();
   return (
     <Link to={`/collection/${card.owner.id}`} state={{ preselectCardId: card.id, preselectCardInfoId: card.cardInfoId }}
-      className="bg-white rounded-2xl border border-border/60 overflow-hidden flex flex-col hover:border-primary/40">
+      className="bg-surface-card rounded-2xl border border-border/60 overflow-hidden flex flex-col hover:border-primary/40">
       <div className="relative aspect-[63/88] bg-surface-dark">
         {card.imageUrl
           ? <img src={card.imageUrl} alt="" loading="lazy" className="w-full h-full object-cover" />
@@ -121,7 +121,7 @@ export default function NearbyCardsGrid({ gameId, radiusKm, coords, onTotal }: P
         <div className="flex justify-center py-6"><Loader2 className="animate-spin text-primary" /></div>
       ) : hasMore && (
         <button type="button" onClick={() => setPage((p) => p + 1)}
-          className="mt-4 w-full py-2.5 rounded-xl border border-border bg-white text-sm font-semibold text-primary hover:border-primary/40">
+          className="mt-4 w-full py-2.5 rounded-xl border border-border bg-surface-card text-sm font-semibold text-primary hover:border-primary/40">
           {t('all.more')}
         </button>
       )}

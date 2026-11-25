@@ -79,7 +79,7 @@ export default function StorePage() {
       </div>
 
       {store.isOwner && store.status === 'Verified' && storeMeetups && (
-        <div className="p-3 rounded-xl bg-white border border-border">
+        <div className="p-3 rounded-xl bg-surface-card border border-border">
           <p className="text-sm font-semibold text-text flex items-center gap-1.5"><ArrowLeftRight size={16} className="text-primary" /> {t('page.meetups.title')}</p>
           {storeMeetups.upcoming.length === 0 ? (
             <p className="text-xs text-text-secondary mt-0.5">{t('page.meetups.none')}</p>
@@ -95,7 +95,7 @@ export default function StorePage() {
       )}
 
       {store.isOwner && store.status === 'Verified' && (
-        <Link to={`/stores/${store.id}/results`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
+        <Link to={`/stores/${store.id}/results`} className="flex items-center gap-3 p-3 rounded-xl bg-surface-card border border-border hover:border-primary/40">
           <BarChart3 size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
             <strong className="block text-sm text-text">{t('results.entry')}</strong>
@@ -105,7 +105,7 @@ export default function StorePage() {
       )}
 
       {store.isOwner && store.status === 'Verified' && paidPlans && (
-        <Link to={`/stores/${store.id}/earnings`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
+        <Link to={`/stores/${store.id}/earnings`} className="flex items-center gap-3 p-3 rounded-xl bg-surface-card border border-border hover:border-primary/40">
           <PiggyBank size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
             <strong className="block text-sm text-text">{t('earnings.entry')}</strong>
@@ -115,7 +115,7 @@ export default function StorePage() {
       )}
 
       {store.isOwner && store.status === 'Verified' && (paidPlans || has('Loyalty')) && (
-        <Link to={`/stores/${store.id}/loyalty`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
+        <Link to={`/stores/${store.id}/loyalty`} className="flex items-center gap-3 p-3 rounded-xl bg-surface-card border border-border hover:border-primary/40">
           <Stamp size={18} className="shrink-0 text-amber-600" />
           <span className="min-w-0">
             <strong className="block text-sm text-text">{t('loyalty:store.entry')}<PlanTag capability="Loyalty" /></strong>
@@ -136,7 +136,7 @@ export default function StorePage() {
       )}
 
       {store.isOwner && store.status === 'Verified' && (paidPlans || has('Buylist')) && (
-        <Link to={`/stores/${store.id}/buylist`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
+        <Link to={`/stores/${store.id}/buylist`} className="flex items-center gap-3 p-3 rounded-xl bg-surface-card border border-border hover:border-primary/40">
           <ShoppingCart size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
             <strong className="block text-sm text-text">{t('buylist:entry')}<PlanTag capability="Buylist" /></strong>
@@ -146,7 +146,7 @@ export default function StorePage() {
       )}
 
       {store.isOwner && store.status === 'Verified' && (paidPlans || has('Reservations')) && (
-        <Link to={`/stores/${store.id}/reservations`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
+        <Link to={`/stores/${store.id}/reservations`} className="flex items-center gap-3 p-3 rounded-xl bg-surface-card border border-border hover:border-primary/40">
           <PackageCheck size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
             <strong className="block text-sm text-text">{t('reservations:store.entry')}<PlanTag capability="Reservations" /></strong>
@@ -156,7 +156,7 @@ export default function StorePage() {
       )}
 
       {store.isOwner && store.status === 'Verified' && (paidPlans || has('LocalDemand')) && (
-        <Link to={`/stores/${store.id}/demand`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
+        <Link to={`/stores/${store.id}/demand`} className="flex items-center gap-3 p-3 rounded-xl bg-surface-card border border-border hover:border-primary/40">
           <Target size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
             <strong className="block text-sm text-text">{t('demand.entry')}<PlanTag capability="LocalDemand" /></strong>
@@ -166,7 +166,7 @@ export default function StorePage() {
       )}
 
       {store.isOwner && store.status === 'Verified' && (
-        <Link to={`/qr/store/${store.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-primary/40">
+        <Link to={`/qr/store/${store.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-surface-card border border-border hover:border-primary/40">
           <QrCode size={18} className="shrink-0 text-primary" />
           <span className="min-w-0">
             <strong className="block text-sm text-text">{t('qr:store.entry')}</strong>
@@ -178,7 +178,7 @@ export default function StorePage() {
       )}
 
       {store.isOwner && store.status === 'Verified' && (
-        <Link to={`/live/new?storeId=${store.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-primary text-white hover:bg-primary-light">
+        <Link to={`/live/new?storeId=${store.id}`} className="flex items-center gap-3 p-3 rounded-xl bg-primary text-on-primary hover:bg-primary-light">
           <Radio size={18} className="shrink-0" />
           <span className="min-w-0">
             <strong className="block text-sm">{t('live:compose.title')}</strong>
@@ -213,7 +213,7 @@ export default function StorePage() {
 
       <StoresMap items={[store]} />
 
-      <ul className="bg-white rounded-2xl border border-border divide-y divide-border/60 text-sm">
+      <ul className="bg-surface-card rounded-2xl border border-border divide-y divide-border/60 text-sm">
         <li className="flex items-start gap-3 p-3">
           <MapPin size={16} className="mt-0.5 text-primary shrink-0" />
           <div className="flex-1">
@@ -235,7 +235,7 @@ export default function StorePage() {
         </div>
       )}
 
-      <section className="bg-white rounded-2xl border border-border p-3">
+      <section className="bg-surface-card rounded-2xl border border-border p-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold flex items-center gap-2"><CalendarDays size={16} className="text-primary" /> {t('page.upcomingEvents')}</h2>
           {store.isOwner && store.status === 'Verified' && (

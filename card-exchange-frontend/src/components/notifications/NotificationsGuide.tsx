@@ -60,10 +60,10 @@ export default function NotificationsGuide({ showAll = false }: { showAll?: bool
       {!device.inAppBrowser && device.otherIosBrowser && <Warning>{t('guide.otherBrowser')}<br /><CopyLink /></Warning>}
       <ol className="space-y-2">
         {IOS_STEPS.map(({ key, Icon }, i) => (
-          <li key={key} className="flex gap-3 p-3 rounded-xl bg-white border border-border">
+          <li key={key} className="flex gap-3 p-3 rounded-xl bg-surface-card border border-border">
             <span className="relative shrink-0 w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <Icon size={20} aria-hidden />
-              <span className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center">{i + 1}</span>
+              <span className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-primary text-on-primary text-[11px] font-bold flex items-center justify-center">{i + 1}</span>
             </span>
             <span className="min-w-0">
               <strong className="block text-sm text-text">{t(`guide.steps.${key}.title`)}</strong>

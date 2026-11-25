@@ -18,7 +18,7 @@ export default function ReservationCard({ r, children, showStore = true }: { r: 
   const { euro, dateTime } = useFormat();
   const active = r.status === 'Pending' || r.status === 'Confirmed';
   return (
-    <li className="bg-white rounded-2xl border border-border p-3 space-y-2">
+    <li className="bg-surface-card rounded-2xl border border-border p-3 space-y-2">
       <div className="flex gap-3">
         {r.imageUrl
           ? <img src={r.imageUrl} alt="" loading="lazy" className="w-12 h-[67px] object-cover rounded-md bg-surface-dark shrink-0" onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} />

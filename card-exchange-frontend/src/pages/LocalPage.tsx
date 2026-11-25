@@ -14,14 +14,14 @@ export default function LocalPage() {
   return (
     <div className="pb-20">
       <h1 className="text-xl font-bold text-text mb-3">{t('local.title')}</h1>
-      <div className="flex rounded-xl border border-border overflow-hidden bg-white mb-4" role="tablist">
+      <div className="flex rounded-xl border border-border overflow-hidden bg-surface-card mb-4" role="tablist">
         {([['events', 'local.tabs.events'], ['stores', 'local.tabs.stores']] as [Tab, string][]).map(([key, labelKey]) => (
           <button
             key={key}
             role="tab"
             aria-selected={tab === key}
             onClick={() => setParams({ tab: key }, { replace: true })}
-            className={`flex-1 py-2 text-sm font-medium ${tab === key ? 'bg-primary text-white' : 'text-text-secondary'}`}
+            className={`flex-1 py-2 text-sm font-medium ${tab === key ? 'bg-primary text-on-primary' : 'text-text-secondary'}`}
           >
             {t(labelKey)}
           </button>

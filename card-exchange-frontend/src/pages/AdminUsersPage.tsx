@@ -10,7 +10,7 @@ import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 
 const PROFILES: ProfileTypeName[] = ['Collector', 'Seller', 'Store', 'Organizer'];
-const input = 'w-full px-3 py-2 rounded-xl border border-border text-sm bg-white';
+const input = 'w-full px-3 py-2 rounded-xl border border-border text-sm bg-surface-card';
 
 /** Scheda di un utente: tipo di profilo, fascia d'età, sicurezza, negozi, registro delle modifiche. */
 function UserDetail({ id, onChanged, onClose }: { id: number; onChanged: () => void; onClose: () => void }) {
@@ -46,7 +46,7 @@ function UserDetail({ id, onChanged, onClose }: { id: number; onChanged: () => v
   const suspended = !!user.chatSuspendedUntil;
 
   return (
-    <section className="bg-white rounded-2xl border border-border/60 p-4 space-y-4" data-testid="admin-user-detail">
+    <section className="bg-surface-card rounded-2xl border border-border/60 p-4 space-y-4" data-testid="admin-user-detail">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h2 className="text-lg font-bold text-text truncate">@{user.username}</h2>
@@ -185,7 +185,7 @@ export default function AdminUsersPage() {
       ) : (
         <>
           <p className="text-xs text-text-muted">{t('users.count', { count: data.total })}</p>
-          <ul className="divide-y divide-border/60 bg-white rounded-2xl border border-border/60" data-testid="admin-users">
+          <ul className="divide-y divide-border/60 bg-surface-card rounded-2xl border border-border/60" data-testid="admin-users">
             {data.items.map((u) => (
               <li key={u.id}>
                 <button type="button" onClick={() => setSelected(u.id)} className={`w-full text-left p-3 flex items-center gap-3 hover:bg-surface-dark ${selected === u.id ? 'bg-primary/5' : ''}`}>

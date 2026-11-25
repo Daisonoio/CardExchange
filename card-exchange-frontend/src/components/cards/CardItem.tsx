@@ -39,7 +39,7 @@ export default function CardItem({ card, onEdit, onDelete, onClick, showUser }: 
 
   return (
     <div
-      className={`bg-white rounded-2xl p-3 shadow-sm border border-border/50 hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer' : ''}`}
+      className={`bg-surface-card rounded-2xl p-3 shadow-sm border border-border/50 hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick ? () => onClick(card) : undefined}
     >
       <div className="flex gap-3">
@@ -77,7 +77,7 @@ export default function CardItem({ card, onEdit, onDelete, onClick, showUser }: 
                 <button className="p-1 rounded-lg hover:bg-surface-dark transition-colors">
                   <MoreHorizontal size={16} className="text-text-muted" />
                 </button>
-                <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-border py-1 hidden group-focus-within:block z-10 min-w-[120px]">
+                <div className="absolute right-0 top-full mt-1 bg-surface-card rounded-lg shadow-lg border border-border py-1 hidden group-focus-within:block z-10 min-w-[120px]">
                   {onEdit && (
                     <button
                       onClick={() => onEdit(card)}

@@ -134,7 +134,7 @@ export default function ImportCollectionSheet({ open, onClose, onImported }: {
               <select
                 value={catalogKey}
                 onChange={(e) => setCatalogKey(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm text-text"
+                className="w-full px-3 py-2.5 rounded-xl border border-border bg-surface-card text-sm text-text"
               >
                 {importable.map((g) => <option key={g.id} value={g.catalogKey}>{g.name}</option>)}
               </select>
@@ -280,7 +280,7 @@ function PreviewRow({ row, excluded, onToggle }: { row: ImportPreviewRow; exclud
   const { t } = useTranslation('collection');
   const isError = row.status === 'error';
   return (
-    <div className={`flex items-center gap-2 p-2 rounded-xl border ${isError ? 'border-red-200 bg-red-50/50' : excluded ? 'border-border opacity-50' : 'border-border bg-white'}`}>
+    <div className={`flex items-center gap-2 p-2 rounded-xl border ${isError ? 'border-red-200 bg-red-50/50' : excluded ? 'border-border opacity-50' : 'border-border bg-surface-card'}`}>
       {!isError && (
         <input type="checkbox" checked={!excluded} onChange={onToggle} aria-label={t('import.includeRow', { line: row.lineNumber })} className="accent-primary" />
       )}

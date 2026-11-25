@@ -186,7 +186,7 @@ export default function ExplorePage() {
 
   // Selettore della distanza condiviso da Carte, Zona e Utenti: il valore resta lo stesso cambiando sezione
   const radiusControl = (source: string) => (
-    <div className="bg-white rounded-2xl max-w-lg p-4 mb-4 border border-border/50">
+    <div className="bg-surface-card rounded-2xl max-w-lg p-4 mb-4 border border-border/50">
       <div className="flex items-center justify-between gap-2 mb-2">
         <label htmlFor="explore-radius" className="flex items-center gap-2 text-sm font-medium">
           <Navigation size={16} className="text-primary" />
@@ -200,7 +200,7 @@ export default function ExplorePage() {
 
   // Location prompt shown when user has no location
   const locationPrompt = (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
+    <div className="bg-surface-card rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
       <div className="flex items-center gap-2 mb-2">
         <MapPin size={16} className="text-primary" />
         <h2 className="text-sm font-bold text-text">{t('locationPrompt.title')}</h2>
@@ -231,7 +231,7 @@ export default function ExplorePage() {
         {(paidPlans || has('AdvancedSearch')) && (
         <button
           onClick={() => navigate('/search')}
-          className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-white text-xs font-semibold text-primary"
+          className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-surface-card text-xs font-semibold text-primary"
         >
           <SlidersHorizontal size={13} /> {t('advancedSearch')}
         </button>
@@ -244,8 +244,8 @@ export default function ExplorePage() {
           onClick={() => setTab('cards')}
           className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-colors ${
             tab === 'cards'
-              ? 'bg-primary text-white shadow-sm'
-              : 'bg-white text-text-secondary border border-border'
+              ? 'bg-primary text-on-primary shadow-sm'
+              : 'bg-surface-card text-text-secondary border border-border'
           }`}
         >
           <ArrowLeftRight size={12} />
@@ -255,8 +255,8 @@ export default function ExplorePage() {
           onClick={() => setTab('zone')}
           className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-colors ${
             tab === 'zone'
-              ? 'bg-primary text-white shadow-sm'
-              : 'bg-white text-text-secondary border border-border'
+              ? 'bg-primary text-on-primary shadow-sm'
+              : 'bg-surface-card text-text-secondary border border-border'
           }`}
         >
           <Map size={12} />
@@ -266,8 +266,8 @@ export default function ExplorePage() {
           onClick={() => setTab('users')}
           className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-colors ${
             tab === 'users'
-              ? 'bg-primary text-white shadow-sm'
-              : 'bg-white text-text-secondary border border-border'
+              ? 'bg-primary text-on-primary shadow-sm'
+              : 'bg-surface-card text-text-secondary border border-border'
           }`}
         >
           <MapPin size={12} />
@@ -289,7 +289,7 @@ export default function ExplorePage() {
                   placeholder={t('cards.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-surface-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
               </div>
 
@@ -330,7 +330,7 @@ export default function ExplorePage() {
       {tab === 'zone' && (
         <><div>
           {radiusControl(zoneLabel ? t('zone.center', { place: zoneLabel }) : hasProfileLocation ? t('cards.profileLocation') : t('zone.pickOnMap'))}
-          <div className="bg-white rounded-2xl max-w-3xl mx-auto p-4 mb-4 border border-border/50">
+          <div className="bg-surface-card rounded-2xl max-w-3xl mx-auto p-4 mb-4 border border-border/50">
 
             <Suspense fallback={
               <div className="flex justify-center py-12">
@@ -370,7 +370,7 @@ export default function ExplorePage() {
                     placeholder={t('zone.filterPlaceholder')}
                     value={zoneSearchTerm}
                     onChange={(e) => setZoneSearchTerm(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-surface-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
               )}
@@ -430,7 +430,7 @@ export default function ExplorePage() {
                   key={user.id}
                   to={`/collection/${user.id}`}
                   aria-label={t('users.openCollection', { username: user.username })}
-                  className="block bg-white rounded-2xl p-4 shadow-sm border border-border/50 hover:border-primary/30 hover:shadow-md active:scale-[0.99] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                  className="block bg-surface-card rounded-2xl p-4 shadow-sm border border-border/50 hover:border-primary/30 hover:shadow-md active:scale-[0.99] transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

@@ -60,17 +60,17 @@ export default function MyShowcasePage() {
       <Gate capability="SellerShowcase">
         {data.exists && (
           <div className="grid grid-cols-2 gap-2">
-            <Link to={`/v/${data.slug}`} className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white border border-border text-sm font-semibold text-primary">
+            <Link to={`/v/${data.slug}`} className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-surface-card border border-border text-sm font-semibold text-primary">
               <ExternalLink size={15} /> {t('view')}
             </Link>
-            <Link to="/qr/showcase" className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white border border-border text-sm font-semibold text-primary">
+            <Link to="/qr/showcase" className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-surface-card border border-border text-sm font-semibold text-primary">
               <QrCode size={15} /> {t('qr')}
             </Link>
           </div>
         )}
 
         {stats && (
-          <section className="bg-white rounded-2xl border border-border/60 p-4">
+          <section className="bg-surface-card rounded-2xl border border-border/60 p-4">
             <h2 className="text-sm font-bold text-text mb-2">{t('stats.title')}</h2>
             <dl className="grid grid-cols-3 gap-2 text-center">
               {([['visits', stats.visits, true], ['savedCards', stats.savedCards, true], ['contacts', stats.contacts, true],
@@ -84,7 +84,7 @@ export default function MyShowcasePage() {
           </section>
         )}
 
-        <form onSubmit={save} className="bg-white rounded-2xl border border-border/60 p-4 space-y-3">
+        <form onSubmit={save} className="bg-surface-card rounded-2xl border border-border/60 p-4 space-y-3">
           <label className="block">
             <span className="text-xs font-semibold text-text-secondary">{t('form.name')}</span>
             <input className={input} value={form.displayName} maxLength={60} onChange={(e) => setForm({ ...form, displayName: e.target.value })} />
@@ -120,7 +120,7 @@ export default function MyShowcasePage() {
                       <button type="button" onClick={() => toggle(c.id)} aria-pressed={on} title={c.name}
                         className={`relative w-full aspect-[63/88] rounded-lg overflow-hidden border-2 ${on ? 'border-primary' : 'border-transparent'}`}>
                         {c.imageUrl ? <img src={c.imageUrl} alt={c.name} loading="lazy" className="w-full h-full object-cover" /> : <span className="text-[9px] p-1">{c.name}</span>}
-                        {on && <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary text-white grid place-items-center"><Check size={12} /></span>}
+                        {on && <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary text-on-primary grid place-items-center"><Check size={12} /></span>}
                       </button>
                     </li>
                   );

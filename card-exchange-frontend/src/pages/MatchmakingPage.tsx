@@ -112,7 +112,7 @@ export default function MatchmakingPage() {
 
       {/* Filters panel */}
       {showFilters && (
-        <div className="bg-white rounded-2xl p-4 border border-border/50 shadow-sm mb-4 space-y-3">
+        <div className="bg-surface-card rounded-2xl p-4 border border-border/50 shadow-sm mb-4 space-y-3">
           <div>
             <label htmlFor="match-radius" className="text-xs font-semibold text-text-secondary block mb-1">
               {t('filters.radiusLabel')}
@@ -138,7 +138,7 @@ export default function MatchmakingPage() {
       {/* Stats bar */}
       {!isLoading && !error && matches.length > 0 && (
         <div className="grid grid-cols-3 gap-2 mb-4">
-          <div className="bg-white rounded-xl p-3 border border-border/50 text-center">
+          <div className="bg-surface-card rounded-xl p-3 border border-border/50 text-center">
             <p className="text-lg font-bold text-text">{totalMatches}</p>
             <p className="text-[10px] text-text-muted">{t('stats.found')}</p>
           </div>
@@ -146,7 +146,7 @@ export default function MatchmakingPage() {
             <p className="text-lg font-bold text-primary">{mutualCount}</p>
             <p className="text-[10px] text-primary/70">{t('stats.mutual')}</p>
           </div>
-          <div className="bg-white rounded-xl p-3 border border-border/50 text-center">
+          <div className="bg-surface-card rounded-xl p-3 border border-border/50 text-center">
             <p className="text-lg font-bold text-text">{radiusKm} km</p>
             <p className="text-[10px] text-text-muted">{t('stats.radius')}</p>
           </div>
@@ -231,15 +231,15 @@ function MatchResultCard({ match, isExpanded, onToggle, onStartTrade }: MatchRes
   });
 
   return (
-    <div className={`bg-white rounded-2xl border-2 overflow-hidden transition-all shadow-sm ${
+    <div className={`bg-surface-card rounded-2xl border-2 overflow-hidden transition-all shadow-sm ${
       isMutual ? 'border-primary/40' : 'border-border/50'
     }`}>
       {/* Header - always visible */}
       <button onClick={onToggle} className="w-full text-left p-4">
         <div className="flex items-start gap-3">
           {/* Avatar */}
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0 ${
-            isMutual ? 'bg-primary' : 'bg-gray-400'
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0 ${
+            isMutual ? 'bg-primary text-on-primary' : 'bg-gray-400 text-white'
           }`}>
             {match.avatarUrl ? (
               <img src={match.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
@@ -383,7 +383,7 @@ function MiniCard({ card, variant, selected = false, onToggle }: {
   const [imgFailed, setImgFailed] = useState(false);
   const borderColor = selected
     ? 'border-primary ring-2 ring-primary/30 bg-primary/5'
-    : variant === 'want' ? 'border-green-200 bg-white' : 'border-blue-200 bg-white';
+    : variant === 'want' ? 'border-green-200 bg-surface-card' : 'border-blue-200 bg-surface-card';
   const priorityBadge = card.wishlistPriority === 1
     ? 'bg-red-50 text-red-600'
     : card.wishlistPriority === 2
@@ -403,7 +403,7 @@ function MiniCard({ card, variant, selected = false, onToggle }: {
         <span
           aria-hidden="true"
           className={`absolute top-1.5 right-1.5 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-            selected ? 'bg-primary border-primary text-white' : 'bg-white border-border'
+            selected ? 'bg-primary border-primary text-on-primary' : 'bg-surface-card border-border'
           }`}
         >
           {selected && <Check size={12} strokeWidth={3} />}

@@ -23,7 +23,7 @@ export default function ShowcasePage() {
 
   return (
     <div className="pb-24 space-y-4 max-w-3xl">
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary to-[#2c4f86] text-white">
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-surface-raised to-night border border-border text-white">
         {data.coverImageUrl && <img src={data.coverImageUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-40" />}
         <div className="relative p-5 space-y-2">
           <span className="inline-block text-[10px] font-bold uppercase tracking-wide bg-white/20 rounded-full px-2 py-0.5">{t('badge')}</span>
@@ -36,7 +36,7 @@ export default function ShowcasePage() {
           {data.bio && <p className="text-sm text-white/90 whitespace-pre-line">{data.bio}</p>}
           <div className="flex flex-wrap gap-2 pt-1">
             {data.isOwner
-              ? <Link to="/showcase" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-primary text-sm font-semibold"><Pencil size={14} /> {t('edit')}</Link>
+              ? <Link to="/showcase" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-card text-primary text-sm font-semibold"><Pencil size={14} /> {t('edit')}</Link>
               : <FollowButton target={{ userId: data.seller.id }} showCount />}
           </div>
         </div>

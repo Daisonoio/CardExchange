@@ -43,7 +43,7 @@ export default function AdminMonitoringPage() {
 
       {data && (
         <>
-          <section className="bg-white rounded-2xl border border-border/60 p-4 space-y-2">
+          <section className="bg-surface-card rounded-2xl border border-border/60 p-4 space-y-2">
             <h2 className="font-semibold text-text">{t('monitoring.catalogs')}</h2>
             {data.localCopy && (
               <p className="text-xs text-text-secondary">
@@ -80,11 +80,11 @@ export default function AdminMonitoringPage() {
               </label>
             </div>
             {data.errors.length === 0 ? (
-              <p className="text-sm p-4 rounded-2xl bg-white border border-border/60 text-text-muted">{t('monitoring.noErrors')}</p>
+              <p className="text-sm p-4 rounded-2xl bg-surface-card border border-border/60 text-text-muted">{t('monitoring.noErrors')}</p>
             ) : (
               <ul className="space-y-2">
                 {data.errors.map((e) => (
-                  <li key={e.id} className="bg-white rounded-2xl border border-border/60 overflow-hidden">
+                  <li key={e.id} className="bg-surface-card rounded-2xl border border-border/60 overflow-hidden">
                     <button type="button" onClick={() => setOpen(open === e.id ? null : e.id)} aria-expanded={open === e.id} className="w-full text-left p-3 flex gap-3 items-start">
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 mt-0.5 ${e.source === 'Client' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'}`}>
                         {e.source === 'Client' ? t('monitoring.client') : t('monitoring.server')}

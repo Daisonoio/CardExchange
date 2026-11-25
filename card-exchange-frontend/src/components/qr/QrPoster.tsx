@@ -66,13 +66,13 @@ export default function QrPoster({ url, title, cta, subtitle, fileName }: QrPost
       </div>
 
       <div className="no-print flex flex-wrap justify-center gap-2">
-        <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-light">
+        <button type="button" onClick={() => window.print()} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-on-primary text-sm font-semibold hover:bg-primary-light">
           <Printer size={16} /> {t('print')}
         </button>
-        <button type="button" onClick={downloadPng} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-border text-sm font-semibold text-text hover:border-primary/40">
+        <button type="button" onClick={downloadPng} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-card border border-border text-sm font-semibold text-text hover:border-primary/40">
           <Download size={16} /> {t('downloadPng')}
         </button>
-        <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-border text-sm font-semibold text-text hover:border-primary/40">
+        <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-card border border-border text-sm font-semibold text-text hover:border-primary/40">
           <Copy size={16} /> {copied ? t('copied') : t('copyLink')}
         </button>
       </div>

@@ -80,7 +80,7 @@ export default function AdminSponsorsPage() {
   return (
     <div className="pb-24 space-y-4 max-w-3xl">
       <h1 className="text-xl font-bold text-text flex items-center gap-2"><Megaphone size={20} className="text-primary" /> {t('admin.title')}</h1>
-      <form onSubmit={create} className="bg-white rounded-2xl border border-border/60 p-4 grid sm:grid-cols-2 gap-2">
+      <form onSubmit={create} className="bg-surface-card rounded-2xl border border-border/60 p-4 grid sm:grid-cols-2 gap-2">
         <strong className="sm:col-span-2 text-sm">{t('admin.newSponsor')}</strong>
         <input className={input} required placeholder={t('admin.name')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         <input className={input} type="email" placeholder={t('admin.email')} value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
@@ -94,7 +94,7 @@ export default function AdminSponsorsPage() {
       {list === null ? <Loader2 className="animate-spin text-primary mx-auto" /> : list.length === 0 ? (
         <p className="text-sm text-text-muted">{t('admin.empty')}</p>
       ) : list.map((s) => (
-        <section key={s.id} className="bg-white rounded-2xl border border-border/60 p-4">
+        <section key={s.id} className="bg-surface-card rounded-2xl border border-border/60 p-4">
           <div className="flex items-center gap-3">
             {s.logoUrl && <img src={s.logoUrl} alt="" className="w-10 h-10 object-contain" />}
             <div className="min-w-0">

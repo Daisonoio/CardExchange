@@ -32,7 +32,7 @@ export default function EventAttendeesPanel({ eventId }: { eventId: number }) {
   };
 
   return (
-    <section className="bg-white rounded-2xl border border-border p-3 space-y-2">
+    <section className="bg-surface-card rounded-2xl border border-border p-3 space-y-2">
       <div className="flex items-baseline justify-between gap-2">
         <h2 className="text-sm font-semibold">{t('detail.attendees')} · {seated.length}</h2>
         {seated.length > 0 && <span className="text-xs text-text-secondary tabular-nums">{t('detail.present')}: {present}/{seated.length}</span>}

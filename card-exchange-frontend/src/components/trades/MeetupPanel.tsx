@@ -117,7 +117,7 @@ export default function MeetupPanel({ tradeOfferId, userId, otherUsername }: { t
   if (list === null) return null;
 
   return (
-    <section className="rounded-2xl border border-border bg-white p-3 space-y-2.5">
+    <section className="rounded-2xl border border-border bg-surface-card p-3 space-y-2.5">
       <div className="flex items-center gap-2">
         <CalendarClock size={16} className="text-primary" />
         <h3 className="text-sm font-semibold flex-1">{t('meetup.title')}</h3>

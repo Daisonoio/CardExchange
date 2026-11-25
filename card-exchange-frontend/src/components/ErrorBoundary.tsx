@@ -31,9 +31,9 @@ export default class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-          <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: '#1a3461' }}>
-              <span className="text-2xl text-white font-bold">!</span>
+          <div className="max-w-md w-full bg-surface-card rounded-2xl shadow-lg p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: '#f5b82e', color: '#1b1405' }}>
+              <span className="text-2xl font-bold">!</span>
             </div>
             <h1 className="text-xl font-bold text-gray-900 mb-2">{i18n.t('layout:errorBoundary.title')}</h1>
             <p className="text-sm text-gray-500 mb-6">
@@ -41,8 +41,8 @@ export default class ErrorBoundary extends Component<Props, State> {
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-colors"
-              style={{ background: '#1a3461' }}
+              className="px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+              style={{ background: '#f5b82e', color: '#1b1405' }}
             >
               {i18n.t('layout:errorBoundary.reload')}
             </button>

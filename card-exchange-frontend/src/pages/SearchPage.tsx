@@ -19,7 +19,7 @@ const CONDITION_BY_NAME: Record<string, number> = {
 };
 const RADII = [5, 10, 25, 50, 100];
 const PAGE_SIZE = 30;
-const selectCls = 'w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm text-text';
+const selectCls = 'w-full px-3 py-2.5 rounded-xl border border-border bg-surface-card text-sm text-text';
 
 type Filters = {
   searchTerm: string;
@@ -60,7 +60,7 @@ function ResultCard({ c }: { c: AdvancedSearchCard }) {
   const finish = finishValue(c.finish);
   const condition = CONDITION_BY_NAME[c.condition] as keyof typeof CONDITION_LABELS | undefined;
   return (
-    <li className="flex gap-3 p-3 rounded-2xl bg-white border border-border">
+    <li className="flex gap-3 p-3 rounded-2xl bg-surface-card border border-border">
       {c.imageUrl ? (
         <img src={c.imageUrl} alt="" loading="lazy" className="w-14 h-[78px] rounded-lg object-cover bg-surface-dark shrink-0" />
       ) : (
@@ -150,12 +150,12 @@ export default function SearchPage() {
     return (
       <div className="max-w-lg mx-auto space-y-4">
         {header}
-        <section className="bg-white rounded-2xl p-4 border-2 border-secondary space-y-2">
+        <section className="bg-surface-card rounded-2xl p-4 border-2 border-secondary space-y-2">
           <h2 className="text-base font-bold text-text flex items-center gap-1.5"><Lock size={16} className="text-amber-700" /> {t('upsell.title')}</h2>
           <p className="text-sm text-text-secondary">
             {t('upsell.description')}
           </p>
-          <Link to="/premium" className="inline-flex items-center gap-1.5 mt-1 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold">
+          <Link to="/premium" className="inline-flex items-center gap-1.5 mt-1 px-4 py-2.5 rounded-xl bg-primary text-on-primary text-sm font-semibold">
             <Crown size={16} /> {t('upsell.cta')}
           </Link>
         </section>
@@ -178,7 +178,7 @@ export default function SearchPage() {
               onChange={(e) => set('searchTerm', e.target.value)}
               placeholder={t('searchPlaceholder')}
               aria-label={t('common:actions.search')}
-              className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-border bg-white text-sm"
+              className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-border bg-surface-card text-sm"
             />
           </div>
           <button
@@ -186,14 +186,14 @@ export default function SearchPage() {
             onClick={() => setShowFilters((s) => !s)}
             aria-expanded={showFilters}
             aria-label={t('filters.toggle')}
-            className={`w-11 rounded-xl border flex items-center justify-center ${showFilters ? 'border-primary text-primary bg-primary/5' : 'border-border text-text-secondary bg-white'}`}
+            className={`w-11 rounded-xl border flex items-center justify-center ${showFilters ? 'border-primary text-primary bg-primary/5' : 'border-border text-text-secondary bg-surface-card'}`}
           >
             <SlidersHorizontal size={18} />
           </button>
         </div>
 
         {showFilters && (
-          <div className="p-3 rounded-2xl bg-white border border-border grid grid-cols-2 gap-3">
+          <div className="p-3 rounded-2xl bg-surface-card border border-border grid grid-cols-2 gap-3">
             <label className="col-span-2 sm:col-span-1">
               <span className="block text-xs text-text-secondary mb-1">{t('filters.game')}</span>
               <select value={filters.gameId} onChange={(e) => set('gameId', e.target.value)} className={selectCls}>
@@ -245,7 +245,7 @@ export default function SearchPage() {
                     key={v}
                     type="button"
                     onClick={() => set('sortBy', v)}
-                    className={`flex-1 py-2 text-xs font-medium ${filters.sortBy === v ? 'bg-primary text-white' : 'bg-white text-text-secondary'}`}
+                    className={`flex-1 py-2 text-xs font-medium ${filters.sortBy === v ? 'bg-primary text-on-primary' : 'bg-surface-card text-text-secondary'}`}
                   >
                     {t(l)}
                   </button>

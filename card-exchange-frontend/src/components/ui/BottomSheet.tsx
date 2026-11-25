@@ -72,7 +72,7 @@ export default function BottomSheet({ open, onClose, title, children }: BottomSh
         className={`
           absolute inset-x-0 bottom-0
           md:static md:absolute md:inset-0 md:m-auto md:max-w-lg md:h-fit md:max-h-[85vh]
-          bg-white rounded-t-2xl md:rounded-2xl
+          bg-surface-card rounded-t-2xl md:rounded-2xl
           shadow-2xl
           flex flex-col
           max-h-[92vh]

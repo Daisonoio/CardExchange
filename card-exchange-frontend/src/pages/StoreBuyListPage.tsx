@@ -128,7 +128,7 @@ export default function StoreBuyListPage() {
   };
 
   const label = 'block text-xs font-semibold text-text-secondary';
-  const inputCls = 'mt-1 w-full px-3 py-2 rounded-xl border border-border text-sm font-normal text-text bg-white';
+  const inputCls = 'mt-1 w-full px-3 py-2 rounded-xl border border-border text-sm font-normal text-text bg-surface-card';
   const header = (
     <div className="flex items-center gap-2">
       <Link to={`/stores/${storeId}`} className="p-1.5 -ml-1.5 rounded-lg hover:bg-surface-hover" aria-label={t('common:actions.back')}><ArrowLeft size={20} /></Link>
@@ -141,11 +141,11 @@ export default function StoreBuyListPage() {
     return (
       <div className="max-w-2xl mx-auto space-y-4">
         {header}
-        <section className="p-5 rounded-2xl bg-white border border-border text-center space-y-3">
+        <section className="p-5 rounded-2xl bg-surface-card border border-border text-center space-y-3">
           <Lock size={28} className="mx-auto text-primary" />
           <h2 className="text-lg font-bold text-text">{t('store.planTitle')}</h2>
           <p className="text-sm text-text-secondary">{t('store.planText')}</p>
-          <Link to="/premium" className="inline-block px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">{t('store.planCta')}</Link>
+          <Link to="/premium" className="inline-block px-4 py-2 rounded-xl bg-primary text-on-primary text-sm font-semibold">{t('store.planCta')}</Link>
         </section>
       </div>
     );
@@ -164,7 +164,7 @@ export default function StoreBuyListPage() {
 
       <div className="flex flex-wrap gap-2">
         <Button onClick={() => { setShowSearch((v) => !v); setAdding(null); }}><Plus size={16} /> {t('store.add')}</Button>
-        <label className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-white text-sm font-semibold text-text cursor-pointer ${busy ? 'opacity-60 pointer-events-none' : ''}`}>
+        <label className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border bg-surface-card text-sm font-semibold text-text cursor-pointer ${busy ? 'opacity-60 pointer-events-none' : ''}`}>
           <FileUp size={16} /> {t('store.importCsv')}
           <input type="file" accept=".csv,text/csv" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) void importCsv(f); e.target.value = ''; }} />
         </label>
@@ -173,13 +173,13 @@ export default function StoreBuyListPage() {
       {importMsg && <p role="status" className="text-sm p-3 rounded-xl bg-surface-dark text-text-secondary">{importMsg}</p>}
 
       {showSearch && !adding && (
-        <section className="bg-white rounded-2xl border border-border p-3">
+        <section className="bg-surface-card rounded-2xl border border-border p-3">
           <GameCardSearch onSelect={(c) => setAdding(c as GameCardPick)} placeholder={t('store.search')} />
         </section>
       )}
 
       {adding && (
-        <section className="bg-white rounded-2xl border border-border p-3 space-y-2">
+        <section className="bg-surface-card rounded-2xl border border-border p-3 space-y-2">
           <div className="flex gap-3 items-center">
             {adding.imageUrl && <img src={adding.imageUrl} alt="" className="w-12 h-[67px] object-cover rounded-md" />}
             <div>
@@ -229,7 +229,7 @@ export default function StoreBuyListPage() {
       ) : (
         <ul className="space-y-2">
           {orders.map((o) => (
-            <li key={o.id} className={`bg-white rounded-2xl border border-border p-3 space-y-2 ${o.isActive ? '' : 'opacity-70'}`}>
+            <li key={o.id} className={`bg-surface-card rounded-2xl border border-border p-3 space-y-2 ${o.isActive ? '' : 'opacity-70'}`}>
               <div className="flex gap-3">
                 {o.imageUrl
                   ? <img src={o.imageUrl} alt="" loading="lazy" className="w-12 h-[67px] object-cover rounded-md bg-surface-dark shrink-0" onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} />
@@ -267,7 +267,7 @@ export default function StoreBuyListPage() {
                       </span>
                       {x.status === 'Proposed' && (
                         <>
-                          <button type="button" onClick={() => offerAction(() => buyList.accept(x.id))} className="px-3 py-1.5 rounded-xl bg-primary text-white text-xs font-semibold">{t('store.accept')}</button>
+                          <button type="button" onClick={() => offerAction(() => buyList.accept(x.id))} className="px-3 py-1.5 rounded-xl bg-primary text-on-primary text-xs font-semibold">{t('store.accept')}</button>
                           <button type="button" onClick={() => offerAction(() => buyList.reject(x.id))} className="px-3 py-1.5 rounded-xl border border-border text-xs font-semibold text-text-secondary">{t('store.reject')}</button>
                         </>
                       )}

@@ -33,7 +33,7 @@ export default function StoresTab() {
   return (
     <div className="space-y-4">
       {mine.length > 0 && (
-        <section className="bg-white rounded-2xl border border-border p-3 space-y-1.5">
+        <section className="bg-surface-card rounded-2xl border border-border p-3 space-y-1.5">
           <h2 className="text-sm font-semibold">{t('tab.mine')}</h2>
           {mine.map((s) => (
             <Link key={s.id} to={`/stores/${s.id}`} className="flex items-center justify-between p-2 rounded-xl hover:bg-surface-dark text-sm">
@@ -67,7 +67,7 @@ export default function StoresTab() {
             {items.map((s, i) => (
               <Fragment key={s.id}>
               <li>
-                <Link to={`/stores/${s.id}`} className={`flex items-center gap-3 p-3 rounded-2xl bg-white border hover:shadow-sm ${s.isFeatured ? 'border-secondary ring-1 ring-secondary/40' : 'border-border'}`}>
+                <Link to={`/stores/${s.id}`} className={`flex items-center gap-3 p-3 rounded-2xl bg-surface-card border hover:shadow-sm ${s.isFeatured ? 'border-secondary ring-1 ring-secondary/40' : 'border-border'}`}>
                   <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0"><StoreIcon size={18} /></span>
                   <span className="flex-1 min-w-0">
                     <span className="block text-sm font-semibold truncate">{s.name}</span>

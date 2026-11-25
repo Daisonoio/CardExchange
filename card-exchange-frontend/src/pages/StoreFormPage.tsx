@@ -80,7 +80,7 @@ export default function StoreFormPage() {
         </p>
       )}
 
-      <section className="space-y-2 bg-white rounded-2xl border border-border p-3">
+      <section className="space-y-2 bg-surface-card rounded-2xl border border-border p-3">
         {input('name', t('form.fields.name'), t('form.fields.namePlaceholder'))}
         <label className="block text-xs font-semibold text-text-secondary">
           {t('form.fields.description')}
@@ -95,7 +95,7 @@ export default function StoreFormPage() {
         </label>
       </section>
 
-      <section className="bg-white rounded-2xl border border-border p-3">
+      <section className="bg-surface-card rounded-2xl border border-border p-3">
         <h2 className="text-sm font-semibold mb-2">{t('form.location')}</h2>
         <AddressPicker
           value={{ address: form.address, city: form.city, province: form.province, postalCode: form.postalCode, latitude: form.latitude, longitude: form.longitude }}
@@ -103,7 +103,7 @@ export default function StoreFormPage() {
         />
       </section>
 
-      <section className="space-y-2 bg-white rounded-2xl border border-border p-3">
+      <section className="space-y-2 bg-surface-card rounded-2xl border border-border p-3">
         <h2 className="text-sm font-semibold">{t('form.contacts')}</h2>
         {input('openingHours', t('form.fields.openingHours'), t('form.fields.openingHoursPlaceholder'))}
         {input('phone', t('form.fields.phone'))}
@@ -111,7 +111,7 @@ export default function StoreFormPage() {
         {input('instagram', 'Instagram', t('form.fields.instagramPlaceholder'))}
       </section>
 
-      <section className="space-y-2 bg-white rounded-2xl border border-border p-3">
+      <section className="space-y-2 bg-surface-card rounded-2xl border border-border p-3">
         <h2 className="text-sm font-semibold">{t('form.games')}</h2>
         <div className="flex flex-wrap gap-1.5">
           {games.map((g) => {

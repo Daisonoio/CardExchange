@@ -28,9 +28,9 @@ export default function InviteCard() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-border/50 p-4 mb-4 space-y-2">
+    <div className="bg-surface-card rounded-2xl shadow-sm border border-border/50 p-4 mb-4 space-y-2">
       <div className="flex items-center gap-3">
-        <span className="w-9 h-9 rounded-full border-2 border-border flex items-center justify-center shrink-0" style={{ color: '#1a3461' }}>
+        <span className="w-9 h-9 rounded-full border-2 border-border flex items-center justify-center shrink-0 text-primary">
           <Gift size={16} />
         </span>
         <div className="flex-1">
@@ -41,7 +41,7 @@ export default function InviteCard() {
       <div className="flex items-center gap-2">
         <input readOnly value={data.link} aria-label={t('invite.linkLabel')} onFocus={(e) => e.target.select()}
           className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-border text-xs bg-surface-dark" />
-        <button type="button" onClick={share} className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-primary text-white text-xs font-semibold">
+        <button type="button" onClick={share} className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-primary text-on-primary text-xs font-semibold">
           <Share2 size={14} /> {t('invite.share')}
         </button>
       </div>

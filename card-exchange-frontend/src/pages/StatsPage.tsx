@@ -18,11 +18,11 @@ const CONDITION_IT: Record<string, string> = {
 };
 const RANGES = [30, 90, 365] as const;
 // Colore del grafico: il primario dell'app, unico per la sola serie mostrata
-const CHART = { line: '#1a3461', grid: '#dde4ee', tick: '#6b7a99' };
+const CHART = { line: '#f5b82e', grid: '#22314d', tick: '#8fa0bf' };
 
 function Tile({ label, value, sub }: { label: string; value: string; sub?: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-2xl p-3 border border-border/60">
+    <div className="bg-surface-card rounded-2xl p-3 border border-border/60">
       <p className="text-[11px] text-text-muted">{label}</p>
       <p className="text-lg font-bold text-text leading-tight">{value}</p>
       {sub && <div className="text-[11px] mt-0.5">{sub}</div>}
@@ -95,7 +95,7 @@ function ExportPanel() {
     }
   };
   return (
-    <section className="bg-white rounded-2xl p-4 border border-border/60 space-y-3">
+    <section className="bg-surface-card rounded-2xl p-4 border border-border/60 space-y-3">
       <h2 className="text-sm font-bold text-text flex items-center gap-1.5"><Download size={16} /> {t('export.title')}</h2>
       <p className="text-xs text-text-secondary">
         {t('export.description')}
@@ -197,7 +197,7 @@ export default function StatsPage() {
 
       {!premium ? (
         paidPlans && <>
-          <section className="bg-white rounded-2xl p-4 border-2 border-secondary space-y-2">
+          <section className="bg-surface-card rounded-2xl p-4 border-2 border-secondary space-y-2">
             <h2 className="text-base font-bold text-text flex items-center gap-1.5"><Lock size={16} className="text-amber-700" /> {t('upsell.title')}</h2>
             <ul className="text-sm text-text-secondary space-y-1 list-disc pl-5">
               <li>{t('upsell.trend')}</li>
@@ -205,7 +205,7 @@ export default function StatsPage() {
               <li>{t('upsell.topCards')}</li>
               <li>{t('upsell.export')}</li>
             </ul>
-            <Link to="/premium" className="inline-flex items-center gap-1.5 mt-1 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold">
+            <Link to="/premium" className="inline-flex items-center gap-1.5 mt-1 px-4 py-2.5 rounded-xl bg-primary text-on-primary text-sm font-semibold">
               <Crown size={16} /> {t('upsell.cta')}
             </Link>
           </section>
@@ -214,7 +214,7 @@ export default function StatsPage() {
         <div className="flex justify-center py-10"><Loader2 className="animate-spin text-primary" /></div>
       ) : insights && totals ? (
         <>
-          <section className="bg-white rounded-2xl p-4 border border-border/60 space-y-3">
+          <section className="bg-surface-card rounded-2xl p-4 border border-border/60 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm font-bold text-text">{t('chart.title')}</h2>
               <div className="flex rounded-lg bg-surface-dark p-0.5 text-xs" role="group" aria-label={t('chart.period')}>
@@ -223,7 +223,7 @@ export default function StatsPage() {
                     key={r}
                     onClick={() => setDays(r)}
                     aria-pressed={days === r}
-                    className={`px-2.5 py-1 rounded-md font-medium ${days === r ? 'bg-white shadow-sm text-text' : 'text-text-secondary'}`}
+                    className={`px-2.5 py-1 rounded-md font-medium ${days === r ? 'bg-surface-card shadow-sm text-text' : 'text-text-secondary'}`}
                   >
                     {r === 365 ? t('chart.oneYear') : t('chart.days', { count: r })}
                   </button>
@@ -251,7 +251,7 @@ export default function StatsPage() {
                   />
                   <Tooltip
                     cursor={{ stroke: CHART.grid, strokeWidth: 1 }}
-                    contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${CHART.grid}` }}
+                    contentStyle={{ fontSize: 12, borderRadius: 10, border: `1px solid ${CHART.grid}`, background: "#142036", color: "#eaf0fa" }}
                     labelFormatter={(l) => formatDate(`${l}T00:00:00`, { day: 'numeric', month: 'long', year: 'numeric' })}
                     formatter={(v) => [euro(Number(v)), t('chart.value')]}
                   />
@@ -267,7 +267,7 @@ export default function StatsPage() {
           </section>
 
           {(insights.gainers.length > 0 || insights.losers.length > 0) && (
-            <section className="bg-white rounded-2xl p-4 border border-border/60">
+            <section className="bg-surface-card rounded-2xl p-4 border border-border/60">
               <h2 className="text-sm font-bold text-text mb-1">{t('movers.title')}</h2>
               {insights.gainers.length > 0 && (
                 <>
@@ -285,14 +285,14 @@ export default function StatsPage() {
           )}
 
           {insights.topCards.length > 0 && (
-            <section className="bg-white rounded-2xl p-4 border border-border/60">
+            <section className="bg-surface-card rounded-2xl p-4 border border-border/60">
               <h2 className="text-sm font-bold text-text mb-1">{t('topCards')}</h2>
               <ul className="divide-y divide-border/60">{insights.topCards.map((c) => <CardRow key={c.cardId} c={c} mode="value" />)}</ul>
             </section>
           )}
 
           {insights.byGame.length > 0 && (
-            <section className="bg-white rounded-2xl p-4 border border-border/60 space-y-3">
+            <section className="bg-surface-card rounded-2xl p-4 border border-border/60 space-y-3">
               <h2 className="text-sm font-bold text-text">{t('byGame.title')}</h2>
               {insights.byGame.map((g) => {
                 const share = totals.marketValue > 0 ? (g.value / totals.marketValue) * 100 : 0;
@@ -312,7 +312,7 @@ export default function StatsPage() {
           )}
 
           {insights.byCondition.length > 0 && (
-            <section className="bg-white rounded-2xl p-4 border border-border/60">
+            <section className="bg-surface-card rounded-2xl p-4 border border-border/60">
               <h2 className="text-sm font-bold text-text mb-2">{t('byCondition.title')}</h2>
               <table className="w-full text-xs">
                 <thead>

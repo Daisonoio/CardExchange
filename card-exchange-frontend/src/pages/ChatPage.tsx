@@ -276,7 +276,7 @@ export default function ChatPage() {
   const showingChat = !!activeConvId || (!!preselectedUserId && !activeConvId);
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col md:flex-row bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col md:flex-row bg-surface-card rounded-2xl border border-border shadow-sm overflow-hidden">
       {/* === CONVERSATION LIST (sidebar on desktop, full on mobile when no chat open) === */}
       <div className={`${showingChat ? 'hidden md:flex' : 'flex'} flex-col min-h-0 flex-1 md:flex-none w-full md:w-72 md:border-r md:border-border`}>
         <div className="p-3 border-b border-border">
@@ -332,7 +332,7 @@ export default function ChatPage() {
                         : t('startConversation')}
                     </p>
                     {conv.unreadCount > 0 && (
-                      <span className="ml-auto bg-primary text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 shrink-0">
+                      <span className="ml-auto bg-primary text-on-primary text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 shrink-0">
                         {conv.unreadCount}
                       </span>
                     )}
@@ -349,7 +349,7 @@ export default function ChatPage() {
         {/* Chat header */}
         {(activeConv || preselectedUserId) ? (
           <>
-            <div className="flex items-center gap-3 p-3 border-b border-border bg-white">
+            <div className="flex items-center gap-3 p-3 border-b border-border bg-surface-card">
               <button
                 onClick={() => setActiveConvId(null)}
                 className="w-8 h-8 rounded-full bg-surface-dark flex items-center justify-center hover:bg-gray-200 md:hidden shrink-0"
@@ -395,8 +395,8 @@ export default function ChatPage() {
                       <div
                         className={`max-w-[75%] rounded-2xl px-3.5 py-2 ${
                           msg.isFromMe
-                            ? 'bg-primary text-white rounded-br-md'
-                            : 'bg-white text-text border border-border/50 rounded-bl-md'
+                            ? 'bg-primary text-on-primary rounded-br-md'
+                            : 'bg-surface-card text-text border border-border/50 rounded-bl-md'
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
@@ -417,7 +417,7 @@ export default function ChatPage() {
             </div>
 
             {/* Input */}
-            <div className="p-3 border-t border-border bg-white">
+            <div className="p-3 border-t border-border bg-surface-card">
               {/* Promemoria di sicurezza, uguale per tutti */}
               <p className="mb-2 text-[11px] text-text-muted flex items-start gap-1.5" data-testid="chat-safety-tip">
                 <ShieldCheck size={12} className="shrink-0 mt-0.5 text-green-700" /> {t('safetyTip')}
@@ -443,7 +443,7 @@ export default function ChatPage() {
                 <button
                   onClick={handleSend}
                   disabled={!newMessage.trim() || isSending}
-                  className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+                  className="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
                 >
                   <Send size={16} />
                 </button>

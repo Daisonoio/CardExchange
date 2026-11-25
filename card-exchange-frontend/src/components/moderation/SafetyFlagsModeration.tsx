@@ -47,7 +47,7 @@ export default function SafetyFlagsModeration() {
       ) : (
         <ul className="space-y-3">
           {items.map((f) => (
-            <li key={f.id} className={`bg-white rounded-2xl border p-4 space-y-2 ${f.involvesMinor ? 'border-red-300' : 'border-border'}`}>
+            <li key={f.id} className={`bg-surface-card rounded-2xl border p-4 space-y-2 ${f.involvesMinor ? 'border-red-300' : 'border-border'}`}>
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <span className="text-xs font-bold text-red-700 flex items-center gap-1">

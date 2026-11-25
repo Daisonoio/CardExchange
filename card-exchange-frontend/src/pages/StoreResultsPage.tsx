@@ -57,7 +57,7 @@ export default function StoreResultsPage() {
         </div>
       </div>
 
-      <section className="p-4 rounded-2xl bg-primary text-white">
+      <section className="p-4 rounded-2xl bg-primary text-on-primary">
         <p className="text-xs uppercase tracking-wide text-white/70">{t('results.thisMonth')}</p>
         <p className="mt-1 flex items-baseline gap-2">
           <span className="text-4xl font-bold tabular-nums">{data.current.stats.peopleBroughtIn}</span>
@@ -68,14 +68,14 @@ export default function StoreResultsPage() {
 
       <section className="grid grid-cols-2 gap-2">
         {METRICS.map((key) => (
-          <div key={key} className="p-3 rounded-xl bg-white border border-border">
+          <div key={key} className="p-3 rounded-xl bg-surface-card border border-border">
             <p className="text-xs text-text-secondary">{t(`results.metrics.${key}`)}</p>
             <p className="mt-0.5 text-lg font-semibold text-text tabular-nums">{data.current.stats[key]}</p>
           </div>
         ))}
       </section>
 
-      <section className="p-4 rounded-2xl bg-white border border-border">
+      <section className="p-4 rounded-2xl bg-surface-card border border-border">
         <h2 className="text-sm font-semibold text-text">{t('results.history')}</h2>
         {data.months.length === 0 ? (
           <p className="mt-1 text-sm text-text-secondary">{t('results.noHistory')}</p>
@@ -86,7 +86,7 @@ export default function StoreResultsPage() {
                 <BarChart data={chart} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
                   <XAxis dataKey="month" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
                   <YAxis allowDecimals={false} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                  <Tooltip cursor={{ fill: 'rgba(0,0,0,0.04)' }} formatter={(v) => [v, t('results.people', { count: Number(v) })]} />
+                  <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: '#142036', border: '1px solid #2a3a5a', borderRadius: 10, color: '#eaf0fa' }} formatter={(v) => [v, t('results.people', { count: Number(v) })]} />
                   <Bar dataKey="people" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

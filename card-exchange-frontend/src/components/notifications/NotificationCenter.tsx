@@ -188,7 +188,7 @@ export default function NotificationCenter({
                 hasTarget ? 'cursor-pointer hover:border-primary/40' : ''
               } ${
                 notification.isRead
-                  ? 'bg-white border-border/30'
+                  ? 'bg-surface-card border-border/30'
                   : 'bg-blue-50/40 border-primary/20'
               }`}
             >
@@ -242,7 +242,7 @@ export default function NotificationCenter({
             <div className="fixed inset-0 z-[59]" onClick={onClose} />
             {/* Dropdown panel */}
             <div
-              className="fixed top-16 right-4 w-96 bg-white rounded-2xl shadow-2xl border border-border z-[60] flex flex-col overflow-hidden"
+              className="fixed top-16 right-4 w-96 bg-surface-card rounded-2xl shadow-2xl border border-border z-[60] flex flex-col overflow-hidden"
               style={{ maxHeight: 'calc(100vh - 5rem)' }}
               onClick={(e) => e.stopPropagation()}
             >

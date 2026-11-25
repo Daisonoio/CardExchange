@@ -54,7 +54,7 @@ export default function FollowButton({ target, showCount = false, className = ''
         aria-pressed={on}
         title={on ? t('follow.unfollow') : t('follow.hint')}
         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors disabled:opacity-60 ${
-          on ? 'bg-surface-dark text-text-secondary hover:bg-red-50 hover:text-red-600' : 'bg-primary text-white hover:bg-primary-light'
+          on ? 'bg-surface-dark text-text-secondary hover:bg-red-50 hover:text-red-600' : 'bg-primary text-on-primary hover:bg-primary-light'
         }`}
       >
         {busy ? <Loader2 size={14} className="animate-spin" /> : on ? <Check size={14} /> : <UserPlus size={14} />}

@@ -244,7 +244,7 @@ export default function GameCardSearch({ onSelect, placeholder }: GameCardSearch
           }}
           onFocus={() => { if (suggestions.length > 0 || results.length > 0) setIsOpen(true); }}
           placeholder={placeholder ?? t('search.placeholder')}
-          className="w-full pl-10 pr-10 py-3 rounded-xl border border-border bg-white text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+          className="w-full pl-10 pr-10 py-3 rounded-xl border border-border bg-surface-card text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
         />
         {query && (
           <button
@@ -260,13 +260,13 @@ export default function GameCardSearch({ onSelect, placeholder }: GameCardSearch
         type="button"
         onClick={() => { if (query.trim().length >= 2) handleSearch(query.trim()); }}
         disabled={isSearching || query.trim().length < 2}
-        className="mt-2 w-full py-2.5 rounded-xl text-sm font-semibold bg-primary text-white disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-2 w-full py-2.5 rounded-xl text-sm font-semibold bg-primary text-on-primary disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {t('common:actions.search')}
       </button>
 
       {isOpen && (
-        <div className="mt-2 bg-white rounded-xl shadow-lg border border-border max-h-96 overflow-y-auto z-50">
+        <div className="mt-2 bg-surface-card rounded-xl shadow-lg border border-border max-h-96 overflow-y-auto z-50">
           {mode === 'autocomplete' && suggestions.length > 0 && (
             <ul>
               {suggestions.map((name) => (

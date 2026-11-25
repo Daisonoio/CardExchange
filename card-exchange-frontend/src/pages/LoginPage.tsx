@@ -31,7 +31,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: 'linear-gradient(160deg, #1a3461 0%, #2a4d8f 60%, #eef2f7 100%)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: 'radial-gradient(120% 70% at 50% 0%, #1b2d52 0%, #0b1424 65%)' }}>
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="flex justify-center mb-2">
@@ -40,7 +40,7 @@ export default function LoginPage() {
           <p className="text-sm text-white/70 mt-1">{t('login.subtitle')}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-xl space-y-4">
+        <form onSubmit={handleSubmit} className="bg-surface-card rounded-2xl p-6 shadow-xl space-y-4">
           {error && (
             <div className="px-4 py-3 rounded-xl bg-red-50 text-danger text-sm">
               {error}

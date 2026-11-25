@@ -24,7 +24,7 @@ export default function TradeBalanceMeter({ evaluation, loading, onSuggest, sugg
   const pricesDiffer = evaluation && (evaluation.requestedPriceTotal !== evaluation.requestedTotal || evaluation.offeredPriceTotal !== evaluation.offeredTotal);
 
   return (
-    <section className="mb-5 rounded-2xl border border-border bg-white p-3 space-y-3" aria-live="polite">
+    <section className="mb-5 rounded-2xl border border-border bg-surface-card p-3 space-y-3" aria-live="polite">
       <div className="flex items-center gap-2">
         <Scale size={16} className="text-primary" />
         <h2 className="text-sm font-semibold text-text flex-1">{t('balance.title')}</h2>

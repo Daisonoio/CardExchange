@@ -109,7 +109,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-6">
           <div className="flex justify-center mb-4">
-            <BrandLogo layout="horizontal" theme="light" height={44} />
+            <BrandLogo layout="horizontal" theme="dark" height={44} />
           </div>
           <h1 className="text-2xl font-bold text-text">{t('register.title')}</h1>
           <p className="text-sm text-text-secondary mt-1">{t('register.subtitle')}</p>
@@ -125,7 +125,7 @@ export default function RegisterPage() {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 shadow-sm border border-border/50 space-y-3">
+        <form onSubmit={handleSubmit} className="bg-surface-card rounded-2xl p-6 shadow-sm border border-border/50 space-y-3">
           {error && (
             <div className="px-4 py-3 rounded-xl bg-red-50 text-danger text-sm">{error}</div>
           )}

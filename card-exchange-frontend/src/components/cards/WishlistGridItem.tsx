@@ -23,7 +23,7 @@ export default function WishlistGridItem({ item, onClick, onDelete }: WishlistGr
 
   return (
     // Nessun pulsante dentro un altro: un pulsante trasparente copre la carta, "elimina" sta sopra
-    <div className="relative w-full bg-white rounded-xl overflow-hidden shadow-sm border border-border/50 text-left transition-shadow hover:shadow-md">
+    <div className="relative w-full bg-surface-card rounded-xl overflow-hidden shadow-sm border border-border/50 text-left transition-shadow hover:shadow-md">
       <button
         type="button"
         onClick={() => onClick?.(item)}
@@ -58,7 +58,7 @@ export default function WishlistGridItem({ item, onClick, onDelete }: WishlistGr
             type="button"
             onClick={(e) => { e.stopPropagation(); onDelete(item); }}
             aria-label={t('common:actions.delete')}
-            className="absolute z-20 bottom-1 right-1 bg-white/80 backdrop-blur p-1 rounded-full shadow hover:bg-red-50 text-text-muted hover:text-red-500"
+            className="absolute z-20 bottom-1 right-1 bg-night/70 backdrop-blur p-1 rounded-full shadow hover:bg-red-50 text-text-muted hover:text-red-500"
           >
             <X size={12} />
           </button>

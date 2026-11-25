@@ -63,7 +63,7 @@ export default function StoreReservationsPage() {
                 <ReservationCard key={r.id} r={r} showStore={false}>
                   <div className="flex flex-wrap items-end gap-2">
                     {r.status === 'Pending' && (
-                      <button type="button" disabled={busy === r.id} onClick={() => act(r, () => reservations.confirm(r.id))} className={`${btn} bg-primary text-white`}>
+                      <button type="button" disabled={busy === r.id} onClick={() => act(r, () => reservations.confirm(r.id))} className={`${btn} bg-primary text-on-primary`}>
                         {t('store.confirm')}
                       </button>
                     )}

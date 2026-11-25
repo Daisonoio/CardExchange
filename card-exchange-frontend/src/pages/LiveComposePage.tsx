@@ -135,7 +135,7 @@ export default function LiveComposePage() {
     }
   };
 
-  const input = 'w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30';
+  const input = 'w-full px-3 py-2.5 rounded-xl border border-border bg-surface-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30';
   const label = 'block text-xs font-semibold text-text-secondary mb-1';
   const shown = point ?? fallbackCenter;
 
@@ -153,23 +153,23 @@ export default function LiveComposePage() {
         <p className="text-xs p-3 rounded-xl bg-amber-50 text-amber-800">{t('compose.replaces')}</p>
       )}
       {info?.active && paidPlans && (
-        <Link to={`/promotions?type=broadcast&target=${info.active.id}`} className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-amber-300 bg-white text-sm font-semibold text-amber-800">
+        <Link to={`/promotions?type=broadcast&target=${info.active.id}`} className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-amber-300 bg-surface-card text-sm font-semibold text-amber-800">
           <Megaphone size={15} /> {t('promotions:sponsorBroadcast')}
         </Link>
       )}
 
-      <div className="bg-white rounded-2xl border border-border/60 p-4 space-y-4">
+      <div className="bg-surface-card rounded-2xl border border-border/60 p-4 space-y-4">
         {myStores.length > 0 && (
           <div>
             <span className={label}>{t('compose.as')}</span>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => setStoreId(null)} aria-pressed={storeId == null}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${storeId == null ? 'bg-primary text-white border-primary' : 'bg-white text-text-secondary border-border'}`}>
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${storeId == null ? 'bg-primary text-on-primary border-primary' : 'bg-surface-card text-text-secondary border-border'}`}>
                 {t('compose.asMe', { username: user?.username })}
               </button>
               {myStores.map((s) => (
                 <button key={s.id} type="button" onClick={() => { setStoreId(s.id); if (!point) setPoint({ lat: s.latitude, lng: s.longitude }); }} aria-pressed={storeId === s.id}
-                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border ${storeId === s.id ? 'bg-primary text-white border-primary' : 'bg-white text-text-secondary border-border'}`}>
+                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border ${storeId === s.id ? 'bg-primary text-on-primary border-primary' : 'bg-surface-card text-text-secondary border-border'}`}>
                   <StoreIcon size={12} /> {s.name}
                 </button>
               ))}
@@ -236,7 +236,7 @@ export default function LiveComposePage() {
           <div className="flex flex-wrap gap-2">
             {DURATIONS.map((d) => (
               <button key={d} type="button" onClick={() => setDuration(d)} aria-pressed={duration === d}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${duration === d ? 'bg-primary text-white border-primary' : 'bg-white text-text-secondary border-border'}`}>
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${duration === d ? 'bg-primary text-on-primary border-primary' : 'bg-surface-card text-text-secondary border-border'}`}>
                 {t(`compose.durations.${d}`)}
               </button>
             ))}
@@ -253,7 +253,7 @@ export default function LiveComposePage() {
       {/* Anteprima di quello che vedranno i follower */}
       <div>
         <p className="text-xs font-semibold text-text-secondary mb-1">{t('compose.preview')}</p>
-        <div className="flex gap-3 p-3 rounded-2xl bg-white border border-border/60 shadow-sm">
+        <div className="flex gap-3 p-3 rounded-2xl bg-surface-card border border-border/60 shadow-sm">
           <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0"><Bell size={16} /></div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-text truncate">{t('compose.previewTitle', { name: authorName })}</p>

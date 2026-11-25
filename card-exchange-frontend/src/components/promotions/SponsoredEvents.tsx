@@ -40,7 +40,7 @@ export default function SponsoredEvents({ coords, className = '' }: { coords?: {
       {visible.map((e) => (
         <li key={e.promotionId} className="relative bg-amber-50/70 border border-amber-200 rounded-2xl">
           <button type="button" onClick={() => open(e)} className="w-full text-left p-3 pr-10 flex gap-3">
-            <span className="w-11 h-11 shrink-0 rounded-xl bg-white grid place-items-center text-amber-700"><CalendarDays size={20} /></span>
+            <span className="w-11 h-11 shrink-0 rounded-xl bg-surface-card grid place-items-center text-amber-700"><CalendarDays size={20} /></span>
             <span className="min-w-0">
               <span className="block text-[10px] font-bold uppercase tracking-wide text-amber-800">{t('label')} · {e.sponsor}</span>
               <span className="block text-sm font-bold text-text truncate">{e.title}</span>
@@ -50,7 +50,7 @@ export default function SponsoredEvents({ coords, className = '' }: { coords?: {
             </span>
           </button>
           <button type="button" onClick={() => report(e)} aria-label={t('report.action')} title={t('report.action')}
-            className="absolute right-2 top-2 p-1.5 rounded-lg text-text-muted hover:bg-white">
+            className="absolute right-2 top-2 p-1.5 rounded-lg text-text-muted hover:bg-surface-raised">
             <Flag size={14} />
           </button>
         </li>

@@ -200,7 +200,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
         </div>
 
         {/* Photo section */}
-        <div className="rounded-xl bg-white border border-border/60 p-2.5">
+        <div className="rounded-xl bg-surface-card border border-border/60 p-2.5">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Camera size={14} className="text-text-muted" />
@@ -254,7 +254,7 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
 
         {/* Price History Chart */}
         {card.cardInfoId && (
-          <div className="rounded-xl bg-white border border-border/60 p-2.5">
+          <div className="rounded-xl bg-surface-card border border-border/60 p-2.5">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp size={14} className="text-text-muted" />
               <p className="text-xs font-semibold text-text-secondary">{t('editCard.priceHistory')}</p>
@@ -280,19 +280,19 @@ export default function EditCardSheet({ card, onClose, onUpdated, onDeleted, rea
         {readOnly ? (
           /* Read-only info grid */
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="rounded-xl bg-white border border-border/60 p-2.5">
+            <div className="rounded-xl bg-surface-card border border-border/60 p-2.5">
               <p className="text-text-muted">{t('form.condition')}</p>
               <p className="font-semibold text-text">{CONDITION_LABELS[condition] || condition}</p>
             </div>
-            <div className="rounded-xl bg-white border border-border/60 p-2.5">
+            <div className="rounded-xl bg-surface-card border border-border/60 p-2.5">
               <p className="text-text-muted">{t('form.quantity')}</p>
               <p className="font-semibold text-text">{quantity}</p>
             </div>
-            <div className="rounded-xl bg-white border border-border/60 p-2.5">
+            <div className="rounded-xl bg-surface-card border border-border/60 p-2.5">
               <p className="text-text-muted">{t('picker.language')}</p>
               <p className="font-semibold text-text">{languageLabel(language) ?? t('picker.notSpecified')}</p>
             </div>
-            <div className="rounded-xl bg-white border border-border/60 p-2.5">
+            <div className="rounded-xl bg-surface-card border border-border/60 p-2.5">
               <p className="text-text-muted">{t('picker.finish')}</p>
               <p className="font-semibold text-text">{FINISH_LABELS[finish]}</p>
             </div>

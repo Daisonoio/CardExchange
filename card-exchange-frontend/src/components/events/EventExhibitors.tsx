@@ -19,7 +19,7 @@ export default function EventExhibitors({ eventId }: { eventId: number }) {
 
   if (!data) return null;
   return (
-    <section className="bg-white rounded-2xl border border-border/60 p-4 space-y-3" data-testid="event-exhibitors">
+    <section className="bg-surface-card rounded-2xl border border-border/60 p-4 space-y-3" data-testid="event-exhibitors">
       <div className="flex items-baseline justify-between">
         <h2 className="text-base font-bold text-text">{t('public.title')}</h2>
         <span className="text-xs text-text-muted">{selectedGame ? t('public.onlyGame', { game: selectedGame.name }) : t('public.count', { count: data.exhibitors.length })}</span>

@@ -18,18 +18,18 @@ export default function LegalPage({ doc }: { doc: Doc }) {
 
   return (
     <div className="min-h-screen bg-surface-dark">
-      <header className="bg-white border-b border-border">
+      <header className="bg-surface-card border-b border-border">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <button onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))} className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
             <ArrowLeft size={16} /> {t('back')}
           </button>
-          <Link to="/" aria-label="CardExchange"><BrandLogo layout="horizontal" theme="light" height={28} title="" /></Link>
+          <Link to="/" aria-label="CardExchange"><BrandLogo layout="horizontal" theme="dark" height={28} title="" /></Link>
         </div>
       </header>
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-6">
         <nav className="flex flex-wrap gap-2" aria-label={t('nav.privacy')}>
           {(['privacy', 'terms', 'cookies'] as Doc[]).map((d) => (
-            <NavLink key={d} to={`/${d}`} className={({ isActive }) => `px-3 py-1.5 rounded-full text-sm font-semibold ${isActive ? 'bg-primary text-white' : 'bg-white border border-border text-text-secondary'}`}>
+            <NavLink key={d} to={`/${d}`} className={({ isActive }) => `px-3 py-1.5 rounded-full text-sm font-semibold ${isActive ? 'bg-primary text-on-primary' : 'bg-surface-card border border-border text-text-secondary'}`}>
               {t(`nav.${d}`)}
             </NavLink>
           ))}

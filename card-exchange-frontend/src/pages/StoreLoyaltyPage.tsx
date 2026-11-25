@@ -77,7 +77,7 @@ export default function StoreLoyaltyPage() {
   const tab = (m: Mode, label: string, Icon: typeof Stamp) => (
     <button type="button" onClick={() => { setMode(m); setResult(null); setError(null); }}
       aria-pressed={mode === m}
-      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold ${mode === m ? 'bg-primary text-white' : 'bg-white border border-border text-text'}`}>
+      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold ${mode === m ? 'bg-primary text-on-primary' : 'bg-surface-card border border-border text-text'}`}>
       <Icon size={15} /> {label}
     </button>
   );
@@ -93,7 +93,7 @@ export default function StoreLoyaltyPage() {
         {error && <p role="alert" className="text-sm p-3 rounded-xl bg-red-50 text-red-700">{error}</p>}
 
         {info.active && (
-          <section className="bg-white rounded-2xl border border-border/60 p-4 space-y-3">
+          <section className="bg-surface-card rounded-2xl border border-border/60 p-4 space-y-3">
             <div className="flex gap-2">
               {tab('stamp', t('scan.stampTab'), Stamp)}
               {tab('redeem', t('scan.redeemTab'), Gift)}
@@ -126,7 +126,7 @@ export default function StoreLoyaltyPage() {
           </section>
         )}
 
-        <form onSubmit={save} className="bg-white rounded-2xl border border-border/60 p-4 space-y-3">
+        <form onSubmit={save} className="bg-surface-card rounded-2xl border border-border/60 p-4 space-y-3">
           <h2 className="text-sm font-bold text-text">{t('store.settings')}</h2>
           <label className="block">
             <span className="text-xs font-semibold text-text-secondary">{t('store.stampsRequired')}</span>
@@ -150,7 +150,7 @@ export default function StoreLoyaltyPage() {
         </form>
 
         {info.configured && (
-          <section className="bg-white rounded-2xl border border-border/60 p-4">
+          <section className="bg-surface-card rounded-2xl border border-border/60 p-4">
             <h2 className="text-sm font-bold text-text mb-2">{t('stats.title')}</h2>
             {stats ? (
               <dl className="grid grid-cols-2 gap-3 text-sm">

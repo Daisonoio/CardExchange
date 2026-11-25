@@ -68,7 +68,7 @@ export default function StoreCardsSection({ storeId, isOwner }: { storeId: numbe
   if (items !== null && items.length === 0 && !query) return null;
 
   return (
-    <section className="bg-white rounded-2xl border border-border p-3 space-y-3">
+    <section className="bg-surface-card rounded-2xl border border-border p-3 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold text-text flex items-center gap-1.5"><ShoppingBag size={16} className="text-primary" /> {t('cards.title')}</h2>
         {total > 0 && <span className="text-xs text-text-muted tabular-nums">{total}</span>}
@@ -99,7 +99,7 @@ export default function StoreCardsSection({ storeId, isOwner }: { storeId: numbe
                 </p>
               </div>
               {accepts && !isOwner && (
-                <button type="button" onClick={() => open(c)} className="self-center shrink-0 px-3 py-1.5 rounded-xl bg-primary text-white text-xs font-semibold">
+                <button type="button" onClick={() => open(c)} className="self-center shrink-0 px-3 py-1.5 rounded-xl bg-primary text-on-primary text-xs font-semibold">
                   {t('cards.reserve')}
                 </button>
               )}
@@ -120,7 +120,7 @@ export default function StoreCardsSection({ storeId, isOwner }: { storeId: numbe
             <p className="text-sm text-text-secondary">{t('sheet.doneText')}</p>
             <p className="text-3xl font-mono font-bold tracking-[0.3em] text-text">{done.pickupCode}</p>
             <p className="text-xs text-text-secondary first-letter:uppercase">{t('until', { when: dateTime(done.expiresAt, { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) })}</p>
-            <Link to="/reservations" className="inline-block px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">{t('sheet.goToMine')}</Link>
+            <Link to="/reservations" className="inline-block px-4 py-2 rounded-xl bg-primary text-on-primary text-sm font-semibold">{t('sheet.goToMine')}</Link>
           </div>
         ) : (
           <div className="space-y-3">

@@ -74,7 +74,7 @@ export default function UserSafetyMenu({ userId, username, tradeOfferId, onBlock
         <MoreVertical size={18} />
       </button>
       {menuOpen && (
-        <div className="absolute right-0 top-11 z-40 w-52 rounded-xl bg-white shadow-lg border border-border overflow-hidden">
+        <div className="absolute right-0 top-11 z-40 w-52 rounded-xl bg-surface-card shadow-lg border border-border overflow-hidden">
           <button type="button" onClick={() => { setMenuOpen(false); setReportOpen(true); }} className="w-full flex items-center gap-2 px-4 py-3 text-sm hover:bg-surface-dark text-left">
             <Flag size={16} /> {t('safety.report', { username })}
           </button>

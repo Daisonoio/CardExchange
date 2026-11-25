@@ -43,8 +43,8 @@ export default function Layout() {
       {/* Sfondo decorativo dell'app: i due cerchi del marchio, fissi e dietro a tutto */}
       <div aria-hidden="true" className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         {/* Sotto la barra in alto e i filtri dei giochi, così si vedono interi */}
-        <div className="absolute top-[7rem] -right-40 w-[22rem] h-[22rem] rounded-full opacity-[0.16] md:-right-24 md:w-[30rem] md:h-[30rem]" style={{ background: '#f5b800' }} />
-        <div className="absolute top-[18rem] -right-6 w-48 h-48 rounded-full opacity-[0.08] md:top-[22rem] md:right-56 md:w-64 md:h-64" style={{ background: '#1a3461' }} />
+        <div className="absolute top-[7rem] -right-40 w-[22rem] h-[22rem] rounded-full opacity-[0.07] blur-2xl md:-right-24 md:w-[30rem] md:h-[30rem]" style={{ background: '#f5b82e' }} />
+        <div className="absolute top-[18rem] -right-6 w-48 h-48 rounded-full opacity-[0.35] blur-2xl md:top-[22rem] md:right-56 md:w-64 md:h-64" style={{ background: '#1b2d52' }} />
       </div>
       {/* Desktop nav */}
       <TopBar />

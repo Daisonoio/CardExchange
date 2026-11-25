@@ -65,10 +65,10 @@ function Wizard({ pricing, initialType, initialTarget, onDone }: {
   const enough = price != null && pricing.balance >= price.credits;
 
   return (
-    <section className="bg-white rounded-2xl border border-border/60 p-4 space-y-4" aria-label={t('wizard.title')}>
+    <section className="bg-surface-card rounded-2xl border border-border/60 p-4 space-y-4" aria-label={t('wizard.title')}>
       <ol className="flex gap-2 text-[11px] font-semibold">
         {[1, 2, 3].map((n) => (
-          <li key={n} className={`flex-1 text-center py-1 rounded-full ${step === n ? 'bg-primary text-white' : 'bg-surface-dark text-text-muted'}`}>{t(`wizard.step${n}`)}</li>
+          <li key={n} className={`flex-1 text-center py-1 rounded-full ${step === n ? 'bg-primary text-on-primary' : 'bg-surface-dark text-text-muted'}`}>{t(`wizard.step${n}`)}</li>
         ))}
       </ol>
 
@@ -216,7 +216,7 @@ export default function PromotionsPage() {
       {notice && <p role="status" className="text-sm p-3 rounded-xl bg-green-50 text-green-800">{notice}</p>}
 
       {pricing && (
-        <div className="flex items-center justify-between p-3 rounded-2xl bg-white border border-border/60">
+        <div className="flex items-center justify-between p-3 rounded-2xl bg-surface-card border border-border/60">
           <span className="text-sm"><Coins size={15} className="inline text-amber-600 -mt-0.5" /> {t('balance', { count: pricing.balance })}</span>
           <span className="text-[11px] text-text-muted">{pricing.monthlyCredits > 0 ? t('monthly', { count: pricing.monthlyCredits }) : <Link to="/purchases" className="text-primary font-semibold">{t('wizard.buyCredits')}</Link>}</span>
         </div>
@@ -233,7 +233,7 @@ export default function PromotionsPage() {
       ) : (
         <ul className="space-y-2">
           {list.map((p) => (
-            <li key={p.id} className="bg-white rounded-2xl border border-border/60 p-3 space-y-2">
+            <li key={p.id} className="bg-surface-card rounded-2xl border border-border/60 p-3 space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <span className="block text-[11px] text-text-muted">{t(`types.${p.type}.name`)} · {p.radiusKm} km</span>

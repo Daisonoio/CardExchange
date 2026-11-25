@@ -96,7 +96,7 @@ export default function PriceHistoryChart({ cardInfoId, spikeData }: PriceHistor
 
   const isUp = changePct > 0;
   const isDown = changePct < 0;
-  const color = isUp ? '#22c55e' : isDown ? '#ef4444' : '#6b7280';
+  const color = isUp ? '#7fd1a8' : isDown ? '#ff6b6b' : '#8fa0bf';
   const TrendIcon = isUp ? TrendingUp : isDown ? TrendingDown : Minus;
 
   return (
@@ -127,13 +127,13 @@ export default function PriceHistoryChart({ cardInfoId, spikeData }: PriceHistor
             </defs>
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 9, fill: '#9ca3af' }}
+              tick={{ fontSize: 9, fill: '#8fa0bf' }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
               domain={['auto', 'auto']}
-              tick={{ fontSize: 9, fill: '#9ca3af' }}
+              tick={{ fontSize: 9, fill: '#8fa0bf' }}
               axisLine={false}
               tickLine={false}
               width={35}
@@ -143,7 +143,7 @@ export default function PriceHistoryChart({ cardInfoId, spikeData }: PriceHistor
               contentStyle={{
                 fontSize: '11px',
                 borderRadius: '8px',
-                border: '1px solid #e5e7eb',
+                border: '1px solid #2a3a5a', background: '#142036', color: '#eaf0fa',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
               }}
               formatter={(value: unknown) => [euro(Number(value)), t('priceHistory.price')]}

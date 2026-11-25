@@ -48,9 +48,9 @@ export default function PushToggle() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-border/50 p-4 mb-4">
+    <div className="bg-surface-card rounded-2xl shadow-sm border border-border/50 p-4 mb-4">
       <div className="flex items-center gap-3">
-        <span className="w-9 h-9 rounded-full border-2 border-border flex items-center justify-center shrink-0" style={{ color: '#1a3461' }}>
+        <span className="w-9 h-9 rounded-full border-2 border-border flex items-center justify-center shrink-0 text-primary">
           <BellRing size={16} />
         </span>
         <div className="flex-1">

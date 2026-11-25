@@ -31,19 +31,19 @@ export default function StoreEarningsPage() {
       </div>
       <p className="text-sm text-text-secondary">{t('earnings.intro', { rate: Math.round(data.rate * 100) })}</p>
 
-      <section className="p-4 rounded-2xl bg-primary text-white">
+      <section className="p-4 rounded-2xl bg-primary text-on-primary">
         <p className="text-sm">{t('earnings.thisMonth', { amount: euro(data.thisMonthEur), count: data.thisMonthCount })}</p>
       </section>
       <section className="grid grid-cols-3 gap-2">
         {tiles.map(([key, value]) => (
-          <div key={key} className="p-3 rounded-xl bg-white border border-border">
+          <div key={key} className="p-3 rounded-xl bg-surface-card border border-border">
             <p className="text-[11px] text-text-secondary">{t(`earnings.${key}`)}</p>
             <p className="text-base font-bold text-text tabular-nums">{euro(value)}</p>
           </div>
         ))}
       </section>
 
-      <section className="bg-white rounded-2xl border border-border p-3">
+      <section className="bg-surface-card rounded-2xl border border-border p-3">
         <h2 className="text-sm font-semibold text-text">{t('earnings.recent')}</h2>
         {data.recent.length === 0 ? (
           <div className="mt-1 space-y-2">
@@ -66,7 +66,7 @@ export default function StoreEarningsPage() {
       </section>
 
       {data.payouts.length > 0 && (
-        <section className="bg-white rounded-2xl border border-border p-3">
+        <section className="bg-surface-card rounded-2xl border border-border p-3">
           <h2 className="text-sm font-semibold text-text">{t('earnings.payouts')}</h2>
           <ul className="divide-y divide-border/60">
             {data.payouts.map((p) => (

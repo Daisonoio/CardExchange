@@ -25,7 +25,7 @@ export default function FollowingPage() {
     </span>
   );
 
-  const row = 'flex items-center gap-3 bg-white rounded-2xl p-3 border border-border/60 hover:border-primary/40 transition-colors';
+  const row = 'flex items-center gap-3 bg-surface-card rounded-2xl p-3 border border-border/60 hover:border-primary/40 transition-colors';
 
   return (
     <div className="pb-24 max-w-xl space-y-4">

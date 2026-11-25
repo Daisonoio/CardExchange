@@ -308,7 +308,7 @@ export default function PremiumPage() {
       {notice && <div className="p-3 rounded-xl bg-blue-50 text-blue-800 text-sm">{notice}</div>}
 
       {/* Stato attuale */}
-      <section className="p-4 rounded-2xl bg-white border border-border space-y-2">
+      <section className="p-4 rounded-2xl bg-surface-card border border-border space-y-2">
         <div className="flex items-center gap-3">
           <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${state.tier === 'Free' ? 'bg-surface-dark text-text-secondary' : 'bg-secondary/15 text-amber-700'}`}>
             {isStoreTier(state.tier) ? <StoreIcon size={20} /> : <Crown size={20} />}
@@ -366,12 +366,12 @@ export default function PremiumPage() {
       ))}
 
       {/* Scelta piano */}
-      <div className="flex rounded-xl border border-border overflow-hidden bg-white">
+      <div className="flex rounded-xl border border-border overflow-hidden bg-surface-card">
         {(['private', 'store'] as const).map((a) => (
           <button
             key={a}
             onClick={() => setAudience(a)}
-            className={`flex-1 py-2 text-sm font-medium ${audience === a ? 'bg-primary text-white' : 'text-text-secondary'}`}
+            className={`flex-1 py-2 text-sm font-medium ${audience === a ? 'bg-primary text-on-primary' : 'text-text-secondary'}`}
           >
             {a === 'private' ? t('audience.private') : t('audience.store')}
           </button>
@@ -381,7 +381,7 @@ export default function PremiumPage() {
       {audience === 'private' ? (
         <>
           {shownPremium && (
-            <section className="p-4 rounded-2xl bg-white border-2 border-secondary space-y-3">
+            <section className="p-4 rounded-2xl bg-surface-card border-2 border-secondary space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-lg font-bold text-text flex items-center gap-1.5"><Crown size={18} className="text-amber-600" /> Premium</h2>
                 {premium.length > 1 && (
@@ -390,7 +390,7 @@ export default function PremiumPage() {
                       <button
                         key={c}
                         onClick={() => setCycle(c)}
-                        className={`px-2.5 py-1 rounded-md font-medium ${cycle === c ? 'bg-white shadow-sm text-text' : 'text-text-secondary'}`}
+                        className={`px-2.5 py-1 rounded-md font-medium ${cycle === c ? 'bg-surface-card shadow-sm text-text' : 'text-text-secondary'}`}
                       >
                         {c === 'Monthly' ? t('cycle.monthly') : annualSaving > 0 ? t('cycle.annualSaving', { saving: annualSaving }) : t('cycle.annual')}
                       </button>
@@ -415,7 +415,7 @@ export default function PremiumPage() {
           )}
 
           {sellerPlans.map((plan) => (
-            <section key={plan.id} className="p-4 rounded-2xl bg-white border border-border space-y-3">
+            <section key={plan.id} className="p-4 rounded-2xl bg-surface-card border border-border space-y-3">
               <h2 className="text-lg font-bold text-text flex items-center gap-1.5"><Tent size={18} className="text-primary" /> {plan.name}</h2>
               {plan.description && <p className="text-sm text-text-secondary">{plan.description}</p>}
               <p>
@@ -431,7 +431,7 @@ export default function PremiumPage() {
             </section>
           ))}
 
-          <section className="p-4 rounded-2xl bg-white border border-border space-y-2">
+          <section className="p-4 rounded-2xl bg-surface-card border border-border space-y-2">
             <h2 className="text-base font-bold text-text">{t(TIER_LABEL.Free)}</h2>
             <ul className="space-y-1.5">
               {FREE_FEATURES.map((f) => (
@@ -444,7 +444,7 @@ export default function PremiumPage() {
         <p className="text-sm text-text-muted text-center py-6">{t('store.comingSoon')}</p>
       ) : (
         storePlans.map((plan) => (
-          <section key={plan.id} className={`p-4 rounded-2xl bg-white space-y-3 ${plan.tier === 'StorePro' ? 'border-2 border-primary' : 'border border-border'}`}>
+          <section key={plan.id} className={`p-4 rounded-2xl bg-surface-card space-y-3 ${plan.tier === 'StorePro' ? 'border-2 border-primary' : 'border border-border'}`}>
             <h2 className="text-lg font-bold text-text flex items-center gap-1.5"><StoreIcon size={18} className="text-primary" /> {plan.name}</h2>
             {plan.description && <p className="text-sm text-text-secondary">{plan.description}</p>}
             <p>
@@ -466,13 +466,13 @@ export default function PremiumPage() {
       )}
 
       {columns.length > 1 && (
-        <section className="bg-white rounded-2xl border border-border p-3">
+        <section className="bg-surface-card rounded-2xl border border-border p-3">
           <h2 className="text-sm font-semibold text-text mb-2">{t('compare.title')}</h2>
           <div className="overflow-x-auto -mx-3 px-3">
             <table className="w-full min-w-[34rem] text-xs">
               <thead>
                 <tr className="text-text-secondary">
-                  <th className="sticky left-0 bg-white text-left font-medium py-1.5 pr-2" />
+                  <th className="sticky left-0 bg-surface-card text-left font-medium py-1.5 pr-2" />
                   {columns.map((p, i) => (
                     <th key={i} className="font-semibold text-text px-1.5 text-center whitespace-nowrap">
                       {p ? p.name.replace(' Mensile', '') : t(TIER_LABEL.Free)}
@@ -484,7 +484,7 @@ export default function PremiumPage() {
               <tbody>
                 {COMPARE.map((row) => (
                   <tr key={row.key} className="border-t border-border/60">
-                    <th scope="row" className="sticky left-0 bg-white text-left font-normal text-text-secondary py-1.5 pr-2">{t(row.key)}</th>
+                    <th scope="row" className="sticky left-0 bg-surface-card text-left font-normal text-text-secondary py-1.5 pr-2">{t(row.key)}</th>
                     {columns.map((p, i) => {
                       const v = row.cap ? (p && has(p, row.cap) ? 'yes' : null) : row.value!(p);
                       return (

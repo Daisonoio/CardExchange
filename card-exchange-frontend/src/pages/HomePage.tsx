@@ -116,9 +116,9 @@ export default function HomePage() {
 
       {/* Location prompt */}
       {showLocationPrompt && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
+        <div className="bg-surface-card rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <MapPin size={16} style={{ color: '#1a3461' }} />
+            <MapPin size={16} className="text-primary" />
             <h2 className="text-sm font-bold text-text">{t('locationPrompt.title')}</h2>
           </div>
           <p className="text-sm text-text-secondary mb-4">
@@ -144,7 +144,7 @@ export default function HomePage() {
       {/* Loading */}
       {isLoading && (
         <div className="flex justify-center py-16">
-          <Loader2 size={28} className="animate-spin" style={{ color: '#1a3461' }} />
+          <Loader2 size={28} className="animate-spin text-primary" />
         </div>
       )}
 

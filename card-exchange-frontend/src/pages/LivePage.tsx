@@ -52,7 +52,7 @@ export default function LivePage() {
         )}
       </div>
 
-      <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+      <div className="bg-surface-card rounded-2xl border border-border/60 shadow-sm overflow-hidden">
         <div className="h-52">
           <MapContainer center={[item.latitude, item.longitude]} zoom={15} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
             <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -87,30 +87,30 @@ export default function LivePage() {
 
       <div className="grid grid-cols-2 gap-2">
         <a href={directions} target="_blank" rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-light">
+          className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-primary text-on-primary text-sm font-semibold hover:bg-primary-light">
           <Navigation size={16} /> {t('page.directions')}
         </a>
         {item.store ? (
-          <Link to={`/stores/${item.store.id}`} className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white border border-border text-sm font-semibold text-text hover:border-primary/40">
+          <Link to={`/stores/${item.store.id}`} className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-surface-card border border-border text-sm font-semibold text-text hover:border-primary/40">
             <StoreIcon size={16} /> {t('page.store')}
           </Link>
         ) : !item.isMine ? (
-          <Link to={`/collection/${item.author.id}`} className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white border border-border text-sm font-semibold text-text hover:border-primary/40">
+          <Link to={`/collection/${item.author.id}`} className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-surface-card border border-border text-sm font-semibold text-text hover:border-primary/40">
             <Layers size={16} /> {t('page.collection')}
           </Link>
         ) : null}
         {!item.isMine && (
-          <Link to={`/chat?userId=${item.author.id}`} className="col-span-2 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white border border-border text-sm font-semibold text-text hover:border-primary/40">
+          <Link to={`/chat?userId=${item.author.id}`} className="col-span-2 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-surface-card border border-border text-sm font-semibold text-text hover:border-primary/40">
             <MessageSquare size={16} /> {t('page.message')}
           </Link>
         )}
         {item.isMine && item.isLive && (
-          <Link to={`/qr/live/${item.id}`} className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white border border-border text-sm font-semibold text-text hover:border-primary/40">
+          <Link to={`/qr/live/${item.id}`} className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-surface-card border border-border text-sm font-semibold text-text hover:border-primary/40">
             <QrCode size={16} /> {t('qr:live.entry')}
           </Link>
         )}
         {item.isMine && item.isLive && (
-          <button onClick={endNow} disabled={ending} className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white border border-red-200 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60">
+          <button onClick={endNow} disabled={ending} className="flex items-center justify-center gap-1.5 py-3 rounded-xl bg-surface-card border border-red-200 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60">
             {ending ? t('page.ending') : t('page.endNow')}
           </button>
         )}

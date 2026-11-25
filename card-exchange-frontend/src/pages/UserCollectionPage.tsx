@@ -186,7 +186,7 @@ export default function UserCollectionPage() {
             onClick={() => {  if (selectionMode) setSelectedCards([]); }}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0 ${
               selectionMode
-                ? 'bg-primary text-white'
+                ? 'bg-primary text-on-primary'
                 : 'bg-surface-dark text-text-secondary hover:bg-gray-200'
             }`}
           >
@@ -217,7 +217,7 @@ export default function UserCollectionPage() {
             placeholder={t('user.searchPlaceholder')}
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-surface-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
       )}
@@ -226,7 +226,7 @@ export default function UserCollectionPage() {
       {isLoading ? (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
           {[...Array(9)].map((_, i) => (
-            <div key={i} className="aspect-[5/7] bg-white rounded-xl animate-pulse" />
+            <div key={i} className="aspect-[5/7] bg-surface-card rounded-xl animate-pulse" />
           ))}
         </div>
       ) : sortedFiltered.length === 0 ? (
@@ -269,7 +269,7 @@ export default function UserCollectionPage() {
 
       {/* Floating action bar */}
       {selectionMode && selectedCards.length > 0 && (
-        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white border-t border-border p-4 pb-10 md:pb-4 z-40 shadow-lg">
+        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-surface-card border-t border-border p-4 pb-10 md:pb-4 z-40 shadow-lg">
           <div className="flex items-center gap-3 max-w-lg mx-auto">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold">{t('user.selectedCount', { count: selectedCards.length })}</p>
@@ -287,7 +287,7 @@ export default function UserCollectionPage() {
 
       {/* Quick trade button when not in selection mode */}
       {!selectionMode && userCards.length > 0 && (
-        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-border p-4 pb-10 md:pb-4 z-40">
+        <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-night/90 backdrop-blur border-t border-border p-4 pb-10 md:pb-4 z-40">
           <Button
             onClick={() => setSelectionMode(true)}
             className="w-full max-w-lg mx-auto"

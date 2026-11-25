@@ -173,7 +173,7 @@ export default function EditProfilePage() {
   if (!user) return null;
 
   const inputClass =
-    'w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30';
+    'w-full px-3 py-2.5 rounded-xl border border-border bg-surface-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30';
   const labelClass = 'block text-xs font-semibold text-text-secondary mb-1';
 
   return (
@@ -200,7 +200,7 @@ export default function EditProfilePage() {
       )}
 
       {/* Profile section */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
+      <div className="bg-surface-card rounded-2xl p-5 shadow-sm border border-border/50 mb-4">
         <h2 className="text-sm font-bold mb-4">{t('edit.personalInfo')}</h2>
 
         <div className="space-y-3">
@@ -270,7 +270,7 @@ export default function EditProfilePage() {
       </div>
 
       {/* Location section */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50">
+      <div className="bg-surface-card rounded-2xl p-5 shadow-sm border border-border/50">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold">{t('edit.location')}</h2>
           {locationForm.latitude && locationForm.longitude && (
@@ -353,7 +353,7 @@ export default function EditProfilePage() {
       </div>
 
       {/* Spike threshold section */}
-      <div className="bg-white rounded-2xl p-5 shadow-sm border border-border/50 mt-4">
+      <div className="bg-surface-card rounded-2xl p-5 shadow-sm border border-border/50 mt-4">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp size={16} className="text-amber-500" />
           <h2 className="text-sm font-bold">{t('edit.priceAlerts')}</h2>

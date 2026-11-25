@@ -310,7 +310,7 @@ export default function CardScanner({ open, onClose, onSearch, onSelect, gameKey
                 {visual.candidates.slice(0, visual.confident ? 1 : 4).map((c, i) => (
                   <li key={c.cardInfoId}>
                     <button onClick={() => { onSelect(toGameCard(c)); close(); }}
-                      className={`w-full flex items-center gap-3 p-2 rounded-xl text-left border ${i === 0 && visual.confident ? 'border-green-500 bg-green-50' : 'border-border bg-white hover:bg-surface-dark'}`}>
+                      className={`w-full flex items-center gap-3 p-2 rounded-xl text-left border ${i === 0 && visual.confident ? 'border-green-500 bg-green-50' : 'border-border bg-surface-card hover:bg-surface-dark'}`}>
                       {c.imageSmall ? <img src={c.imageSmall} alt="" className={`${i === 0 && visual.confident ? 'w-14 h-20' : 'w-10 h-14'} rounded object-cover bg-surface-dark`} /> : <span className="w-10 h-14 rounded bg-surface-dark" />}
                       <span className="flex-1 min-w-0">
                         <span className="block text-sm font-medium text-text truncate">{c.name}</span>
@@ -333,7 +333,7 @@ export default function CardScanner({ open, onClose, onSearch, onSelect, gameKey
               <div className="flex flex-wrap gap-1.5">
                 {candidates.map((c) => (
                   <button key={c} onClick={() => search(c)}
-                    className={`px-2.5 py-1 rounded-full text-xs border ${query === c ? 'bg-primary text-white border-primary' : 'bg-white border-border text-text'}`}>
+                    className={`px-2.5 py-1 rounded-full text-xs border ${query === c ? 'bg-primary text-on-primary border-primary' : 'bg-surface-card border-border text-text'}`}>
                     {c}
                   </button>
                 ))}

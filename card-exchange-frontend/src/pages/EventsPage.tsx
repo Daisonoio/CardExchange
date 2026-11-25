@@ -41,7 +41,7 @@ export default function EventsPage() {
           <button
             key={key}
             onClick={() => setMode(key)}
-            className={`flex-1 py-2 rounded-xl text-sm font-semibold border ${mode === key ? 'bg-primary text-white border-primary' : 'bg-white text-text-secondary border-border'}`}
+            className={`flex-1 py-2 rounded-xl text-sm font-semibold border ${mode === key ? 'bg-primary text-on-primary border-primary' : 'bg-surface-card text-text-secondary border-border'}`}
           >
             {t(labelKey)}
           </button>
@@ -65,7 +65,7 @@ export default function EventsPage() {
         <ul className="space-y-2">
           {result.items.map((e) => (
             <li key={e.id}>
-              <Link to={`/events/${e.id}`} className="block p-3 rounded-2xl bg-white border border-border hover:shadow-sm">
+              <Link to={`/events/${e.id}`} className="block p-3 rounded-2xl bg-surface-card border border-border hover:shadow-sm">
                 <div className="flex items-start gap-3">
                   <div className="w-12 shrink-0 rounded-xl bg-primary/10 text-primary text-center py-1">
                     <div className="text-[10px] uppercase font-semibold">{date(e.startDate, { month: 'short' })}</div>

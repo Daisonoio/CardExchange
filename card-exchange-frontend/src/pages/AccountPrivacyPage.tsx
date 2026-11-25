@@ -52,7 +52,7 @@ export default function AccountPrivacyPage() {
     }
   };
 
-  const card = 'bg-white rounded-2xl border border-border/60 p-4 space-y-2';
+  const card = 'bg-surface-card rounded-2xl border border-border/60 p-4 space-y-2';
   return (
     <div className="pb-24 max-w-lg mx-auto space-y-4">
       <div className="flex items-center gap-3">

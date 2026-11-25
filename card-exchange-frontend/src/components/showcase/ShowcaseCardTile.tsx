@@ -9,7 +9,7 @@ export default function ShowcaseCardTile({ card, sellerId }: { card: ShowcaseCar
   const { euro } = useFormat();
   return (
     <Link to={`/collection/${sellerId}`} state={{ preselectCardId: card.id, preselectCardInfoId: card.cardInfoId }}
-      className="bg-white rounded-2xl border border-border/60 overflow-hidden flex flex-col hover:border-primary/40">
+      className="bg-surface-card rounded-2xl border border-border/60 overflow-hidden flex flex-col hover:border-primary/40">
       <div className="aspect-[63/88] bg-surface-dark">
         {card.imageUrl ? <img src={card.imageUrl} alt="" loading="lazy" className="w-full h-full object-cover" />
           : <span className="h-full grid place-items-center p-2 text-xs text-text-muted text-center">{card.name}</span>}

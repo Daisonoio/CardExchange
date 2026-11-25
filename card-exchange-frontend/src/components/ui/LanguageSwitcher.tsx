@@ -7,7 +7,7 @@ export default function LanguageSwitcher() {
   const { t, i18n } = useTranslation();
   const current = (i18n.resolvedLanguage ?? 'it').split('-')[0];
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-border/50 px-4 py-3 mb-4 flex items-center gap-3">
+    <div className="bg-surface-card rounded-2xl shadow-sm border border-border/50 px-4 py-3 mb-4 flex items-center gap-3">
       <span className="w-9 h-9 rounded-full border-2 border-border flex items-center justify-center shrink-0 text-primary">
         <Languages size={16} />
       </span>
@@ -19,7 +19,7 @@ export default function LanguageSwitcher() {
             onClick={() => i18n.changeLanguage(l.code)}
             aria-pressed={current === l.code}
             lang={l.code}
-            className={`px-2.5 py-1 rounded-md font-medium ${current === l.code ? 'bg-white shadow-sm text-text' : 'text-text-secondary'}`}
+            className={`px-2.5 py-1 rounded-md font-medium ${current === l.code ? 'bg-surface-card shadow-sm text-text' : 'text-text-secondary'}`}
           >
             {l.label}
           </button>

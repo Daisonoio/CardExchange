@@ -42,7 +42,7 @@ export default function ReviewsSheet({ userId, open, onClose }: { userId: number
             </div>
           </div>
           {data.reviews.items.map((r) => (
-            <div key={r.id} className="p-3 rounded-xl border border-border bg-white space-y-1.5">
+            <div key={r.id} className="p-3 rounded-xl border border-border bg-surface-card space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold">@{r.reviewerUsername}</span>
                 <StarRating value={r.rating} size={14} />

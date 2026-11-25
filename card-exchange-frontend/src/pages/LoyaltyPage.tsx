@@ -81,7 +81,7 @@ export default function LoyaltyPage() {
         <h1 className="text-xl font-bold text-text flex items-center gap-2"><Stamp size={20} className="text-amber-600" /> {t('title')}</h1>
       </div>
 
-      <section className="bg-white rounded-2xl border border-border/60 p-4 space-y-3">
+      <section className="bg-surface-card rounded-2xl border border-border/60 p-4 space-y-3">
         <div>
           <h2 className="text-sm font-bold text-text">{t('pass.title')}</h2>
           <p className="text-xs text-text-secondary">{t('pass.hint')}</p>
@@ -97,7 +97,7 @@ export default function LoyaltyPage() {
       ) : (
         <ul className="space-y-3">
           {cards.map((c) => (
-            <li key={c.storeId} className={`bg-white rounded-2xl border p-4 space-y-2 ${c.rewardReady ? 'border-amber-400' : 'border-border/60'}`}>
+            <li key={c.storeId} className={`bg-surface-card rounded-2xl border p-4 space-y-2 ${c.rewardReady ? 'border-amber-400' : 'border-border/60'}`}>
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <Link to={`/stores/${c.storeId}`} className="block text-sm font-bold text-text truncate hover:underline">{c.storeName}</Link>

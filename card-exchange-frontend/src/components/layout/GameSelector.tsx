@@ -16,17 +16,16 @@ export default function GameSelector() {
   if (isLoading || games.length === 0) return null;
 
   return (
-    <div className="sticky top-14 md:top-16 z-40 bg-white border-b border-border/50">
+    <div className="sticky top-14 md:top-16 z-40 bg-night/90 backdrop-blur border-b border-border/50">
       <div className="max-w-2xl mx-auto px-4">
         <div className="flex gap-2 py-2.5 overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setSelectedGameId(null)}
             className={`px-5 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all shrink-0 ${
               selectedGameId === null
-                ? 'text-white shadow-sm'
-                : 'bg-surface-dark text-text-secondary hover:bg-border'
+                ? 'bg-primary text-on-primary shadow-sm'
+                : 'bg-surface-card border border-border text-text hover:bg-surface-raised'
             }`}
-            style={selectedGameId === null ? { background: '#1a3461' } : {}}
           >
             {t('gameSelector.all')}
           </button>
@@ -40,10 +39,9 @@ export default function GameSelector() {
                 onClick={() => setSelectedGameId(game.id)}
                 className={`px-5 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all shrink-0 ${
                   isSelected
-                    ? 'text-white shadow-sm'
-                    : 'bg-surface-dark text-text-secondary hover:bg-border'
+                    ? 'bg-primary text-on-primary shadow-sm'
+                    : 'bg-surface-card border border-border text-text hover:bg-surface-raised'
                 }`}
-                style={isSelected ? { background: '#1a3461' } : {}}
               >
                 {meta.short}
               </button>

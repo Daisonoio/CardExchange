@@ -143,12 +143,12 @@ export default function AdminBillingPage() {
         <h1 className="text-xl font-bold text-text flex-1">{t('billing.title')}</h1>
       </div>
 
-      <div className="flex rounded-xl border border-border overflow-hidden bg-white">
+      <div className="flex rounded-xl border border-border overflow-hidden bg-surface-card">
         {(Object.keys(TAB_LABEL) as Tab[]).map((tb) => (
           <button
             key={tb}
             onClick={() => { setTab(tb); setNotice(null); }}
-            className={`flex-1 py-2 text-sm font-medium ${tab === tb ? 'bg-primary text-white' : 'text-text-secondary'}`}
+            className={`flex-1 py-2 text-sm font-medium ${tab === tb ? 'bg-primary text-on-primary' : 'text-text-secondary'}`}
           >
             {t(TAB_LABEL[tb])}
           </button>
@@ -159,7 +159,7 @@ export default function AdminBillingPage() {
       {notice && <div className="p-3 rounded-xl bg-green-50 text-green-800 text-sm">{notice}</div>}
 
       {tab === 'grant' ? (
-        <form onSubmit={submitGrant} className="p-4 rounded-2xl bg-white border border-border space-y-3">
+        <form onSubmit={submitGrant} className="p-4 rounded-2xl bg-surface-card border border-border space-y-3">
           <p className="text-sm text-text-secondary">
             {t('billing.grant.intro')}
           </p>
@@ -169,7 +169,7 @@ export default function AdminBillingPage() {
             <select
               value={grant.planId}
               onChange={(e) => setGrant({ ...grant, planId: Number(e.target.value) })}
-              className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm"
+              className="w-full px-3 py-2.5 rounded-xl border border-border bg-surface-card text-sm"
             >
               {plans.map((p) => <option key={p.id} value={p.id}>{p.name} · {euro(p.price)}</option>)}
             </select>
@@ -191,7 +191,7 @@ export default function AdminBillingPage() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder={t('billing.searchPlaceholder')}
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-border bg-white text-sm"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-border bg-surface-card text-sm"
               />
             </div>
             <Button type="submit" variant="outline">{t('common:actions.search')}</Button>
@@ -206,7 +206,7 @@ export default function AdminBillingPage() {
               <p className="text-xs text-text-muted">{t('billing.results', { count: total })}</p>
               <ul className="space-y-3">
                 {items.map((r) => (
-                  <li key={r.id} className="p-3 rounded-2xl border border-border bg-white space-y-2">
+                  <li key={r.id} className="p-3 rounded-2xl border border-border bg-surface-card space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="text-sm font-semibold truncate">@{r.username} · {r.planName}</p>

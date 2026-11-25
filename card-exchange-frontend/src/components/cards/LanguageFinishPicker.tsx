@@ -31,7 +31,7 @@ export default function LanguageFinishPicker({ language, onLanguageChange, finis
           id="card-language"
           value={language}
           onChange={(e) => onLanguageChange(e.target.value)}
-          className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className="w-full px-3 py-2.5 rounded-xl border border-border bg-surface-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
         >
           <option value="">{anyOption ? t('picker.anyLanguage') : t('picker.notSpecified')}</option>
           {CARD_LANGUAGES.map((l) => (

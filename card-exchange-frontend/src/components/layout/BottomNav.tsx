@@ -24,15 +24,17 @@ function NavItemLink({ to, icon: Icon, label }: { to: NavItem['to']; icon: NavIt
       // /collection/123 è la collezione di un altro utente: "Collezione" si accende solo sulla propria
       end={to === '/collection'}
       className={({ isActive }) =>
-        `flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors ${
-          isActive ? 'text-secondary' : 'text-white/50 hover:text-white/80'
+        `relative flex flex-col items-center justify-center gap-0.5 flex-1 py-2 transition-colors ${
+          isActive ? 'text-primary' : 'text-text-secondary hover:text-text'
         }`
       }
     >
       {({ isActive }) => (
         <>
-          <Icon size={22} strokeWidth={isActive ? 2.2 : 1.6} />
-          <span className="text-[9px] font-medium">{label}</span>
+          {/* Voce attiva: trattino oro sopra l'icona */}
+          {isActive && <span aria-hidden="true" className="absolute top-0 w-7 h-[3px] rounded-full bg-primary" />}
+          <Icon size={22} strokeWidth={isActive ? 2.2 : 1.7} />
+          <span className={`text-[10px] ${isActive ? 'font-bold' : 'font-semibold'}`}>{label}</span>
         </>
       )}
     </NavLink>
@@ -46,7 +48,7 @@ export default function BottomNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom md:hidden" style={{ background: '#1a3461' }}>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 safe-bottom md:hidden" style={{ background: '#0e1830', borderTop: '1px solid #1e2b46' }}>
         <div className="flex items-center h-16 px-2">
           {LEFT_ITEMS.map(({ to, icon, key }) => <NavItemLink key={to} to={to} icon={icon} label={t(key)} />)}
 
@@ -56,10 +58,10 @@ export default function BottomNav() {
               to="/home"
               aria-label={t('nav.home')}
               className={({ isActive }) =>
-                `-mt-7 w-16 h-16 rounded-full flex items-center justify-center shadow-lg shadow-black/30
-                 ring-4 ring-[#1a3461] transition-transform active:scale-95
-                 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary
-                 ${isActive ? 'bg-secondary text-[#1a3461]' : 'bg-white text-[#1a3461] hover:bg-secondary/90'}`
+                `-mt-7 w-16 h-16 rounded-full flex items-center justify-center bg-primary text-on-primary
+                 ring-4 ring-[#0e1830] transition-all active:scale-95
+                 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary
+                 ${isActive ? 'shadow-[0_6px_22px_rgba(245,184,46,0.55)]' : 'shadow-[0_6px_18px_rgba(245,184,46,0.25)] hover:bg-primary-light'}`
               }
             >
               {({ isActive }) => <Home size={28} strokeWidth={isActive ? 2.4 : 2} />}

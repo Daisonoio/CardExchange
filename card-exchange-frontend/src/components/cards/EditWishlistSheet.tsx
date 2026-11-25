@@ -112,11 +112,11 @@ export default function EditWishlistSheet({ item, onClose, onUpdated, onDeleted 
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="rounded-xl bg-white border border-border/60 p-2.5">
+          <div className="rounded-xl bg-surface-card border border-border/60 p-2.5">
             <p className="text-text-muted">{t('editSheet.searchId')}</p>
             <p className="font-semibold text-text">#{item.id}</p>
           </div>
-          <div className="rounded-xl bg-white border border-border/60 p-2.5">
+          <div className="rounded-xl bg-surface-card border border-border/60 p-2.5">
             <p className="text-text-muted">{t('editSheet.cardPhoto')}</p>
             <p className="font-semibold text-text">{hasPhoto ? t('editSheet.photoPresent') : t('editSheet.photoMissing')}</p>
           </div>

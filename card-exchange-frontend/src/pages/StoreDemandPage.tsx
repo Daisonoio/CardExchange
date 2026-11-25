@@ -72,11 +72,11 @@ export default function StoreDemandPage() {
     return (
       <div className="max-w-2xl mx-auto space-y-4">
         {header}
-        <section className="p-5 rounded-2xl bg-white border border-border text-center space-y-3">
+        <section className="p-5 rounded-2xl bg-surface-card border border-border text-center space-y-3">
           <Lock size={28} className="mx-auto text-primary" />
           <h2 className="text-lg font-bold text-text">{t('demand.planTitle')}</h2>
           <p className="text-sm text-text-secondary">{t('demand.planText')}</p>
-          <Link to="/premium" className="inline-block px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold">{t('demand.planCta')}</Link>
+          <Link to="/premium" className="inline-block px-4 py-2 rounded-xl bg-primary text-on-primary text-sm font-semibold">{t('demand.planCta')}</Link>
         </section>
       </div>
     );
@@ -112,7 +112,7 @@ export default function StoreDemandPage() {
       {header}
       <p className="text-sm text-text-secondary -mt-2">{t('demand.subtitle', { km: d.radiusKm })}</p>
 
-      <section className="p-4 rounded-2xl bg-primary text-white">
+      <section className="p-4 rounded-2xl bg-primary text-on-primary">
         <p className="text-3xl font-bold tabular-nums">{d.interestedUsers || '–'}</p>
         <p className="text-sm">{d.interestedUsers ? t('demand.interested', { count: d.interestedUsers }) : t('demand.interestedNone')}</p>
         <p className="mt-2 text-xs text-white/80">{t('demand.active', { count: d.activeUsersInRadius })}</p>
@@ -120,12 +120,12 @@ export default function StoreDemandPage() {
 
       {notice && <p role="status" className="text-sm p-3 rounded-xl bg-green-50 text-green-800">{notice}</p>}
 
-      <section className="bg-white rounded-2xl border border-border p-4">
+      <section className="bg-surface-card rounded-2xl border border-border p-4">
         <h2 className="text-sm font-semibold text-text">{t('demand.inStock')}</h2>
         {d.inStock.length === 0 ? <p className="mt-1 text-sm text-text-muted">{t('demand.empty')}</p> : <ul className="divide-y divide-border/60">{d.inStock.map((c) => row(c, true))}</ul>}
       </section>
 
-      <section className="bg-white rounded-2xl border border-border p-4">
+      <section className="bg-surface-card rounded-2xl border border-border p-4">
         <div className="flex items-start justify-between gap-2">
           <div>
             <h2 className="text-sm font-semibold text-text">{t('demand.missing')}</h2>

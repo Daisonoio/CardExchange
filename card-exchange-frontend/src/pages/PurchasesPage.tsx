@@ -60,14 +60,14 @@ export default function PurchasesPage() {
         <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" /></div>
       ) : (
         <>
-          <section className="p-4 rounded-2xl bg-white border border-border">
+          <section className="p-4 rounded-2xl bg-surface-card border border-border">
             <p className="flex items-center gap-2 text-lg font-bold text-text"><Coins size={20} className="text-amber-600" /> {t('credits', { count: mine.credits })}</p>
             <p className="text-xs text-text-secondary mt-1">{t('creditsHint')}</p>
           </section>
           {products && (products.enabled ? (
             <section className="grid grid-cols-2 gap-2">
               {products.products.map((p) => (
-                <div key={p.code} className="p-3 rounded-2xl bg-white border border-border space-y-2">
+                <div key={p.code} className="p-3 rounded-2xl bg-surface-card border border-border space-y-2">
                   <p className="text-sm font-semibold text-text">{p.name}</p>
                   <p className="text-lg font-bold text-text">{euro(p.priceEur)}</p>
                   <Button size="sm" className="w-full" isLoading={busy === p.code} disabled={!!busy} onClick={() => buy(p.code)}>{t('buy')}</Button>
@@ -75,7 +75,7 @@ export default function PurchasesPage() {
               ))}
             </section>
           ) : <p className="text-xs text-text-muted">{t('notYet')}</p>)}
-          <section className="bg-white rounded-2xl border border-border p-3">
+          <section className="bg-surface-card rounded-2xl border border-border p-3">
             <h2 className="text-sm font-semibold text-text mb-1">{t('history')}</h2>
             {mine.purchases.length === 0 ? <p className="text-sm text-text-muted">{t('none')}</p> : (
               <ul className="divide-y divide-border/60">

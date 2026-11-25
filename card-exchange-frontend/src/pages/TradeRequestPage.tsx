@@ -414,7 +414,7 @@ export default function TradeRequestPage() {
               placeholder={t('request.searchMyCards')}
               value={searchMyCards}
               onChange={(e) => setSearchMyCards(e.target.value)}
-              className="w-full pl-8 pr-4 py-2 rounded-xl border border-border bg-white text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="w-full pl-8 pr-4 py-2 rounded-xl border border-border bg-surface-card text-xs focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
           <div className="max-h-52 overflow-y-auto space-y-1 border border-border/50 rounded-xl p-2 bg-surface-dark">
@@ -515,7 +515,7 @@ export default function TradeRequestPage() {
       )}
 
       {/* Submit */}
-      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white border-t border-border p-4 pb-10 md:pb-4 z-40">
+      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-surface-card border-t border-border p-4 pb-10 md:pb-4 z-40">
         <Button
           onClick={handleSubmit}
           className="w-full"
@@ -545,7 +545,7 @@ function MiniCard({ card, onRemove, offered, price, quantity, onQuantityChange }
 }) {
   const { t } = useTranslation('trades');
   return (
-    <div className={`flex items-center gap-2.5 p-2 rounded-xl border ${offered ? 'border-amber-200 bg-amber-50/50' : 'border-border/50 bg-white'}`}>
+    <div className={`flex items-center gap-2.5 p-2 rounded-xl border ${offered ? 'border-amber-200 bg-amber-50/50' : 'border-border/50 bg-surface-card'}`}>
       {/* {image ? (
         <img src={image} alt={card.cardName} className="w-9 h-12 rounded-md object-cover shrink-0" />
       ) : (
@@ -580,7 +580,7 @@ function MiniCardToggle({ card, selected, onToggle, highlight }: {
     <button
       onClick={onToggle}
       className={`w-full flex items-center gap-2 p-1.5 rounded-lg transition-colors text-left ${
-        selected ? 'bg-primary/10 ring-1 ring-primary/30' : highlight ? 'bg-green-50 hover:bg-green-100' : 'hover:bg-white'
+        selected ? 'bg-primary/10 ring-1 ring-primary/30' : highlight ? 'bg-green-50 hover:bg-green-100' : 'hover:bg-surface-raised'
       }`}
     >
       {image ? (
@@ -598,7 +598,7 @@ function MiniCardToggle({ card, selected, onToggle, highlight }: {
       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
         selected ? 'border-primary bg-primary' : 'border-border'
       }`}>
-        {selected && <Check size={12} className="text-white" />}
+        {selected && <Check size={12} className="text-on-primary" />}
       </div>
     </button>
   );

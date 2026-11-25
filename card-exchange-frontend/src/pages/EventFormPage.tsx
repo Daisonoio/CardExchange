@@ -89,7 +89,7 @@ export default function EventFormPage() {
         <h1 className="text-xl font-bold text-text">{t('form.title')}</h1>
       </div>
 
-      <section className="space-y-2 bg-white rounded-2xl border border-border p-3">
+      <section className="space-y-2 bg-surface-card rounded-2xl border border-border p-3">
         <label className={label}>{t('form.fields.title')}
           <input value={form.title} maxLength={200} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('form.fields.titlePlaceholder')} className={inputCls} />
         </label>
@@ -130,7 +130,7 @@ export default function EventFormPage() {
         )}
       </section>
 
-      <section className="space-y-2 bg-white rounded-2xl border border-border p-3">
+      <section className="space-y-2 bg-surface-card rounded-2xl border border-border p-3">
         <h2 className="text-sm font-semibold">{t('form.where')}</h2>
         {myStores.length > 0 && (
           <label className={label}>{t('form.place')}
@@ -147,7 +147,7 @@ export default function EventFormPage() {
         )}
       </section>
 
-      <section className="space-y-2 bg-white rounded-2xl border border-border p-3">
+      <section className="space-y-2 bg-surface-card rounded-2xl border border-border p-3">
         <h2 className="text-sm font-semibold">{t('form.games')}</h2>
         <div className="flex flex-wrap gap-1.5">
           {games.map((g) => {

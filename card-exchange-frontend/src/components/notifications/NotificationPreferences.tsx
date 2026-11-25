@@ -110,7 +110,7 @@ export default function NotificationPreferences({ open, onClose }: NotificationP
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="w-full py-2.5 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-xl bg-primary text-on-primary font-medium text-sm hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isSaving && <Loader2 size={14} className="animate-spin" />}
               {t('preferences.save')}

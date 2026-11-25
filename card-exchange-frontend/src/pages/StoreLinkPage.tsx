@@ -44,13 +44,13 @@ export default function StoreLinkPage() {
             <p className="text-sm text-text-secondary flex items-center justify-center gap-1"><MapPin size={14} /> {store.city}</p>
           </div>
           <p className="text-sm text-text-secondary">{t('link.pitch')}</p>
-          <Link to="/register" className="block w-full py-3 rounded-xl bg-primary text-white font-semibold hover:bg-primary-light">{t('link.register')}</Link>
+          <Link to="/register" className="block w-full py-3 rounded-xl bg-primary text-on-primary font-semibold hover:bg-primary-light">{t('link.register')}</Link>
           <Link to="/login" className="block text-sm font-semibold text-primary hover:underline">{t('link.login')}</Link>
         </div>
       ) : (
         <div className="space-y-3 text-center">
           <p className="text-sm text-text-secondary">{t('link.notFoundDescription')}</p>
-          <Link to="/register" className="block w-full py-3 rounded-xl bg-primary text-white font-semibold">{t('link.register')}</Link>
+          <Link to="/register" className="block w-full py-3 rounded-xl bg-primary text-on-primary font-semibold">{t('link.register')}</Link>
         </div>
       )}
     </AuthShell>

@@ -235,7 +235,7 @@ export default function CollectionPage() {
 
       {/* Barra azioni di massa */}
       {selectMode && (
-        <div className="sticky top-14 md:top-16 z-30 mb-3 p-2.5 rounded-xl bg-primary text-white shadow-lg space-y-2">
+        <div className="sticky top-14 md:top-16 z-30 mb-3 p-2.5 rounded-xl bg-primary text-on-primary shadow-lg space-y-2">
           <div className="flex items-center gap-2 text-sm">
             <button onClick={exitSelectMode} aria-label={t('bulk.exit')} className="p-1 rounded hover:bg-white/10">
               <X size={16} />
@@ -306,16 +306,16 @@ export default function CollectionPage() {
             placeholder={t('filters.placeholder')}
             value={filterText}
             onChange={(e) => setFilterText(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-border bg-surface-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
-        <div className="flex rounded-xl border border-border overflow-hidden bg-white">
+        <div className="flex rounded-xl border border-border overflow-hidden bg-surface-card">
           {(['all', 'trade', 'keep'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilterTrade(f)}
               className={`px-3 py-2 text-xs font-medium transition-colors ${
-                filterTrade === f ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-dark'
+                filterTrade === f ? 'bg-primary text-on-primary' : 'text-text-secondary hover:bg-surface-dark'
               }`}
             >
               {t(`filters.${f}`)}
@@ -328,7 +328,7 @@ export default function CollectionPage() {
       {isLoading ? (
         <div className="grid grid-cols-3 ">
           {[...Array(9)].map((_, i) => (
-            <div key={i} className="aspect-[6/7] bg-white rounded-xl animate-pulse" />
+            <div key={i} className="aspect-[6/7] bg-surface-card rounded-xl animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -455,7 +455,7 @@ export default function CollectionPage() {
                         <button
                           key={getCardId(p)}
                           onClick={() => handleSelectPrinting(p)}
-                          className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-white transition-colors border-b border-border/30 last:border-0 ${
+                          className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-surface-raised transition-colors border-b border-border/30 last:border-0 ${
                             isSelected ? 'bg-primary/5' : ''
                           }`}
                         >

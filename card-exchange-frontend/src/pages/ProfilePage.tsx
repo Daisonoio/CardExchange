@@ -63,7 +63,7 @@ export default function ProfilePage() {
       <div className="flex items-center gap-4 mb-6 px-1">
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center shrink-0 text-xl font-bold overflow-hidden"
-          style={{ background: '#1a3461', color: '#f5b800' }}
+          style={{ background: '#1b2a45', color: '#f5b82e', boxShadow: '0 0 0 2px #f5b82e' }}
         >
           {user.avatarUrl ? (
             <img src={user.avatarUrl} alt={user.username} className="w-full h-full object-cover" />
@@ -86,11 +86,11 @@ export default function ProfilePage() {
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         {[
-          { icon: Star, value: (user.reputationScore ?? 0).toFixed(1), label: t('stats.reputation'), color: '#f5b800' },
-          { icon: ArrowLeftRight, value: user.totalTradesCompleted ?? 0, label: t('stats.trades'), color: '#1a3461' },
-          { icon: MessageCircle, value: user.totalReviewsReceived ?? 0, label: t('stats.reviews'), color: '#10b981' },
+          { icon: Star, value: (user.reputationScore ?? 0).toFixed(1), label: t('stats.reputation'), color: '#f5b82e' },
+          { icon: ArrowLeftRight, value: user.totalTradesCompleted ?? 0, label: t('stats.trades'), color: '#9cc2ff' },
+          { icon: MessageCircle, value: user.totalReviewsReceived ?? 0, label: t('stats.reviews'), color: '#7fd1a8' },
         ].map(({ icon: Icon, value, label, color }) => (
-          <div key={label} className="bg-white rounded-2xl p-3 text-center shadow-sm border border-border/50">
+          <div key={label} className="bg-surface-card rounded-2xl p-3 text-center shadow-sm border border-border/50">
             <div className="flex items-center justify-center gap-1 mb-0.5" style={{ color }}>
               <Icon size={14} />
               <span className="text-lg font-bold text-text">{value}</span>
@@ -105,7 +105,7 @@ export default function ProfilePage() {
       <InviteCard />
 
       {/* Menu list */}
-      <div className="bg-white rounded-2xl shadow-sm border border-border/50 overflow-hidden mb-4">
+      <div className="bg-surface-card rounded-2xl shadow-sm border border-border/50 overflow-hidden mb-4">
         {menuItems.map(({ label, icon: Icon, to, action }, idx) => (
           <button
             key={label}
@@ -116,7 +116,7 @@ export default function ProfilePage() {
           >
             <span
               className="w-9 h-9 rounded-full border-2 border-border flex items-center justify-center shrink-0"
-              style={{ color: '#1a3461' }}
+              style={{ color: '#9cc2ff' }}
             >
               <Icon size={16} />
             </span>
@@ -127,7 +127,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Logout */}
-      <div className="bg-white rounded-2xl shadow-sm border border-border/50 overflow-hidden mb-6">
+      <div className="bg-surface-card rounded-2xl shadow-sm border border-border/50 overflow-hidden mb-6">
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-4 hover:bg-red-50 transition-colors text-left"

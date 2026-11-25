@@ -59,7 +59,7 @@ export default function MobileHeader() {
       {/* Header bar */}
       <header
         className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 md:hidden"
-        style={{ background: '#ffffff', borderBottom: '1px solid #dde4ee' }}
+        style={{ background: '#0e1830', borderBottom: '1px solid #1e2b46' }}
       >
         {/* Hamburger with badge */}
         <button
@@ -71,36 +71,36 @@ export default function MobileHeader() {
           {chatUnread > 0 && (
             <span
               className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1"
-              style={{ background: '#ef4444' }}
+              style={{ background: '#ff5a5f' }}
             >
               {chatUnread > 99 ? '99+' : chatUnread}
             </span>
           )}
         </button>
 
-        <div className="flex items-center gap-2 font-bold text-lg" style={{ color: '#1a3461' }}>
+        <div className="flex items-center gap-2 font-bold text-lg text-text">
           {titleKey && location.pathname !== '/home' ? (
             <>
-              <BrandLogo layout="mark" theme="light" height={32} title="" />
+              <BrandLogo layout="mark" theme="dark" height={32} title="" />
               <span>{title}</span>
             </>
           ) : (
             // Home e pagine senza titolo: logo completo
-            <BrandLogo layout="horizontal" theme="light" height={36} />
+            <BrandLogo layout="horizontal" theme="dark" height={36} />
           )}
         </div>
 
         <button
           onClick={() => setShowNotif(true)}
           className="w-9 h-9 flex items-center justify-center rounded-lg relative"
-          style={{ color: '#1a3461' }}
+          style={{ color: '#eaf0fa' }}
           aria-label={t('mobileHeader.notifications')}
         >
           <Bell size={20} />
           {notifUnread > 0 && (
             <span
               className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1"
-              style={{ background: '#ef4444' }}
+              style={{ background: '#ff5a5f' }}
             >
               {notifUnread > 99 ? '99+' : notifUnread}
             </span>
@@ -120,7 +120,8 @@ export default function MobileHeader() {
       <aside
         className="fixed top-0 left-0 h-full w-72 z-50 flex flex-col md:hidden transition-transform duration-300"
         style={{
-          background: '#1a3461',
+          background: '#0e1830',
+          borderRight: '1px solid #1e2b46',
           transform: drawerOpen ? 'translateX(0)' : 'translateX(-100%)',
         }}
       >
@@ -138,7 +139,7 @@ export default function MobileHeader() {
         {/* User info */}
         {user && (
           <div className="px-5 py-4 border-b border-white/10">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2 text-sm font-bold text-white" style={{ background: '#f5b800', color: '#1a3461' }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center mb-2 text-sm font-bold" style={{ background: '#f5b82e', color: '#1b1405' }}>
               {user.firstName?.[0]}{user.lastName?.[0]}
             </div>
             <p className="text-white font-semibold">{user.firstName} {user.lastName}</p>
@@ -155,7 +156,7 @@ export default function MobileHeader() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-white/15 text-white'
+                    ? 'bg-primary/15 text-primary'
                     : 'text-white/60 hover:bg-white/10 hover:text-white'
                 }`
               }
@@ -163,7 +164,7 @@ export default function MobileHeader() {
               <Icon size={18} />
               <span>{t(label)}</span>
               {to === '/chat' && chatUnread > 0 && (
-                <span className="ml-auto min-w-[20px] h-5 bg-secondary text-primary text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                <span className="ml-auto min-w-[20px] h-5 bg-secondary text-on-primary text-[10px] font-bold rounded-full flex items-center justify-center px-1">
                   {chatUnread}
                 </span>
               )}

@@ -66,12 +66,12 @@ export default function ModerationPage() {
         <h1 className="text-xl font-bold text-text flex-1">{t('moderation.title')}</h1>
       </div>
 
-      <div className="flex rounded-xl border border-border overflow-hidden bg-white mb-4">
+      <div className="flex rounded-xl border border-border overflow-hidden bg-surface-card mb-4">
         {(['safety', 'open', 'closed', 'stores'] as Tab[]).map((tb) => (
           <button
             key={tb}
             onClick={() => setTab(tb)}
-            className={`flex-1 py-2 text-sm font-medium ${tab === tb ? 'bg-primary text-white' : 'text-text-secondary'}`}
+            className={`flex-1 py-2 text-sm font-medium ${tab === tb ? 'bg-primary text-on-primary' : 'text-text-secondary'}`}
           >
             {tb === 'safety' ? t('safety.tab') : tb === 'open' ? t('moderation.tabs.open') : tb === 'closed' ? t('moderation.tabs.closed') : t('moderation.tabs.stores')}
           </button>
@@ -91,7 +91,7 @@ export default function ModerationPage() {
       ) : (
         <ul className="space-y-3">
           {items.map((r) => (
-            <li key={r.id} className="p-3 rounded-2xl border border-border bg-white space-y-2">
+            <li key={r.id} className="p-3 rounded-2xl border border-border bg-surface-card space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="text-sm font-semibold">

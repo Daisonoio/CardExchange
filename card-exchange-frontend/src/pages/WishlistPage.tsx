@@ -204,7 +204,7 @@ export default function WishlistPage() {
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
 
           {[...Array(9)].map((_, i) => (
-            <div key={i} className="aspect-[5/7] bg-white rounded-xl animate-pulse" />
+            <div key={i} className="aspect-[5/7] bg-surface-card rounded-xl animate-pulse" />
           ))}
         </div>
       ) : items.length === 0 && !loadError ? (
@@ -320,7 +320,7 @@ export default function WishlistPage() {
                           <button
                             key={getCardId(p)}
                             onClick={() => handleSelectPrinting(p)}
-                            className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-white transition-colors border-b border-border/30 last:border-0 ${
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-surface-raised transition-colors border-b border-border/30 last:border-0 ${
                               isSelected ? 'bg-primary/5' : ''
                             }`}
                           >

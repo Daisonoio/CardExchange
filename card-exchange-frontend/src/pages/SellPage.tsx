@@ -57,7 +57,7 @@ export default function SellPage() {
             const max = Math.max(1, Math.min(o.remaining, card?.available ?? 1));
             const open = o.myOffer && (o.myOffer.status === 'Proposed' || o.myOffer.status === 'Accepted');
             return (
-              <li key={o.orderId} className="bg-white rounded-2xl border border-border p-3 space-y-2">
+              <li key={o.orderId} className="bg-surface-card rounded-2xl border border-border p-3 space-y-2">
                 <div className="flex gap-3">
                   {o.imageUrl
                     ? <img src={o.imageUrl} alt="" loading="lazy" className="w-12 h-[67px] object-cover rounded-md bg-surface-dark shrink-0" onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} />
@@ -88,7 +88,7 @@ export default function SellPage() {
                   <div className="flex flex-wrap items-end gap-2">
                     <label className="flex-1 min-w-[10rem] text-xs font-semibold text-text-secondary">{t('sell.yourCopy')}
                       <select value={card?.id} onChange={(e) => setChoice({ ...choice, [o.orderId]: { cardId: Number(e.target.value), quantity: 1 } })}
-                        className="mt-1 w-full px-3 py-2 rounded-xl border border-border text-sm font-normal bg-white">
+                        className="mt-1 w-full px-3 py-2 rounded-xl border border-border text-sm font-normal bg-surface-card">
                         {o.myCards.map((c) => (
                           <option key={c.id} value={c.id}>{CONDITION_LABELS[c.condition]}{c.language ? ` · ${c.language.toUpperCase()}` : ''} · ×{c.available}</option>
                         ))}
@@ -101,7 +101,7 @@ export default function SellPage() {
                     )}
                     <button type="button" disabled={busy === o.orderId || !card}
                       onClick={() => act(o.orderId, () => buyList.propose(o.orderId, card.id, sel.quantity))}
-                      className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold disabled:opacity-50">
+                      className="px-4 py-2 rounded-xl bg-primary text-on-primary text-sm font-semibold disabled:opacity-50">
                       {t('sell.propose')}
                     </button>
                   </div>

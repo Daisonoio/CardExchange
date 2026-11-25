@@ -37,7 +37,7 @@ export default function ExhibitorInvitePage() {
 
   return (
     <div className="pb-24 max-w-md mx-auto space-y-4">
-      <div className="bg-white rounded-2xl border border-border/60 p-5 space-y-2">
+      <div className="bg-surface-card rounded-2xl border border-border/60 p-5 space-y-2">
         <span className="text-[11px] font-bold uppercase tracking-wide text-primary">{t('invite.kicker')}</span>
         <h1 className="text-xl font-bold text-text">{invite.eventTitle}</h1>
         <p className="text-sm text-text-secondary">{formatEventDate(invite.startDate)} · {invite.city}</p>
@@ -48,7 +48,7 @@ export default function ExhibitorInvitePage() {
       {done ? (
         <div className="space-y-2">
           <p role="status" className="text-sm p-3 rounded-xl bg-green-50 text-green-800">{t('invite.done')}</p>
-          <Link to={`/live/new?eventId=${invite.eventId}`} className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-primary text-white text-sm font-semibold">
+          <Link to={`/live/new?eventId=${invite.eventId}`} className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-primary text-on-primary text-sm font-semibold">
             <Radio size={15} /> {t('invite.postHere')}
           </Link>
           <Link to={`/events/${invite.eventId}`} className="block text-center text-sm text-primary font-semibold">{t('invite.openEvent')}</Link>

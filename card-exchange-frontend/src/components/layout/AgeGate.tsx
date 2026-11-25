@@ -40,7 +40,7 @@ export default function AgeGate() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-b from-primary/5 to-surface-dark">
-      <div className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-sm border border-border/50 space-y-4">
+      <div className="w-full max-w-sm bg-surface-card rounded-2xl p-6 shadow-sm border border-border/50 space-y-4">
         <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
           <CalendarCheck size={24} />
         </div>

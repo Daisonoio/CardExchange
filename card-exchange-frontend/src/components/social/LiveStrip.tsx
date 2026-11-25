@@ -48,7 +48,7 @@ export default function LiveStrip({ coords }: { coords?: { latitude: number; lon
             <Link
               key={b.id}
               to={`/live/${b.id}`}
-              className="snap-start shrink-0 w-64 lg:w-auto bg-white rounded-2xl p-3 border border-border/60 shadow-sm hover:border-primary/40 hover:shadow-md transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+              className="snap-start shrink-0 w-64 lg:w-auto bg-surface-card rounded-2xl p-3 border border-border/60 shadow-sm hover:border-primary/40 hover:shadow-md transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
             >
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center shrink-0">

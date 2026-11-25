@@ -87,7 +87,7 @@ export default function EventPage() {
 
       {event.status === 'Cancelled' && <div className="p-3 rounded-xl bg-red-50 text-red-700 text-sm font-medium">{t('detail.cancelled')}</div>}
 
-      <ul className="bg-white rounded-2xl border border-border divide-y divide-border/60 text-sm">
+      <ul className="bg-surface-card rounded-2xl border border-border divide-y divide-border/60 text-sm">
         <li className="flex items-start gap-3 p-3">
           <CalendarDays size={16} className="mt-0.5 text-primary shrink-0" />
           <span className="first-letter:uppercase">{fmt(event.startDate)}{event.endDate ? ` – ${formatTime(event.endDate, { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
@@ -129,7 +129,7 @@ export default function EventPage() {
 
       {event.sponsors?.filter((s) => s.placement === 'TradeNightBanner').map((s) => (
         <Link key={s.id} to={`/sponsors/${s.id}`} className="flex items-center gap-3 p-3 rounded-2xl bg-amber-50 border border-amber-200" data-testid="tradenight-sponsor">
-          {s.logoUrl ? <img src={s.logoUrl} alt="" className="w-9 h-9 rounded-lg object-contain bg-white" /> : <span className="w-9 h-9 rounded-lg bg-white" />}
+          {s.logoUrl ? <img src={s.logoUrl} alt="" className="w-9 h-9 rounded-lg object-contain bg-surface-card" /> : <span className="w-9 h-9 rounded-lg bg-surface-card" />}
           <span className="text-sm text-text"><strong>{t('promotions:nightOfferedBy', { sponsor: s.name })}</strong></span>
         </Link>
       ))}
@@ -156,7 +156,7 @@ export default function EventPage() {
             </div>
           </div>
         ) : myStatus === 'Waitlisted' ? (
-          <div className="p-3 rounded-2xl bg-white border border-border space-y-2" role="status">
+          <div className="p-3 rounded-2xl bg-surface-card border border-border space-y-2" role="status">
             <p className="text-sm font-semibold text-text">{t('detail.waitlisted', { position: event.myWaitlistPosition ?? '–' })}</p>
             <p className="text-xs text-text-secondary">{t('detail.waitlistedHint')}</p>
             <Button variant="outline" className="w-full" isLoading={busy} onClick={() => act(() => events.leave(event.id))}>{t('detail.leaveWaitlist')}</Button>
@@ -212,7 +212,7 @@ export default function EventPage() {
       {shareInfo && <p className="text-xs text-center text-text-secondary">{shareInfo}</p>}
 
       {event.participants.length > 0 && (
-        <section className="bg-white rounded-2xl border border-border p-3">
+        <section className="bg-surface-card rounded-2xl border border-border p-3">
           <h2 className="text-sm font-semibold mb-2">{t('detail.whoIsGoing')}</h2>
           <div className="flex flex-wrap gap-1.5">
             {event.participants.map((p) => (

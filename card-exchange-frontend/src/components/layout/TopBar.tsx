@@ -34,7 +34,7 @@ export default function TopBar() {
 
   return (
     <>
-      <header className="hidden md:flex sticky top-0 z-50 items-center border-b border-border h-16" style={{ background: '#1a3461' }}>
+      <header className="hidden md:flex sticky top-0 z-50 items-center border-b border-border h-16" style={{ background: '#0e1830' }}>
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between w-full">
           <NavLink to="/home" className="flex items-center shrink-0" aria-label="CardExchange">
             <BrandLogo layout="horizontal" theme="dark" height={40} title="" />
@@ -48,7 +48,7 @@ export default function TopBar() {
                 className={({ isActive }) =>
                   `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-white/15 text-white'
+                      ? 'bg-primary/15 text-primary'
                       : 'text-white/60 hover:bg-white/10 hover:text-white'
                   }`
                 }
@@ -65,7 +65,7 @@ export default function TopBar() {
               to="/following"
               className={({ isActive }) =>
                 `relative p-2 rounded-lg transition-colors ${
-                  isActive ? 'bg-white/15 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'
+                  isActive ? 'bg-primary/15 text-primary' : 'text-white/60 hover:bg-white/10 hover:text-white'
                 }`
               }
               title={t('mobileHeader.following')}
@@ -80,7 +80,7 @@ export default function TopBar() {
               className={({ isActive }) =>
                 `relative p-2 rounded-lg transition-colors ${
                   isActive
-                    ? 'bg-white/15 text-white'
+                    ? 'bg-primary/15 text-primary'
                     : 'text-white/60 hover:bg-white/10 hover:text-white'
                 }`
               }
@@ -88,7 +88,7 @@ export default function TopBar() {
             >
               <MessageSquare size={20} />
               {chatUnread > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-secondary text-primary text-[9px] font-bold rounded-full flex items-center justify-center px-1">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-secondary text-on-primary text-[9px] font-bold rounded-full flex items-center justify-center px-1">
                   {chatUnread > 99 ? '99+' : chatUnread}
                 </span>
               )}

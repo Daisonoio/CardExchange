@@ -103,8 +103,8 @@ export default function TradesPage() {
             onClick={() => setTab(key)}
             className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
               tab === key
-                ? 'bg-primary text-white shadow-sm'
-                : 'bg-white text-text-secondary border border-border'
+                ? 'bg-primary text-on-primary shadow-sm'
+                : 'bg-surface-card text-text-secondary border border-border'
             }`}
           >
             {label}
@@ -146,7 +146,7 @@ export default function TradesPage() {
               <button
                 key={offer.id}
                 onClick={() => setSelectedOffer(offer)}
-                className="w-full bg-white rounded-2xl p-4 shadow-sm border border-border/50 text-left hover:border-primary/30 transition-colors"
+                className="w-full bg-surface-card rounded-2xl p-4 shadow-sm border border-border/50 text-left hover:border-primary/30 transition-colors"
               >
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -341,7 +341,7 @@ function OfferDetail({
           {otherUserPayment?.paypalUsername && (
             <button
               onClick={openPaypal}
-              className="w-full py-2.5 rounded-xl text-sm font-medium border border-border bg-white hover:bg-surface-dark transition-colors"
+              className="w-full py-2.5 rounded-xl text-sm font-medium border border-border bg-surface-card hover:bg-surface-dark transition-colors"
             >
               <ExternalLink size={14} className="inline mr-1" />
               {t('detail.payWithPaypal', { username: otherUserPayment.paypalUsername })}
@@ -353,7 +353,7 @@ function OfferDetail({
           {otherUserPayment?.paymentQrCodeUrl && (
             <button
               onClick={openQr}
-              className="w-full py-2.5 rounded-xl text-sm font-medium border border-border bg-white hover:bg-surface-dark transition-colors"
+              className="w-full py-2.5 rounded-xl text-sm font-medium border border-border bg-surface-card hover:bg-surface-dark transition-colors"
             >
               <ExternalLink size={14} className="inline mr-1" />
               {t('detail.openPaymentQr')}

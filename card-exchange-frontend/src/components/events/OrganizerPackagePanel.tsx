@@ -50,7 +50,7 @@ export default function OrganizerPackagePanel({ eventId }: { eventId: number }) 
   // Piani spenti: senza espositori nel profilo non c'è niente da comprare né da mostrare
   if (!info.active && !paidPlans) return null;
   return (
-    <section className="bg-white rounded-2xl border border-border/60 p-4 space-y-3" data-testid="organizer-package">
+    <section className="bg-surface-card rounded-2xl border border-border/60 p-4 space-y-3" data-testid="organizer-package">
       <h2 className="text-sm font-bold text-text flex items-center gap-2"><Package size={16} className="text-primary" /> {t('panel.title')}</h2>
       {error && <p role="alert" className="text-sm p-3 rounded-xl bg-red-50 text-red-700">{error}</p>}
 

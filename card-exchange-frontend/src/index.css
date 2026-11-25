@@ -1,20 +1,78 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #1a3461;
-  --color-primary-dark: #122548;
-  --color-primary-light: #2a4d8f;
-  --color-secondary: #f5b800;
-  --color-accent: #10b981;
-  --color-danger: #ef4444;
-  --color-surface: #ffffff;
-  --color-surface-dark: #eef2f7;
-  --color-surface-card: #ffffff;
-  --color-text: #0f1f3d;
-  --color-text-secondary: #6b7a99;
-  --color-text-muted: #9aaac4;
-  --color-border: #dde4ee;
-  --font-sans: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
+  /* Stile "Notte e oro": blu notte, superfici blu, accenti oro */
+  --color-primary: #f5b82e;
+  --color-primary-dark: #e0a21a;
+  --color-primary-light: #ffd066;
+  --color-on-primary: #1b1405;
+  --color-secondary: #f5b82e;
+  --color-accent: #4fd1a5;
+  --color-danger: #ff6b6b;
+  --color-night: #0b1424;
+  --color-surface: #142036;
+  --color-surface-dark: #0b1424;
+  --color-surface-card: #142036;
+  --color-surface-raised: #1b2a45;
+  --color-surface-hover: #1b2a45;
+  --color-text: #eaf0fa;
+  --color-text-secondary: #c9d4e8;
+  --color-text-muted: #8fa0bf;
+  --color-border: #2a3a5a;
+  --font-sans: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  /* Colori di stato adattati allo sfondo scuro: le tinte chiare (50–200) diventano
+     fondi scuri, quelle scure (700–900) diventano testi chiari */
+  --color-gray-50: #17243c;
+  --color-gray-100: #1b2a45;
+  --color-gray-200: #22324f;
+  --color-gray-300: #3a4b6b;
+  --color-gray-400: #5d6f92;
+  --color-gray-500: #8fa0bf;
+  --color-gray-600: #a9b6cf;
+  --color-gray-700: #c9d4e8;
+  --color-gray-800: #101b2f;
+  --color-gray-900: #0a1220;
+
+  --color-red-50: #2e1820;
+  --color-red-100: #3d1d27;
+  --color-red-200: #5e2a37;
+  --color-red-300: #7d3646;
+  --color-red-700: #ff9aa2;
+  --color-red-800: #ffb4ba;
+  --color-red-900: #ffc9cd;
+
+  --color-green-50: #11291f;
+  --color-green-100: #163527;
+  --color-green-200: #1f4a37;
+  --color-green-300: #2b6149;
+  --color-green-700: #7fd1a8;
+  --color-green-800: #9fe0bf;
+  --color-green-900: #bdecd4;
+  --color-emerald-50: #11291f;
+
+  --color-amber-50: #2c2312;
+  --color-amber-100: #3a2e14;
+  --color-amber-200: #54421a;
+  --color-amber-300: #7a5f22;
+  --color-amber-700: #f5c35a;
+  --color-amber-800: #f8d27f;
+  --color-amber-900: #fbe0a6;
+
+  --color-blue-50: #15254a;
+  --color-blue-100: #1a2d58;
+  --color-blue-200: #26407a;
+  --color-blue-700: #9cc2ff;
+  --color-blue-800: #b8d3ff;
+  --color-sky-50: #13283f;
+  --color-teal-50: #112a2a;
+  --color-indigo-50: #1d1f45;
+  --color-purple-50: #261b40;
+  --color-purple-700: #cdb4ff;
+  --color-fuchsia-100: #3a1a3d;
+  --color-fuchsia-700: #f0a6f5;
+  --color-pink-50: #33182a;
+  --color-orange-50: #2f1d12;
 }
 
 @layer base {
@@ -27,6 +85,7 @@
     font-family: var(--font-sans);
     background-color: var(--color-surface-dark);
     color: var(--color-text);
+    color-scheme: dark;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -51,10 +110,37 @@
     .no-print { display: none !important; }
   }
 
+  /* Campi e menu: sfondo delle superfici, non il bianco del browser */
+  input, select, textarea {
+    color: var(--color-text);
+  }
+  input::placeholder, textarea::placeholder {
+    color: var(--color-text-muted);
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--color-primary) 35%, transparent);
+  }
+
   .leaflet-container {
     isolation: isolate;
     z-index: 0;
+    background: #0b1424;
   }
+
+  /* Mappa in tinta con l'app: le tessere chiare diventano notturne */
+  .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(185deg) brightness(0.85) contrast(0.9) saturate(0.6);
+  }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background: var(--color-surface-card);
+    color: var(--color-text);
+  }
+  .leaflet-control-zoom a, .leaflet-control-attribution {
+    background: var(--color-surface-card) !important;
+    color: var(--color-text-secondary) !important;
+    border-color: var(--color-border) !important;
+  }
+  .leaflet-control-attribution a { color: var(--color-primary); }
 }
 
 @layer utilities {

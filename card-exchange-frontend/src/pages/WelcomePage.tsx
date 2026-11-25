@@ -144,10 +144,10 @@ export default function WelcomePage() {
             <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
               <input id="welcome-city" value={query} onChange={(e) => { setQuery(e.target.value); setPlace(null); }} placeholder={t('place.cityPlaceholder')} autoComplete="off"
-                className="w-full pl-9 pr-3 py-3 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                className="w-full pl-9 pr-3 py-3 rounded-xl border border-border bg-surface-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
             {results.length > 0 && !place && (
-              <ul className="absolute z-10 mt-1 w-full bg-white border border-border rounded-xl shadow-lg overflow-hidden" role="listbox">
+              <ul className="absolute z-10 mt-1 w-full bg-surface-card border border-border rounded-xl shadow-lg overflow-hidden" role="listbox">
                 {results.map((r) => (
                   <li key={`${r.latitude},${r.longitude}`}>
                     <button type="button" onClick={() => { setPlace(r); setQuery(r.label); setResults([]); }} className="w-full text-left px-3 py-2.5 text-sm hover:bg-surface-dark flex items-center gap-2">
@@ -175,7 +175,7 @@ export default function WelcomePage() {
           <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('cards.game')}>
             {games.map((g) => (
               <button key={g.id} type="button" role="radio" aria-checked={selectedGameId === g.id} onClick={() => setSelectedGameId(g.id)}
-                className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${selectedGameId === g.id ? 'bg-primary text-white border-primary' : 'bg-white text-text-secondary border-border'}`}>
+                className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${selectedGameId === g.id ? 'bg-primary text-on-primary border-primary' : 'bg-surface-card text-text-secondary border-border'}`}>
                 {g.name}
               </button>
             ))}
@@ -190,7 +190,7 @@ export default function WelcomePage() {
             <p className="text-xs font-semibold text-text-secondary mb-1.5">{t('cards.progress', { n: added.length, total: TARGET_CARDS })}</p>
             <ul className="space-y-1.5">
               {added.map((a) => (
-                <li key={a.cardInfoId} className="flex items-center gap-2 bg-white border border-border rounded-xl p-2">
+                <li key={a.cardInfoId} className="flex items-center gap-2 bg-surface-card border border-border rounded-xl p-2">
                   {a.image ? <img src={a.image} alt="" className="w-8 h-11 rounded object-cover" /> : <Heart size={16} className="text-primary mx-2" />}
                   <span className="text-sm font-medium text-text flex-1 truncate">{a.name}</span>
                   <Check size={16} className="text-green-600" />
@@ -218,7 +218,7 @@ export default function WelcomePage() {
               <ul className="space-y-2">
                 {matches.map((m) => (
                   <li key={m.cardId}>
-                    <Link to={`/collection/${m.ownerId}`} className="flex items-center gap-3 bg-white border border-border rounded-xl p-2.5 hover:border-primary/40">
+                    <Link to={`/collection/${m.ownerId}`} className="flex items-center gap-3 bg-surface-card border border-border rounded-xl p-2.5 hover:border-primary/40">
                       {m.imageUrl ? <img src={m.imageUrl} alt="" className="w-10 h-14 rounded object-cover" /> : <div className="w-10 h-14 rounded bg-surface-dark" />}
                       <span className="min-w-0 flex-1">
                         <span className="block text-sm font-semibold text-text truncate">{m.cardName}</span>
@@ -234,7 +234,7 @@ export default function WelcomePage() {
             <div className="space-y-3">
               <h1 className="text-2xl font-extrabold text-text text-balance flex items-center gap-2"><BellRing className="text-primary" /> {t('result.emptyTitle')}</h1>
               <p className="text-sm text-text-secondary">{t('result.emptySubtitle')}</p>
-              <div className="bg-white border border-border rounded-2xl p-3"><PushToggle /></div>
+              <div className="bg-surface-card border border-border rounded-2xl p-3"><PushToggle /></div>
             </div>
           )}
           {matches && (

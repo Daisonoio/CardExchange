@@ -40,7 +40,7 @@ export default function StoresModeration() {
       {items.length === 0 ? (
         <EmptyState icon={StoreIcon} title={t('moderation.emptyTitle')} description={t('moderation.emptyDescription')} />
       ) : items.map(({ store, ownerUsername, createdAt }) => (
-        <div key={store.id} className="p-3 rounded-2xl border border-border bg-white space-y-2">
+        <div key={store.id} className="p-3 rounded-2xl border border-border bg-surface-card space-y-2">
           <div>
             <Link to={`/stores/${store.id}`} className="text-sm font-semibold hover:underline">{store.name}</Link>
             <p className="text-[11px] text-text-muted">
