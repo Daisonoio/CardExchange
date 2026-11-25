@@ -20,7 +20,8 @@
   },
   "errors": {
     "generic": "Qualcosa è andato storto. Riprova.",
-    "network": "Connessione assente o server non raggiungibile."
+    "network": "Connessione assente o server non raggiungibile.",
+    "serverUnreachable": "Il server non risponde. Controlla la connessione e riprova tra poco."
   },
   "language": {
     "title": "Lingua",

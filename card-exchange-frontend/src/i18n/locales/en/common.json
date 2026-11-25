@@ -20,7 +20,8 @@
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
-    "network": "No connection or the server can't be reached."
+    "network": "No connection or the server can't be reached.",
+    "serverUnreachable": "The server isn't responding. Check your connection and try again shortly."
   },
   "language": {
     "title": "Language",
