@@ -195,5 +195,76 @@
       "PaymentWithMinor": "Money asked from a minor",
       "UserReport": "User report"
     }
+  },
+  "users": {
+    "menu": "Users",
+    "title": "Users",
+    "intro": "Find a user, change their profile type and manage account and chat. Every change is kept in the log.",
+    "search": "Username or email",
+    "allProfiles": "All profiles",
+    "allStatuses": "All statuses",
+    "status": "Status",
+    "profileType": "Profile type",
+    "active": "Active",
+    "inactive": "Deactivated",
+    "chatSuspended": "Chat suspended",
+    "empty": "No users found",
+    "count_one": "{{count}} user",
+    "count_other": "{{count}} users",
+    "prev": "Previous",
+    "next": "Next",
+    "close": "Close",
+    "error": "Something went wrong",
+    "joined": "Joined {{date}}",
+    "lastLogin": "last sign-in {{date}}",
+    "age": {
+      "adult": "Adult",
+      "minor": "Minor",
+      "unknown": "Age not given"
+    },
+    "chatSuspendedUntil": "Chat suspended until {{date}}",
+    "profiles": {
+      "Collector": "Collector",
+      "Seller": "Seller",
+      "Store": "Store",
+      "Organizer": "Organiser"
+    },
+    "profileHints": {
+      "Collector": "All base features: collection, wishlist, matches, trades, chat, events.",
+      "Seller": "Plus: stall showcase with QR and 8 \"I'm here\" posts a day.",
+      "Store": "Plus: loyalty card, local demand, buylist, reserve & collect, exhibitors, Store badge.",
+      "Organizer": "Plus: exhibitors and floor plan on their events, 8 \"I'm here\" posts a day."
+    },
+    "note": "Note for the log (optional)",
+    "saveProfile": "Change profile type",
+    "confirmProfile": "Change @{{username}}'s profile to {{profile}}?",
+    "stats": {
+      "cards": "Cards",
+      "trades": "Trades",
+      "flags": "Reports 30 days"
+    },
+    "openFlags_one": "{{count}} open safety report",
+    "openFlags_other": "{{count}} open safety reports",
+    "toSafety": "Go to the Safety queue",
+    "liftChat": "Re-enable chat",
+    "deactivate": "Deactivate account",
+    "reactivate": "Reactivate account",
+    "confirmDeactivate": "Deactivate @{{username}}'s account? They'll be signed out immediately.",
+    "confirmReactivate": "Reactivate @{{username}}'s account?",
+    "audit": "Change log",
+    "noAudit": "No changes recorded.",
+    "automatic": "automatic",
+    "actions": {
+      "ProfileType": "Profile type",
+      "Deactivate": "Account deactivated",
+      "Reactivate": "Account reactivated",
+      "ChatLifted": "Chat re-enabled"
+    },
+    "storeStatus": {
+      "Pending": "pending",
+      "Verified": "verified",
+      "Rejected": "rejected",
+      "Suspended": "suspended"
+    }
   }
 }

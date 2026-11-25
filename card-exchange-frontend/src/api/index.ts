@@ -794,3 +794,29 @@ export const safetyModeration = {
   resolve: (id: number, body: { action: 'dismiss' | 'confirm' | 'lift'; deactivateAccount?: boolean; note?: string }) =>
     client.post<{ message: string }>(`/moderation/safety-flags/${id}/resolve`, body),
 };
+
+export type ProfileTypeName = 'Collector' | 'Seller' | 'Store' | 'Organizer';
+export const PROFILE_TYPE: Record<ProfileTypeName, number> = { Collector: 0, Seller: 1, Store: 2, Organizer: 3 };
+export type AdminUserRow = {
+  id: number; username: string; email: string; city?: string; profileType: ProfileTypeName; createdAt: string;
+  isActive: boolean; chatSuspended: boolean; storeName?: string;
+};
+export type AdminUserDetail = {
+  id: number; username: string; email: string; city?: string; createdAt: string; lastLoginAt?: string;
+  profileType: ProfileTypeName; ageGroup: 'adult' | 'minor' | 'unknown'; isActive: boolean; chatSuspendedUntil?: string | null;
+  safety: { flags30Days: number; openFlags: number };
+  activity: { cards: number; tradesCompleted: number; reputation: number };
+  stores: { id: number; name: string; city: string; status: string }[];
+  audit: { id: number; action: string; detail?: string; note?: string; createdAt: string; admin?: string | null }[];
+};
+export const adminUsers = {
+  list: (params: { q?: string; profileType?: ProfileTypeName; status?: string; page?: number }) =>
+    client.get<{ total: number; page: number; pageSize: number; items: AdminUserRow[] }>('/admin/users', {
+      params: { ...params, profileType: params.profileType != null ? PROFILE_TYPE[params.profileType] : undefined },
+    }),
+  get: (id: number) => client.get<AdminUserDetail>(`/admin/users/${id}`),
+  setProfileType: (id: number, profileType: ProfileTypeName, note?: string) =>
+    client.put<{ message: string }>(`/admin/users/${id}/profile-type`, { profileType: PROFILE_TYPE[profileType], note }),
+  liftChat: (id: number, note?: string) => client.post<{ message: string }>(`/admin/users/${id}/chat/lift`, { note }),
+  setActive: (id: number, active: boolean, note?: string) => client.post<{ message: string }>(`/admin/users/${id}/active`, { active, note }),
+};

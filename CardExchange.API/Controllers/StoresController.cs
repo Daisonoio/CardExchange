@@ -288,7 +288,15 @@ namespace CardExchange.API.Controllers
             if (newStatus == StoreStatus.Verified)
             {
                 var owner = await _context.Users.FirstOrDefaultAsync(u => u.Id == store.OwnerId);
-                if (owner != null && owner.ProfileType == ProfileType.Collector) owner.ProfileType = ProfileType.Store;
+                if (owner != null && owner.ProfileType == ProfileType.Collector)
+                {
+                    owner.ProfileType = ProfileType.Store;
+                    _context.AdminAuditEntries.Add(new AdminAuditEntry
+                    {
+                        AdminId = CurrentUserId(), TargetUserId = owner.Id, Action = "ProfileType",
+                        Detail = $"{ProfileType.Collector} → {ProfileType.Store}", Note = $"Negozio verificato: {store.Name}", CreatedAt = DateTime.UtcNow
+                    });
+                }
             }
             await _context.SaveChangesAsync();
 

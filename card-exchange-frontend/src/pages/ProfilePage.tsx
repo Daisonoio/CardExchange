@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../hooks/useEntitlements';
 import {
   Star, ArrowLeftRight, MessageCircle, MapPin, LogOut,
-  ChevronRight, Pencil, Library, Heart, Trophy, Ban, ShieldCheck, Crown, Receipt, BarChart3, Search, Sparkles, QrCode, Activity, Gauge, ShoppingBag, Tag, Stamp, Megaphone, Store, } from 'lucide-react';
+  ChevronRight, Pencil, Library, Heart, Trophy, Ban, ShieldCheck, Crown, Receipt, BarChart3, Search, Sparkles, QrCode, Activity, Gauge, ShoppingBag, Tag, Stamp, Megaphone, Store, Users, } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ReviewsSheet from '../components/users/ReviewsSheet';
 import BlockedUsersSheet from '../components/users/BlockedUsersSheet';
@@ -50,6 +50,7 @@ export default function ProfilePage() {
     { label: t('menu.reviews'), icon: Trophy, to: null, action: () => setShowReviews(true) },
     { label: t('menu.blockedUsers'), icon: Ban, to: null, action: () => setShowBlocked(true) },
     ...(hasPermission('ADMIN.REPORTS.MANAGE') ? [{ label: t('menu.moderation'), icon: ShieldCheck, to: '/moderation' }] : []),
+    ...(hasRole('Admin', 'SuperAdmin') ? [{ label: t('admin:users.menu'), icon: Users, to: '/admin/users' }] : []),
     ...(hasRole('Admin', 'SuperAdmin') ? [{ label: t('menu.subscriptions'), icon: Receipt, to: '/admin/billing' }] : []),
     ...(hasRole('Admin', 'SuperAdmin') ? [{ label: t('admin:monitoring.menu'), icon: Activity, to: '/admin/monitoring' }] : []),
     ...(hasRole('Admin', 'SuperAdmin') ? [{ label: t('admin:metrics.menu'), icon: Gauge, to: '/admin/metrics' }] : []),

@@ -652,5 +652,8 @@
   "Segnalazione archiviata, chat riattivata": "Report dismissed, chat re-enabled",
   "Chat riattivata": "Chat re-enabled",
   "Violazione confermata e account disattivato": "Violation confirmed and account deactivated",
-  "Violazione confermata": "Violation confirmed"
+  "Violazione confermata": "Violation confirmed",
+  "La chat di questo utente non è sospesa": "This user's chat isn't suspended",
+  "Non puoi disattivare il tuo account da qui": "You can't deactivate your own account here",
+  "Account riattivato": "Account reactivated"
 }

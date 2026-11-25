@@ -48,6 +48,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<SponsoredSlot> SponsoredSlots { get; set; }
         public DbSet<EventPackage> EventPackages { get; set; }
         public DbSet<SafetyFlag> SafetyFlags { get; set; }
+        public DbSet<AdminAuditEntry> AdminAuditEntries { get; set; }
         public DbSet<EventExhibitor> EventExhibitors { get; set; }
         public DbSet<SlotImpression> SlotImpressions { get; set; }
         public DbSet<Sponsor> Sponsors { get; set; }
@@ -440,6 +441,13 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
             });
 
+            modelBuilder.Entity<AdminAuditEntry>(entity =>
+            {
+                entity.HasIndex(a => new { a.TargetUserId, a.CreatedAt });
+                entity.Property(a => a.Action).HasMaxLength(40);
+                entity.Property(a => a.Detail).HasMaxLength(200);
+                entity.Property(a => a.Note).HasMaxLength(500);
+            });
             modelBuilder.Entity<SafetyFlag>(entity =>
             {
                 entity.HasIndex(f => new { f.Status, f.CreatedAt });

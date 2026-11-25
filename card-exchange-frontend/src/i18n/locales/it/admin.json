@@ -195,5 +195,76 @@
       "PaymentWithMinor": "Soldi chiesti a un minore",
       "UserReport": "Segnalazione di un utente"
     }
+  },
+  "users": {
+    "menu": "Utenti",
+    "title": "Utenti",
+    "intro": "Cerca un utente, cambia il suo tipo di profilo e gestisci account e chat. Ogni modifica resta nel registro.",
+    "search": "Nome utente o email",
+    "allProfiles": "Tutti i profili",
+    "allStatuses": "Tutti gli stati",
+    "status": "Stato",
+    "profileType": "Tipo di profilo",
+    "active": "Attivo",
+    "inactive": "Disattivato",
+    "chatSuspended": "Chat sospesa",
+    "empty": "Nessun utente trovato",
+    "count_one": "{{count}} utente",
+    "count_other": "{{count}} utenti",
+    "prev": "Indietro",
+    "next": "Avanti",
+    "close": "Chiudi",
+    "error": "Operazione non riuscita",
+    "joined": "Iscritto il {{date}}",
+    "lastLogin": "ultimo accesso {{date}}",
+    "age": {
+      "adult": "Maggiorenne",
+      "minor": "Minorenne",
+      "unknown": "Età non indicata"
+    },
+    "chatSuspendedUntil": "Chat sospesa fino al {{date}}",
+    "profiles": {
+      "Collector": "Collezionista",
+      "Seller": "Venditore",
+      "Store": "Negozio",
+      "Organizer": "Organizzatore"
+    },
+    "profileHints": {
+      "Collector": "Tutte le funzioni base: collezione, wishlist, match, scambi, chat, eventi.",
+      "Seller": "In più: vetrina del banco con QR e 8 \"Sono qui\" al giorno.",
+      "Store": "In più: tessera fedeltà, domanda locale, lista acquisti, prenota e ritira, espositori, badge Negozio.",
+      "Organizer": "In più: espositori e piantina sui propri eventi, 8 \"Sono qui\" al giorno."
+    },
+    "note": "Nota per il registro (facoltativa)",
+    "saveProfile": "Cambia tipo di profilo",
+    "confirmProfile": "Cambiare il profilo di @{{username}} in {{profile}}?",
+    "stats": {
+      "cards": "Carte",
+      "trades": "Scambi",
+      "flags": "Segnalazioni 30 gg"
+    },
+    "openFlags_one": "{{count}} segnalazione di sicurezza aperta",
+    "openFlags_other": "{{count}} segnalazioni di sicurezza aperte",
+    "toSafety": "Vai alla coda Sicurezza",
+    "liftChat": "Riattiva la chat",
+    "deactivate": "Disattiva l'account",
+    "reactivate": "Riattiva l'account",
+    "confirmDeactivate": "Disattivare l'account di @{{username}}? Verrà disconnesso subito.",
+    "confirmReactivate": "Riattivare l'account di @{{username}}?",
+    "audit": "Registro delle modifiche",
+    "noAudit": "Nessuna modifica registrata.",
+    "automatic": "automatico",
+    "actions": {
+      "ProfileType": "Tipo di profilo",
+      "Deactivate": "Account disattivato",
+      "Reactivate": "Account riattivato",
+      "ChatLifted": "Chat riattivata"
+    },
+    "storeStatus": {
+      "Pending": "in attesa",
+      "Verified": "verificato",
+      "Rejected": "rifiutato",
+      "Suspended": "sospeso"
+    }
   }
 }

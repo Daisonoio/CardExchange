@@ -46,6 +46,7 @@ const SellPage = lazyPage(() => import('./pages/SellPage'));
 const PurchasesPage = lazyPage(() => import('./pages/PurchasesPage'));
 const ShowcasePage = lazyPage(() => import('./pages/ShowcasePage'));
 const MyShowcasePage = lazyPage(() => import('./pages/MyShowcasePage'));
+const AdminUsersPage = lazyPage(() => import('./pages/AdminUsersPage'));
 const SponsorPage = lazyPage(() => import('./pages/SponsorPage'));
 const AdminSponsorsPage = lazyPage(() => import('./pages/AdminSponsorsPage'));
 const ExhibitorInvitePage = lazyPage(() => import('./pages/ExhibitorInvitePage'));
@@ -144,6 +145,7 @@ export default function App() {
               <Route path="/exhibit/:token" element={<ExhibitorInvitePage />} />
               <Route path="/sponsors/:id" element={<SponsorPage />} />
               <Route path="/admin/sponsors" element={<AdminSponsorsPage />} />
+              <Route path="/admin/users" element={<AdminUsersPage />} />
               <Route path="/v/:slug" element={<ShowcasePage />} />
               <Route path="/showcase" element={<MyShowcasePage />} />
               <Route path="/profile" element={<ProfilePage />} />
