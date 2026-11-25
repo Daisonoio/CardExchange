@@ -149,51 +149,59 @@ export default function UserCollectionPage() {
 
   return (
     <div className="pb-20">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="w-9 h-9 rounded-full bg-surface-dark flex items-center justify-center hover:bg-gray-200 transition shrink-0"
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold text-text truncate">
-            {owner ? t('user.title', { username: owner.username }) : t('user.titleFallback')}
-          </h1>
-          {owner?.planBadge && <PlanBadge badge={owner.planBadge} />}
-          <p className="text-sm text-text-secondary">
-            {t('user.available', { count: userCards.length })}
-            {totalValue > 0 && <> &middot; {t('header.value', { value: euro(totalValue) })}</>}
-          </p>
-          {owner && (
-            <button type="button" onClick={() => setShowReviews(true)} className="mt-0.5 inline-flex items-center gap-1 text-xs text-text-secondary hover:underline">
-              <StarRating value={owner.reputationScore ?? 0} size={12} />
-              {(owner.totalReviewsReceived ?? 0) > 0
-                ? t('user.reviews', { rating: number(owner.reputationScore ?? 0, { minimumFractionDigits: 1, maximumFractionDigits: 1 }), count: owner.totalReviewsReceived })
-                : t('user.noReviews')}
-            </button>
-          )}
-        </div>
-        {owner && owner.id !== currentUser?.id && (
-          <FollowButton target={{ userId: owner.id }} />
-        )}
-        {owner && owner.id !== currentUser?.id && (
-          <UserSafetyMenu userId={owner.id} username={owner.username} onBlockedChange={(b) => b && navigate(-1)} />
-        )}
-        {userCards.length > 0 && (
+      {/* Header: su telefono nome e dati in alto, azioni sotto; da computer tutto su una riga */}
+      <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center">
+        <div className="flex items-start gap-3 flex-1 min-w-0">
           <button
-            onClick={() => {  if (selectionMode) setSelectedCards([]); }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0 ${
-              selectionMode
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface-dark text-text-secondary hover:bg-gray-200'
-            }`}
+            onClick={() => navigate(-1)}
+            aria-label={t('common:actions.back')}
+            className="w-9 h-9 rounded-full bg-surface-card border border-border flex items-center justify-center hover:bg-surface-raised transition shrink-0 mt-0.5"
           >
-
-            {selectedCards.length!=0 ? t('common:actions.cancel') : t('user.select')}
+            <ArrowLeft size={18} />
           </button>
-        )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold text-text truncate">
+              {owner ? t('user.title', { username: owner.username }) : t('user.titleFallback')}
+            </h1>
+            {owner?.planBadge && <PlanBadge badge={owner.planBadge} />}
+            <p className="text-sm text-text-secondary">
+              {t('user.available', { count: userCards.length })}
+              {totalValue > 0 && <> &middot; {t('header.value', { value: euro(totalValue) })}</>}
+            </p>
+            {owner && (
+              <button type="button" onClick={() => setShowReviews(true)} className="mt-0.5 inline-flex items-center gap-1 text-xs text-text-secondary hover:underline">
+                <StarRating value={owner.reputationScore ?? 0} size={12} />
+                {(owner.totalReviewsReceived ?? 0) > 0
+                  ? t('user.reviews', { rating: number(owner.reputationScore ?? 0, { minimumFractionDigits: 1, maximumFractionDigits: 1 }), count: owner.totalReviewsReceived })
+                  : t('user.noReviews')}
+              </button>
+            )}
+          </div>
+        </div>
+        {(owner && owner.id !== currentUser?.id) || userCards.length > 0 ? (
+          <div className="flex items-center gap-2 pl-12 sm:pl-0 shrink-0">
+            {owner && owner.id !== currentUser?.id && (
+              <FollowButton target={{ userId: owner.id }} />
+            )}
+            {userCards.length > 0 && (
+              <button
+                onClick={() => {  if (selectionMode) setSelectedCards([]); }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors shrink-0 border ${
+                  selectedCards.length !== 0
+                    ? 'border-primary/40 bg-primary/10 text-primary'
+                    : 'border-border bg-surface-card text-text-secondary hover:bg-surface-raised'
+                }`}
+              >
+                {selectedCards.length!=0 ? t('common:actions.cancel') : t('user.select')}
+              </button>
+            )}
+            {owner && owner.id !== currentUser?.id && (
+              <span className="ml-auto sm:ml-0">
+                <UserSafetyMenu userId={owner.id} username={owner.username} onBlockedChange={(b) => b && navigate(-1)} />
+              </span>
+            )}
+          </div>
+        ) : null}
       </div>
 
       {/* Owner info */}
@@ -224,7 +232,7 @@ export default function UserCollectionPage() {
 
       {/* Cards grid */}
       {isLoading ? (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {[...Array(9)].map((_, i) => (
             <div key={i} className="aspect-[5/7] bg-surface-card rounded-xl animate-pulse" />
           ))}
@@ -240,7 +248,7 @@ export default function UserCollectionPage() {
           }
         />
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
           {sortedFiltered.map((card) => {
             const isSelected = !!selectedCards.find((c) => c.id === card.id);
             return (
