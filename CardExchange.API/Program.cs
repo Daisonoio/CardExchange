@@ -231,6 +231,7 @@ builder.Services.AddScoped<CardExchange.API.Services.ReferralRewards>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.ReservationService>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.BuyListService>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.LoyaltyService>();
+builder.Services.AddScoped<CardExchange.API.Services.Moderation.ChatSafety>();
 builder.Services.AddScoped<CardExchange.API.Services.Billing.PromotionService>();
 builder.Services.AddScoped<CardExchange.API.Services.Billing.SponsoredContent>();
 builder.Services.AddScoped<CardExchange.API.Services.Scan.CardFingerprintIndexer>();

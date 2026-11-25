@@ -167,5 +167,33 @@
     "tradesCompleted": "Scambi",
     "broadcasts": "Sono qui",
     "loadError": "Impossibile caricare le metriche."
+  },
+  "safety": {
+    "tab": "Sicurezza",
+    "intro": "Messaggi bloccati dal filtro della chat e segnalazioni per minori o proposte illegali. In cima quelle che coinvolgono un minorenne. Chi accumula 2 segnalazioni gravi in 30 giorni ha la chat sospesa per 7 giorni in attesa della tua verifica.",
+    "empty": "Nessuna segnalazione di sicurezza aperta",
+    "error": "Operazione non riuscita",
+    "minor": "minorenne coinvolto",
+    "blocked": "messaggio bloccato",
+    "notBlocked": "segnalazione di un utente",
+    "from": "da",
+    "flags30_one": "{{count}} segnalazione in 30 giorni",
+    "flags30_other": "{{count}} segnalazioni in 30 giorni",
+    "chatSuspended": "chat sospesa",
+    "accountOff": "account disattivato",
+    "note": "Nota (facoltativa)",
+    "dismiss": "Falso allarme",
+    "confirm": "Violazione confermata",
+    "deactivate": "Conferma e disattiva l'account",
+    "deactivateConfirm": "Disattivare l'account di @{{username}}? Non potrà più accedere.",
+    "legal": "Se c'è il sospetto di adescamento di un minore, oltre a disattivare l'account conserva i dati e segnala alla Polizia Postale (commissariatodips.it).",
+    "kinds": {
+      "Grooming": "Frasi di adescamento verso un minore",
+      "Illegal": "Contenuto illegale o non legato alle carte",
+      "ContactToMinor": "Contatti chiesti o dati a un minore",
+      "ManyMinors": "Contatta molti minorenni",
+      "PaymentWithMinor": "Soldi chiesti a un minore",
+      "UserReport": "Segnalazione di un utente"
+    }
   }
 }

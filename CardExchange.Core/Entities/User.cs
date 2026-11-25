@@ -26,6 +26,9 @@ namespace CardExchange.Core.Entities
         /// <summary>Tipo di profilo (funzioni disponibili). Si cambia solo dall'amministrazione.</summary>
         public ProfileType ProfileType { get; set; } = ProfileType.Collector;
 
+        /// <summary>Chat sospesa fino a questa data (segnalazioni gravi di sicurezza, in attesa di verifica).</summary>
+        public DateTime? MessagingSuspendedUntil { get; set; }
+
         /// <summary>Quando ha accettato termini d'uso e preso visione dell'informativa, e quale versione.</summary>
         public DateTime? TermsAcceptedAt { get; set; }
         [MaxLength(20)]

@@ -20,6 +20,10 @@ I negozi sono il canale principale: l'app non deve mai metterli in competizione 
 - Iscrizione dai 14 anni (`User.BirthDate`). Ai minorenni non si mostrano promozioni basate su profilazione.
 - Distanze mostrate arrotondate al km (minimo 1); email e CAP degli altri utenti non vengono mai esposti.
 - Dati aggregati mostrati ai negozi solo con almeno 3 utenti per valore.
+- Chat e incontri (`Services/Moderation/ChatSafety.cs`): niente numeri, email, social o link per nessuno; niente contenuti illegali.
+  Tra adulti e minorenni (o età non indicata): l'adulto scrive solo dentro uno scambio tra loro, niente messaggi 22–7,
+  niente richieste di denaro, frasi di adescamento bloccate e segnalate, al massimo 5 minorenni nuovi a settimana,
+  incontri solo in un negozio partner tra le 9 e le 20. Non si rivela mai all'altro che un utente è minorenne.
 
 ## Codice
 - Backend ASP.NET Core 9 + EF Core (SQL Server in produzione, migrazioni in `CardExchange.Infrastructure/Migrations`).

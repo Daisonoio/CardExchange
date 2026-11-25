@@ -147,6 +147,13 @@ public class EntitlementServiceTests : IDisposable
         collector.Limit(PlanLimit.RadiusKm).Should().Be(80);
         collector.Limit(PlanLimit.BroadcastsPerDay).Should().Be(3);
         collector.Has(Capability.EarlyAccess).Should().BeTrue("nessuna carta nuova resta nascosta a chi non paga");
+        // Le funzioni che erano Premium sono di tutti, con limiti larghi
+        foreach (var c in new[] { Capability.AdvancedSearch, Capability.Statistics, Capability.ExportCollection, Capability.InstantAlerts, Capability.PriceAlerts, Capability.SavedSearches })
+            collector.Has(c).Should().BeTrue(c.ToString());
+        collector.Limit(PlanLimit.WishlistItems).Should().Be(PlanCatalog.Unlimited);
+        collector.Limit(PlanLimit.ActiveTradeOffers).Should().Be(15);
+        collector.Limit(PlanLimit.DailyMessages).Should().Be(10);
+        collector.Has(Capability.PriorityListing).Should().BeFalse("ricerca solo per distanza, nessuna priorità");
 
         seller.Has(Capability.SellerShowcase).Should().BeTrue();
         seller.Limit(PlanLimit.BroadcastsPerDay).Should().Be(8);

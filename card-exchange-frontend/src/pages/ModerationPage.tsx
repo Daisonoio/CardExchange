@@ -11,14 +11,15 @@ import { hasPermission } from '../utils/permissions';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/ui/EmptyState';
 import StoresModeration from '../components/stores/StoresModeration';
+import SafetyFlagsModeration from '../components/moderation/SafetyFlagsModeration';
 
-type Tab = 'open' | 'closed' | 'stores';
+type Tab = 'safety' | 'open' | 'closed' | 'stores';
 
 /** Coda delle segnalazioni per moderatori (permesso ADMIN.REPORTS.MANAGE). */
 export default function ModerationPage() {
   const { t } = useTranslation('admin');
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>('open');
+  const [tab, setTab] = useState<Tab>('safety');
   const [items, setItems] = useState<ModerationReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +28,7 @@ export default function ModerationPage() {
   const canBan = hasPermission('USERS.BAN');
 
   const load = useCallback(async () => {
-    if (tab === 'stores') return;
+    if (tab === 'stores' || tab === 'safety') return;
     setLoading(true);
     setError(null);
     try {
@@ -66,20 +67,22 @@ export default function ModerationPage() {
       </div>
 
       <div className="flex rounded-xl border border-border overflow-hidden bg-white mb-4">
-        {(['open', 'closed', 'stores'] as Tab[]).map((tb) => (
+        {(['safety', 'open', 'closed', 'stores'] as Tab[]).map((tb) => (
           <button
             key={tb}
             onClick={() => setTab(tb)}
             className={`flex-1 py-2 text-sm font-medium ${tab === tb ? 'bg-primary text-white' : 'text-text-secondary'}`}
           >
-            {tb === 'open' ? t('moderation.tabs.open') : tb === 'closed' ? t('moderation.tabs.closed') : t('moderation.tabs.stores')}
+            {tb === 'safety' ? t('safety.tab') : tb === 'open' ? t('moderation.tabs.open') : tb === 'closed' ? t('moderation.tabs.closed') : t('moderation.tabs.stores')}
           </button>
         ))}
       </div>
 
       {error && <div className="mb-3 p-3 rounded-xl bg-red-50 text-danger text-sm">{error}</div>}
 
-      {tab === 'stores' ? (
+      {tab === 'safety' ? (
+        <SafetyFlagsModeration />
+      ) : tab === 'stores' ? (
         <StoresModeration />
       ) : loading ? (
         <div className="flex justify-center py-10"><Loader2 className="animate-spin text-primary" /></div>

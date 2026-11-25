@@ -167,5 +167,33 @@
     "tradesCompleted": "Trades",
     "broadcasts": "I'm here",
     "loadError": "Could not load the metrics."
+  },
+  "safety": {
+    "tab": "Safety",
+    "intro": "Messages blocked by the chat filter and reports about minors or illegal proposals. Those involving a minor come first. Anyone with 2 serious reports in 30 days has their chat suspended for 7 days pending your review.",
+    "empty": "No open safety reports",
+    "error": "Something went wrong",
+    "minor": "minor involved",
+    "blocked": "message blocked",
+    "notBlocked": "user report",
+    "from": "from",
+    "flags30_one": "{{count}} report in 30 days",
+    "flags30_other": "{{count}} reports in 30 days",
+    "chatSuspended": "chat suspended",
+    "accountOff": "account deactivated",
+    "note": "Note (optional)",
+    "dismiss": "False alarm",
+    "confirm": "Violation confirmed",
+    "deactivate": "Confirm and deactivate account",
+    "deactivateConfirm": "Deactivate @{{username}}'s account? They won't be able to sign in.",
+    "legal": "If you suspect grooming of a minor, besides deactivating the account keep the data and report it to the Polizia Postale (commissariatodips.it).",
+    "kinds": {
+      "Grooming": "Grooming phrases towards a minor",
+      "Illegal": "Illegal content or not about cards",
+      "ContactToMinor": "Contacts asked from or given to a minor",
+      "ManyMinors": "Contacts many minors",
+      "PaymentWithMinor": "Money asked from a minor",
+      "UserReport": "User report"
+    }
   }
 }

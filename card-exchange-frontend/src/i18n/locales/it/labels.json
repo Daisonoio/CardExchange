@@ -43,7 +43,9 @@
     "Harassment": "Comportamento offensivo",
     "CardsNotAsDescribed": "Carte non conformi",
     "Spam": "Spam",
-    "Other": "Altro"
+    "Other": "Altro",
+    "MinorSafety": "Rischio per un minore",
+    "IllegalActivity": "Proposta illegale"
   },
   "reportReasonLong": {
     "1": "Truffa o tentata truffa",
@@ -51,6 +53,8 @@
     "3": "Comportamento offensivo o molesto",
     "4": "Carte false o non come descritte",
     "5": "Spam",
-    "6": "Altro"
+    "6": "Altro",
+    "7": "Comportamento inappropriato verso un minore",
+    "8": "Proposte illegali o non legate alle carte"
   }
 }

@@ -47,6 +47,7 @@ namespace CardExchange.Infrastructure.Data
         public DbSet<SellerShowcase> SellerShowcases { get; set; }
         public DbSet<SponsoredSlot> SponsoredSlots { get; set; }
         public DbSet<EventPackage> EventPackages { get; set; }
+        public DbSet<SafetyFlag> SafetyFlags { get; set; }
         public DbSet<EventExhibitor> EventExhibitors { get; set; }
         public DbSet<SlotImpression> SlotImpressions { get; set; }
         public DbSet<Sponsor> Sponsors { get; set; }
@@ -439,6 +440,14 @@ namespace CardExchange.Infrastructure.Data
                 entity.HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Restrict);
             });
 
+            modelBuilder.Entity<SafetyFlag>(entity =>
+            {
+                entity.HasIndex(f => new { f.Status, f.CreatedAt });
+                entity.HasIndex(f => new { f.SenderId, f.CreatedAt });
+                entity.Property(f => f.Excerpt).HasMaxLength(300);
+                entity.Property(f => f.ReviewNote).HasMaxLength(500);
+                entity.HasOne(f => f.Sender).WithMany().HasForeignKey(f => f.SenderId).OnDelete(DeleteBehavior.Restrict);
+            });
             modelBuilder.Entity<EventPackage>(entity =>
             {
                 entity.HasIndex(p => p.EventId).IsUnique();

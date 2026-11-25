@@ -198,6 +198,17 @@ namespace CardExchange.API.Controllers
             if (string.IsNullOrWhiteSpace(request.LocationName))
                 return BadRequest(new { message = "Indica il luogo dell'incontro" });
 
+            // Sicurezza: con un minorenne solo negozi partner e di giorno; note senza contatti, link o contenuti illegali
+            var safety = HttpContext.RequestServices.GetService<CardExchange.API.Services.Moderation.ChatSafety>();
+            if (safety != null)
+            {
+                var other = userId == offer.SenderId ? offer.ReceiverId : offer.SenderId;
+                var meetCheck = await safety.CheckMeetupAsync(userId, other, store?.Id, scheduledUtc);
+                if (!meetCheck.Allowed) return BadRequest(new { message = meetCheck.Message, code = meetCheck.Code });
+                var textCheck = await safety.CheckTextAsync(userId, other, $"{request.LocationName} {request.Notes}", now);
+                if (!textCheck.Allowed) return BadRequest(new { message = textCheck.Message, code = textCheck.Code });
+            }
+
             var active = await _context.TradeMeetups
                 .Where(m => m.TradeOfferId == tradeOfferId && (m.Status == MeetupStatus.Proposed || m.Status == MeetupStatus.Accepted))
                 .ToListAsync();

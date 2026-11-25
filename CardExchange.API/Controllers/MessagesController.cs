@@ -159,6 +159,14 @@ namespace CardExchange.API.Controllers
             if (await _blocks.IsBlockedAsync(userId, request.RecipientId))
                 return StatusCode(403, new { message = "Non puoi inviare messaggi a questo utente." });
 
+            // Sicurezza: contatti e link, contenuti illegali, regole tra adulti e minorenni
+            var safety = HttpContext.RequestServices.GetService<CardExchange.API.Services.Moderation.ChatSafety>();
+            if (safety != null)
+            {
+                var check = await safety.CheckMessageAsync(userId, request.RecipientId, request.Content, null, DateTime.UtcNow);
+                if (!check.Allowed) return StatusCode(403, new { message = check.Message, code = check.Code });
+            }
+
             // Check limite messaggi giornalieri
             var plan = await _subscriptionService.GetUserActivePlanAsync(userId);
             var todayCount = await _context.Messages
@@ -168,8 +176,7 @@ namespace CardExchange.API.Controllers
             {
                 return StatusCode(403, new
                 {
-                    message = $"Hai raggiunto il limite di {plan?.MaxDailyMessages ?? 10} messaggi giornalieri",
-                    upgradeUrl = "/api/subscriptions/plans"
+                    message = $"Hai raggiunto il limite di {plan?.MaxDailyMessages ?? 10} messaggi giornalieri"
                 });
             }
 

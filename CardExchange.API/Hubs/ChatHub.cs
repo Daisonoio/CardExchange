@@ -81,6 +81,14 @@ namespace CardExchange.API.Hubs
             if (await _blocks.IsBlockedAsync(userId, recipientId))
                 throw new HubException("Non puoi inviare messaggi a questo utente.");
 
+            // Sicurezza: contatti e link, contenuti illegali, regole tra adulti e minorenni
+            var safety = Context.GetHttpContext()?.RequestServices.GetService<CardExchange.API.Services.Moderation.ChatSafety>();
+            if (safety != null)
+            {
+                var check = await safety.CheckMessageAsync(userId, recipientId, content, null, DateTime.UtcNow);
+                if (!check.Allowed) throw new HubException(check.Message);
+            }
+
             // Stesso limite giornaliero dell'endpoint REST
             var plan = await _subscriptionService.GetUserActivePlanAsync(userId);
             var dailyLimit = plan?.MaxDailyMessages ?? 10;

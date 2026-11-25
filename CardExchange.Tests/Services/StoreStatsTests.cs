@@ -31,7 +31,11 @@ public class StoreStatsTests : IDisposable
         Add(StoreActivityType.Follow, 14);
         Add(StoreActivityType.ProfileView, 15, days: 40);        // fuori periodo
         Add(StoreActivityType.ProfileView, 16, store: 2);       // altro negozio
-        _db.StoreAttributions.Add(new StoreAttribution { UserId = 20, StoreId = 1, CreatedAt = _nov });
+        var attribution = new StoreAttribution { UserId = 20, StoreId = 1, CreatedAt = _nov };
+        _db.StoreAttributions.Add(attribution);
+        await _db.SaveChangesAsync();
+        // Il contesto imposta CreatedAt al salvataggio: si riporta alla data del test, così non dipende da oggi
+        attribution.CreatedAt = _nov;
         await _db.SaveChangesAsync();
 
         var stats = await new StoreStatsService(_db).ComputeAsync(1, _nov.AddDays(-15), _nov.AddDays(15));

@@ -102,6 +102,13 @@ namespace CardExchange.API.Controllers
             if (request.ReceiverId == userId)
                 return BadRequest(new { message = ErrorMessages.CannotTradeWithSelf });
 
+            // Il messaggio della proposta segue le regole della chat
+            if (!string.IsNullOrWhiteSpace(request.Message) && HttpContext.RequestServices.GetService<CardExchange.API.Services.Moderation.ChatSafety>() is { } safety)
+            {
+                var check = await safety.CheckTextAsync(userId, request.ReceiverId, request.Message, DateTime.UtcNow);
+                if (!check.Allowed) return BadRequest(new { message = check.Message, code = check.Code });
+            }
+
             // Verifica limiti piano
             var activeCount = await _tradeOfferRepository.GetActiveOfferCountAsync(userId);
             if (!await _subscriptionService.CheckLimitAsync(userId, "trades", activeCount))
@@ -109,8 +116,7 @@ namespace CardExchange.API.Controllers
                 var plan = await _subscriptionService.GetUserActivePlanAsync(userId);
                 return StatusCode(403, new
                 {
-                    message = $"Hai raggiunto il limite di {plan?.MaxActiveTradeOffers ?? FreeTierLimits.MaxActiveTradeOffers} offerte attive",
-                    upgradeUrl = "/api/subscriptions/plans"
+                    message = $"Hai raggiunto il limite di {plan?.MaxActiveTradeOffers ?? FreeTierLimits.MaxActiveTradeOffers} offerte attive"
                 });
             }
 
@@ -436,6 +442,12 @@ namespace CardExchange.API.Controllers
 
             if (await _blocks.IsBlockedAsync(userId, originalOffer.SenderId))
                 return StatusCode(403, new { message = BlockedMessage });
+
+            if (!string.IsNullOrWhiteSpace(request.Message) && HttpContext.RequestServices.GetService<CardExchange.API.Services.Moderation.ChatSafety>() is { } counterSafety)
+            {
+                var check = await counterSafety.CheckTextAsync(userId, originalOffer.SenderId, request.Message, DateTime.UtcNow);
+                if (!check.Allowed) return BadRequest(new { message = check.Message, code = check.Code });
+            }
 
             // Segna l'offerta originale come counter-offer
             originalOffer.Status = TradeOfferStatus.CounterOffer;

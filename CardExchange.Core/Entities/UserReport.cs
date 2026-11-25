@@ -10,7 +10,11 @@ namespace CardExchange.Core.Entities
         Harassment = 3,
         CardsNotAsDescribed = 4,
         Spam = 5,
-        Other = 6
+        Other = 6,
+        /// <summary>Comportamento inappropriato verso un minore.</summary>
+        MinorSafety = 7,
+        /// <summary>Proposte illegali o che non riguardano le carte.</summary>
+        IllegalActivity = 8
     }
 
     public enum ReportStatus

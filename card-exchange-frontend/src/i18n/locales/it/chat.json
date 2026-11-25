@@ -12,5 +12,6 @@
   "linkedTrade": "Collegata a scambio #{{id}}",
   "noMessages": "Nessun messaggio. Scrivi per iniziare la conversazione.",
   "inputPlaceholder": "Scrivi un messaggio...",
-  "selectConversation": "Seleziona una conversazione"
+  "selectConversation": "Seleziona una conversazione",
+  "safetyTip": "Non condividere numero, social o indirizzo: accordatevi qui e incontratevi in un negozio partner. Se qualcosa non ti convince, segnala l'utente dal suo profilo."
 }

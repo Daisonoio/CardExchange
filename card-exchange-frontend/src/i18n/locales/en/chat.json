@@ -12,5 +12,6 @@
   "linkedTrade": "Linked to trade #{{id}}",
   "noMessages": "No messages yet. Write something to start the conversation.",
   "inputPlaceholder": "Write a message...",
-  "selectConversation": "Select a conversation"
+  "selectConversation": "Select a conversation",
+  "safetyTip": "Don't share your number, social accounts or address: agree here and meet at a partner store. If something doesn't feel right, report the user from their profile."
 }

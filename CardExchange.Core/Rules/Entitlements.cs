@@ -147,6 +147,10 @@ namespace CardExchange.Core.Rules
     {
         /// <summary>Raggio di ricerca per tutti durante il lancio.</summary>
         public const int RadiusKm = 80;
+        /// <summary>Proposte di scambio attive contemporaneamente (piani spenti).</summary>
+        public const int ActiveTradeOffers = 15;
+        /// <summary>Messaggi in chat al giorno (piani spenti).</summary>
+        public const int DailyMessages = 10;
 
         public static string Name(ProfileType p) => p switch
         {
@@ -164,6 +168,15 @@ namespace CardExchange.Core.Rules
             p.MaxRadiusKm = RadiusKm;
             // Con i piani spenti nessuno compra l'accesso anticipato: nessuna carta nuova resta nascosta per due ore
             p.HasEarlyAccess = !paidPlans;
+            if (!paidPlans)
+            {
+                // Finché i piani sono spenti ogni profilo ha le funzioni che erano Premium e limiti larghi
+                p.CanSearchAdvanced = p.CanSearchGeographic = p.CanExportCollection = p.CanViewStatistics = p.CanSaveSearches = true;
+                p.HasWishlistAlerts = p.HasInstantAlerts = p.HasPriceAlerts = true;
+                p.MaxWishlistItems = PlanCatalog.Unlimited;
+                p.MaxActiveTradeOffers = ActiveTradeOffers;
+                p.MaxDailyMessages = DailyMessages;
+            }
             switch (profile)
             {
                 case ProfileType.Seller:

@@ -43,7 +43,9 @@
     "Harassment": "Offensive behaviour",
     "CardsNotAsDescribed": "Cards not as described",
     "Spam": "Spam",
-    "Other": "Other"
+    "Other": "Other",
+    "MinorSafety": "Risk to a minor",
+    "IllegalActivity": "Illegal proposal"
   },
   "reportReasonLong": {
     "1": "Scam or attempted scam",
@@ -51,6 +53,8 @@
     "3": "Offensive or harassing behaviour",
     "4": "Fake cards or not as described",
     "5": "Spam",
-    "6": "Other"
+    "6": "Other",
+    "7": "Inappropriate behaviour towards a minor",
+    "8": "Illegal proposals or not about cards"
   }
 }

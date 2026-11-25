@@ -2,8 +2,7 @@ import { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  ArrowLeft, Send, MessageSquare, Loader2, ArrowLeftRight,
-} from 'lucide-react';
+  ArrowLeft, Send, MessageSquare, Loader2, ArrowLeftRight, ShieldCheck } from 'lucide-react';
 import { HubConnectionBuilder, HubConnection, LogLevel, HttpTransportType } from '@microsoft/signalr';
 import { messages } from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -419,6 +418,10 @@ export default function ChatPage() {
 
             {/* Input */}
             <div className="p-3 border-t border-border bg-white">
+              {/* Promemoria di sicurezza, uguale per tutti */}
+              <p className="mb-2 text-[11px] text-text-muted flex items-start gap-1.5" data-testid="chat-safety-tip">
+                <ShieldCheck size={12} className="shrink-0 mt-0.5 text-green-700" /> {t('safetyTip')}
+              </p>
               {sendError && (
                 <p className="mb-2 text-xs text-red-600">{sendError}</p>
               )}

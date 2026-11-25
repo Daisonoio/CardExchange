@@ -782,3 +782,15 @@ export const eventPackages = {
   invite: (token: string) => client.get<{ eventId: number; eventTitle: string; startDate: string; city: string; name: string; boothCode: string; description?: string; accepted: boolean; mine: boolean; stores: { id: number; name: string }[] }>(`/exhibitor-invites/${token}`),
   accept: (token: string, storeId?: number) => client.post<{ message: string; eventId: number }>(`/exhibitor-invites/${token}/accept`, { storeId }),
 };
+
+export type SafetyFlagItem = {
+  id: number; kind: 'Grooming' | 'Illegal' | 'ContactToMinor' | 'ManyMinors' | 'PaymentWithMinor' | 'UserReport';
+  blocked: boolean; involvesMinor: boolean; excerpt?: string; createdAt: string; status: string; reviewNote?: string;
+  sender: { id: number; username: string; isActive: boolean; chatSuspendedUntil?: string; flags30Days: number };
+  recipient?: { id: number; username?: string } | null; conversationId?: number;
+};
+export const safetyModeration = {
+  list: (status: 'open' | 'all' = 'open') => client.get<SafetyFlagItem[]>('/moderation/safety-flags', { params: { status } }),
+  resolve: (id: number, body: { action: 'dismiss' | 'confirm' | 'lift'; deactivateAccount?: boolean; note?: string }) =>
+    client.post<{ message: string }>(`/moderation/safety-flags/${id}/resolve`, body),
+};

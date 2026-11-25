@@ -689,12 +689,12 @@ export interface UserReviewsPage {
 }
 
 // === Segnalazioni ===
-export const REPORT_REASONS: { value: number; label: string }[] = [1, 2, 3, 4, 5, 6].map((value) => ({
+export const REPORT_REASONS: { value: number; label: string }[] = [7, 8, 1, 2, 3, 4, 5, 6].map((value) => ({
   value,
   get label() { return i18n.t(`labels:reportReasonLong.${value}`); },
 }));
 
-export const REPORT_REASON_LABELS: Record<string, string> = translatedLabels('reportReason', ['Scam', 'NoShow', 'Harassment', 'CardsNotAsDescribed', 'Spam', 'Other']);
+export const REPORT_REASON_LABELS: Record<string, string> = translatedLabels('reportReason', ['Scam', 'NoShow', 'Harassment', 'CardsNotAsDescribed', 'Spam', 'Other', 'MinorSafety', 'IllegalActivity']);
 
 export interface ModerationReport {
   id: number;

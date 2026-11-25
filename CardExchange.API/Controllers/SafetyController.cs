@@ -1,3 +1,4 @@
+using CardExchange.Core.Rules;
 using CardExchange.API.Authorization;
 using CardExchange.Core.Entities;
 using CardExchange.Infrastructure.Data;
@@ -85,7 +86,7 @@ namespace CardExchange.API.Controllers
             public int ReportedUserId { get; set; }
 
             [Required]
-            [Range(1, 6, ErrorMessage = "Motivo non valido")]
+            [Range(1, 8, ErrorMessage = "Motivo non valido")]
             public int Reason { get; set; }
 
             [MaxLength(1000)]
@@ -126,6 +127,16 @@ namespace CardExchange.API.Controllers
             });
             await _context.SaveChangesAsync();
             _logger.LogWarning("Segnalazione da {ReporterId} contro {ReportedId} ({Reason})", userId, request.ReportedUserId, (ReportReason)request.Reason);
+
+            // Minori e proposte illegali: anche nella coda di sicurezza, con avviso immediato ai moderatori
+            if ((ReportReason)request.Reason is ReportReason.MinorSafety or ReportReason.IllegalActivity
+                && HttpContext.RequestServices.GetService<CardExchange.API.Services.Moderation.ChatSafety>() is { } safety)
+            {
+                var reporterBirth = await _context.Users.Where(u => u.Id == userId).Select(u => u.BirthDate).FirstOrDefaultAsync();
+                await safety.FlagAsync(request.ReportedUserId, userId, null, SafetyFlagKind.UserReport,
+                    $"[{(ReportReason)request.Reason}] {request.Details}".Trim(),
+                    ChatSafetyRules.IsMinorOrUnknown(reporterBirth, DateOnly.FromDateTime(DateTime.UtcNow)), DateTime.UtcNow, blocked: false);
+            }
 
             return Ok(new { message = "Segnalazione inviata. Grazie: un moderatore la esaminerà al più presto." });
         }
@@ -232,6 +243,71 @@ namespace CardExchange.API.Controllers
             _logger.LogWarning("Segnalazione {ReportId} chiusa da {ModeratorId}: {Outcome}, sospensione={Suspended}",
                 id, moderatorId, outcome, request.SuspendUser);
             return Ok(new { message = request.SuspendUser ? "Segnalazione risolta e account sospeso" : "Segnalazione chiusa" });
+        }
+
+        // ---------------- Sicurezza della chat ----------------
+
+        public class ResolveSafetyFlagRequest
+        {
+            /// <summary>"dismiss" (falso allarme: la chat torna attiva), "confirm" (violazione confermata), "lift" (solo riattiva la chat).</summary>
+            public string Action { get; set; } = "dismiss";
+            /// <summary>Con "confirm": disattiva l'account (serve il permesso USERS.BAN).</summary>
+            public bool DeactivateAccount { get; set; }
+            [MaxLength(500)] public string? Note { get; set; }
+        }
+
+        /// <summary>Segnalazioni di sicurezza (automatiche e degli utenti per minori o proposte illegali), le più gravi prima.</summary>
+        [HttpGet("api/moderation/safety-flags")]
+        [RequirePermission("ADMIN.REPORTS.MANAGE")]
+        public async Task<IActionResult> SafetyFlags([FromQuery] string status = "open")
+        {
+            var open = status != "all";
+            var flags = await _context.SafetyFlags.AsNoTracking().Include(f => f.Sender)
+                .Where(f => !open || f.Status == SafetyFlagStatus.Open)
+                .OrderByDescending(f => f.InvolvesMinor).ThenByDescending(f => f.CreatedAt).Take(200).ToListAsync();
+            var ids = flags.Where(f => f.RecipientId != null).Select(f => f.RecipientId!.Value).Distinct().ToList();
+            var names = await _context.Users.AsNoTracking().Where(u => ids.Contains(u.Id)).ToDictionaryAsync(u => u.Id, u => u.Username);
+            var senders = flags.Select(f => f.SenderId).Distinct().ToList();
+            var since = DateTime.UtcNow.AddDays(-30);
+            var counts = await _context.SafetyFlags.AsNoTracking().Where(f => senders.Contains(f.SenderId) && f.CreatedAt >= since)
+                .GroupBy(f => f.SenderId).Select(g => new { g.Key, Count = g.Count() }).ToDictionaryAsync(g => g.Key, g => g.Count);
+            return Ok(flags.Select(f => new
+            {
+                f.Id, kind = f.Kind.ToString(), f.Blocked, f.InvolvesMinor, f.Excerpt, f.CreatedAt, status = f.Status.ToString(), f.ReviewNote,
+                sender = new { id = f.SenderId, username = f.Sender.Username, f.Sender.IsActive, chatSuspendedUntil = f.Sender.MessagingSuspendedUntil, flags30Days = counts.GetValueOrDefault(f.SenderId) },
+                recipient = f.RecipientId == null ? null : new { id = f.RecipientId, username = names.GetValueOrDefault(f.RecipientId.Value) },
+                f.ConversationId
+            }));
+        }
+
+        [HttpPost("api/moderation/safety-flags/{id:int}/resolve")]
+        [RequirePermission("ADMIN.REPORTS.MANAGE")]
+        public async Task<IActionResult> ResolveSafetyFlag(int id, [FromBody] ResolveSafetyFlagRequest request)
+        {
+            var flag = await _context.SafetyFlags.Include(f => f.Sender).FirstOrDefaultAsync(f => f.Id == id);
+            if (flag == null) return NotFound(new { message = "Segnalazione non trovata" });
+            var action = (request.Action ?? "").ToLowerInvariant();
+            if (action is not ("dismiss" or "confirm" or "lift")) return BadRequest(new { message = "Azione non valida (dismiss, confirm o lift)" });
+
+            if (action is "dismiss" or "lift") flag.Sender.MessagingSuspendedUntil = null;
+            if (action == "confirm" && request.DeactivateAccount)
+            {
+                if (!User.HasClaim("Permission", "USERS.BAN"))
+                    return StatusCode(403, new { message = "Serve il permesso USERS.BAN per sospendere un account" });
+                flag.Sender.IsActive = false;
+                flag.Sender.RefreshToken = null;
+                flag.Sender.RefreshTokenExpiryTime = null;
+            }
+            if (action != "lift")
+            {
+                flag.Status = action == "dismiss" ? SafetyFlagStatus.Dismissed : SafetyFlagStatus.ActionTaken;
+                flag.ReviewedById = CurrentUserId();
+                flag.ReviewedAt = DateTime.UtcNow;
+                flag.ReviewNote = request.Note?.Trim();
+            }
+            await _context.SaveChangesAsync();
+            _logger.LogWarning("Segnalazione di sicurezza {FlagId}: {Action} da {ModeratorId}", id, action, CurrentUserId());
+            return Ok(new { message = action == "dismiss" ? "Segnalazione archiviata, chat riattivata" : action == "lift" ? "Chat riattivata" : request.DeactivateAccount ? "Violazione confermata e account disattivato" : "Violazione confermata" });
         }
 
         private int CurrentUserId() =>
