@@ -27,6 +27,16 @@ Per accedere usa il nome utente (oppure l'email) e la password.
 - Il titolare è `test.negozio`.
 - Link del QR: `/s/negozio-test-milano`. Aprilo da disconnesso per provare l'iscrizione dal QR, oppure da connesso per provare "segui" e "negozio di casa".
 
+## Se l'accesso dice "Credenziali non valide"
+
+1. **Verifica di avere l'ultima versione.** Fai il pull del branch e ricompila la soluzione: in Visual Studio Compila → Ricompila soluzione.
+2. **Controlla il log all'avvio del backend.** Deve comparire questa riga:
+   `Utenti di prova: N creati, 11 presenti in totale (password Test1234!). Database: <nome>`.
+   - Se la riga non compare, l'ambiente non è Development: controlla il profilo di avvio, o `ASPNETCORE_ENVIRONMENT`.
+   - Se compare `Utenti di prova NON creati: …`, il messaggio spiega il motivo.
+   - Il nome del database ti dice su quale database sono stati creati: deve essere lo stesso che usa il frontend.
+3. **Creali a mano da Swagger.** Apri `/swagger`, sezione **Dev**, e lancia **POST /api/dev/test-users**. La risposta elenca gli utenti presenti e il database usato. In caso di problemi mostra l'errore completo. Funziona solo in sviluppo.
+
 ## Da sapere
 
 - Gli utenti si trovano in zone diverse di Milano e dintorni, con raggio di ricerca di 80 km, così le distanze tra loro sono realistiche.

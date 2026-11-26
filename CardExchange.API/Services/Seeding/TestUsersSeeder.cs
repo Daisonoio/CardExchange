@@ -41,7 +41,11 @@ namespace CardExchange.API.Services.Seeding
             new("test.daqr", "Quirino", "DalQR", ProfileType.Collector, Age.Adult, "Milano", "MI", 45.4620, 9.1780, FromStoreQr: true),
         };
 
-        public static async Task<int> SeedAsync(ApplicationDbContext context, ILogger logger, CancellationToken ct = default)
+        public record Report(int Created, int Present, IReadOnlyList<string> Usernames);
+
+        public static IReadOnlyList<string> Usernames => Users.Select(u => u.Username).ToList();
+
+        public static async Task<Report> SeedAsync(ApplicationDbContext context, ILogger logger, CancellationToken ct = default)
         {
             var usernames = Users.Select(u => u.Username).ToList();
             var existing = (await context.Users.IgnoreQueryFilters()
@@ -144,7 +148,8 @@ namespace CardExchange.API.Services.Seeding
             if (created.Count > 0)
                 logger.LogInformation("Utenti di prova creati: {Users} (password {Password}, vedi docs/utenti-di-test.md)",
                     string.Join(", ", created.Keys), Password);
-            return created.Count;
+            var present = await context.Users.IgnoreQueryFilters().CountAsync(u => usernames.Contains(u.Username), ct);
+            return new Report(created.Count, present, usernames);
         }
     }
 }

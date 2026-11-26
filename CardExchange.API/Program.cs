@@ -453,10 +453,6 @@ using (var scope = app.Services.CreateScope())
         await RBACSeeder.SeedSubscriptionPlans(context);
         await GameSeeder.SeedGames(context);
 
-        // Utenti di prova per i test manuali (solo sviluppo; credenziali in docs/utenti-di-test.md)
-        if (app.Environment.IsDevelopment() && app.Configuration.GetValue("Seed:TestUsers", true))
-            await CardExchange.API.Services.Seeding.TestUsersSeeder.SeedAsync(context, app.Logger);
-
         // Negozi creati prima dei link e QR: assegna lo slug mancante
         var withoutSlug = await context.Stores.IgnoreQueryFilters().Where(s => s.Slug == null).ToListAsync();
         if (withoutSlug.Count > 0)
@@ -474,6 +470,26 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "Errore durante il seed dei dati RBAC/Giochi");
+    }
+}
+
+// ============================================================
+// Utenti di prova per i test manuali (solo sviluppo; credenziali in docs/utenti-di-test.md)
+// A parte dal blocco sopra, così un suo errore non li salta senza dirlo
+// ============================================================
+if (app.Environment.IsDevelopment() && app.Configuration.GetValue("Seed:TestUsers", true))
+{
+    using var scope = app.Services.CreateScope();
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var report = await CardExchange.API.Services.Seeding.TestUsersSeeder.SeedAsync(context, app.Logger);
+        app.Logger.LogWarning("Utenti di prova: {Created} creati, {Present} presenti in totale (password {Password}). Database: {Database}",
+            report.Created, report.Present, CardExchange.API.Services.Seeding.TestUsersSeeder.Password, context.Database.GetDbConnection().Database);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Utenti di prova NON creati: {Message}. Si possono creare anche da Swagger con POST /api/dev/test-users", ex.GetBaseException().Message);
     }
 }
 

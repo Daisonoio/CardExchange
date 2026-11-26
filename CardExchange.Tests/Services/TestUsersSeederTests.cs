@@ -14,7 +14,7 @@ public class TestUsersSeederTests
     {
         using var db = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
-        (await TestUsersSeeder.SeedAsync(db, NullLogger.Instance)).Should().Be(11);
+        (await TestUsersSeeder.SeedAsync(db, NullLogger.Instance)).Created.Should().Be(11);
         var users = await db.Users.IgnoreQueryFilters().ToListAsync();
         users.Select(u => u.ProfileType).Distinct().Should().BeEquivalentTo(new[] { ProfileType.Collector, ProfileType.Seller, ProfileType.Store, ProfileType.Organizer });
         users.Single(u => u.Username == "test.senzaeta").BirthDate.Should().BeNull();
@@ -29,7 +29,9 @@ public class TestUsersSeederTests
         // Una modifica fatta durante i test resta al riavvio
         users.Single(u => u.Username == "test.collezionista").ProfileType = ProfileType.Seller;
         await db.SaveChangesAsync();
-        (await TestUsersSeeder.SeedAsync(db, NullLogger.Instance)).Should().Be(0);
+        var again = await TestUsersSeeder.SeedAsync(db, NullLogger.Instance);
+        again.Created.Should().Be(0);
+        again.Present.Should().Be(11);
         (await db.Users.IgnoreQueryFilters().CountAsync()).Should().Be(11);
         (await db.Stores.CountAsync()).Should().Be(1);
         (await db.Users.SingleAsync(u => u.Username == "test.collezionista")).ProfileType.Should().Be(ProfileType.Seller);
