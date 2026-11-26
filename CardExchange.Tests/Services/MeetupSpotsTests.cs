@@ -28,6 +28,20 @@ public class MeetupSpotsTests
     }
 
     [Fact]
+    public void HomeStore_ComesFirst_WithinItsGroup_ButPartnersStayFirst()
+    {
+        var ranked = MeetupSpots.Rank(new[]
+        {
+            new MeetupSpots.Candidate(1, 45.4580, 9.1825, IsPartner: true),                 // partner sul punto medio
+            new MeetupSpots.Candidate(2, 45.4800, 9.2000, IsPartner: true, IsHome: true),   // partner di casa, più lontano
+            new MeetupSpots.Candidate(3, 45.4590, 9.1830, IsPartner: false),                // non partner, vicinissimo
+            new MeetupSpots.Candidate(4, 45.4700, 9.1900, IsPartner: false, IsHome: true),  // non partner di casa
+        }, 45.4580, 9.1825);
+
+        ranked.Select(r => r.StoreId).Should().Equal(2, 1, 4, 3);
+    }
+
+    [Fact]
     public void AtMostFiveSuggestions() =>
         MeetupSpots.Rank(Enumerable.Range(1, 9).Select(i => new MeetupSpots.Candidate(i, 45.46, 9.19, false)), 45.46, 9.19)
             .Should().HaveCount(MeetupSpots.MaxSuggestions);

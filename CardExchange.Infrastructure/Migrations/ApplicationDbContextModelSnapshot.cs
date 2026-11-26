@@ -3692,6 +3692,9 @@ namespace CardExchange.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("HomeStoreId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -3801,6 +3804,8 @@ namespace CardExchange.Infrastructure.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("HomeStoreId");
 
                     b.HasIndex("ReferralCode")
                         .IsUnique()
@@ -4882,6 +4887,16 @@ namespace CardExchange.Infrastructure.Migrations
                     b.Navigation("Reviewer");
 
                     b.Navigation("TradeOffer");
+                });
+
+            modelBuilder.Entity("CardExchange.Core.Entities.User", b =>
+                {
+                    b.HasOne("CardExchange.Core.Entities.Store", "HomeStore")
+                        .WithMany()
+                        .HasForeignKey("HomeStoreId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("HomeStore");
                 });
 
             modelBuilder.Entity("CardExchange.Core.Entities.UserActiveDay", b =>

@@ -9,7 +9,8 @@ import AuthShell from '../components/layout/AuthShell';
 
 /**
  * Pagina del QR del negozio (/s/:slug). Chi non è registrato vede l'invito a iscriversi: la registrazione
- * lo lega al negozio e glielo fa seguire. Chi ha già un account segue il negozio e ne apre la scheda.
+ * lo lega al negozio, glielo fa seguire e lo rende il suo negozio di casa. Chi ha già un account segue il
+ * negozio (che diventa di casa se non ne aveva uno) e ne apre la scheda.
  */
 export default function StoreLinkPage() {
   const { t } = useTranslation('qr');
@@ -27,7 +28,9 @@ export default function StoreLinkPage() {
 
   useEffect(() => {
     if (isLoading || !isAuthenticated || !store) return;
-    follows.followStore(store.id).catch(() => undefined).finally(() => navigate(`/stores/${store.id}`, { replace: true }));
+    // Già iscritto: segue il negozio e, se non ne ha ancora uno, ne fa il suo negozio di casa
+    Promise.allSettled([follows.followStore(store.id), stores.setHome(store.id, true)])
+      .finally(() => navigate(`/stores/${store.id}`, { replace: true }));
   }, [isLoading, isAuthenticated, store, navigate]);
 
   if (store === undefined || (isAuthenticated && store)) {

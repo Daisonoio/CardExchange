@@ -165,5 +165,20 @@
       "Reversed": "Annullata (rimborso)"
     },
     "privacy": "Vedi solo importi e date: mai chi si è abbonato."
+  },
+  "home": {
+    "title": "Il tuo negozio di casa",
+    "set": "Rendilo il mio negozio di casa",
+    "isHome": "Il tuo negozio di casa",
+    "remove": "Togli",
+    "change": "Cambia negozio",
+    "choose": "Scegli un negozio",
+    "hint": "Lo proponiamo per primo quando fissi uno scambio. Lo vedi solo tu.",
+    "noneHint": "Scegli il negozio dove scambi più spesso: lo proponiamo per primo quando fissi un incontro.",
+    "setDone": "Ora è il tuo negozio di casa",
+    "meetupBadge": "Il tuo negozio",
+    "customers_one": "{{count}} cliente lo ha come negozio di casa",
+    "customers_other": "{{count}} clienti lo hanno come negozio di casa",
+    "customersFew": "Meno di 3 clienti lo hanno come negozio di casa"
   }
 }

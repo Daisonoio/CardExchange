@@ -26,6 +26,13 @@ namespace CardExchange.Core.Entities
         /// <summary>Tipo di profilo (funzioni disponibili). Si cambia solo dall'amministrazione.</summary>
         public ProfileType ProfileType { get; set; } = ProfileType.Collector;
 
+        /// <summary>
+        /// Negozio di casa: quello da cui si è iscritto col QR, oppure scelto dalla scheda del negozio.
+        /// Visibile solo all'utente; serve a proporlo per primo come punto d'incontro tra i negozi partner.
+        /// </summary>
+        public int? HomeStoreId { get; set; }
+        public Store? HomeStore { get; set; }
+
         /// <summary>Chat sospesa fino a questa data (segnalazioni gravi di sicurezza, in attesa di verifica).</summary>
         public DateTime? MessagingSuspendedUntil { get; set; }
 

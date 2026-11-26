@@ -97,6 +97,10 @@ namespace CardExchange.API.Controllers
                 .Where(a => a.UserId == userId)
                 .Select(a => new { store = a.Store.Name, a.CreatedAt })
                 .FirstOrDefaultAsync();
+            var homeStore = await _context.Users.AsNoTracking()
+                .Where(u => u.Id == userId && u.HomeStore != null)
+                .Select(u => u.HomeStore!.Name)
+                .FirstOrDefaultAsync();
             var storesOwned = await _context.Stores.AsNoTracking()
                 .Where(st => st.OwnerId == userId)
                 .Select(st => new { st.Name, st.Address, st.City, st.Phone, st.Website, st.Instagram, status = st.Status.ToString(), st.CreatedAt })
@@ -161,7 +165,8 @@ namespace CardExchange.API.Controllers
                     user.TermsVersion,
                     user.ReferralCode,
                     invitedBy,
-                    storeOfOrigin
+                    storeOfOrigin,
+                    homeStore
                 },
                 loyaltyCards,
                 showcase,

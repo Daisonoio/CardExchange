@@ -69,6 +69,13 @@ namespace CardExchange.Infrastructure.Data
                     SELECT s.UserId FROM UserSubscriptions s JOIN SubscriptionPlans p ON p.Id = s.PlanId WHERE s.Status = 1 AND p.Tier = 3)", ct);
             }
 
+            if (columnsAdded.Contains("Users.HomeStoreId"))
+            {
+                // Negozio di casa = negozio da cui l'utente si è iscritto col QR
+                await context.Database.ExecuteSqlRawAsync(@"UPDATE Users SET HomeStoreId = (
+                    SELECT a.StoreId FROM StoreAttributions a WHERE a.UserId = Users.Id) WHERE HomeStoreId IS NULL", ct);
+            }
+
             // 3. Indici: tutti con IF NOT EXISTS; un indice univoco può fallire se i dati esistenti hanno doppioni
             foreach (var stmt in statements.Where(s => s.StartsWith("CREATE INDEX", StringComparison.OrdinalIgnoreCase) || s.StartsWith("CREATE UNIQUE INDEX", StringComparison.OrdinalIgnoreCase)))
             {

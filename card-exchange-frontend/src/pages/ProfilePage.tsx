@@ -10,6 +10,7 @@ import ReviewsSheet from '../components/users/ReviewsSheet';
 import BlockedUsersSheet from '../components/users/BlockedUsersSheet';
 import { hasPermission, hasRole } from '../utils/permissions';
 import PushToggle from '../components/notifications/PushToggle';
+import { HomeStoreCard } from '../components/stores/HomeStore';
 import LanguageSwitcher from '../components/ui/LanguageSwitcher';
 import InviteCard from '../components/users/InviteCard';
 
@@ -100,6 +101,7 @@ export default function ProfilePage() {
         ))}
       </div>
 
+      <HomeStoreCard />
       <LanguageSwitcher />
       <PushToggle />
       <InviteCard />

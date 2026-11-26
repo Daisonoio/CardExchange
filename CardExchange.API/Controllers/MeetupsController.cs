@@ -72,6 +72,8 @@ namespace CardExchange.API.Controllers
             public string? OpeningHours { get; set; }
             /// <summary>Negozio partner (piano Negozio attivo).</summary>
             public bool IsPartner { get; set; }
+            /// <summary>È il negozio di casa di chi chiede (quello dell'altro utente non viene mai rivelato).</summary>
+            public bool IsMyHomeStore { get; set; }
             public int? DistanceFromMeKm { get; set; }
             public int? DistanceFromOtherKm { get; set; }
         }
@@ -122,9 +124,15 @@ namespace CardExchange.API.Controllers
                 .ToListAsync();
             var ownerIds = stores.Select(s => s.OwnerId).Distinct().ToList();
             var partners = await this.Entitlements(_context).HoldersAsync(ownerIds, Capability.FeaturedStore);
+            var homeStores = await _context.Users.AsNoTracking()
+                .Where(u => (u.Id == userId || u.Id == otherId) && u.HomeStoreId != null)
+                .Select(u => new { u.Id, StoreId = u.HomeStoreId!.Value })
+                .ToListAsync();
+            var myHomeStoreId = homeStores.FirstOrDefault(h => h.Id == userId)?.StoreId;
+            var homeIds = homeStores.Select(h => h.StoreId).ToHashSet();
 
             var ranked = MeetupSpots.Rank(
-                stores.Select(s => new MeetupSpots.Candidate(s.Id, (double)s.Latitude, (double)s.Longitude, partners.Contains(s.OwnerId))),
+                stores.Select(s => new MeetupSpots.Candidate(s.Id, (double)s.Latitude, (double)s.Longitude, partners.Contains(s.OwnerId), homeIds.Contains(s.Id))),
                 midLat, midLon);
             var byId = stores.ToDictionary(s => s.Id);
             int? Km(double? lat, double? lon, Store s) => lat.HasValue && lon.HasValue
@@ -144,6 +152,7 @@ namespace CardExchange.API.Controllers
                     Longitude = s.Longitude,
                     OpeningHours = s.OpeningHours,
                     IsPartner = r.IsPartner,
+                    IsMyHomeStore = s.Id == myHomeStoreId,
                     DistanceFromMeKm = Km(mine?.Lat, mine?.Lon, s),
                     DistanceFromOtherKm = Km(other?.Lat, other?.Lon, s)
                 };

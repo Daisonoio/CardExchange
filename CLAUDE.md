@@ -14,6 +14,7 @@ I negozi sono il canale principale: l'app non deve mai metterli in competizione 
   (niente "disponibile a meno da…", né elenchi di privati con la stessa carta).
 - Nei risultati di ricerca negozi e privati sono mescolati per distanza; il valore di mercato resta solo un riferimento.
 - Quando due utenti fissano un incontro, i negozi partner sono proposti per primi come punto di scambio.
+  Tra questi va prima il negozio di casa di uno dei due (`User.HomeStoreId`, impostato dal QR del negozio o dalla sua scheda); il negozio di casa di un utente non si mostra mai agli altri.
 - I negozi vedono dati aggregati sui loro clienti, mai identità senza un'azione esplicita dell'utente.
 
 ## Privacy e minorenni

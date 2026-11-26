@@ -400,13 +400,20 @@ export const reservations = {
   noShow: (id: number) => client.post<import('../types').Reservation>(`/reservations/${id}/no-show`),
 };
 
+export interface HomeStore { id: number; name: string; city: string; slug?: string | null; address: string }
+
 export const stores = {
   list: (params?: { latitude?: number; longitude?: number; radiusKm?: number; gameId?: number; meetupOnly?: boolean; q?: string }) =>
     client.get<import('../types').Store[]>('/stores', { params }),
   get: (id: number) => client.get<import('../types').Store>(`/stores/${id}`),
   mine: () => client.get<import('../types').Store[]>('/stores/mine'),
   bySlug: (slug: string) => client.get<{ id: number; name: string; city: string; slug: string }>(`/stores/by-slug/${encodeURIComponent(slug)}`),
-  attributions: (id: number) => client.get<{ total: number; last30Days: number }>(`/stores/${id}/attributions`),
+  attributions: (id: number) => client.get<{ total: number; last30Days: number; homeCustomers?: number | null }>(`/stores/${id}/attributions`),
+  // Negozio di casa: visibile solo all'utente, proposto per primo come punto d'incontro tra i partner
+  home: () => client.get<{ store?: HomeStore | null }>('/stores/home'),
+  setHome: (id: number, onlyIfUnset = false) =>
+    client.put<{ homeStoreId: number; changed: boolean }>(`/stores/${id}/home`, null, { params: onlyIfUnset ? { onlyIfUnset } : undefined }),
+  clearHome: () => client.delete('/stores/home'),
   reports: (id: number) => client.get<import('../types').StoreReports>(`/stores/${id}/reports`),
   demand: (id: number) => client.get<import('../types').StoreDemand>(`/stores/${id}/demand`),
   notifyInterested: (id: number, cardInfoId: number) => client.post<{ sent: number; skipped: number }>(`/stores/${id}/demand/notify`, { cardInfoId }),
@@ -589,6 +596,8 @@ export interface MeetupSpot {
   longitude: number;
   openingHours?: string | null;
   isPartner: boolean;
+  /** È il mio negozio di casa (quello dell'altro utente non viene mai indicato). */
+  isMyHomeStore?: boolean;
   distanceFromMeKm?: number | null;
   distanceFromOtherKm?: number | null;
 }

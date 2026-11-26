@@ -13,6 +13,7 @@ import EmptyState from '../components/ui/EmptyState';
 import EmptyStateLink from '../components/ui/EmptyStateLink';
 import FollowButton from '../components/social/FollowButton';
 import StoreCardsSection from '../components/stores/StoreCardsSection';
+import { HomeStoreToggle } from '../components/stores/HomeStore';
 import { PlanTag } from '../components/ui/Gate';
 import { useEntitlements } from '../hooks/useEntitlements';
 
@@ -33,7 +34,7 @@ export default function StorePage() {
   const { dateTime } = useFormat();
   const [store, setStore] = useState<Store | null | undefined>(undefined);
   const [storeEvents, setStoreEvents] = useState<CardEvent[]>([]);
-  const [attributions, setAttributions] = useState<{ total: number; last30Days: number } | null>(null);
+  const [attributions, setAttributions] = useState<{ total: number; last30Days: number; homeCustomers?: number | null } | null>(null);
   const [storeMeetups, setStoreMeetups] = useState<{ upcoming: { id: number; scheduledAt: string }[]; completedLast30Days: number } | null>(null);
 
   const [loyaltyInfo, setLoyaltyInfo] = useState<LoyaltyInfo | null>(null);
@@ -77,6 +78,8 @@ export default function StorePage() {
         )}
         {!store.isOwner && store.status === 'Verified' && <FollowButton target={{ storeId: store.id }} showCount />}
       </div>
+
+      {!store.isOwner && store.status === 'Verified' && <HomeStoreToggle storeId={store.id} />}
 
       {store.isOwner && store.status === 'Verified' && storeMeetups && (
         <div className="p-3 rounded-xl bg-surface-card border border-border">
@@ -173,6 +176,11 @@ export default function StorePage() {
             <span className="text-xs text-text-secondary">
               {attributions ? t('qr:store.registered', { count: attributions.total, recent: attributions.last30Days }) : t('qr:store.entryHint')}
             </span>
+            {attributions && (
+              <span className="block text-xs text-primary mt-0.5">
+                {attributions.homeCustomers != null ? t('home.customers', { count: attributions.homeCustomers }) : t('home.customersFew')}
+              </span>
+            )}
           </span>
         </Link>
       )}
@@ -182,7 +190,7 @@ export default function StorePage() {
           <Radio size={18} className="shrink-0" />
           <span className="min-w-0">
             <strong className="block text-sm">{t('live:compose.title')}</strong>
-            <span className="text-xs text-white/80">{t('live:follow.hint')}</span>
+            <span className="text-xs text-on-primary/80">{t('live:follow.hint')}</span>
           </span>
         </Link>
       )}

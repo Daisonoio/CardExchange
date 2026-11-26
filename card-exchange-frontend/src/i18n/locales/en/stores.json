@@ -165,5 +165,20 @@
       "Reversed": "Cancelled (refund)"
     },
     "privacy": "You only see amounts and dates: never who subscribed."
+  },
+  "home": {
+    "title": "Your home store",
+    "set": "Make it my home store",
+    "isHome": "Your home store",
+    "remove": "Remove",
+    "change": "Change store",
+    "choose": "Choose a store",
+    "hint": "We suggest it first when you arrange a trade. Only you can see it.",
+    "noneHint": "Pick the store where you trade most often: we suggest it first when you arrange a meetup.",
+    "setDone": "It's now your home store",
+    "meetupBadge": "Your store",
+    "customers_one": "{{count}} customer has it as home store",
+    "customers_other": "{{count}} customers have it as home store",
+    "customersFew": "Fewer than 3 customers have it as home store"
   }
 }

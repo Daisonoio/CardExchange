@@ -663,7 +663,8 @@ namespace CardExchange.API.Controllers
             new(new Microsoft.Extensions.Caching.Memory.MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions()));
 
         /// <summary>
-        /// Lega il nuovo utente al negozio del QR (solo negozi verificati, mai il proprietario stesso) e glielo fa seguire.
+        /// Lega il nuovo utente al negozio del QR (solo negozi verificati, mai il proprietario stesso), glielo fa seguire
+        /// e lo imposta come suo negozio di casa.
         /// Un errore qui non deve bloccare la registrazione.
         /// </summary>
         private async Task AttributeToStoreAsync(int userId, string? storeSlug)
@@ -680,6 +681,9 @@ namespace CardExchange.API.Controllers
                 _context.StoreAttributions.Add(new StoreAttribution { UserId = userId, StoreId = store.Id, Source = AttributionSource.Qr });
                 if (!await _context.Follows.AnyAsync(f => f.FollowerId == userId && f.FollowedStoreId == store.Id))
                     _context.Follows.Add(new Follow { FollowerId = userId, FollowedStoreId = store.Id });
+                // Diventa anche il suo negozio di casa (lo può cambiare quando vuole)
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                if (user != null) user.HomeStoreId ??= store.Id;
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Utente {UserId} registrato dal QR del negozio {StoreId}", userId, store.Id);
             }

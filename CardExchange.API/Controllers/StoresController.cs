@@ -549,9 +549,54 @@ namespace CardExchange.API.Controllers
             return Ok(new
             {
                 total = await _context.StoreAttributions.CountAsync(a => a.StoreId == id),
-                last30Days = await _context.StoreAttributions.CountAsync(a => a.StoreId == id && a.CreatedAt >= since)
+                last30Days = await _context.StoreAttributions.CountAsync(a => a.StoreId == id && a.CreatedAt >= since),
+                // Clienti che lo hanno come negozio di casa: solo il numero, e solo da 3 in su (regola sui dati aggregati)
+                homeCustomers = AggregateOrNull(await _context.Users.CountAsync(u => u.HomeStoreId == id))
             });
         }
+
+        /// <summary>Il negozio di casa dell'utente (null se non ne ha uno).</summary>
+        [HttpGet("api/stores/home")]
+        public async Task<IActionResult> GetHomeStore()
+        {
+            var userId = CurrentUserId();
+            var store = await _context.Users.AsNoTracking()
+                .Where(u => u.Id == userId && u.HomeStore != null && u.HomeStore.Status == StoreStatus.Verified)
+                .Select(u => new { u.HomeStore!.Id, u.HomeStore.Name, u.HomeStore.City, u.HomeStore.Slug, u.HomeStore.Address })
+                .FirstOrDefaultAsync();
+            return Ok(new { store });
+        }
+
+        /// <summary>
+        /// Imposta il negozio di casa (solo negozi verificati). Con onlyIfUnset non sostituisce quello già scelto:
+        /// è il caso di chi, già iscritto, inquadra il QR di un negozio.
+        /// </summary>
+        [HttpPut("api/stores/{id:int}/home")]
+        public async Task<IActionResult> SetHomeStore(int id, [FromQuery] bool onlyIfUnset = false)
+        {
+            var store = await _context.Stores.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id && s.Status == StoreStatus.Verified);
+            if (store == null) return NotFound(new { message = "Negozio non trovato" });
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == CurrentUserId());
+            if (user == null) return Unauthorized();
+            if (onlyIfUnset && user.HomeStoreId != null) return Ok(new { homeStoreId = user.HomeStoreId, changed = false });
+            var changed = user.HomeStoreId != store.Id;
+            user.HomeStoreId = store.Id;
+            await _context.SaveChangesAsync();
+            return Ok(new { homeStoreId = store.Id, changed });
+        }
+
+        /// <summary>Toglie il negozio di casa.</summary>
+        [HttpDelete("api/stores/home")]
+        public async Task<IActionResult> ClearHomeStore()
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == CurrentUserId());
+            if (user == null) return Unauthorized();
+            user.HomeStoreId = null;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        private static int? AggregateOrNull(int count) => count >= 3 ? count : null;
 
         private bool IsModerator() => User.HasClaim("Permission", "ADMIN.REPORTS.MANAGE");
 

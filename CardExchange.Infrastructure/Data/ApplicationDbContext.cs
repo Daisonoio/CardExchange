@@ -131,6 +131,9 @@ namespace CardExchange.Infrastructure.Data
                 entity.Property(u => u.Email).IsRequired().HasMaxLength(256);
                 entity.Property(u => u.Username).IsRequired().HasMaxLength(50);
                 entity.Property(u => u.ReputationScore).HasPrecision(3, 2);
+                // I negozi si cancellano solo in modo logico: niente cascata (eviterebbe cicli con il proprietario)
+                entity.HasOne(u => u.HomeStore).WithMany().HasForeignKey(u => u.HomeStoreId).OnDelete(DeleteBehavior.NoAction);
+                entity.HasIndex(u => u.HomeStoreId);
             });
 
             // ============================================================
