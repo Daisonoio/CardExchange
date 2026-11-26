@@ -92,6 +92,8 @@ namespace CardExchange.API.Services.Social
             var since = DateTime.UtcNow.Date;
             var today = await _context.LocationBroadcasts.CountAsync(b => b.AuthorId == authorId && b.CreatedAt >= since && b.ExhibitorId == null);
             var maxPerDay = await _entitlements.LimitAsync(authorId, PlanLimit.BroadcastsPerDay);
+            if (exhibitor == null && maxPerDay <= 0)
+                return new(null, "Far sapere dove ti trovi è riservato a venditori, negozi e organizzatori", 403);
             if (exhibitor == null && today >= maxPerDay)
                 return new(null, $"Puoi inviare al massimo {maxPerDay} avvisi al giorno", 429);
 

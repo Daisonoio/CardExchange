@@ -193,12 +193,12 @@ namespace CardExchange.API.Controllers
 
         /// <summary>Richiede l'inserimento di un negozio: resta in attesa finché un moderatore non lo verifica.</summary>
         [HttpPost("api/stores")]
-        public async Task<ActionResult<StoreDto>> Create([FromBody] StoreRequest request)
+        public async Task<ActionResult<StoreDto>> Create([FromBody] StoreRequest request, [FromServices] CardExchange.API.Services.Stores.StoreRequestNotifier notifier)
         {
             var userId = CurrentUserId();
             if (userId == 0) return Unauthorized();
-            if (request.Latitude == 0 && request.Longitude == 0)
-                return BadRequest(new { message = "Indica la posizione del negozio sulla mappa" });
+            var check = CheckSubmission(request);
+            if (check != null) return check;
 
             var owned = await _context.Stores.CountAsync(s => s.OwnerId == userId && s.Status != StoreStatus.Rejected);
             if (owned >= MaxStoresPerOwner)
@@ -211,12 +211,13 @@ namespace CardExchange.API.Controllers
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Negozio {StoreId} '{Name}' inserito da {UserId}, in attesa di verifica", store.Id, store.Name, userId);
+            await NotifyRequestAsync(notifier, store, userId, resubmitted: false);
             return Ok(ToDto(store, userId, new Dictionary<int, int>(), null));
         }
 
         /// <summary>Modifica della scheda (solo il proprietario). Le modifiche a un negozio rifiutato lo rimettono in verifica.</summary>
         [HttpPut("api/stores/{id:int}")]
-        public async Task<ActionResult<StoreDto>> Update(int id, [FromBody] StoreRequest request)
+        public async Task<ActionResult<StoreDto>> Update(int id, [FromBody] StoreRequest request, [FromServices] CardExchange.API.Services.Stores.StoreRequestNotifier notifier)
         {
             var userId = CurrentUserId();
             var store = await _context.Stores.FirstOrDefaultAsync(s => s.Id == id);
@@ -225,9 +226,17 @@ namespace CardExchange.API.Controllers
             if (store.Status == StoreStatus.Suspended)
                 return BadRequest(new { message = "Il negozio è sospeso: contatta il supporto" });
 
+            // Una scheda rifiutata che torna in verifica deve essere completa come una richiesta nuova
+            var resubmitted = store.Status == StoreStatus.Rejected;
+            if (resubmitted)
+            {
+                var check = CheckSubmission(request);
+                if (check != null) return check;
+            }
             Apply(store, request);
-            if (store.Status == StoreStatus.Rejected) store.Status = StoreStatus.Pending;
+            if (resubmitted) store.Status = StoreStatus.Pending;
             await _context.SaveChangesAsync();
+            if (resubmitted) await NotifyRequestAsync(notifier, store, userId, resubmitted: true);
             var counts = await UpcomingEventCountsAsync(new List<int> { id });
             return Ok(ToDto(store, userId, counts, null));
         }
@@ -594,6 +603,31 @@ namespace CardExchange.API.Controllers
             user.HomeStoreId = null;
             await _context.SaveChangesAsync();
             return NoContent();
+        }
+
+        /// <summary>Tutti i campi obbligatori tranne Instagram, nel formato giusto; null se la richiesta va bene.</summary>
+        private ActionResult? CheckSubmission(StoreRequest r)
+        {
+            var result = StoreSubmissionRules.Check(new StoreSubmissionRules.Fields(
+                r.Name, r.Description, r.Address, r.City, r.Province, r.PostalCode, r.Country,
+                r.Latitude, r.Longitude, r.Phone, r.Website, r.OpeningHours, r.GameIds));
+            if (result.IsValid) return null;
+            return BadRequest(new
+            {
+                message = result.Missing.Count > 0
+                    ? "Compila tutti i campi: solo Instagram è facoltativo"
+                    : "Controlla i campi evidenziati",
+                missing = result.Missing,
+                invalid = result.Invalid
+            });
+        }
+
+        private async Task NotifyRequestAsync(CardExchange.API.Services.Stores.StoreRequestNotifier notifier, Store store, int userId, bool resubmitted)
+        {
+            var submitter = await _context.Users.AsNoTracking().FirstAsync(u => u.Id == userId);
+            var gameIds = ParseGameIds(store.SupportedGameIds);
+            var games = await _context.Games.AsNoTracking().Where(g => gameIds.Contains(g.Id)).Select(g => g.Name).ToListAsync();
+            await notifier.NotifyAsync(store, submitter, games, resubmitted);
         }
 
         private static int? AggregateOrNull(int count) => count >= 3 ? count : null;

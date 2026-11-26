@@ -54,7 +54,33 @@
     "safeMeetupSpotHint": "Gli utenti potranno proporre il negozio come luogo sicuro per scambiarsi le carte.",
     "saveChanges": "Salva modifiche",
     "submit": "Invia per la verifica",
-    "locationHint": "Usa \"Trova sulla mappa\" per indicare la posizione."
+    "locationHint": "Usa \"Trova sulla mappa\" per indicare la posizione.",
+    "required": "obbligatorio",
+    "optional": "facoltativo",
+    "allRequired": "Tutti i campi sono obbligatori tranne Instagram. Prima dell'invio li controlliamo.",
+    "missingTitle": "Prima di inviare completa:",
+    "invalidTitle": "Controlla:",
+    "labels": {
+      "name": "Nome del negozio",
+      "description": "Descrizione",
+      "address": "Indirizzo",
+      "city": "Città",
+      "province": "Provincia",
+      "postalCode": "CAP",
+      "location": "Posizione sulla mappa",
+      "openingHours": "Orari",
+      "phone": "Telefono",
+      "website": "Sito web",
+      "games": "Almeno un gioco trattato"
+    },
+    "invalidHints": {
+      "name": "almeno 2 caratteri",
+      "description": "almeno 20 caratteri",
+      "postalCode": "5 cifre",
+      "phone": "numero non valido",
+      "website": "indirizzo web non valido"
+    },
+    "sentNote": "Richiesta inviata: la verifichiamo e ti avvisiamo appena il negozio è online."
   },
   "moderation": {
     "accessDenied": "Accesso negato.",

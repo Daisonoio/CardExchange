@@ -90,7 +90,7 @@ namespace CardExchange.API.Services.Seeding
                         Country = "IT",
                         Latitude = (decimal)spec.Lat,
                         Longitude = (decimal)spec.Lon,
-                        MaxDistanceKm = 80
+                        MaxDistanceKm = 100
                     }
                 };
                 context.Users.Add(user);

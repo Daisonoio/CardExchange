@@ -54,7 +54,33 @@
     "safeMeetupSpotHint": "Users will be able to suggest your store as a safe place to trade cards.",
     "saveChanges": "Save changes",
     "submit": "Submit for verification",
-    "locationHint": "Use \"Find on map\" to set the location."
+    "locationHint": "Use \"Find on map\" to set the location.",
+    "required": "required",
+    "optional": "optional",
+    "allRequired": "All fields are required except Instagram. We check them before sending.",
+    "missingTitle": "Before sending, fill in:",
+    "invalidTitle": "Check:",
+    "labels": {
+      "name": "Store name",
+      "description": "Description",
+      "address": "Address",
+      "city": "City",
+      "province": "Province",
+      "postalCode": "Postcode",
+      "location": "Position on the map",
+      "openingHours": "Opening hours",
+      "phone": "Phone",
+      "website": "Website",
+      "games": "At least one game"
+    },
+    "invalidHints": {
+      "name": "at least 2 characters",
+      "description": "at least 20 characters",
+      "postalCode": "5 digits",
+      "phone": "invalid number",
+      "website": "invalid web address"
+    },
+    "sentNote": "Request sent: we'll review it and let you know as soon as the store is online."
   },
   "moderation": {
     "accessDenied": "Access denied.",

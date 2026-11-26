@@ -145,8 +145,8 @@ namespace CardExchange.Core.Rules
     /// </summary>
     public static class ProfileCatalog
     {
-        /// <summary>Raggio di ricerca per tutti durante il lancio.</summary>
-        public const int RadiusKm = 80;
+        /// <summary>Raggio di ricerca per tutti durante il lancio: le ricerche arrivano davvero fino a qui.</summary>
+        public const int RadiusKm = 100;
         /// <summary>Proposte di scambio attive contemporaneamente (piani spenti).</summary>
         public const int ActiveTradeOffers = 15;
         /// <summary>Messaggi in chat al giorno (piani spenti).</summary>
@@ -166,6 +166,8 @@ namespace CardExchange.Core.Rules
             var p = PlanCatalog.Free(freeMaxCards);
             p.Name = Name(profile);
             p.MaxRadiusKm = RadiusKm;
+            // "Fai sapere dove sei" è per chi ha un banco o un negozio: il collezionista non comunica dove si trova
+            p.MaxBroadcastsPerDay = 0;
             // Con i piani spenti nessuno compra l'accesso anticipato: nessuna carta nuova resta nascosta per due ore
             p.HasEarlyAccess = !paidPlans;
             if (!paidPlans)

@@ -26,6 +26,7 @@ public class BroadcastServiceTests : IDisposable
     {
         _context = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         _seller = AddUser("seller", Lat, Lon);
+        _seller.ProfileType = ProfileType.Seller;   // 8 avvisi al giorno; il collezionista non ne ha
         _context.SaveChanges();
 
         var blocks = new Mock<IUserBlockService>();
@@ -147,44 +148,46 @@ public class BroadcastServiceTests : IDisposable
         (await _context.LocationBroadcasts.FindAsync(first.Id))!.EndedAt.Should().NotBeNull();
         second.EndedAt.Should().BeNull();
 
-        (await _service.CreateAsync(_seller.Id, Here())).Error.Should().BeNull();
-        var fourth = await _service.CreateAsync(_seller.Id, Here());
-        fourth.StatusCode.Should().Be(429);
-        fourth.Broadcast.Should().BeNull();
+        for (var i = 0; i < 6; i++) (await _service.CreateAsync(_seller.Id, Here())).Error.Should().BeNull();
+        var ninth = await _service.CreateAsync(_seller.Id, Here());
+        ninth.StatusCode.Should().Be(429);
+        ninth.Broadcast.Should().BeNull();
     }
 
     [Fact]
-    public async Task SellerProfile_SendsTheEighthBroadcast_CollectorIsStoppedAtTheFourth()
+    public async Task SellerProfile_SendsTheEighthBroadcast_CollectorCannotShareWhereHeIs()
     {
-        _seller.ProfileType = ProfileType.Seller;
         var free = AddUser("free", Lat, Lon);
         await _context.SaveChangesAsync();
 
         for (var i = 0; i < 8; i++) (await _service.CreateAsync(_seller.Id, Here())).Error.Should().BeNull($"l'avviso {i + 1} rientra negli 8 del Banco");
         (await _service.CreateAsync(_seller.Id, Here())).StatusCode.Should().Be(429);
 
-        for (var i = 0; i < 3; i++) (await _service.CreateAsync(free.Id, Here())).Error.Should().BeNull();
-        (await _service.CreateAsync(free.Id, Here())).StatusCode.Should().Be(429);
+        var collector = await _service.CreateAsync(free.Id, Here());
+        collector.StatusCode.Should().Be(403);
+        collector.Error.Should().Contain("riservato a venditori, negozi e organizzatori");
+        _context.LocationBroadcasts.Count(b => b.AuthorId == free.Id).Should().Be(0);
     }
 
     [Fact]
     public async Task InvitedExhibitor_PostsWithBoothPrefilled_WithoutUsingTheDailyLimit()
     {
         var organizer = AddUser("fiera", Lat, Lon);
+        var collector = AddUser("espositore", Lat, Lon);   // collezionista invitato come espositore
         await _context.SaveChangesAsync();
         var ev = new Event { OrganizerId = organizer.Id, Title = "Fiera del fumetto", Status = EventStatus.Published, IsPublic = true,
             StartDate = DateTime.UtcNow.AddHours(-1), EndDate = DateTime.UtcNow.AddHours(6), Address = "Fiera", City = "Milano", Country = "IT", Latitude = Lat, Longitude = Lon };
         _context.Events.Add(ev);
         await _context.SaveChangesAsync();
         var package = await CardExchange.API.Services.Events.EventPackages.ActivateAsync(_context, ev.Id, EventPackageTier.Region, null, null, DateTime.UtcNow);
-        _context.EventExhibitors.Add(new EventExhibitor { EventId = ev.Id, UserId = _seller.Id, Name = "Banco", BoothCode = "Pad. 3 – B12", InviteToken = "t1", AcceptedAt = DateTime.UtcNow });
+        _context.EventExhibitors.Add(new EventExhibitor { EventId = ev.Id, UserId = collector.Id, Name = "Banco", BoothCode = "Pad. 3 – B12", InviteToken = "t1", AcceptedAt = DateTime.UtcNow });
         await _context.SaveChangesAsync();
 
-        // Limite gratuito già esaurito con 3 avvisi normali
-        for (var i = 0; i < 3; i++) (await _service.CreateAsync(_seller.Id, Here())).Error.Should().BeNull();
-        (await _service.CreateAsync(_seller.Id, Here())).StatusCode.Should().Be(429);
+        // Da collezionista non può dire dove si trova...
+        (await _service.CreateAsync(collector.Id, Here())).StatusCode.Should().Be(403);
 
-        var atFair = await _service.CreateAsync(_seller.Id, new CreateBroadcastRequest { PlaceName = "Fiera del fumetto", EventId = ev.Id, DurationMinutes = 240 });
+        // ...ma da espositore invitato pubblica l'avviso del suo stand
+        var atFair = await _service.CreateAsync(collector.Id, new CreateBroadcastRequest { PlaceName = "Fiera del fumetto", EventId = ev.Id, DurationMinutes = 240 });
         atFair.Error.Should().BeNull();
         atFair.Broadcast!.SpotDetail.Should().Be("Pad. 3 – B12");
         atFair.Broadcast.ExhibitorId.Should().NotBeNull();
@@ -203,7 +206,7 @@ public class BroadcastServiceTests : IDisposable
         _context.Events.Add(ev);
         await _context.SaveChangesAsync();
         await CardExchange.API.Services.Events.EventPackages.ActivateAsync(_context, ev.Id, EventPackageTier.Base, null, null, DateTime.UtcNow);
-        for (var i = 0; i < 3; i++) (await _service.CreateAsync(_seller.Id, Here())).Error.Should().BeNull();
+        for (var i = 0; i < 8; i++) (await _service.CreateAsync(_seller.Id, Here())).Error.Should().BeNull();
         (await _service.CreateAsync(_seller.Id, new CreateBroadcastRequest { PlaceName = "Fiera", EventId = ev.Id })).StatusCode.Should().Be(429);
     }
 

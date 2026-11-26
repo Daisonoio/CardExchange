@@ -4,15 +4,20 @@ import { useTranslation } from 'react-i18next';
 import { MapPin, Radio, Plus } from 'lucide-react';
 import { broadcasts, type LiveBroadcast } from '../../api';
 import { useFormat } from '../../i18n/format';
+import { useEntitlements } from '../../hooks/useEntitlements';
 
 /**
  * "Live ora": dove si trovano adesso i profili che segui (mercatini, fiere, stand).
- * Se non c'è nulla in corso mostra solo l'invito a pubblicare il proprio avviso.
+ * Se non c'è nulla in corso mostra solo l'invito a pubblicare il proprio avviso; chi non può pubblicarne
+ * (il collezionista non comunica dove si trova) vede la sezione solo quando c'è qualcosa in corso.
  */
 export default function LiveStrip({ coords }: { coords?: { latitude: number; longitude: number } | null }) {
   const { t } = useTranslation('live');
   const { time } = useFormat();
   const [items, setItems] = useState<LiveBroadcast[]>([]);
+  const { limit } = useEntitlements();
+  const broadcastLimit = limit('BroadcastsPerDay');
+  const canBroadcast = broadcastLimit === null || (broadcastLimit ?? 0) > 0;
 
   const lat = coords?.latitude;
   const lon = coords?.longitude;
@@ -26,6 +31,8 @@ export default function LiveStrip({ coords }: { coords?: { latitude: number; lon
     return () => window.clearInterval(id);
   }, [lat, lon]);
 
+  if (!canBroadcast && items.length === 0) return null;
+
   return (
     <section className="mb-5" aria-labelledby="live-strip-title">
       <div className="flex items-center justify-between gap-2 mb-2 lg:flex-col lg:items-start lg:gap-1">
@@ -36,9 +43,11 @@ export default function LiveStrip({ coords }: { coords?: { latitude: number; lon
           </span>
           {t('strip.title')}
         </h2>
-        <Link to="/live/new" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
-          <Plus size={14} /> {t('strip.cta')}
-        </Link>
+        {canBroadcast && (
+          <Link to="/live/new" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+            <Plus size={14} /> {t('strip.cta')}
+          </Link>
+        )}
       </div>
 
       {/* Telefono: striscia orizzontale; schermi larghi (colonna laterale della Home): elenco verticale */}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import { ArrowLeft, Bell, Crosshair, Loader2, MapPin, Radio, Store as StoreIcon, CalendarDays, Megaphone } from 'lucide-react';
@@ -37,7 +37,7 @@ function FollowPoint({ point }: { point: Point }) {
 /** "Fai sapere dove sei": avviso ai follower con posto, punto preciso e durata. */
 export default function LiveComposePage() {
   const { t } = useTranslation('live');
-  const { paidPlans } = useEntitlements();
+  const { paidPlans, entitlements, limit } = useEntitlements();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [params] = useSearchParams();
@@ -138,6 +138,12 @@ export default function LiveComposePage() {
   const input = 'w-full px-3 py-2.5 rounded-xl border border-border bg-surface-card text-sm focus:outline-none focus:ring-2 focus:ring-primary/30';
   const label = 'block text-xs font-semibold text-text-secondary mb-1';
   const shown = point ?? fallbackCenter;
+
+  // Il collezionista non comunica dove si trova; chi è espositore di un evento sì (avviso del suo stand)
+  const broadcastLimit = limit('BroadcastsPerDay');
+  if (entitlements && broadcastLimit !== null && (broadcastLimit ?? 0) <= 0 && !params.get('eventId')) {
+    return <Navigate to="/home" replace />;
+  }
 
   return (
     <div className="pb-24 max-w-xl space-y-4">

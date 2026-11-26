@@ -39,7 +39,7 @@ Per accedere usa il nome utente (oppure l'email) e la password.
 
 ## Da sapere
 
-- Gli utenti si trovano in zone diverse di Milano e dintorni, con raggio di ricerca di 80 km, così le distanze tra loro sono realistiche.
+- Gli utenti si trovano in zone diverse di Milano e dintorni, con raggio di ricerca di 100 km, così le distanze tra loro sono realistiche.
 - Il seeding crea solo ciò che manca. Un utente già presente non viene modificato, quindi le modifiche fatte durante i test restano anche dopo il riavvio.
 - Per riportare un utente allo stato iniziale, cancellalo dal database e riavvia il backend. Con SQLite in sviluppo basta anche cancellare il file del database.
 - Gli utenti partono senza carte. Per riempire le collezioni con carte vere usa `python tools/seed_demo.py` con il backend avviato. Lo script crea anche gli utenti dimostrativi (`demo`, `giulia.tcg`, …) con password `Demo1234!`.

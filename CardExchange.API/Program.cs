@@ -174,6 +174,7 @@ else
 // Limiti del piano gratuito (PlanLimits:FreeMaxCards vuoto = collezione illimitata)
 builder.Services.Configure<CardExchange.API.Configuration.PlanLimitsOptions>(builder.Configuration.GetSection("PlanLimits"));
 builder.Services.Configure<CardExchange.API.Configuration.FeatureOptions>(builder.Configuration.GetSection("Features"));
+builder.Services.Configure<CardExchange.API.Configuration.StoreRequestOptions>(builder.Configuration.GetSection("StoreRequests"));
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 // Diritti dei piani: unico servizio per tutti i controlli; cache invalidata a ogni modifica di un abbonamento
 builder.Services.AddScoped<CardExchange.API.Services.Entitlements.IEntitlementService, CardExchange.API.Services.Entitlements.EntitlementService>();
@@ -227,6 +228,7 @@ builder.Services.AddScoped<CardExchange.API.Services.Metrics.PlanMetrics>();
 builder.Services.AddScoped<CardExchange.API.Services.NearbyWishlistMatches>();
 builder.Services.AddScoped<CardExchange.API.Services.Events.EventRegistrations>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.StoreDemandService>();
+builder.Services.AddScoped<CardExchange.API.Services.Stores.StoreRequestNotifier>();
 builder.Services.AddScoped<CardExchange.API.Services.ReferralRewards>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.ReservationService>();
 builder.Services.AddScoped<CardExchange.API.Services.Stores.BuyListService>();

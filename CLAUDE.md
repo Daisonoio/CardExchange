@@ -31,6 +31,9 @@ I negozi sono il canale principale: l'app non deve mai metterli in competizione 
 - Frontend React 19 + TypeScript + Tailwind in `card-exchange-frontend`; testi in `src/i18n/locales/{it,en}`.
 - Testi del server (messaggi API, notifiche, email) scritti in italiano nel codice; la traduzione inglese va in `CardExchange.API/Localization/server-text.en.json` (frasi esatte o modelli con `{0}`, `{n}`, `{when}`, `{month}`).
 - Funzioni per tipo di profilo (`User.ProfileType`: Collezionista, Venditore, Negozio, Organizzatore): diritti in `Core/Rules/Entitlements.cs` (`ProfileCatalog`); tutti si registrano come Collezionista, il tipo lo cambia solo l'amministrazione (pagina `/admin/users`, ogni modifica nel registro `AdminAuditEntry`).
+- Raggio di ricerca: 100 km per tutti (`ProfileCatalog.RadiusKm`); il server non lo supera e il cursore finisce lì.
+  Il Collezionista non può far sapere dove si trova ("Sono qui"/avvisi): riservato a Venditore, Negozio e Organizzatore (limite `BroadcastsPerDay`), salvo lo stand di un espositore invitato a un evento.
+- Richiesta di un nuovo negozio: tutti i campi obbligatori tranne Instagram (`Core/Rules/StoreSubmissionRules.cs`, stessi controlli in `src/utils/storeSubmission.ts`); il riepilogo va per email alla casella `StoreRequests:NotifyEmail` della configurazione del server, mai mostrata nel frontend.
 - Piani a pagamento spenti (`Features:PaidPlans = false`): l'interfaccia non mostra piani, prezzi, promozioni né inviti all'upgrade; i piani (`PlanCatalog`) contano solo se accesi.
 - Ogni controllo di funzione passa da `IEntitlementService` (`[RequireCapability]`, `HasAsync`, `LimitAsync`), mai da `Plan.Tier` o `ProfileType` direttamente.
 - Impronta visiva dello scanner: `Core/Rules/CardFingerprint.cs` e `card-exchange-frontend/src/utils/cardFingerprint.ts` fanno lo stesso calcolo; si cambiano insieme, alzando `CardFingerprint.Version`.

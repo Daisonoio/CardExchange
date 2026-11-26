@@ -53,7 +53,7 @@ public class EntitlementServiceTests : IDisposable
         var pro = await Service.GetAsync(await UserWithAsync("Negozio Pro"));
 
         free.Should().Match<UserEntitlements>(e => e.Tier == SubscriptionTier.Free && !e.IsPaid && e.Capabilities.Count == 0);
-        (free.Limit(PlanLimit.RadiusKm), free.Limit(PlanLimit.BroadcastsPerDay), free.Limit(PlanLimit.WishlistItems)).Should().Be((ProfileCatalog.RadiusKm, 3, 20));
+        (free.Limit(PlanLimit.RadiusKm), free.Limit(PlanLimit.BroadcastsPerDay), free.Limit(PlanLimit.WishlistItems)).Should().Be((ProfileCatalog.RadiusKm, 0, 20));
 
         premium.Has(Capability.InstantAlerts).Should().BeTrue();
         premium.Has(Capability.FeaturedStore).Should().BeFalse();
@@ -144,8 +144,8 @@ public class EntitlementServiceTests : IDisposable
 
         // Un piano pagato non conta finché i piani sono spenti
         collector.Has(Capability.Buylist).Should().BeFalse();
-        collector.Limit(PlanLimit.RadiusKm).Should().Be(80);
-        collector.Limit(PlanLimit.BroadcastsPerDay).Should().Be(3);
+        collector.Limit(PlanLimit.RadiusKm).Should().Be(100);
+        collector.Limit(PlanLimit.BroadcastsPerDay).Should().Be(0);
         collector.Has(Capability.EarlyAccess).Should().BeTrue("nessuna carta nuova resta nascosta a chi non paga");
         // Le funzioni che erano Premium sono di tutti, con limiti larghi
         foreach (var c in new[] { Capability.AdvancedSearch, Capability.Statistics, Capability.ExportCollection, Capability.InstantAlerts, Capability.PriceAlerts, Capability.SavedSearches })
