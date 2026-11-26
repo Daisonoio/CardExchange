@@ -453,6 +453,10 @@ using (var scope = app.Services.CreateScope())
         await RBACSeeder.SeedSubscriptionPlans(context);
         await GameSeeder.SeedGames(context);
 
+        // Utenti di prova per i test manuali (solo sviluppo; credenziali in docs/utenti-di-test.md)
+        if (app.Environment.IsDevelopment() && app.Configuration.GetValue("Seed:TestUsers", true))
+            await CardExchange.API.Services.Seeding.TestUsersSeeder.SeedAsync(context, app.Logger);
+
         // Negozi creati prima dei link e QR: assegna lo slug mancante
         var withoutSlug = await context.Stores.IgnoreQueryFilters().Where(s => s.Slug == null).ToListAsync();
         if (withoutSlug.Count > 0)
