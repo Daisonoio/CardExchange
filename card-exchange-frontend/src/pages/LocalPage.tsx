@@ -9,13 +9,13 @@ type Tab = 'events' | 'stores';
 export default function LocalPage() {
   const { t } = useTranslation('events');
   const [params, setParams] = useSearchParams();
-  const tab: Tab = params.get('tab') === 'stores' ? 'stores' : 'events';
+  const tab: Tab = params.get('tab') === 'events' ? 'events' : 'stores';
 
   return (
     <div className="pb-20">
       <h1 className="text-xl font-bold text-text mb-3">{t('local.title')}</h1>
       <div className="flex rounded-xl border border-border overflow-hidden bg-surface-card mb-4" role="tablist">
-        {([['events', 'local.tabs.events'], ['stores', 'local.tabs.stores']] as [Tab, string][]).map(([key, labelKey]) => (
+        {([['stores', 'local.tabs.stores'], ['events', 'local.tabs.events']] as [Tab, string][]).map(([key, labelKey]) => (
           <button
             key={key}
             role="tab"
